@@ -14,6 +14,7 @@ class ComposerStaticInit47a0b82b815cd57fc27f3909ea3d094c
         'M' => 
         array (
             'MkZero\\Servidor\\' => 16,
+            'Micodigo\\' => 9,
         ),
     );
 
@@ -23,6 +24,10 @@ class ComposerStaticInit47a0b82b815cd57fc27f3909ea3d094c
             0 => __DIR__ . '/..' . '/vlucas/valitron/src/Valitron',
         ),
         'MkZero\\Servidor\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Micodigo\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),

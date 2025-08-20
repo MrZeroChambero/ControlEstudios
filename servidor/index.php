@@ -1,2 +1,3 @@
 <?php
-echo "Servidor: " . $_SERVER['SERVER_NAME'] . "<br>";
+require __DIR__ . '/vendor/autoload.php';
+require 'src/index2.php';

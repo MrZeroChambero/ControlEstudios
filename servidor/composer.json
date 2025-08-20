@@ -1,18 +1,19 @@
 {
-    "name": "mk-zero/servidor",
-    "autoload": {
-        "psr-4": {
-            "MkZero\\Servidor\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "MrZeroChambero",
-            "email": "128874133+MrZeroChambero@users.noreply.github.com"
-        }
-    ],
-    "require": {
-        "altorouter/altorouter": "^2.0",
-        "vlucas/valitron": "^1.4"
+  "name": "mk-zero/servidor",
+  "autoload": {
+    "psr-4": {
+      "MkZero\\Servidor\\": "src/",
+      "Micodigo\\": "src/"
     }
+  },
+  "authors": [
+    {
+      "name": "MrZeroChambero",
+      "email": "128874133+MrZeroChambero@users.noreply.github.com"
+    }
+  ],
+  "require": {
+    "altorouter/altorouter": "^2.0",
+    "vlucas/valitron": "^1.4"
+  }
 }
