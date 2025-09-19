@@ -13,8 +13,8 @@
     }
   ],
   "require": {
-    "altorouter/altorouter": "^2.0",
-    "vlucas/valitron": "^1.4"
+    "altorouter/altorouter": "2.0",
+    "vlucas/valitron": "1.4"
   },
   "scripts": {
     "test": "phpunit",
