@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MdAccountCircle,
   MdInput,
@@ -12,12 +12,69 @@ import { SidebarMenuItem } from "./SidebarMenuItem";
 
 export const Sidebar = () => {
   const [openDropdowns, setOpenDropdowns] = useState({});
+  const [usuario, setUsuario] = useState("");
+  const [nivel, setNivel] = useState("");
+  const [urlFoto, setUrlFoto] = useState("");
+
+  useEffect(() => {
+    // Leer los datos del localStorage
+    const storedUsuario = localStorage.getItem("usuario");
+    const storedNivel = localStorage.getItem("nivel");
+    const storedUrlFoto = localStorage.getItem("url_foto");
+
+    // Actualizar el estado del componente
+    if (storedUsuario) {
+      setUsuario(storedUsuario);
+    }
+    if (storedNivel) {
+      setNivel(storedNivel);
+    }
+    if (storedUrlFoto) {
+      setUrlFoto(storedUrlFoto);
+    }
+  }, []);
 
   const menuSections = {
-    Entrada: ["Botones de acción", "Formularios"],
-    Proceso: ["Validación de datos", "Automatización"],
-    Salidas: ["Informes", "Archivos exportables"],
-    Servicios: ["API", "Notificaciones"],
+    Entrada: [
+      "Registro de estudiantes",
+      "Registro de personal",
+      "Registro de representantes",
+      "Registro de áreas de aprendizaje y temas",
+      "Registros de asistencia de estudiantes",
+      "Registro de competencias",
+      "Registro de indicadores",
+      "Registro de evaluaciones",
+    ],
+    Proceso: [
+      "Gestión de grados y secciones",
+      "Inscripción",
+      "Planificación Académica",
+      "Gestión de rendimiento académico",
+      "Gestión de horarios",
+    ],
+    Salidas: [
+      "Certificados de matrícula y estudios",
+      "Certificado de educación primaria",
+      "Informe descriptivo del desempeño escolar",
+      "Sábana escolar",
+      "Constancia de prosecución",
+      "Reportes de asistencia por estudiante/sección",
+      "Directorios del personal y listados de clases",
+      "Reportes demográficos y de salud escolar",
+      "Planillas de inscripción digitalizadas",
+      "Constancias de estudio digitalizadas",
+      "Certificación de funciones para el personal",
+      "Horarios",
+      "Planificación Académica",
+    ],
+    Servicios: [
+      "Copias de seguridad",
+      "Restauración de base de datos",
+      "Creación de perfiles de usuario",
+      "Auditoría",
+      "Configuración de años escolares",
+      "Creación de cédula escolar",
+    ],
   };
 
   const menuIcons = {
@@ -43,8 +100,8 @@ export const Sidebar = () => {
           <MdAccountCircle className="h-10 w-10 text-white rounded-full bg-blue-500 p-1" />
         </div>
         <div>
-          <div className="font-semibold text-white">Usuario Demo</div>
-          <div className="text-xs text-gray-400">Nivel 5</div>
+          <div className="font-semibold text-white">{usuario || "Usuario"}</div>
+          <div className="text-xs text-gray-400">{nivel || "Nivel 5"}</div>
         </div>
       </div>
 

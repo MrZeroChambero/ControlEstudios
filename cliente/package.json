@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.12.2",
     "react": "19.1.1",
-    "react-data-table-component": "^7.7.0",
+    "react-data-table-component": "7.7.0",
     "react-dom": "19.1.1",
-    "react-icons": "^4.11.0",
-    "react-router-dom": "^6.25.1",
-    "styled-components": "^6.1.19"
+    "react-icons": "4.11.0",
+    "react-router-dom": "6.25.1",
+    "styled-components": "6.1.19",
+    "sweetalert2": "11.12"
   },
   "devDependencies": {
     "@eslint/js": "9.35.0",
