@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Solicitud } from "./Solicitud.jsx";
+import axios from "axios";
 import { LoginForm } from "./Formulario.jsx";
 // Importar useNavigate para la redirección
 import { useNavigate } from "react-router-dom";
@@ -12,13 +13,30 @@ export const Login = () => {
   const navigate = useNavigate(); // Inicializar useNavigate
 
   // useEffect para verificar si la sesión ya está iniciada
+  // Ahora, en lugar de leer el localStorage, hacemos una petición al servidor.
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Si el token existe, redirigir al dashboard
-      navigate("/dashboard");
-    }
-  }, [navigate]); // El array de dependencias asegura que el efecto se ejecute una vez
+    const verificarSesion = async () => {
+      try {
+        // Hacemos una petición a un endpoint que verifique la sesión.
+        // Axios enviará la cookie 'session_token' automáticamente.
+        const response = await axios.get(
+          "http://localhost:8080/controlestudios/servidor/verificar-sesion",
+          {
+            withCredentials: true,
+          }
+        );
+        // Si la petición es exitosa, la sesión es válida. Guardamos los datos del usuario.
+        localStorage.setItem("usuario", response.data.nombre_usuario);
+        localStorage.setItem("nivel", response.data.rol);
+        navigate("/dashboard"); // Y redirigimos al dashboard
+      } catch (error) {
+        // Si la petición falla (ej. 401 Unauthorized), no hay sesión activa.
+        // No hacemos nada y el usuario se queda en la página de login.
+        console.log("No hay sesión activa.");
+      }
+    };
+    verificarSesion();
+  }, [navigate]);
 
   const handleInputChange = (e, setter) => {
     const { value } = e.target;
@@ -31,6 +49,10 @@ export const Login = () => {
     }
   };
 
+  const handleSubmit = (e) => {
+    Solicitud(e, username, password, navigate);
+  };
+
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
@@ -40,7 +62,7 @@ export const Login = () => {
           password={password}
           showPassword={showPassword}
           handleInputChange={handleInputChange}
-          Solicitud={Solicitud}
+          handleSubmit={handleSubmit}
           setShowPassword={setShowPassword}
           setUsername={setUsername}
           setPassword={setPassword}

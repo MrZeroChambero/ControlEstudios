@@ -15,10 +15,12 @@ export const Solicitud = async (e, username, password, navigate) => {
   }
 
   try {
-    const response = await axios.post("URL_DE_TU_BACKEND/login", {
-      username,
-      password,
-    });
+    const response = await axios.post(
+      "http://localhost:8080/controlestudios/servidor/iniciar-sesion",
+      { username, password },
+      // Habilitamos el envío de credenciales (cookies) en las peticiones
+      { withCredentials: true }
+    );
 
     // Manejo de respuesta exitosa (código 200)
     if (response.status === 200) {
@@ -67,8 +69,8 @@ export const Solicitud = async (e, username, password, navigate) => {
       // La solicitud fue hecha, pero no se recibió respuesta
       Swal.fire({
         icon: "error",
-        title: "Error de conexión",
-        text: "No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.",
+        title: "Error de Conexión",
+        text: "No se pudo conectar con el servidor. Verifica que el servidor (XAMPP) esté en ejecución y que la URL sea correcta.",
       });
     } else {
       // Algo más causó el error
@@ -84,13 +86,12 @@ export const Solicitud = async (e, username, password, navigate) => {
 
 const RespuestaPositiva = (data, navigate) => {
   // Desestructuración de la respuesta del servidor
-  const { msg, token, usuario, nivel, url } = data;
+  const { msg, nombre_usuario, rol } = data;
 
-  // Almacenamiento en localStorage para persistir la sesión
-  localStorage.setItem("token", token);
-  localStorage.setItem("usuario", usuario);
-  localStorage.setItem("nivel", nivel);
-  localStorage.setItem("url_foto", url);
+  // El token ya no se guarda en localStorage, se maneja como una cookie HttpOnly.
+  // Mantenemos los otros datos para la UI si es necesario.
+  localStorage.setItem("usuario", nombre_usuario);
+  localStorage.setItem("nivel", rol);
 
   Swal.fire({
     icon: "success",

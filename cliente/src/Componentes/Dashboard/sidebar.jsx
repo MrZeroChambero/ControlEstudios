@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   MdAccountCircle,
   MdInput,
@@ -15,6 +17,7 @@ export const Sidebar = () => {
   const [usuario, setUsuario] = useState("");
   const [nivel, setNivel] = useState("");
   const [urlFoto, setUrlFoto] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Leer los datos del localStorage
@@ -92,6 +95,24 @@ export const Sidebar = () => {
     }));
   };
 
+  const handleLogout = async () => {
+    try {
+      // Llama al endpoint del backend para invalidar la sesión y la cookie.
+      // Es importante enviar 'withCredentials' para que la cookie se envíe.
+      await axios.post(
+        "http://localhost:8080/controlestudios/servidor/cerrar-sesion",
+        {},
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor:", error);
+      // Continuamos con la limpieza local incluso si el servidor falla
+    } finally {
+      localStorage.clear(); // Limpia todos los datos de usuario del localStorage
+      navigate("/login"); // Redirige al usuario a la página de login
+    }
+  };
+
   return (
     <div className="w-64 bg-gray-900 text-gray-300 flex flex-col overflow-y-auto">
       {/* Cabecera y Perfil */}
@@ -118,7 +139,10 @@ export const Sidebar = () => {
           />
         ))}
         <div className="mt-4">
-          <button className="w-full flex items-center p-3 rounded-lg text-sm font-medium transition-colors hover:bg-gray-700 focus:outline-none">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center p-3 rounded-lg text-sm font-medium transition-colors hover:bg-red-600 hover:text-white focus:outline-none"
+          >
             {menuIcons["Cerrar sesión"]}
             <span>Cerrar sesión</span>
           </button>

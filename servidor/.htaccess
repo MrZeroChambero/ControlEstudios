@@ -1,0 +1,13 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  # Activar el motor de reescritura
+  RewriteEngine On
+
+  # No reescribir las peticiones que ya van a index.php para evitar bucles.
+  RewriteRule ^index\.php$ - [L]
+
+  # Redirigir todas las demás peticiones a index.php para que sean manejadas por el enrutador.
+  # Esto previene el acceso directo a otros archivos .php.
+  RewriteRule . index.php [L]
+</IfModule>

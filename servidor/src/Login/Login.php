@@ -60,11 +60,22 @@ class Login
         $stmtInsert = $this->pdo->prepare($sqlInsert);
         $stmtInsert->execute([$idUsuario, $hashSesion]);
 
+        // Opciones de la cookie para mayor seguridad
+        $cookieOptions = [
+          'expires' => time() + (86400 * 1), // Expira en 1 día
+          'path' => '/',
+          'domain' => '', // Dejar en blanco para localhost, especificar dominio en producción
+          'secure' => false, // ¡IMPORTANTE! Cambiar a 'true' en producción (cuando uses HTTPS)
+          'httponly' => true, // La cookie no es accesible por JavaScript
+          'samesite' => 'Lax' // 'Strict' o 'Lax'. 'Lax' es un buen balance.
+        ];
+        setcookie('session_token', $hashSesion, $cookieOptions);
+
+        // Devolvemos los datos del usuario, pero ya no el hash de sesión.
         return [
           'id_usuario' => $idUsuario,
           'nombre_usuario' => $usuario['nombre_usuario'],
           'rol' => $usuario['rol'],
-          'hash_sesion' => $hashSesion,
         ];
       }
       return false;
@@ -77,41 +88,40 @@ class Login
   /**
    * Cierra la sesión de un usuario.
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a borrar.
    * @return bool Verdadero si la sesión se cerró exitosamente.
    */
-  public function cerrarSesion(int $idUsuario, string $hashSesion): bool
+  public function cerrarSesion(string $hashSesion): bool
   {
     try {
-      $sql = "DELETE FROM sesiones_usuario WHERE id_usuario = ? AND hash_sesion = ?";
+      // El hash de sesión es único, no necesitamos el id_usuario.
+      $sql = "DELETE FROM sesiones_usuario WHERE hash_sesion = ?";
       $stmt = $this->pdo->prepare($sql);
-      return $stmt->execute([$idUsuario, $hashSesion]);
+      return $stmt->execute([$hashSesion]);
     } catch (Exception $e) {
       return false;
     }
   }
 
   /**
-   * Verifica si un usuario tiene una sesión activa y válida.
+   * Obtiene los datos de un usuario a partir de un hash de sesión válido.
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a verificar.
-   * @return bool Verdadero si la sesión es válida y activa.
+   * @return array|false Un array con los datos del usuario si la sesión es válida, de lo contrario, false.
    */
-  public function verificarSesion(int $idUsuario, string $hashSesion): bool
+  public function obtenerUsuarioPorHash(string $hashSesion)
   {
     try {
       // Eliminar sesiones caducadas (más de 24 horas).
       $sqlDelete = "DELETE FROM sesiones_usuario WHERE fecha_inicio_sesion < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
       $this->pdo->exec($sqlDelete);
 
-      // Verificar si el hash de sesión existe para el usuario.
-      $sql = "SELECT COUNT(*) FROM sesiones_usuario WHERE id_usuario = ? AND hash_sesion = ?";
+      // Verificar si el hash de sesión existe y obtener los datos del usuario asociado.
+      $sql = "SELECT u.id_usuario, u.nombre_usuario, u.rol FROM sesiones_usuario s JOIN usuarios u ON s.id_usuario = u.id_usuario WHERE s.hash_sesion = ?";
       $stmt = $this->pdo->prepare($sql);
-      $stmt->execute([$idUsuario, $hashSesion]);
+      $stmt->execute([$hashSesion]);
 
-      return $stmt->fetchColumn() > 0;
+      return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
       return false;
     }
@@ -160,64 +170,48 @@ class Login
   /**
    * Verifica si un usuario tiene el rol de "administrador".
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a verificar.
    * @return bool Verdadero si la sesión es válida y el rol es 'administrador'.
    */
-  public function esAdministrador(int $idUsuario, string $hashSesion): bool
+  public function esAdministrador(string $hashSesion): bool
   {
-    if (!$this->verificarSesion($idUsuario, $hashSesion)) {
-      return false;
-    }
-    $datos = $this->_obtenerDatosUsuario($idUsuario);
-    return $datos && $datos['rol'] === 'administrador';
+    $usuario = $this->obtenerUsuarioPorHash($hashSesion);
+    return $usuario && $usuario['rol'] === 'administrador';
   }
 
   /**
    * Verifica si un usuario tiene el rol de "docente".
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a verificar.
    * @return bool Verdadero si la sesión es válida y el rol es 'docente'.
    */
-  public function esDocente(int $idUsuario, string $hashSesion): bool
+  public function esDocente(string $hashSesion): bool
   {
-    if (!$this->verificarSesion($idUsuario, $hashSesion)) {
-      return false;
-    }
-    $datos = $this->_obtenerDatosUsuario($idUsuario);
-    return $datos && $datos['rol'] === 'docente';
+    $usuario = $this->obtenerUsuarioPorHash($hashSesion);
+    return $usuario && $usuario['rol'] === 'docente';
   }
 
   /**
    * Verifica si un usuario tiene el rol de "estudiante".
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a verificar.
    * @return bool Verdadero si la sesión es válida y el rol es 'estudiante'.
    */
-  public function esEstudiante(int $idUsuario, string $hashSesion): bool
+  public function esEstudiante(string $hashSesion): bool
   {
-    if (!$this->verificarSesion($idUsuario, $hashSesion)) {
-      return false;
-    }
-    $datos = $this->_obtenerDatosUsuario($idUsuario);
-    return $datos && $datos['rol'] === 'estudiante';
+    $usuario = $this->obtenerUsuarioPorHash($hashSesion);
+    return $usuario && $usuario['rol'] === 'estudiante';
   }
 
   /**
    * Verifica si un usuario tiene el rol de "representante".
    *
-   * @param int $idUsuario El ID del usuario.
    * @param string $hashSesion El hash de la sesión a verificar.
    * @return bool Verdadero si la sesión es válida y el rol es 'representante'.
    */
-  public function esRepresentante(int $idUsuario, string $hashSesion): bool
+  public function esRepresentante(string $hashSesion): bool
   {
-    if (!$this->verificarSesion($idUsuario, $hashSesion)) {
-      return false;
-    }
-    $datos = $this->_obtenerDatosUsuario($idUsuario);
-    return $datos && $datos['rol'] === 'representante';
+    $usuario = $this->obtenerUsuarioPorHash($hashSesion);
+    return $usuario && $usuario['rol'] === 'representante';
   }
 }

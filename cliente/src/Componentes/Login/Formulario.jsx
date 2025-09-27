@@ -5,11 +5,10 @@ export const LoginForm = ({
   password,
   showPassword,
   handleInputChange,
-  Solicitud,
+  handleSubmit,
   setShowPassword,
   setUsername,
   setPassword,
-  navigate, // Asegúrate de recibir navigate como prop
 }) => {
   return (
     <form>
@@ -48,8 +47,7 @@ export const LoginForm = ({
         <input
           type="button"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-          // Ahora pasamos la función `Maps` a la función Solicitud
-          onClick={(e) => Solicitud(e, username, password, navigate)}
+          onClick={handleSubmit}
           value="Enviar"
         />
       </div>
