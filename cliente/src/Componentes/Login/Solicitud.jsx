@@ -88,19 +88,30 @@ const RespuestaPositiva = (data, navigate) => {
   // Desestructuración de la respuesta del servidor
   const { msg, nombre_usuario, rol } = data;
 
-  // El token ya no se guarda en localStorage, se maneja como una cookie HttpOnly.
-  // Mantenemos los otros datos para la UI si es necesario.
-  localStorage.setItem("usuario", nombre_usuario);
-  localStorage.setItem("nivel", rol);
-
-  Swal.fire({
-    icon: "success",
-    title: "¡Éxito!",
-    text: msg || "Inicio de sesión exitoso.",
-    showConfirmButton: false,
-    timer: 1500,
-  }).then(() => {
-    // Redirigir al dashboard después de la alerta
-    navigate("/dashboard");
-  });
+  // Validar que los datos esenciales están presentes
+  if (nombre_usuario && rol && msg) {
+    // El token ya no se guarda en localStorage, se maneja como una cookie HttpOnly.
+    // Mantenemos los otros datos para la UI si es necesario.
+    localStorage.setItem("usuario", nombre_usuario);
+    localStorage.setItem("nivel", rol);
+    console.log(data);
+    Swal.fire({
+      icon: "success",
+      title: "¡Éxito!",
+      text: msg || "Inicio de sesión exitoso.",
+      showConfirmButton: false,
+      timer: 1500,
+    }).then(() => {
+      // Redirigir al dashboard después de la alerta
+      navigate("/dashboard");
+    });
+  } else {
+    // Si los datos esperados no están, mostrar un error
+    Swal.fire({
+      icon: "error",
+      title: "Error de autenticación",
+      text: "La respuesta del servidor no es válida. Por favor, contacta al soporte técnico.",
+    });
+    console.error("Respuesta inválida del servidor:", data);
+  }
 };

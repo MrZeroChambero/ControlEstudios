@@ -144,6 +144,24 @@ class Usuario
   }
 
   /**
+   * Consulta todos los registros de usuarios.
+   * @param PDO $pdo Objeto de conexión.
+   * @return array Un array con todos los usuarios.
+   */
+  public static function consultarTodos(PDO $pdo)
+  {
+    try {
+      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol FROM usuarios";
+      $stmt = $pdo->query($sql);
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      // En un caso real, podrías querer registrar el error aquí.
+      // Por ahora, relanzamos la excepción para que la ruta la maneje.
+      throw $e;
+    }
+  }
+
+  /**
    * Consulta los datos de un registro de usuario por su ID.
    * @param PDO $pdo Objeto de conexión.
    * @param int $id ID del usuario a consultar.
@@ -186,6 +204,24 @@ class Usuario
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
       return $stmt->fetchColumn() > 0;
+    } catch (Exception $e) {
+      return false;
+    }
+  }
+
+  /**
+   * Busca un usuario por el ID de la persona.
+   * @param PDO $pdo Objeto de conexión.
+   * @param int $id_persona ID de la persona a buscar.
+   * @return object|false Un objeto Usuario o false si no se encuentra.
+   */
+  public static function buscarPorPersona(PDO $pdo, int $id_persona)
+  {
+    try {
+      $sql = "SELECT * FROM usuarios WHERE id_persona = ?";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([$id_persona]);
+      return $stmt->fetch(PDO::FETCH_OBJ);
     } catch (Exception $e) {
       return false;
     }

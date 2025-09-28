@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   exit();
 }
 
+
 // --- Enrutamiento ---
 $router = new Router();
 
@@ -27,9 +28,9 @@ $router->setBasePath('/controlestudios/servidor');
 require_once __DIR__ . '/Login/RutasLogin.php';
 registrarRutasLogin($router);
 
-// Aquí puedes incluir otros archivos de rutas en el futuro
-// require_once __DIR__ . '/RutasUsuarios.php';
-// registrarRutasUsuarios($router);
+// Incluye y registra las rutas de usuarios
+require_once __DIR__ . '/Usuario/RutasUsuario.php';
+registrarRutasUsuario($router);
 
 // --- Despachador ---
 $match = $router->match();

@@ -1,6 +1,8 @@
 <?php
 
-use Micodigo\Conexion\Conexion;
+use Micodigo\Config\Conexion;
+
+
 use Micodigo\Login\Login;
 
 /**
@@ -12,11 +14,6 @@ function registrarRutasLogin(AltoRouter $router)
 {
 
   $router->map('POST', '/iniciar-sesion', function () {
-    // Configuración de cabeceras CORS para este endpoint específico
-    header("Access-Control-Allow-Origin: http://localhost:5173"); // Origen de tu app React
-    header("Access-Control-Allow-Credentials: true");
-    header("Content-Type: application/json");
-
     $json = file_get_contents('php://input');
     $data = json_decode($json, true);
 
@@ -50,10 +47,6 @@ function registrarRutasLogin(AltoRouter $router)
 
   // Endpoint para cerrar sesión
   $router->map('POST', '/cerrar-sesion', function () {
-    header("Access-Control-Allow-Origin: http://localhost:5173");
-    header("Access-Control-Allow-Credentials: true");
-    header("Content-Type: application/json");
-
     if (isset($_COOKIE['session_token'])) {
       $hashSesion = $_COOKIE['session_token'];
       $pdo = Conexion::obtener();
@@ -69,10 +62,6 @@ function registrarRutasLogin(AltoRouter $router)
 
   // Endpoint para verificar la sesión activa
   $router->map('GET', '/verificar-sesion', function () {
-    header("Access-Control-Allow-Origin: http://localhost:5173");
-    header("Access-Control-Allow-Credentials: true");
-    header("Content-Type: application/json");
-
     if (!isset($_COOKIE['session_token'])) {
       http_response_code(401); // Unauthorized
       echo json_encode(['msg' => 'No hay sesión activa.']);
