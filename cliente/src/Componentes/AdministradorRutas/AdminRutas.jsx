@@ -51,6 +51,12 @@ export const AdminRutas = () => {
           Gestionar Usuarios
         </button>
         <button
+          onClick={() => handleNavigation("/personas")}
+          className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          Gestionar Personas
+        </button>
+        <button
           onClick={() => handleNavigation("/login")}
           className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
         >

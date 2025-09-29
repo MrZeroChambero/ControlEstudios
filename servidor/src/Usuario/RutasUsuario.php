@@ -13,6 +13,7 @@ function registrarRutasUsuario(AltoRouter $router)
 
   // Ruta para OBTENER todos los usuarios
   $router->map('GET', '/usuarios', function () {
+
     try {
       $pdo = Conexion::obtener();
       $usuarios = Usuario::consultarTodos($pdo);
@@ -58,11 +59,11 @@ function registrarRutasUsuario(AltoRouter $router)
     $contrasenaHasheada = password_hash($data['contrasena'], PASSWORD_DEFAULT);
 
     $usuario = new Usuario(
-      $data['id_persona'] ?? null,
-      $data['nombre_usuario'] ?? null,
+      $data['id_persona'],
+      $data['nombre_usuario'],
       $contrasenaHasheada,
-      $data['estado'] ?? 'activo',
-      $data['rol'] ?? null
+      'activo', // estado por defecto
+      $data['rol']
     );
 
     try {
@@ -73,7 +74,7 @@ function registrarRutasUsuario(AltoRouter $router)
         http_response_code(201); // Created
         $usuario->id_usuario = $resultado;
         // No devolvemos la contraseña hasheada
-        unset($usuario->contrasena);
+        unset($usuario->contrasena_hash);
         echo json_encode(['status' => 'success', 'message' => 'Usuario creado exitosamente.', 'data' => $usuario]);
       } elseif (is_array($resultado)) {
         http_response_code(400); // Bad Request
@@ -110,14 +111,16 @@ function registrarRutasUsuario(AltoRouter $router)
       }
 
       // Si se proporciona una nueva contraseña, la hasheamos. Si no, mantenemos la anterior.
-      $contrasena = !empty($data['contrasena']) ? password_hash($data['contrasena'], PASSWORD_DEFAULT) : $usuarioExistente->contrasena;
+      $contrasenaHash = !empty($data['contrasena']) ? password_hash($data['contrasena'], PASSWORD_DEFAULT) : $usuarioExistente->contrasena_hash;
 
       $usuario = new Usuario(
         $data['id_persona'] ?? $usuarioExistente->id_persona,
         $data['nombre_usuario'] ?? $usuarioExistente->nombre_usuario,
-        $contrasena,
+        $contrasenaHash,
         $data['estado'] ?? $usuarioExistente->estado,
-        $data['rol'] ?? $usuarioExistente->rol
+        $data['rol'] ?? $usuarioExistente->rol,
+        $usuarioExistente->fecha_creacion_cuenta, // Mantenemos la fecha de creación original
+        $usuarioExistente->ultima_sesion
       );
       $usuario->id_usuario = $id;
 
@@ -125,7 +128,7 @@ function registrarRutasUsuario(AltoRouter $router)
 
       if ($resultado === true) {
         http_response_code(200);
-        unset($usuario->contrasena);
+        unset($usuario->contrasena_hash);
         echo json_encode(['status' => 'success', 'message' => 'Usuario actualizado exitosamente.', 'data' => $usuario]);
       } elseif (is_array($resultado)) {
         http_response_code(400);

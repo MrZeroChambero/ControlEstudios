@@ -104,6 +104,24 @@ class Login
   }
 
   /**
+   * Verifica si un hash de sesión es válido y no ha expirado.
+   * Es un método estático para poder ser usado como middleware.
+   *
+   * @param string $hashSesion El hash de la sesión a verificar.
+   * @return bool Verdadero si la sesión es válida, de lo contrario, falso.
+   */
+  public static function verificarSesion(string $hashSesion): bool
+  {
+    try {
+      $pdo = Conexion::obtener();
+      $login = new self($pdo);
+      return $login->obtenerUsuarioPorHash($hashSesion) !== false;
+    } catch (Exception $e) {
+      return false;
+    }
+  }
+
+  /**
    * Obtiene los datos de un usuario a partir de un hash de sesión válido.
    *
    * @param string $hashSesion El hash de la sesión a verificar.

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-08-2025 a las 00:46:25
+-- Tiempo de generación: 28-09-2025 a las 03:38:26
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -32,7 +32,7 @@ CREATE TABLE `anios_escolares` (
   `nombre_anio` varchar(50) NOT NULL,
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date NOT NULL,
-  `activo` tinyint(1) NOT NULL DEFAULT 1
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -141,7 +141,8 @@ CREATE TABLE `estudiantes` (
 CREATE TABLE `grados` (
   `id_grado` int(11) NOT NULL,
   `nombre_grado` varchar(50) NOT NULL,
-  `nivel_educativo` varchar(50) DEFAULT NULL
+  `nivel_educativo` varchar(50) DEFAULT NULL,
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -211,19 +212,16 @@ CREATE TABLE `inscripciones` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `inventario`
+-- Estructura de tabla para la tabla `literales`
 --
 
-CREATE TABLE `inventario` (
-  `id_inventario` int(11) NOT NULL,
-  `nombre_bien` varchar(255) NOT NULL,
-  `descripcion` text DEFAULT NULL,
-  `numero_serie` varchar(100) DEFAULT NULL,
-  `fecha_adquisicion` date DEFAULT NULL,
-  `valor_adquisicion` decimal(10,2) DEFAULT NULL,
-  `estado` enum('Operativo','Dañado','En Mantenimiento','Baja') NOT NULL,
-  `ubicacion` varchar(255) DEFAULT NULL,
-  `responsable` int(11) DEFAULT NULL,
+CREATE TABLE `literales` (
+  `id_nota` int(11) NOT NULL,
+  `id_inscripcion` int(11) NOT NULL,
+  `id_planificacion` int(11) NOT NULL,
+  `id_indicador` int(11) NOT NULL,
+  `literal` varchar(10) NOT NULL,
+  `fecha_evaluacion` date NOT NULL,
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -256,22 +254,6 @@ CREATE TABLE `mediciones_fisicas` (
 CREATE TABLE `metodos_evaluacion` (
   `id_metodo_evaluacion` int(11) NOT NULL,
   `nombre_metodo` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `notas`
---
-
-CREATE TABLE `notas` (
-  `id_nota` int(11) NOT NULL,
-  `id_inscripcion` int(11) NOT NULL,
-  `id_planificacion` int(11) NOT NULL,
-  `id_indicador` int(11) NOT NULL,
-  `literal_calificacion` varchar(10) NOT NULL,
-  `fecha_evaluacion` date NOT NULL,
-  `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -351,22 +333,16 @@ CREATE TABLE `personas` (
   `direccion` varchar(255) NOT NULL,
   `telefono_principal` varchar(20) NOT NULL,
   `telefono_secundario` varchar(20) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL
+  `email` varchar(100) DEFAULT NULL,
+  `tipo_persona` enum('estudiante','representante','personal') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
 --
--- Estructura de tabla para la tabla `persona_rol`
+-- Volcado de datos para la tabla `personas`
 --
 
-CREATE TABLE `persona_rol` (
-  `id_persona_rol` int(11) NOT NULL,
-  `id_persona` int(11) NOT NULL,
-  `id_tipo_persona` int(11) NOT NULL,
-  `fecha_inicio_rol` date NOT NULL,
-  `fecha_fin_rol` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `fecha_nacimiento`, `genero`, `cedula`, `nacionalidad`, `direccion`, `telefono_principal`, `telefono_secundario`, `email`, `tipo_persona`) VALUES
+(1, 'José', NULL, 'Pérez', NULL, '1998-12-05', 'M', '31987654', 'Venezolano', 'Av. Libertador, Edif. A', '04161234567', NULL, 'jose.perez@email.com', NULL);
 
 -- --------------------------------------------------------
 
@@ -435,17 +411,6 @@ CREATE TABLE `representantes` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `roles_usuario`
---
-
-CREATE TABLE `roles_usuario` (
-  `id_rol_usuario` int(11) NOT NULL,
-  `nombre_rol` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `secciones`
 --
 
@@ -453,6 +418,20 @@ CREATE TABLE `secciones` (
   `id_seccion` int(11) NOT NULL,
   `nombre_seccion` varchar(10) NOT NULL,
   `capacidad` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `sessiones`
+--
+
+CREATE TABLE `sessiones` (
+  `Id` int(20) NOT NULL,
+  `Hash` varchar(255) NOT NULL,
+  `FechaCreacion` datetime NOT NULL,
+  `FechaVencimiento` datetime NOT NULL,
+  `SessionUsuario` int(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -471,17 +450,6 @@ CREATE TABLE `temas` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `tipos_persona`
---
-
-CREATE TABLE `tipos_persona` (
-  `id_tipo_persona` int(11) NOT NULL,
-  `nombre_tipo` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `usuarios`
 --
 
@@ -492,19 +460,8 @@ CREATE TABLE `usuarios` (
   `contrasena_hash` varchar(255) NOT NULL,
   `fecha_creacion_cuenta` datetime NOT NULL,
   `ultima_sesion` datetime DEFAULT NULL,
-  `activo` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `usuario_rol`
---
-
-CREATE TABLE `usuario_rol` (
-  `id_usuario_rol` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL,
-  `id_rol_usuario` int(11) NOT NULL
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
+  `rol` enum('Administrador','Docente','Secretaria','Representante') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -612,12 +569,13 @@ ALTER TABLE `inscripciones`
   ADD KEY `id_asignacion_gs` (`id_asignacion_gs`);
 
 --
--- Indices de la tabla `inventario`
+-- Indices de la tabla `literales`
 --
-ALTER TABLE `inventario`
-  ADD PRIMARY KEY (`id_inventario`),
-  ADD UNIQUE KEY `numero_serie` (`numero_serie`),
-  ADD KEY `responsable` (`responsable`);
+ALTER TABLE `literales`
+  ADD PRIMARY KEY (`id_nota`),
+  ADD KEY `id_inscripcion` (`id_inscripcion`),
+  ADD KEY `id_planificacion` (`id_planificacion`),
+  ADD KEY `id_indicador` (`id_indicador`);
 
 --
 -- Indices de la tabla `mediciones_fisicas`
@@ -632,15 +590,6 @@ ALTER TABLE `mediciones_fisicas`
 ALTER TABLE `metodos_evaluacion`
   ADD PRIMARY KEY (`id_metodo_evaluacion`),
   ADD UNIQUE KEY `nombre_metodo` (`nombre_metodo`);
-
---
--- Indices de la tabla `notas`
---
-ALTER TABLE `notas`
-  ADD PRIMARY KEY (`id_nota`),
-  ADD KEY `id_inscripcion` (`id_inscripcion`),
-  ADD KEY `id_planificacion` (`id_planificacion`),
-  ADD KEY `id_indicador` (`id_indicador`);
 
 --
 -- Indices de la tabla `parentesco`
@@ -675,14 +624,6 @@ ALTER TABLE `personas`
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- Indices de la tabla `persona_rol`
---
-ALTER TABLE `persona_rol`
-  ADD PRIMARY KEY (`id_persona_rol`),
-  ADD KEY `id_persona` (`id_persona`),
-  ADD KEY `id_tipo_persona` (`id_tipo_persona`);
-
---
 -- Indices de la tabla `planificaciones`
 --
 ALTER TABLE `planificaciones`
@@ -714,18 +655,17 @@ ALTER TABLE `representantes`
   ADD UNIQUE KEY `id_persona` (`id_persona`);
 
 --
--- Indices de la tabla `roles_usuario`
---
-ALTER TABLE `roles_usuario`
-  ADD PRIMARY KEY (`id_rol_usuario`),
-  ADD UNIQUE KEY `nombre_rol` (`nombre_rol`);
-
---
 -- Indices de la tabla `secciones`
 --
 ALTER TABLE `secciones`
   ADD PRIMARY KEY (`id_seccion`),
   ADD UNIQUE KEY `nombre_seccion` (`nombre_seccion`);
+
+--
+-- Indices de la tabla `sessiones`
+--
+ALTER TABLE `sessiones`
+  ADD PRIMARY KEY (`Id`);
 
 --
 -- Indices de la tabla `temas`
@@ -735,27 +675,12 @@ ALTER TABLE `temas`
   ADD KEY `id_planificacion` (`id_planificacion`);
 
 --
--- Indices de la tabla `tipos_persona`
---
-ALTER TABLE `tipos_persona`
-  ADD PRIMARY KEY (`id_tipo_persona`),
-  ADD UNIQUE KEY `nombre_tipo` (`nombre_tipo`);
-
---
 -- Indices de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id_usuario`),
   ADD UNIQUE KEY `nombre_usuario` (`nombre_usuario`),
   ADD UNIQUE KEY `id_persona` (`id_persona`);
-
---
--- Indices de la tabla `usuario_rol`
---
-ALTER TABLE `usuario_rol`
-  ADD PRIMARY KEY (`id_usuario_rol`),
-  ADD KEY `id_usuario` (`id_usuario`),
-  ADD KEY `id_rol_usuario` (`id_rol_usuario`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -840,10 +765,10 @@ ALTER TABLE `inscripciones`
   MODIFY `id_inscripcion` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `inventario`
+-- AUTO_INCREMENT de la tabla `literales`
 --
-ALTER TABLE `inventario`
-  MODIFY `id_inventario` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `literales`
+  MODIFY `id_nota` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `mediciones_fisicas`
@@ -856,12 +781,6 @@ ALTER TABLE `mediciones_fisicas`
 --
 ALTER TABLE `metodos_evaluacion`
   MODIFY `id_metodo_evaluacion` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `notas`
---
-ALTER TABLE `notas`
-  MODIFY `id_nota` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `parentesco`
@@ -885,13 +804,7 @@ ALTER TABLE `personal_plantel_externo`
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `persona_rol`
---
-ALTER TABLE `persona_rol`
-  MODIFY `id_persona_rol` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -918,16 +831,16 @@ ALTER TABLE `representantes`
   MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `roles_usuario`
---
-ALTER TABLE `roles_usuario`
-  MODIFY `id_rol_usuario` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `secciones`
 --
 ALTER TABLE `secciones`
   MODIFY `id_seccion` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `sessiones`
+--
+ALTER TABLE `sessiones`
+  MODIFY `Id` int(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -936,22 +849,10 @@ ALTER TABLE `temas`
   MODIFY `id_tema` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `tipos_persona`
---
-ALTER TABLE `tipos_persona`
-  MODIFY `id_tipo_persona` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
   MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `usuario_rol`
---
-ALTER TABLE `usuario_rol`
-  MODIFY `id_usuario_rol` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restricciones para tablas volcadas
@@ -1020,24 +921,18 @@ ALTER TABLE `inscripciones`
   ADD CONSTRAINT `inscripciones_ibfk_2` FOREIGN KEY (`id_asignacion_gs`) REFERENCES `asignaciones_grado_seccion` (`id_asignacion_gs`);
 
 --
--- Filtros para la tabla `inventario`
+-- Filtros para la tabla `literales`
 --
-ALTER TABLE `inventario`
-  ADD CONSTRAINT `inventario_ibfk_1` FOREIGN KEY (`responsable`) REFERENCES `personal` (`id_personal`);
+ALTER TABLE `literales`
+  ADD CONSTRAINT `literales_ibfk_1` FOREIGN KEY (`id_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`),
+  ADD CONSTRAINT `literales_ibfk_2` FOREIGN KEY (`id_planificacion`) REFERENCES `planificaciones` (`id_planificacion`),
+  ADD CONSTRAINT `literales_ibfk_3` FOREIGN KEY (`id_indicador`) REFERENCES `indicadores` (`id_indicador`);
 
 --
 -- Filtros para la tabla `mediciones_fisicas`
 --
 ALTER TABLE `mediciones_fisicas`
   ADD CONSTRAINT `mediciones_fisicas_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`);
-
---
--- Filtros para la tabla `notas`
---
-ALTER TABLE `notas`
-  ADD CONSTRAINT `notas_ibfk_1` FOREIGN KEY (`id_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`),
-  ADD CONSTRAINT `notas_ibfk_2` FOREIGN KEY (`id_planificacion`) REFERENCES `planificaciones` (`id_planificacion`),
-  ADD CONSTRAINT `notas_ibfk_3` FOREIGN KEY (`id_indicador`) REFERENCES `indicadores` (`id_indicador`);
 
 --
 -- Filtros para la tabla `parentesco`
@@ -1058,13 +953,6 @@ ALTER TABLE `personal`
 ALTER TABLE `personal_plantel_externo`
   ADD CONSTRAINT `personal_plantel_externo_ibfk_1` FOREIGN KEY (`id_personal`) REFERENCES `personal` (`id_personal`),
   ADD CONSTRAINT `personal_plantel_externo_ibfk_2` FOREIGN KEY (`id_plantel`) REFERENCES `planteles` (`id_plantel`);
-
---
--- Filtros para la tabla `persona_rol`
---
-ALTER TABLE `persona_rol`
-  ADD CONSTRAINT `persona_rol_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`),
-  ADD CONSTRAINT `persona_rol_ibfk_2` FOREIGN KEY (`id_tipo_persona`) REFERENCES `tipos_persona` (`id_tipo_persona`);
 
 --
 -- Filtros para la tabla `planificaciones`
@@ -1098,13 +986,6 @@ ALTER TABLE `temas`
 --
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`);
-
---
--- Filtros para la tabla `usuario_rol`
---
-ALTER TABLE `usuario_rol`
-  ADD CONSTRAINT `usuario_rol_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`),
-  ADD CONSTRAINT `usuario_rol_ibfk_2` FOREIGN KEY (`id_rol_usuario`) REFERENCES `roles_usuario` (`id_rol_usuario`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

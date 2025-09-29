@@ -5,6 +5,8 @@ import { Routes, Route } from "react-router-dom";
 import { Dashboard } from "./Componentes/Dashboard/Dashboard.jsx";
 import { Login } from "./Componentes/Login/Login.jsx";
 import { AdminRutas } from "./Componentes/AdministradorRutas/AdminRutas.jsx";
+import { Usuarios } from "./Componentes/Usuario/Usuarios.jsx";
+import { Personas } from "./Componentes/Persona/Personas.jsx";
 import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPage.jsx";
 import "./index.css";
 
@@ -15,6 +17,8 @@ function App() {
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/server-error" element={<ServerErrorPage />} />
+      <Route path="/personas" element={<Personas />} />
+      <Route path="/usuarios" element={<Usuarios />} />
 
       {/* Aquí puedes agregar más rutas */}
     </Routes>

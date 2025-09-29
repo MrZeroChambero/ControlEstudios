@@ -1,8 +1,6 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
-use AltoRouter as Router;
-
 // --- Manejo de CORS y solicitudes OPTIONS (pre-flight) ---
 // Esto es crucial para que las peticiones con 'withCredentials' desde otro puerto funcionen
 if (isset($_SERVER['HTTP_ORIGIN'])) {
@@ -23,24 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 // --- Enrutamiento ---
-$router = new Router();
-$router->setBasePath('/controlestudios/servidor');
-
-// Incluye y registra las rutas de autenticación
-require_once __DIR__ . '/src/Login/RutasLogin.php';
-registrarRutasLogin($router);
+// Incluimos el administrador de rutas, que nos devolverá el enrutador ya configurado.
+require_once __DIR__ . '/src/AdminRutas.php';
+$router = registrarTodasLasRutas();
 
 // --- Despachador ---
 $match = $router->match();
 
-if ($match && is_callable($match['target'])) {
-  call_user_func_array($match['target'], $match['params']);
+if ($match) {
+  // Si la ruta es válida, ejecuta la función asociada.
+  $target = $match['target'];
+  $params = $match['params'];
+  call_user_func_array($target, $params);
 } else {
-  header($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
+  // No se encontró la ruta.
+  http_response_code(404);
   header("Content-Type: application/json");
   echo json_encode([
     'status' => 'error',
     'message' => 'Ruta no encontrada',
-    'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL y el método HTTP."
+    'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL."
   ]);
 }
