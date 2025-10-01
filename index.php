@@ -1,5 +1,5 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/servidor/vendor/autoload.php';
 
 // --- Manejo de CORS y solicitudes OPTIONS (pre-flight) ---
 // Esto es crucial para que las peticiones con 'withCredentials' desde otro puerto funcionen
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // --- Enrutamiento ---
 // Incluimos el administrador de rutas, que nos devolverá el enrutador ya configurado.
-require_once __DIR__ . '/src/AdminRutas.php';
+require_once __DIR__ . '/servidor/src/AdminRutas.php';
 $router = registrarTodasLasRutas();
 
 // --- Despachador ---
