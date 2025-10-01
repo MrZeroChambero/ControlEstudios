@@ -1,5 +1,26 @@
 import React from "react";
 import { MdArrowRight } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+
+// Función para convertir el texto del menú a una URL amigable (slug)
+const toUrlSlug = (text) => {
+  const a =
+    "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;";
+  const b =
+    "aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------";
+  const p = new RegExp(a.split("").join("|"), "g");
+
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Reemplaza espacios con -
+    .replace(p, (c) => b.charAt(a.indexOf(c))) // Reemplaza caracteres especiales
+    .replace(/&/g, "-y-") // Reemplaza & con '-y-'
+    .replace(/[^\w\-]+/g, "") // Elimina todos los caracteres no alfanuméricos
+    .replace(/\-\-+/g, "-") // Reemplaza múltiples - con uno solo
+    .replace(/^-+/, "") // Quita - del inicio
+    .replace(/-+$/, ""); // Quita - del final
+};
 
 export const SidebarMenuItem = ({
   title,
@@ -8,6 +29,15 @@ export const SidebarMenuItem = ({
   isOpen,
   onToggle,
 }) => {
+  const navigate = useNavigate();
+
+  const handleSubItemClick = (item) => {
+    const path = toUrlSlug(item);
+    // Navegamos a una ruta dentro del dashboard, por ejemplo /dashboard/registro-de-estudiantes
+    navigate(`/dashboard/${path}`);
+    console.log(`Navegando a: /dashboard/${path}`);
+  };
+
   return (
     <div>
       <button
@@ -30,6 +60,7 @@ export const SidebarMenuItem = ({
             <button
               key={item}
               className="w-full p-2 text-sm text-left rounded-lg transition-colors hover:bg-gray-700 focus:outline-none"
+              onClick={() => handleSubItemClick(item)}
             >
               {item}
             </button>

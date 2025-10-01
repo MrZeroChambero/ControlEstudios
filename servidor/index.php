@@ -40,6 +40,7 @@ if ($match) {
   echo json_encode([
     'status' => 'error',
     'message' => 'Ruta no encontrada',
-    'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL."
+    'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL.",
+    'back' => true
   ]);
 }

@@ -69,10 +69,12 @@ Sigue estos pasos para configurar el entorno de desarrollo local.
     npm install
     ```
 2.  **Iniciar el servidor de desarrollo de React:**
+    Para iniciar el servidor y abrir automáticamente la aplicación en tu navegador, ejecuta:
     ```bash
-    npm run dev
+    npm run init
     ```
-3.  Abre tu navegador y visita http://localhost:5173 para ver la aplicación en funcionamiento.
+    Si prefieres iniciar solo el servidor sin abrir el navegador, puedes usar `npm run dev`.
+3.  El servidor de desarrollo se iniciará y abrirá una nueva pestaña en tu navegador en `http://localhost:5173`.
 
 ## Estructura de la API
 
