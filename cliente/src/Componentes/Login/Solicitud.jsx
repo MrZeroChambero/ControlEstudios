@@ -84,12 +84,13 @@ export const Solicitud = async (e, username, password, navigate) => {
   }
 };
 
+
 const RespuestaPositiva = (data, navigate) => {
   // Desestructuración de la respuesta del servidor
-  const { msg, nombre_usuario, rol } = data;
+  const { msg, nombre_usuario, rol, back } = data;
 
   // Validar que los datos esenciales están presentes
-  if (nombre_usuario && rol && msg) {
+  if (nombre_usuario && rol && msg && back) {
     // El token ya no se guarda en localStorage, se maneja como una cookie HttpOnly.
     // Mantenemos los otros datos para la UI si es necesario.
     localStorage.setItem("usuario", nombre_usuario);

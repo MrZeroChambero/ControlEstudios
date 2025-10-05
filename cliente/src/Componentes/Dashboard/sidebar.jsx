@@ -39,14 +39,16 @@ export const Sidebar = () => {
 
   const menuSections = {
     Entrada: [
-      "Registro de estudiantes",
-      "Registro de personal",
-      "Registro de representantes",
-      "Registro de áreas de aprendizaje y temas",
-      "Registros de asistencia de estudiantes",
-      "Registro de competencias",
-      "Registro de indicadores",
-      "Registro de evaluaciones",
+      "Areas de aprendizaje y temas",
+      "Asistencia de estudiantes",
+      "Competencias",
+      "Estudiantes",
+      "Evaluaciones",
+      "Indicadores",
+      "Representantes",
+      "Personal",
+      "Personas",
+      "usuarios",
     ],
     Proceso: [
       "Gestión de grados y secciones",
@@ -73,7 +75,7 @@ export const Sidebar = () => {
     Servicios: [
       "Copias de seguridad",
       "Restauración de base de datos",
-      "Creación de perfiles de usuario",
+      "Usuarios",
       "Auditoría",
       "Configuración de años escolares",
       "Creación de cédula escolar",

@@ -14,6 +14,15 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<AdminRutas />} />
+      <Route path="Estudiantes" element={<Dashboard />} />
+      <Route path="Personal" element={<Dashboard />} />
+      <Route path="Estudiantes" element={<Dashboard />} />
+      <Route path="Representantes" element={<Dashboard />} />
+      <Route path="Areas de aprendizaje y temas" element={<Dashboard />} />
+      <Route path="Asistencia de estudiantes" element={<Dashboard />} />
+      <Route path="Competencias" element={<Dashboard />} />
+      <Route path="Indicadores" element={<Dashboard />} />
+      <Route path="Evaluaciones" element={<Dashboard />} />
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/server-error" element={<ServerErrorPage />} />

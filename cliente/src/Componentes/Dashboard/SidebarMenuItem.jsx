@@ -34,8 +34,8 @@ export const SidebarMenuItem = ({
   const handleSubItemClick = (item) => {
     const path = toUrlSlug(item);
     // Navegamos a una ruta dentro del dashboard, por ejemplo /dashboard/registro-de-estudiantes
-    navigate(`/dashboard/${path}`);
-    console.log(`Navegando a: /dashboard/${path}`);
+    navigate(`/${path}`);
+    console.log(`Navegando a: /${path}`);
   };
 
   return (
