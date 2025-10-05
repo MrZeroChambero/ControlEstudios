@@ -5,6 +5,7 @@ namespace Micodigo\Login;
 use PDO;
 use Exception;
 
+
 class Login
 {
   private $pdo;
@@ -39,48 +40,51 @@ class Login
     }
 
     try {
-      // Se busca al usuario por su nombre y se verifica si está activo.
-      $sql = "SELECT id_usuario, contrasena, rol, nombre_usuario FROM usuarios WHERE nombre_usuario = ? AND estado = 'activo' LIMIT 1";
+      // Se busca al usuario por su nombre y se verifica si está activo.      
+      $sql = "SELECT id_usuario, contrasena_hash, rol, nombre_usuario FROM usuarios WHERE nombre_usuario = ? AND estado = 'activo' LIMIT 1";
       $stmt = $this->pdo->prepare($sql);
       $stmt->execute([$nombreUsuario]);
       $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-      if ($usuario && password_verify($contrasena, $usuario['contrasena'])) {
-        // Generar un hash de sesión seguro.
-        $hashSesion = bin2hex(random_bytes(32));
-        $idUsuario = $usuario['id_usuario'];
-
-        // Eliminar sesiones anteriores del mismo usuario para evitar duplicados.
-        $sqlDelete = "DELETE FROM sesiones_usuario WHERE id_usuario = ?";
-        $stmtDelete = $this->pdo->prepare($sqlDelete);
-        $stmtDelete->execute([$idUsuario]);
-
-        // Registrar la nueva sesión en la base de datos.
-        $sqlInsert = "INSERT INTO sesiones_usuario (id_usuario, hash_sesion, fecha_inicio_sesion) VALUES (?, ?, NOW())";
-        $stmtInsert = $this->pdo->prepare($sqlInsert);
-        $stmtInsert->execute([$idUsuario, $hashSesion]);
-
-        // Opciones de la cookie para mayor seguridad
-        $cookieOptions = [
-          'expires' => time() + (86400 * 1), // Expira en 1 día
-          'path' => '/',
-          'domain' => '', // Dejar en blanco para localhost, especificar dominio en producción
-          'secure' => false, // ¡IMPORTANTE! Cambiar a 'true' en producción (cuando uses HTTPS)
-          'httponly' => true, // La cookie no es accesible por JavaScript
-          'samesite' => 'Lax' // 'Strict' o 'Lax'. 'Lax' es un buen balance.
-        ];
-        setcookie('session_token', $hashSesion, $cookieOptions);
-
-        // Devolvemos los datos del usuario, pero ya no el hash de sesión.
-        return [
-          'id_usuario' => $idUsuario,
-          'nombre_usuario' => $usuario['nombre_usuario'],
-          'rol' => $usuario['rol'],
-        ];
+      if (!($usuario && password_verify($contrasena, $usuario['contrasena_hash']))) {
+        // Credenciales incorrectas.
+        return false;
       }
-      return false;
+
+      // Generar un hash de sesión seguro.
+      $hashSesion = bin2hex(random_bytes(32));
+      $idUsuario = $usuario['id_usuario'];
+
+      // Eliminar sesiones anteriores del mismo usuario para evitar duplicados.
+      $sqlDelete = "DELETE FROM sesiones_usuario WHERE id_usuario = ?";
+      $stmtDelete = $this->pdo->prepare($sqlDelete);
+      $stmtDelete->execute([$idUsuario]);
+
+      // Registrar la nueva sesión en la base de datos con fecha de inicio y fecha de vencimiento (24 horas).
+      $sqlInsert = "INSERT INTO sesiones_usuario (id_usuario, hash_sesion, fecha_inicio, fecha_vencimiento) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))";
+      $stmtInsert = $this->pdo->prepare($sqlInsert);
+      $stmtInsert->execute([$idUsuario, $hashSesion]);
+
+      // Opciones de la cookie para mayor seguridad
+      $cookieOptions = [
+        'expires' => time() + (86400 * 1), // Expira en 1 día
+        'path' => '/',
+        'domain' => '', // Dejar en blanco para localhost, especificar dominio en producción
+        'secure' => false, // ¡IMPORTANTE! Cambiar a 'true' en producción (cuando uses HTTPS)
+        'httponly' => true, // La cookie no es accesible por JavaScript
+        'samesite' => 'Lax' // 'Strict' o 'Lax'. 'Lax' es un buen balance.
+      ];
+      setcookie('session_token', $hashSesion, $cookieOptions);
+
+      // Devolvemos los datos del usuario, pero ya no el hash de sesión.
+      return [
+        'id_usuario' => $idUsuario,
+        'nombre_usuario' => $usuario['nombre_usuario'],
+        'rol' => $usuario['rol'],
+      ];
     } catch (Exception $e) {
       // Manejo de errores de la base de datos
+
       return false;
     }
   }
@@ -130,8 +134,8 @@ class Login
   public function obtenerUsuarioPorHash(string $hashSesion)
   {
     try {
-      // Eliminar sesiones caducadas (más de 24 horas).
-      $sqlDelete = "DELETE FROM sesiones_usuario WHERE fecha_inicio_sesion < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+      // Eliminar sesiones caducadas según la columna fecha_vencimiento.
+      $sqlDelete = "DELETE FROM sesiones_usuario WHERE fecha_vencimiento < NOW()";
       $this->pdo->exec($sqlDelete);
 
       // Verificar si el hash de sesión existe y obtener los datos del usuario asociado.
@@ -155,10 +159,22 @@ class Login
   {
     try {
       $nuevoHash = bin2hex(random_bytes(32));
-      $sqlUpdate = "UPDATE sesiones_usuario SET hash_sesion = ?, fecha_inicio_sesion = NOW() WHERE id_usuario = ?";
+      // Actualiza hash, fecha de inicio y fecha de vencimiento (24 horas desde ahora)
+      $sqlUpdate = "UPDATE sesiones_usuario SET hash_sesion = ?, fecha_inicio_sesion = NOW(), fecha_vencimiento = DATE_ADD(NOW(), INTERVAL 24 HOUR) WHERE id_usuario = ?";
       $stmtUpdate = $this->pdo->prepare($sqlUpdate);
 
       if ($stmtUpdate->execute([$nuevoHash, $idUsuario])) {
+        // Actualizar cookie del cliente también
+        $cookieOptions = [
+          'expires' => time() + (86400 * 1),
+          'path' => '/',
+          'domain' => '',
+          'secure' => false,
+          'httponly' => true,
+          'samesite' => 'Lax'
+        ];
+        setcookie('session_token', $nuevoHash, $cookieOptions);
+
         return $this->_obtenerDatosUsuario($idUsuario);
       }
       return false;

@@ -8,9 +8,10 @@ function registrarRutasPersona(AltoRouter $router)
 {
   // Middleware de autenticación para todas las rutas de personas
   $authMiddleware = function () {
+    header('Content-Type: text/html; charset=utf-8');
     if (!isset($_COOKIE['session_token'])) {
       http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado. Por favor, inicie sesión.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado. Por favor, inicie sesión.', 'back' => true], JSON_UNESCAPED_UNICODE);
       exit();
     }
     $pdo = Conexion::obtener();
@@ -18,7 +19,7 @@ function registrarRutasPersona(AltoRouter $router)
     // Si el hash no es válido, la sesión no es válida.
     if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
       http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada.', 'back' => true], JSON_UNESCAPED_UNICODE);
       exit();
     }
   };
@@ -43,10 +44,10 @@ function registrarRutasPersona(AltoRouter $router)
       $pdo = Conexion::obtener();
       $personas = Persona::consultarTodos($pdo);
       http_response_code(200);
-      echo json_encode(['status' => 'success', 'data' => $personas, 'back' => true]);
+      echo json_encode(['status' => 'success', 'data' => $personas, 'back' => true], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['status' => 'error', 'message' => 'Error del servidor al obtener las personas.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Error del servidor al obtener las personas.', 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 
@@ -58,14 +59,14 @@ function registrarRutasPersona(AltoRouter $router)
 
       if ($persona) {
         http_response_code(200);
-        echo json_encode(['status' => 'success', 'data' => $persona, 'back' => true]);
+        echo json_encode(['status' => 'success', 'data' => $persona, 'back' => true], JSON_UNESCAPED_UNICODE);
       } else {
         http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true], JSON_UNESCAPED_UNICODE);
       }
     } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['status' => 'error', 'message' => 'Error del servidor al consultar la persona.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Error del servidor al consultar la persona.', 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 
@@ -74,7 +75,7 @@ function registrarRutasPersona(AltoRouter $router)
     $data = json_decode(file_get_contents('php://input'), true);
     if (!$data) {
       http_response_code(400);
-      echo json_encode(['status' => 'error', 'message' => 'Datos JSON inválidos o vacíos.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Datos JSON inválidos o vacíos.', 'back' => true], JSON_UNESCAPED_UNICODE);
       return;
     }
 
@@ -86,17 +87,17 @@ function registrarRutasPersona(AltoRouter $router)
       if (is_numeric($resultado)) {
         http_response_code(201);
         $persona->id_persona = $resultado;
-        echo json_encode(['status' => 'success', 'message' => 'Persona creada exitosamente.', 'data' => $persona, 'back' => true]);
+        echo json_encode(['status' => 'success', 'message' => 'Persona creada exitosamente.', 'data' => $persona, 'back' => true], JSON_UNESCAPED_UNICODE);
       } elseif (is_array($resultado)) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Error de validación.', 'errors' => $resultado, 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'Error de validación.', 'errors' => $resultado, 'back' => true], JSON_UNESCAPED_UNICODE);
       } else {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'No se pudo crear la persona.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo crear la persona.', 'back' => true], JSON_UNESCAPED_UNICODE);
       }
     } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 
@@ -105,7 +106,7 @@ function registrarRutasPersona(AltoRouter $router)
     $data = json_decode(file_get_contents('php://input'), true);
     if (!$data) {
       http_response_code(400);
-      echo json_encode(['status' => 'error', 'message' => 'Datos JSON inválidos.', 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Datos JSON inválidos.', 'back' => true], JSON_UNESCAPED_UNICODE);
       return;
     }
 
@@ -113,7 +114,7 @@ function registrarRutasPersona(AltoRouter $router)
       $pdo = Conexion::obtener();
       if (!Persona::consultar($pdo, $id)) {
         http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true], JSON_UNESCAPED_UNICODE);
         return;
       }
 
@@ -123,17 +124,17 @@ function registrarRutasPersona(AltoRouter $router)
 
       if ($resultado === true) {
         http_response_code(200);
-        echo json_encode(['status' => 'success', 'message' => 'Persona actualizada exitosamente.', 'back' => true]);
+        echo json_encode(['status' => 'success', 'message' => 'Persona actualizada exitosamente.', 'back' => true], JSON_UNESCAPED_UNICODE);
       } elseif (is_array($resultado)) {
         http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Error de validación.', 'errors' => $resultado, 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'Error de validación.', 'errors' => $resultado, 'back' => true], JSON_UNESCAPED_UNICODE);
       } else {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'No se pudo actualizar la persona.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo actualizar la persona.', 'back' => true], JSON_UNESCAPED_UNICODE);
       }
     } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 
@@ -145,24 +146,24 @@ function registrarRutasPersona(AltoRouter $router)
       // Verificar si la persona existe antes de intentar eliminar
       if (!Persona::consultar($pdo, $id)) {
         http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada.', 'back' => true], JSON_UNESCAPED_UNICODE);
         return;
       }
       $resultado = Persona::eliminar($pdo, $id);
 
       if ($resultado === true) {
         http_response_code(200);
-        echo json_encode(['status' => 'success', 'message' => 'Persona eliminada exitosamente.', 'back' => true]);
+        echo json_encode(['status' => 'success', 'message' => 'Persona eliminada exitosamente.', 'back' => true], JSON_UNESCAPED_UNICODE);
       } elseif (is_array($resultado) && isset($resultado['error_fk'])) {
         http_response_code(409); // Conflict
-        echo json_encode(['status' => 'error', 'message' => $resultado['error_fk'], 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => $resultado['error_fk'], 'back' => true], JSON_UNESCAPED_UNICODE);
       } else {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar la persona.', 'back' => true]);
+        echo json_encode(['status' => 'error', 'message' => 'No se pudo eliminar la persona.', 'back' => true], JSON_UNESCAPED_UNICODE);
       }
     } catch (Exception $e) {
       http_response_code(500);
-      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true]);
+      echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 }

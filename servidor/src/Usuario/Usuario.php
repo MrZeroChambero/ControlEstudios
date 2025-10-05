@@ -87,12 +87,13 @@ class Usuario
    */
   public function crear(PDO $pdo)
   {
+    // La contraseña ya viene hasheada desde RutasUsuario.php (se asume)
     $data = [
       'id_persona' => $this->id_persona,
       'nombre_usuario' => $this->nombre_usuario,
-      'estado' => $this->estado,
-      'rol' => $this->rol,
       'contrasena_hash' => $this->contrasena_hash,
+      'estado' => $this->estado,
+      'rol' => $this->rol
     ];
 
     $errores = $this->_validarDatos($data);
@@ -114,6 +115,7 @@ class Usuario
       $this->id_usuario = $pdo->lastInsertId();
       return $this->id_usuario;
     } catch (Exception $e) {
+      // En un entorno de producción, sería bueno registrar el error $e->getMessage()
       return false;
     }
   }
@@ -133,9 +135,13 @@ class Usuario
       'id_persona' => $this->id_persona,
       'nombre_usuario' => $this->nombre_usuario,
       'estado' => $this->estado,
-      'rol' => $this->rol,
-      'contrasena_hash' => $this->contrasena_hash,
+      'rol' => $this->rol
     ];
+
+    // Agrega la contraseña a la validación sólo si se está cambiando
+    if (!empty($this->contrasena_hash)) {
+      $data['contrasena_hash'] = $this->contrasena_hash;
+    }
 
     $errores = $this->_validarDatos($data);
     if ($errores !== true) {
@@ -143,16 +149,29 @@ class Usuario
     }
 
     try {
-      $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, contrasena_hash=?, estado=?, rol=? WHERE id_usuario=?";
-      $stmt = $pdo->prepare($sql);
-      return $stmt->execute([
-        $this->id_persona,
-        $this->nombre_usuario,
-        $this->contrasena_hash,
-        $this->estado,
-        $this->rol,
-        $this->id_usuario
-      ]);
+      if (!empty($this->contrasena_hash)) {
+        // Se asume que la contraseña ya viene hasheada (coherente con crear()).
+        $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, contrasena_hash=?, estado=?, rol=? WHERE id_usuario=?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([
+          $this->id_persona,
+          $this->nombre_usuario,
+          $this->contrasena_hash,
+          $this->estado,
+          $this->rol,
+          $this->id_usuario
+        ]);
+      } else {
+        $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, estado=?, rol=? WHERE id_usuario=?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([
+          $this->id_persona,
+          $this->nombre_usuario,
+          $this->estado,
+          $this->rol,
+          $this->id_usuario
+        ]);
+      }
     } catch (Exception $e) {
       return false;
     }
@@ -217,7 +236,8 @@ class Usuario
           $data['ultima_sesion']
         );
         $usuario->id_usuario = $data['id_usuario'];
-        unset($usuario->contrasena); // Eliminar la contraseña del objeto
+        // Oculta la contraseña hash en el objeto antes de devolverlo
+        $usuario->contrasena_hash = null;
         return $usuario;
       }
       return false;

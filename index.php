@@ -1,5 +1,7 @@
 <?php
 require __DIR__ . '/servidor/vendor/autoload.php';
+// Especifica la codificación UTF-8
+header('Content-Type: text/html; charset=utf-8');
 
 // --- Manejo de CORS y solicitudes OPTIONS (pre-flight) ---
 // Esto es crucial para que las peticiones con 'withCredentials' desde otro puerto funcionen
@@ -10,9 +12,10 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
   header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
   if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Methods: GET, POST,PUT, OPTIONS");
   }
   if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
     header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
@@ -37,10 +40,10 @@ if ($match) {
   // No se encontró la ruta.
   http_response_code(404);
   header("Content-Type: application/json");
-  echo json_encode([
+  echo json_encode([ // Asegúrate de usar JSON_UNESCAPED_UNICODE si es necesario
     'status' => 'error',
     'message' => 'Ruta no encontrada',
     'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL.",
     'back' => true
-  ]);
+  ], JSON_UNESCAPED_UNICODE);
 }
