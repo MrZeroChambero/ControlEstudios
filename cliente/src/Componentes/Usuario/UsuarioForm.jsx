@@ -17,22 +17,30 @@ export const UsuarioForm = ({
   onCancel,
   currentUser,
   formData,
-  handleInputChange,
+  personas,
+  datosFormulario,
 }) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="mb-4">
         <label className={formStyles.label} htmlFor="id_persona">
-          ID Persona
+          Persona
         </label>
-        <input
-          type="number"
+        <select
           name="id_persona"
           value={formData.id_persona}
-          onChange={handleInputChange}
+          onChange={datosFormulario}
           className={formStyles.input}
           required
-        />
+          autoComplete="off"
+        >
+          <option value="">Seleccione una persona</option>
+          {personas.map((persona) => (
+            <option key={persona.id_persona} value={persona.id_persona}>
+              {`${persona.primer_nombre} ${persona.primer_apellido} - ${persona.cedula}`}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="mb-4">
         <label className={formStyles.label} htmlFor="nombre_usuario">
@@ -42,8 +50,9 @@ export const UsuarioForm = ({
           type="text"
           name="nombre_usuario"
           value={formData.nombre_usuario}
-          onChange={handleInputChange}
+          onChange={datosFormulario}
           className={formStyles.input}
+          autoComplete="off"
           required
         />
       </div>
@@ -55,9 +64,10 @@ export const UsuarioForm = ({
           type="password"
           name="contrasena"
           value={formData.contrasena}
-          onChange={handleInputChange}
+          onChange={datosFormulario}
           className={formStyles.input}
           placeholder={currentUser ? "Dejar en blanco para no cambiar" : ""}
+          autoComplete="off"
           required={!currentUser}
         />
       </div>
@@ -68,10 +78,12 @@ export const UsuarioForm = ({
         <select
           name="rol"
           value={formData.rol}
-          onChange={handleInputChange}
+          onChange={datosFormulario}
           className={formStyles.input}
+          autoComplete="off"
           required
         >
+          <option value="">elijar un rol</option>
           <option value="Administrador">Administrador</option>
           <option value="Docente">Docente</option>
           <option value="Secretaria">Secretaria</option>

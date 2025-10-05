@@ -6,7 +6,7 @@ export const UsuarioTable = ({
   isLoading,
   onEdit,
   onDelete,
-  onToggleStatus,
+  cambioEstados,
 }) => {
   if (isLoading) {
     return <p className="text-center text-gray-500">Cargando usuarios...</p>;
@@ -59,7 +59,7 @@ export const UsuarioTable = ({
               </td>
               <td className="py-3 px-4 text-center">
                 <button
-                  onClick={() => onToggleStatus(usuario)}
+                  onClick={() => cambioEstados(usuario)}
                   className={`text-2xl mr-2 ${
                     usuario.estado === "activo"
                       ? "text-green-500 hover:text-green-600"

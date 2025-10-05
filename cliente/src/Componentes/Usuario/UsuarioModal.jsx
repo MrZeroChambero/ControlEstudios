@@ -6,8 +6,9 @@ export const UsuarioModal = ({
   onClose,
   onSubmit,
   currentUser,
+  personas,
   formData,
-  handleInputChange,
+  datosFormulario,
 }) => {
   if (!isOpen) return null;
 
@@ -22,7 +23,8 @@ export const UsuarioModal = ({
           onCancel={onClose}
           currentUser={currentUser}
           formData={formData}
-          handleInputChange={handleInputChange}
+          personas={personas}
+          datosFormulario={datosFormulario}
         />
       </div>
     </div>

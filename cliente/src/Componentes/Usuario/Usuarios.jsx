@@ -5,6 +5,10 @@ import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
 import { FaPlus } from "react-icons/fa";
 import { UsuarioTable } from "./UsuarioTable";
 import { UsuarioModal } from "./UsuarioModal";
+import { solicitudUsuarios } from "./Solicitudes/solicitudUsuarios";
+import { solicitudPersonas } from "./Solicitudes/solicitudPersonas";
+import { Enviar } from "./Solicitudes/Enviar";
+import { eliminar } from "./Solicitudes/eliminar";
 
 export const Usuarios = () => {
   return <MenuPrincipal Formulario={MenuUsuarios} />;
@@ -19,38 +23,35 @@ const MenuUsuarios = () => {
     id_persona: "",
     nombre_usuario: "",
     contrasena: "",
-    rol: "Docente", // Valor por defecto
+    rol: "", // Valor por defecto
   });
+  const [personas, setPersonas] = useState([]);
   const API_URL = "http://localhost:8080/controlestudios/servidor/usuarios";
 
   // Cargar usuarios al montar el componente
   useEffect(() => {
-    fetchUsuarios();
+    solicitudUsuarios({ setIsLoading, setUsuarios });
+    solicitudPersonas({ setPersonas });
   }, []);
+  const cambioEstados = async (usuario) => {
+    const nuevoEstado = usuario.estado === "activo" ? "inactivo" : "activo";
+    const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
 
-  const fetchUsuarios = async () => {
     try {
-      setIsLoading(true);
-      const response = await axios.get(API_URL, { withCredentials: true });
-      console.log("Usuarios cargados:", response.status, response.data);
-      if (response.data.back === undefined) {
-        // Manejar el caso cuando 'back' es 'true'
-        Swal.fire("Error", "No se pudieron cargar los usuarios.", "error");
-        setUsuarios([]);
-        return;
-      }
-      setUsuarios(response.data.data);
-    } catch (error) {
-      console.error("Error al obtener usuarios:", error);
-      Swal.fire("Error", "No se pudieron cargar los usuarios.", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const dataToSend = { ...usuario, estado: nuevoEstado };
+      // La API de PUT requiere todos los campos, así que los enviamos.
+      // No enviamos la contraseña para no cambiarla.
+      delete dataToSend.contrasena;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+      await axios.put(`${API_URL}/${usuario.id_usuario}`, dataToSend, {
+        withCredentials: true,
+      });
+      Swal.fire("¡Éxito!", `Usuario ${accion}do correctamente.`, "success");
+      solicitudUsuarios({ setIsLoading, setUsuarios });
+    } catch (error) {
+      console.error(`Error al ${accion} el usuario:`, error);
+      Swal.fire("Error", `No se pudo ${accion} el usuario.`, "error");
+    }
   };
 
   const openModal = (usuario = null) => {
@@ -67,7 +68,7 @@ const MenuUsuarios = () => {
         id_persona: "",
         nombre_usuario: "",
         contrasena: "",
-        rol: "Docente",
+        rol: "",
       });
     }
     setIsModalOpen(true);
@@ -78,83 +79,9 @@ const MenuUsuarios = () => {
     setCurrentUser(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const dataToSend = { ...formData };
-    // No enviar la contraseña si está vacía en modo edición
-    if (currentUser && !dataToSend.contrasena) {
-      delete dataToSend.contrasena;
-    }
-
-    try {
-      let response;
-      if (currentUser) {
-        // Actualizar usuario
-        response = await axios.put(
-          `${API_URL}/${currentUser.id_usuario}`,
-          dataToSend,
-          { withCredentials: true }
-        );
-        Swal.fire("¡Actualizado!", response.data.message, "success");
-      } else {
-        // Crear usuario
-        response = await axios.post(API_URL, dataToSend, {
-          withCredentials: true,
-        });
-        Swal.fire("¡Creado!", response.data.message, "success");
-      }
-      fetchUsuarios();
-      closeModal();
-    } catch (error) {
-      console.error("Error al guardar usuario:", error);
-      const errorMsg = error.response?.data?.message || "Ocurrió un error.";
-      Swal.fire("Error", errorMsg, "error");
-    }
-  };
-
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: "¿Estás seguro?",
-      text: "¡No podrás revertir esto!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, ¡bórralo!",
-      cancelButtonText: "Cancelar",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await axios.delete(`${API_URL}/${id}`, { withCredentials: true });
-          Swal.fire("¡Borrado!", "El usuario ha sido eliminado.", "success");
-          fetchUsuarios();
-        } catch (error) {
-          console.error("Error al eliminar usuario:", error);
-          Swal.fire("Error", "No se pudo eliminar el usuario.", "error");
-        }
-      }
-    });
-  };
-
-  const toggleStatus = async (usuario) => {
-    const nuevoEstado = usuario.estado === "activo" ? "inactivo" : "activo";
-    const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
-
-    try {
-      const dataToSend = { ...usuario, estado: nuevoEstado };
-      // La API de PUT requiere todos los campos, así que los enviamos.
-      // No enviamos la contraseña para no cambiarla.
-      delete dataToSend.contrasena;
-
-      await axios.put(`${API_URL}/${usuario.id_usuario}`, dataToSend, {
-        withCredentials: true,
-      });
-      Swal.fire("¡Éxito!", `Usuario ${accion}do correctamente.`, "success");
-      fetchUsuarios();
-    } catch (error) {
-      console.error(`Error al ${accion} el usuario:`, error);
-      Swal.fire("Error", `No se pudo ${accion} el usuario.`, "error");
-    }
+  const datosFormulario = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   return (
@@ -178,18 +105,42 @@ const MenuUsuarios = () => {
           usuarios={usuarios}
           isLoading={isLoading}
           onEdit={openModal}
-          onDelete={handleDelete}
-          onToggleStatus={toggleStatus}
+          onDelete={(id) =>
+            eliminar({
+              id,
+              Swal,
+              axios,
+              solicitudUsuarios,
+              API_URL,
+              setIsLoading,
+              setUsuarios,
+            })
+          }
+          cambioEstados={cambioEstados}
         />
       </div>
 
       <UsuarioModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        onSubmit={handleSubmit}
+        onSubmit={(e) =>
+          Enviar({
+            e,
+            formData,
+            currentUser,
+            closeModal,
+            API_URL,
+            Swal,
+            axios,
+            solicitudUsuarios,
+            setIsLoading,
+            setUsuarios,
+          })
+        }
         currentUser={currentUser}
         formData={formData}
-        handleInputChange={handleInputChange}
+        personas={personas}
+        datosFormulario={datosFormulario}
       />
     </>
   );

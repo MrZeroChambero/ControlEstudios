@@ -37,13 +37,19 @@ const MenuPersonas = () => {
   const API_URL = "http://localhost:8080/controlestudios/servidor/personas";
 
   useEffect(() => {
-    fetchPersonas();
+    solicitudPersonas();
   }, []);
 
-  const fetchPersonas = async () => {
+  const solicitudPersonas = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(API_URL, { withCredentials: true });
+      console.log("se cargaron los datos de personas");
+      if (response.data.back === undefined) {
+        Swal.fire("Error", "No se pudieron cargar las personas.", "error");
+        setPersonas([]);
+        return;
+      }
       setPersonas(response.data.data);
     } catch (error) {
       console.error("Error al obtener personas:", error);
@@ -157,7 +163,7 @@ const MenuPersonas = () => {
         });
         Swal.fire("¡Creado!", response.data.message, "success");
       }
-      fetchPersonas();
+      solicitudPersonas();
       closeModal();
     } catch (error) {
       console.error("Error al guardar persona:", error);
@@ -181,7 +187,7 @@ const MenuPersonas = () => {
         try {
           await axios.delete(`${API_URL}/${id}`, { withCredentials: true });
           Swal.fire("¡Borrado!", "La persona ha sido eliminada.", "success");
-          fetchPersonas();
+          solicitudPersonas();
         } catch (error) {
           console.error("Error al eliminar persona:", error);
           Swal.fire("Error", "No se pudo eliminar la persona.", "error");

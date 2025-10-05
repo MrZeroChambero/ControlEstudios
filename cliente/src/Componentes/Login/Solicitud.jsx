@@ -84,8 +84,7 @@ export const Solicitud = async (e, username, password, navigate) => {
   }
 };
 
-
-const RespuestaPositiva = (data, navigate) => {
+export const RespuestaPositiva = (data, navigate) => {
   // Desestructuración de la respuesta del servidor
   const { msg, nombre_usuario, rol, back } = data;
 

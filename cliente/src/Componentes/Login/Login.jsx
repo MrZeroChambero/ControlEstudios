@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { LoginForm } from "./Formulario.jsx";
 import { verificarSesion } from "./VerificarSesion.jsx";
+import { Solicitud } from "./Solicitud.jsx";
 // Importar useNavigate para la redirección
 import { useNavigate } from "react-router-dom";
 import "sweetalert2/dist/sweetalert2.min.css";
