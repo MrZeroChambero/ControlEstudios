@@ -37,7 +37,7 @@ function registrarRutasLogin(AltoRouter $router)
         // La cookie ya se establece dentro de iniciarSesion()
         // RutasLogin.php: LÍNEA 39 (CORREGIDA)
         // 1. FUSIONA los arrays que contienen los datos del usuario y el indicador 'back'.
-        $responseArray = array_merge($userData, ['back' => true, 'msg' => 'Inicio de sesión exitoso.']);
+        $responseArray = array_merge($userData, ['back' => true, 'msg' => 'Inicio de sesión exitoso.', 'token' => $_COOKIE['session_token'] ?? null]);
 
         // 2. CODIFICA el array resultante, usando JSON_UNESCAPED_UNICODE como OPCIÓN de json_encode.
         echo json_encode($responseArray, JSON_UNESCAPED_UNICODE);
@@ -83,7 +83,10 @@ function registrarRutasLogin(AltoRouter $router)
       if ($userData) {
         http_response_code(200);
         // Devolvemos los datos del usuario para que el frontend pueda usarlos
-        echo json_encode(array_merge($userData, ['back' => true], JSON_UNESCAPED_UNICODE), JSON_UNESCAPED_UNICODE);
+        $responseArray = array_merge($userData, ['back' => true, 'msg' => 'Inicio de sesión exitoso.', 'token' => $_COOKIE['session_token'] ?? null]);
+
+        // 2. CODIFICA el array resultante, usando JSON_UNESCAPED_UNICODE como OPCIÓN de json_encode.
+        echo json_encode($responseArray, JSON_UNESCAPED_UNICODE);
       } else {
         // La cookie existe pero no es válida (o expiró), la borramos
         setcookie('session_token', '', time() - 3600, '/');

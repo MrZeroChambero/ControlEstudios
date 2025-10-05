@@ -11,29 +11,26 @@ class Usuario
   public $id_usuario;
   public $id_persona;
   public $nombre_usuario;
-  public $contrasena_hash;
-  public $fecha_creacion_cuenta;
-  public $ultima_sesion;
+  public $clave;
+
   public $estado;
   public $rol;
 
   public function __construct(
     ?int $id_persona,
     string $nombre_usuario,
-    string $contrasena_hash,
+    string $clave,
     string $estado,
     ?string $rol,
-    ?string $fecha_creacion_cuenta = null,
-    ?string $ultima_sesion = null
+
   ) {
     $this->id_persona = $id_persona;
     $this->nombre_usuario = $nombre_usuario;
-    $this->contrasena_hash = $contrasena_hash;
+    $this->clave = $clave;
     $this->estado = $estado;
     $this->rol = $rol;
     // Asigna la fecha actual si no se proporciona
-    $this->fecha_creacion_cuenta = $fecha_creacion_cuenta ?? date('Y-m-d H:i:s');
-    $this->ultima_sesion = $ultima_sesion;
+
   }
 
   /**
@@ -55,6 +52,7 @@ class Usuario
       'required' => [
         ['id_persona'],
         ['nombre_usuario'],
+        ['clave'],
         ['estado'],
         ['rol']
       ],
@@ -66,10 +64,12 @@ class Usuario
         ['rol', ['Administrador', 'Docente', 'Secretaria', 'Representante']],
         ['estado', ['activo', 'inactivo', 'incompleto']]
       ],
-      'lengthMin' => [['nombre_usuario', 3]],
+      'lengthMin' => [['nombre_usuario', 3], ['clave', 8]],
+
       'lengthMax' => [
         ['nombre_usuario', 50],
-        ['contrasena_hash', 255]
+        ['clave', 255]
+
       ]
     ]);
 
@@ -78,6 +78,22 @@ class Usuario
     } else {
       return $v->errors();
     }
+  }
+
+  /**
+   *  Función para encapsular la validación y poder llamarla desde afuera
+   */
+  public function validarDatos(array $data)
+  {
+    return $this->_validarDatos($data);
+  }
+
+  /**
+   * Establece la contraseña hasheada.
+   */
+  public function setContrasena(string $contrasena)
+  {
+    $this->clave = password_hash($contrasena, PASSWORD_DEFAULT);
   }
 
   /**
@@ -91,8 +107,8 @@ class Usuario
     $data = [
       'id_persona' => $this->id_persona,
       'nombre_usuario' => $this->nombre_usuario,
-      'contrasena_hash' => $this->contrasena_hash,
-      'estado' => $this->estado,
+      'clave' => $this->clave,
+      'estado' => "activo",
       'rol' => $this->rol
     ];
 
@@ -102,13 +118,12 @@ class Usuario
     }
 
     try {
-      $sql = "INSERT INTO usuarios (id_persona, nombre_usuario, contrasena_hash, fecha_creacion_cuenta, estado, rol) VALUES (?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO usuarios (id_persona, nombre_usuario, contrasena_hash, estado, rol) VALUES (?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $this->id_persona,
         $this->nombre_usuario,
-        $this->contrasena_hash,
-        $this->fecha_creacion_cuenta,
+        $this->clave,
         $this->estado,
         $this->rol
       ]);
@@ -138,39 +153,21 @@ class Usuario
       'rol' => $this->rol
     ];
 
-    // Agrega la contraseña a la validación sólo si se está cambiando
-    if (!empty($this->contrasena_hash)) {
-      $data['contrasena_hash'] = $this->contrasena_hash;
-    }
-
     $errores = $this->_validarDatos($data);
     if ($errores !== true) {
       return $errores;
     }
 
     try {
-      if (!empty($this->contrasena_hash)) {
-        // Se asume que la contraseña ya viene hasheada (coherente con crear()).
+      if (!empty($this->clave)) {
         $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, contrasena_hash=?, estado=?, rol=? WHERE id_usuario=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
-          $this->id_persona,
-          $this->nombre_usuario,
-          $this->contrasena_hash,
-          $this->estado,
-          $this->rol,
-          $this->id_usuario
-        ]);
       } else {
         $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, estado=?, rol=? WHERE id_usuario=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([
-          $this->id_persona,
-          $this->nombre_usuario,
-          $this->estado,
-          $this->rol,
-          $this->id_usuario
-        ]);
+
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$this->id_persona, $this->nombre_usuario, $this->estado, $this->rol, $this->id_usuario]);
       }
     } catch (Exception $e) {
       return false;
@@ -202,7 +199,7 @@ class Usuario
   public static function consultarTodos(PDO $pdo)
   {
     try {
-      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol, fecha_creacion_cuenta, ultima_sesion FROM usuarios";
+      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol FROM usuarios";
       $stmt = $pdo->query($sql);
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
@@ -232,13 +229,11 @@ class Usuario
           $data['contrasena_hash'],
           $data['estado'],
           $data['rol'],
-          $data['fecha_creacion_cuenta'],
-          $data['ultima_sesion']
         );
         $usuario->id_usuario = $data['id_usuario'];
         // Oculta la contraseña hash en el objeto antes de devolverlo
-        $usuario->contrasena_hash = null;
-        return $usuario;
+        $usuario->clave = null;
+        return ['id_persona' => $data['id_persona'], 'nombre_usuario' => $data['nombre_usuario'], 'estado' => $data['estado'], 'rol' => $data['rol']];
       }
       return false;
     } catch (Exception $e) {
@@ -273,7 +268,7 @@ class Usuario
   public static function buscarPorPersona(PDO $pdo, int $id_persona)
   {
     try {
-      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol, fecha_creacion_cuenta, ultima_sesion FROM usuarios WHERE id_persona = ?";
+      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol FROM usuarios WHERE id_persona = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id_persona]);
       return $stmt->fetch(PDO::FETCH_OBJ);

@@ -9,6 +9,8 @@ function registrarRutasPersona(AltoRouter $router)
   // Middleware de autenticación para todas las rutas de personas
   $authMiddleware = function () {
     header('Content-Type: text/html; charset=utf-8');
+    // var_dump($_COOKIE);
+    // exit();
     if (!isset($_COOKIE['session_token'])) {
       http_response_code(401);
       echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado. Por favor, inicie sesión.', 'back' => true], JSON_UNESCAPED_UNICODE);
