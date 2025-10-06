@@ -3,7 +3,8 @@
   "autoload": {
     "psr-4": {
       "MkZero\\Servidor\\": "src/",
-      "Micodigo\\": "src/"
+      "Micodigo\\": "src/",
+      "Usuario\\": "src/Usuario/Metodos"
     }
   },
   "authors": [

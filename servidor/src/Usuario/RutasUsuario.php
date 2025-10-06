@@ -50,9 +50,6 @@ function registrarRutasUsuario(AltoRouter $router)
     $json = file_get_contents('php://input');
 
     $data = json_decode($json, true);
-    $data['estado']  = "activo";
-
-
 
     if (!$data) {
       http_response_code(400);
@@ -60,42 +57,47 @@ function registrarRutasUsuario(AltoRouter $router)
       return;
     }
 
-    // ¡IMPORTANTE! Hashear la contraseña antes de guardarla.
+    // 1. Validar contraseña en texto plano
+    $usuarioTemp = new Usuario(null, '', '', '', null);
+    $erroresContrasena = $usuarioTemp->validarContrasena($data['contrasena'] ?? '');
+    if ($erroresContrasena !== true) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    // 2. Hashear la contraseña
     $contrasena_hash = password_hash($data['contrasena'], PASSWORD_DEFAULT);
     $data['clave'] = $contrasena_hash;
+    $data['estado'] = "activo";
 
+    // 3. Validar el resto de los datos (incluyendo el hash de la clave)
     $usuario = new Usuario(
       $data['id_persona'],
       $data['nombre_usuario'],
       $data['clave'],
-      $data['estado'], //estado "activo", // estado por defecto
+      $data['estado'],
       $data['rol']
     );
 
     $errores = $usuario->validarDatos($data);
-
     if ($errores !== true) {
-      http_response_code(400);
-      // Modifica el mensaje para que se refiera solo a 'contraseña'
-      $errores = str_replace('contrasena_hash', 'contraseña', json_encode($errores, JSON_UNESCAPED_UNICODE));
-      echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => json_decode($errores, true)], JSON_UNESCAPED_UNICODE);
-      return;
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
+        return;
     }
 
-
+    // 4. Crear el usuario en la BD
     try {
       $pdo = Conexion::obtener();
       $resultado = $usuario->crear($pdo);
 
-
       if (is_numeric($resultado)) {
         http_response_code(201); // Created
         $usuario->id_usuario = $resultado;
-        // No devolvemos la contraseña hasheada
-        unset($usuario->contrasena_hash);
+        unset($usuario->clave);
         echo json_encode(['status' => 'success', 'message' => 'Usuario creado exitosamente.', 'back' => true, 'data' => $usuario], JSON_UNESCAPED_UNICODE);
       } else {
-        // Si `crear` devuelve false, es un error de base de datos.
         http_response_code(500);
         echo json_encode(['status' => 'error', 'message' => 'No se pudo crear el usuario.', 'error' => $resultado, 'back' => true], JSON_UNESCAPED_UNICODE);
       }
@@ -118,7 +120,7 @@ function registrarRutasUsuario(AltoRouter $router)
 
     try {
       $pdo = Conexion::obtener();
-      $usuarioExistente = Usuario::consultar($pdo, $id);
+      $usuarioExistente = Usuario::consultarActualizar($pdo, $id);
 
       if (!$usuarioExistente) {
         http_response_code(404);
@@ -126,27 +128,40 @@ function registrarRutasUsuario(AltoRouter $router)
         return;
       }
 
-      // Si se proporciona una nueva contraseña, la hasheamos. Si no, mantenemos la anterior.
-      $contrasena_hash = !empty($data['contrasena']) ? password_hash($data['contrasena'], PASSWORD_DEFAULT) : $usuarioExistente->contrasena_hash;
+      $usuarioTemp = new Usuario(null, '', '', '', null);
+      $dataToValidate = $data;
+
+      // 1. Si se proporciona una nueva contraseña, validarla
+      if (!empty($data['contrasena'])) {
+          $erroresContrasena = $usuarioTemp->validarContrasena($data['contrasena']);
+          if ($erroresContrasena !== true) {
+              http_response_code(400);
+              echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
+              return;
+          }
+          // Si es válida, la hasheamos para la siguiente validación y para guardarla
+          $dataToValidate['clave'] = password_hash($data['contrasena'], PASSWORD_DEFAULT);
+      }
+
+      // 2. Validar el resto de los datos
+      $errores = $usuarioTemp->validarDatos($dataToValidate, true);
+      if ($errores !== true) {
+          http_response_code(400);
+          echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
+          return;
+      }
+
+      // 3. Crear el objeto Usuario final y actualizar
+      $clave = $dataToValidate['clave'] ?? $usuarioExistente->clave;
 
       $usuario = new Usuario(
         $data['id_persona'] ?? $usuarioExistente->id_persona,
         $data['nombre_usuario'] ?? $usuarioExistente->nombre_usuario,
-        $contrasenaHash,
+        $clave,
         $data['estado'] ?? $usuarioExistente->estado,
-        $data['rol'] ?? $usuarioExistente->rol,
-
+        $data['rol'] ?? $usuarioExistente->rol
       );
       $usuario->id_usuario = $id;
-
-      $errores = $usuario->validarDatos($data);
-      if ($errores !== true) {
-        http_response_code(400);
-        // Modifica el mensaje para que se refiera solo a 'contraseña'
-        $errores = str_replace('contrasena_hash', 'contraseña', json_encode($errores, JSON_UNESCAPED_UNICODE));
-        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => json_decode($errores, true)], JSON_UNESCAPED_UNICODE);
-        return;
-      }
 
       $resultado = $usuario->actualizar($pdo);
 
