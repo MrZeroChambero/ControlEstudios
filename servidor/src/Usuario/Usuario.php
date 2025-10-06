@@ -5,10 +5,12 @@ namespace Micodigo\Usuario;
 use PDO;
 use Exception;
 use Valitron\Validator;
-use Usuario\Metodos\Validaciones\ValidarDatos;
+use Usuario\Validaciones\ValidarDatos;
 
 class Usuario
 {
+  use ValidarDatos;
+
   public $id_usuario;
   public $id_persona;
   public $nombre_usuario;
@@ -24,8 +26,6 @@ class Usuario
     $this->estado = $estado;
     $this->rol = $rol;
   }
-
-  use ValidarDatos;
 
   /**
    * Valida la contraseña en texto plano.

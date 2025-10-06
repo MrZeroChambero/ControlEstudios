@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Valitron\\' => array($vendorDir . '/vlucas/valitron/src/Valitron'),
+    'Usuario\\' => array($baseDir . '/src/Usuario/Metodos'),
     'MkZero\\Servidor\\' => array($baseDir . '/src'),
     'Micodigo\\' => array($baseDir . '/src'),
 );

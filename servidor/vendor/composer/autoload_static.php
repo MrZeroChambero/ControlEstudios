@@ -11,6 +11,10 @@ class ComposerStaticInit50e56050ab005e28dbe30942971ccaff
         array (
             'Valitron\\' => 9,
         ),
+        'U' => 
+        array (
+            'Usuario\\' => 8,
+        ),
         'M' => 
         array (
             'MkZero\\Servidor\\' => 16,
@@ -22,6 +26,10 @@ class ComposerStaticInit50e56050ab005e28dbe30942971ccaff
         'Valitron\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/valitron/src/Valitron',
+        ),
+        'Usuario\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/Usuario/Metodos',
         ),
         'MkZero\\Servidor\\' => 
         array (
