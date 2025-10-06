@@ -2,27 +2,28 @@
     "packages": [
         {
             "name": "altorouter/altorouter",
-            "version": "2.0.3",
-            "version_normalized": "2.0.3.0",
+            "version": "2.0",
+            "version_normalized": "2.0.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dannyvankooten/AltoRouter.git",
-                "reference": "9931b976423f7334c94f7b5b348be8ab1da3415d"
+                "reference": "7e2b48db00a7ec1174424fc5b16630a58bff377c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dannyvankooten/AltoRouter/zipball/9931b976423f7334c94f7b5b348be8ab1da3415d",
-                "reference": "9931b976423f7334c94f7b5b348be8ab1da3415d",
+                "url": "https://api.github.com/repos/dannyvankooten/AltoRouter/zipball/7e2b48db00a7ec1174424fc5b16630a58bff377c",
+                "reference": "7e2b48db00a7ec1174424fc5b16630a58bff377c",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.3"
+                "php": ">=5.6.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "9.6.*",
-                "squizlabs/php_codesniffer": "3.6.2"
+                "codeclimate/php-test-reporter": "dev-master",
+                "phpunit/phpunit": "5.7.*",
+                "squizlabs/php_codesniffer": "3.4.2"
             },
-            "time": "2025-01-05T20:33:28+00:00",
+            "time": "2019-11-10T19:33:12+00:00",
             "type": "library",
             "installation-source": "source",
             "autoload": {
@@ -57,55 +58,53 @@
                 "routing"
             ],
             "support": {
-                "source": "https://github.com/dannyvankooten/AltoRouter/tree/2.0.3"
+                "issues": "https://github.com/dannyvankooten/AltoRouter/issues",
+                "source": "https://github.com/dannyvankooten/AltoRouter/tree/2.0"
             },
             "install-path": "../altorouter/altorouter"
         },
         {
             "name": "vlucas/valitron",
-            "version": "v1.4.11",
-            "version_normalized": "1.4.11.0",
+            "version": "v1.4.0",
+            "version_normalized": "1.4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vlucas/valitron.git",
-                "reference": "fadce39f5f235755bb9794b2573af2d5bfcba85f"
+                "reference": "b33c79116260637337187b7125f955ae26d306cc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vlucas/valitron/zipball/fadce39f5f235755bb9794b2573af2d5bfcba85f",
-                "reference": "fadce39f5f235755bb9794b2573af2d5bfcba85f",
+                "url": "https://api.github.com/repos/vlucas/valitron/zipball/b33c79116260637337187b7125f955ae26d306cc",
+                "reference": "b33c79116260637337187b7125f955ae26d306cc",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.2"
             },
             "require-dev": {
-                "phpunit/phpunit": ">=4.8.35"
+                "phpunit/phpunit": "~4.0"
             },
-            "suggest": {
-                "ext-mbstring": "It can support the multiple bytes string length."
-            },
-            "time": "2022-10-14T11:54:24+00:00",
+            "time": "2017-02-23T08:31:59+00:00",
             "type": "library",
             "installation-source": "source",
             "autoload": {
-                "psr-4": {
-                    "Valitron\\": "src/Valitron"
+                "psr-0": {
+                    "Valitron": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "BSD-3-Clause"
+                "BSD"
             ],
             "authors": [
                 {
                     "name": "Vance Lucas",
                     "email": "vance@vancelucas.com",
-                    "homepage": "https://www.vancelucas.com"
+                    "homepage": "http://www.vancelucas.com"
                 }
             ],
             "description": "Simple, elegant, stand-alone validation library with NO dependencies",
-            "homepage": "https://github.com/vlucas/valitron",
+            "homepage": "http://github.com/vlucas/valitron",
             "keywords": [
                 "valid",
                 "validation",
@@ -113,14 +112,8 @@
             ],
             "support": {
                 "issues": "https://github.com/vlucas/valitron/issues",
-                "source": "https://github.com/vlucas/valitron/tree/v1.4.11"
+                "source": "https://github.com/vlucas/valitron/tree/master"
             },
-            "funding": [
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/vlucas/valitron",
-                    "type": "tidelift"
-                }
-            ],
             "install-path": "../vlucas/valitron"
         }
     ],
