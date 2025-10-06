@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-09-2025 a las 03:38:26
+-- Tiempo de generación: 06-10-2025 a las 11:46:44
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -327,7 +327,7 @@ CREATE TABLE `personas` (
   `primer_apellido` varchar(50) NOT NULL,
   `segundo_apellido` varchar(50) DEFAULT NULL,
   `fecha_nacimiento` date NOT NULL,
-  `genero` enum('M','F','Otro') NOT NULL,
+  `genero` enum('M','F') NOT NULL,
   `cedula` varchar(20) DEFAULT NULL,
   `nacionalidad` varchar(50) NOT NULL,
   `direccion` varchar(255) NOT NULL,
@@ -342,7 +342,9 @@ CREATE TABLE `personas` (
 --
 
 INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `fecha_nacimiento`, `genero`, `cedula`, `nacionalidad`, `direccion`, `telefono_principal`, `telefono_secundario`, `email`, `tipo_persona`) VALUES
-(1, 'José', NULL, 'Pérez', NULL, '1998-12-05', 'M', '31987654', 'Venezolano', 'Av. Libertador, Edif. A', '04161234567', NULL, 'jose.perez@email.com', NULL);
+(1, 'José', NULL, 'Pérez', NULL, '1998-12-05', 'M', '31987654', 'Venezolano', 'Av. Libertador, Edif. A', '04161234567', NULL, 'jose.perez@email.com', NULL),
+(2, 'asdsad', 'sadsa', 'dasd', 'dsasdsad', '2025-10-21', 'F', '2822725272', 'Venezolana', 'sdsadwsadsadsadsaa', '04115444444444444', '6546465465465', 'amiascanio26@gmail.com', NULL),
+(3, 'persona 3', 'sdas', 'dasd', 'dsasdsad', '2025-10-10', 'F', '2822722132', 'Venezolana', 'ew4r324r12ras', '04115444444444444', '085885875488585', 'sdasd@adas.com', NULL);
 
 -- --------------------------------------------------------
 
@@ -423,16 +425,23 @@ CREATE TABLE `secciones` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `sessiones`
+-- Estructura de tabla para la tabla `sesiones_usuario`
 --
 
-CREATE TABLE `sessiones` (
-  `Id` int(20) NOT NULL,
-  `Hash` varchar(255) NOT NULL,
-  `FechaCreacion` datetime NOT NULL,
-  `FechaVencimiento` datetime NOT NULL,
-  `SessionUsuario` int(20) NOT NULL
+CREATE TABLE `sesiones_usuario` (
+  `id` int(20) NOT NULL,
+  `id_usuario` int(20) NOT NULL,
+  `hash_sesion` varchar(255) NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_vencimiento` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `sesiones_usuario`
+--
+
+INSERT INTO `sesiones_usuario` (`id`, `id_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
+(13, 1, '37b51c03141c1be7ea9921bbe96c34603039c1cde651863382f292148eef5dc4', '2025-10-05', '2025-10-06');
 
 -- --------------------------------------------------------
 
@@ -458,11 +467,17 @@ CREATE TABLE `usuarios` (
   `id_persona` int(11) DEFAULT NULL,
   `nombre_usuario` varchar(50) NOT NULL,
   `contrasena_hash` varchar(255) NOT NULL,
-  `fecha_creacion_cuenta` datetime NOT NULL,
-  `ultima_sesion` datetime DEFAULT NULL,
   `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
   `rol` enum('Administrador','Docente','Secretaria','Representante') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id_usuario`, `id_persona`, `nombre_usuario`, `contrasena_hash`, `estado`, `rol`) VALUES
+(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', 'Administrador'),
+(39, 3, 'jjjjjjjjjjjjjjjjjjjjjjjj', '$2y$10$tYVAs4jx.rwpGOvOLB6S.uVz.5yfovThTC2G2EgE.xToOycKVe6TG', 'activo', 'Representante');
 
 --
 -- Índices para tablas volcadas
@@ -662,10 +677,10 @@ ALTER TABLE `secciones`
   ADD UNIQUE KEY `nombre_seccion` (`nombre_seccion`);
 
 --
--- Indices de la tabla `sessiones`
+-- Indices de la tabla `sesiones_usuario`
 --
-ALTER TABLE `sessiones`
-  ADD PRIMARY KEY (`Id`);
+ALTER TABLE `sesiones_usuario`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `temas`
@@ -804,7 +819,7 @@ ALTER TABLE `personal_plantel_externo`
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -837,10 +852,10 @@ ALTER TABLE `secciones`
   MODIFY `id_seccion` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `sessiones`
+-- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
-ALTER TABLE `sessiones`
-  MODIFY `Id` int(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `sesiones_usuario`
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -852,7 +867,7 @@ ALTER TABLE `temas`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- Restricciones para tablas volcadas
