@@ -28,5 +28,10 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Persona/RutasPersona.php';
   registrarRutasPersona($router);
 
+  // Incluye y registra las rutas de personal
+  require_once __DIR__ . '/Personal/RutasPersonal.php';
+  registrarRutasPersonal($router);
+
+
   return $router;
 }

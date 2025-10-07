@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-10-2025 a las 11:46:44
+-- Tiempo de generación: 07-10-2025 a las 03:44:21
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -280,23 +280,17 @@ CREATE TABLE `personal` (
   `id_personal` int(11) NOT NULL,
   `id_persona` int(11) NOT NULL,
   `codigo_rac` varchar(50) DEFAULT NULL,
-  `cargo` varchar(100) NOT NULL,
-  `cargo_tipo_personal` varchar(100) DEFAULT NULL,
+  `cargo` enum('DOCENTE_I','DOCENTE_II','DOCENTE_III','DOCENTE_IV','DOCENTE_V','DOCENTE_VI','BACHILLER_DOCENTE','DOCENTE_TSU','DOCENTE_COORDINADOR','DOCENTE_SUBDIRECTOR','DOCENTE_DIRECTOR','DOCENTE_SUPERVISOR','PROFESOR_INSTRUCTOR','PROFESOR_ASISTENTE','PROFESOR_AGREGADO','PROFESOR_ASOCIADO','PROFESOR_TITULAR','MADRE_COCINERA','COORDINADOR_CNAE_MUNICIPAL','VOCERO_CNAE_INSTITUCIONAL','TUTOR_CBIT','ANALISTA_ADMINISTRATIVO','ASISTENTE_ADMINISTRATIVO','PROFESIONAL_NO_DOCENTE','JEFE_DE_UNIDAD','ALTO_NIVEL_O_CONFIANZA','OBRERO_I','OBRERO_II','OBRERO_III','PERSONAL_DE_VIGILANCIA') NOT NULL,
+  `funcion` enum('Docente','Administrativo','Obrero','CBIT','CNAE','UPE') NOT NULL,
   `fecha_contratacion` date NOT NULL,
-  `departamento` varchar(100) DEFAULT NULL,
   `nivel_academico` varchar(100) DEFAULT NULL,
   `anios_servicio` int(11) DEFAULT NULL,
-  `horas_academicas` int(11) DEFAULT NULL,
-  `horas_adm` int(11) DEFAULT NULL,
-  `turno_atiende` varchar(50) DEFAULT NULL,
-  `grado_imparte` varchar(50) DEFAULT NULL,
-  `seccion_imparte` varchar(10) DEFAULT NULL,
+  `horas_trabajo` time DEFAULT NULL,
   `situacion_trabajador` varchar(100) DEFAULT NULL,
   `observacion` text DEFAULT NULL,
   `rif` varchar(20) DEFAULT NULL,
   `estado_civil` varchar(50) DEFAULT NULL,
   `etnia_religion` varchar(100) DEFAULT NULL,
-  `numero_hijos` int(11) DEFAULT NULL,
   `cantidad_hijas` int(11) DEFAULT NULL,
   `cantidad_hijos_varones` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -441,7 +435,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `id_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(13, 1, '37b51c03141c1be7ea9921bbe96c34603039c1cde651863382f292148eef5dc4', '2025-10-05', '2025-10-06');
+(15, 1, '1fc3c6a7cdc794f2329f2aa4ed5b9ebaf3eb498eee326c1c0b65347528f80c0d', '2025-10-06', '2025-10-07');
 
 -- --------------------------------------------------------
 
@@ -819,7 +813,7 @@ ALTER TABLE `personal_plantel_externo`
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -855,7 +849,7 @@ ALTER TABLE `secciones`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

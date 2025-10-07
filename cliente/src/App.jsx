@@ -8,6 +8,7 @@ import { AdminRutas } from "./Componentes/AdministradorRutas/AdminRutas.jsx";
 import { Usuarios } from "./Componentes/Usuario/Usuarios.jsx";
 import { Personas } from "./Componentes/Persona/Personas.jsx";
 import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPage.jsx";
+import { Personal } from "./Componentes/Personal/Personal.jsx";
 import "./index.css";
 
 function App() {
@@ -15,7 +16,7 @@ function App() {
     <Routes>
       <Route path="/" element={<AdminRutas />} />
       <Route path="Estudiantes" element={<Dashboard />} />
-      <Route path="Personal" element={<Dashboard />} />
+      <Route path="Personal" element={<Personal />} />
       <Route path="Estudiantes" element={<Dashboard />} />
       <Route path="Representantes" element={<Dashboard />} />
       <Route path="Areas de aprendizaje y temas" element={<Dashboard />} />
