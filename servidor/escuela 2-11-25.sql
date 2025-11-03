@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-11-2025 a las 02:57:30
+-- Tiempo de generación: 03-11-2025 a las 03:21:33
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -655,19 +655,17 @@ CREATE TABLE `patologias` (
 
 CREATE TABLE `personal` (
   `id_personal` int(11) NOT NULL,
-  `id_persona` int(11) NOT NULL,
-  `id_plantel_trabaja` int(11) NOT NULL,
-  `fk_plantel_cobra` int(11) NOT NULL,
+  `fk_persona` int(11) NOT NULL,
   `funcion` enum('Docente','Administrativo','Obrero','CBIT','CNAE','UPE') NOT NULL,
   `fecha_contratacion` date NOT NULL,
   `nivel_academico` varchar(100) DEFAULT NULL,
-  `horas_trabajo` time DEFAULT NULL,
+  `horas_trabajo` float DEFAULT NULL,
   `rif` varchar(20) DEFAULT NULL,
   `etnia_religion` varchar(100) DEFAULT NULL,
   `cantidad_hijas` int(11) DEFAULT NULL,
   `cantidad_hijos_varones` int(11) DEFAULT NULL,
   `estado` enum('activo','inactivo','suspendido','jubilado') NOT NULL DEFAULT 'activo',
-  `id_cargo` int(11) DEFAULT NULL
+  `fk_cargo` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -923,7 +921,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(16, 1, '5756a2bda2674511035ee6d16fb40fbce669a0bb6578cf5d62d37243b15cc2d8', '2025-10-28', '2025-10-29');
+(17, 1, '2016f57c996d796b1a680c611a4e2df0c2611d81051b77e9d3a18401db5d2868', '2025-11-02', '2025-11-03');
 
 -- --------------------------------------------------------
 
@@ -1286,11 +1284,9 @@ ALTER TABLE `patologias`
 --
 ALTER TABLE `personal`
   ADD PRIMARY KEY (`id_personal`),
-  ADD UNIQUE KEY `id_persona` (`id_persona`),
   ADD UNIQUE KEY `rif` (`rif`),
-  ADD KEY `fk_plantel_cobra` (`fk_plantel_cobra`),
-  ADD KEY `id_plantel_trabaja` (`id_plantel_trabaja`),
-  ADD KEY `fk_personal_cargo` (`id_cargo`);
+  ADD KEY `fk_cargo` (`fk_cargo`),
+  ADD KEY `fk_persona` (`fk_persona`);
 
 --
 -- Indices de la tabla `personas`
@@ -1705,7 +1701,7 @@ ALTER TABLE `semana_escolar`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `socioeconomico`
@@ -1850,7 +1846,8 @@ ALTER TABLE `horarios`
 --
 ALTER TABLE `imparticion_clases`
   ADD CONSTRAINT `fk_imparticion_aula` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_imparticion_docente` FOREIGN KEY (`fk_docente`) REFERENCES `personal` (`id_personal`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_imparticion_docente` FOREIGN KEY (`fk_docente`) REFERENCES `personal` (`id_personal`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `imparticion_clases_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `impartir_area`
@@ -1896,6 +1893,12 @@ ALTER TABLE `lista_alergias`
   ADD CONSTRAINT `lista_alergias_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Filtros para la tabla `momentos_academicos`
+--
+ALTER TABLE `momentos_academicos`
+  ADD CONSTRAINT `momentos_academicos_ibfk_1` FOREIGN KEY (`fk_anio_escolar`) REFERENCES `anios_escolares` (`id_anio_escolar`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `parentesco`
 --
 ALTER TABLE `parentesco`
@@ -1906,8 +1909,8 @@ ALTER TABLE `parentesco`
 -- Filtros para la tabla `personal`
 --
 ALTER TABLE `personal`
-  ADD CONSTRAINT `fk_personal_cargo` FOREIGN KEY (`id_cargo`) REFERENCES `cargos` (`id_cargo`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_personal_persona` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `personal_ibfk_1` FOREIGN KEY (`fk_cargo`) REFERENCES `cargos` (`id_cargo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `personal_ibfk_2` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `planificaciones`

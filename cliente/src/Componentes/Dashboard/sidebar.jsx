@@ -16,14 +16,12 @@ export const Sidebar = () => {
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [usuario, setUsuario] = useState("");
   const [nivel, setNivel] = useState("");
-  const [urlFoto, setUrlFoto] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     // Leer los datos del localStorage
     const storedUsuario = localStorage.getItem("usuario");
     const storedNivel = localStorage.getItem("nivel");
-    const storedUrlFoto = localStorage.getItem("url_foto");
 
     // Actualizar el estado del componente
     if (storedUsuario) {
@@ -31,9 +29,6 @@ export const Sidebar = () => {
     }
     if (storedNivel) {
       setNivel(storedNivel);
-    }
-    if (storedUrlFoto) {
-      setUrlFoto(storedUrlFoto);
     }
   }, []);
 

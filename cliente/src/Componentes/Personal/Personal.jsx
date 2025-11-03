@@ -16,14 +16,22 @@ const API_URL = "http://localhost:8080/controlestudios/servidor/personal";
 const MenuPersonal = () => {
   const [items, setItems] = useState([]);
   const [personas, setPersonas] = useState([]);
+  const [planteles, setPlanteles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     id_persona: "",
-    cargo: "",
+    funcion: "",
     fecha_contratacion: "",
-    codigo_rac: "",
+    nivel_academico: "",
+    horas_trabajo: "",
+    rif: "",
+    etnia_religion: "",
+    cantidad_hijas: "",
+    cantidad_hijos_varones: "",
+    fk_plantel: "",
+    plantel_personal_estado: "",
   });
 
   const cargar = async () => {
@@ -49,26 +57,73 @@ const MenuPersonal = () => {
 
   useEffect(() => {
     cargar();
-    solicitudPersonas({ setPersonas }); // carga personas para el select; reutiliza [cliente/src/Componentes/Usuario/Solicitudes/solicitudPersonas.jsx](cliente/src/Componentes/Usuario/Solicitudes/solicitudPersonas.jsx)
+    solicitudPersonas({ setPersonas, tipo: "personal" }); // carga personas para el select; reutiliza [cliente/src/Componentes/Usuario/Solicitudes/solicitudPersonas.jsx](cliente/src/Componentes/Usuario/Solicitudes/solicitudPersonas.jsx)
+    cargarPlanteles();
   }, []);
 
-  const openModal = (item = null) => {
+  const cargarPlanteles = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/controlestudios/servidor/planteles", { withCredentials: true });
+      if (res.data.back === undefined) {
+        Swal.fire("Error", "No se pudieron cargar los planteles.", "error");
+        setPlanteles([]);
+        return;
+      }
+      setPlanteles(res.data.data);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "No se pudo conectar con el servidor.", "error");
+    }
+  };
+
+  const openModal = async (item = null) => {
     setCurrentItem(item);
+    let plantelData = { fk_plantel: "", plantel_personal_estado: "" };
+
     if (item) {
+      // Si estamos editando, intentar cargar la asignación de plantel
+      try {
+        const res = await axios.get(
+          `http://localhost:8080/controlestudios/servidor/plantel_personal/personal/${item.id_personal}`,
+          { withCredentials: true }
+        );
+        if (res.data.data.length > 0) {
+          plantelData = {
+            fk_plantel: res.data.data[0].fk_plantel,
+            plantel_personal_estado: res.data.data[0].estado,
+          };
+        }
+      } catch (error) {
+        console.error("Error al cargar asignación de plantel:", error);
+      }
+
       setFormData({
         id_persona: item.id_persona,
-        cargo: item.cargo,
+        funcion: item.funcion,
         fecha_contratacion: item.fecha_contratacion
           ? item.fecha_contratacion.split(" ")[0]
           : "",
-        codigo_rac: item.codigo_rac || "",
+        nivel_academico: item.nivel_academico || "",
+        horas_trabajo: item.horas_trabajo || "",
+        rif: item.rif || "",
+        etnia_religion: item.etnia_religion || "",
+        cantidad_hijas: item.cantidad_hijas || "",
+        cantidad_hijos_varones: item.cantidad_hijos_varones || "",
+        ...plantelData,
       });
     } else {
       setFormData({
         id_persona: "",
-        cargo: "",
+        funcion: "",
         fecha_contratacion: "",
-        codigo_rac: "",
+        nivel_academico: "",
+        horas_trabajo: "",
+        rif: "",
+        etnia_religion: "",
+        cantidad_hijas: "",
+        cantidad_hijos_varones: "",
+        fk_plantel: "",
+        plantel_personal_estado: "",
       });
     }
     setIsModalOpen(true);
@@ -77,6 +132,94 @@ const MenuPersonal = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentItem(null);
+  };
+
+  const cambioEstados = async (personal) => {
+    const nuevoEstado = personal.estado === "activo" ? "inactivo" : "activo";
+    try {
+      const response = await axios.put(
+        `${API_URL}/estado/${personal.id_personal}`,
+        { estado: nuevoEstado },
+        { withCredentials: true }
+      );
+      Swal.fire("¡Estado cambiado!", response.data.message, "success");
+      cargar(); // Recargar la lista de personal
+    } catch (error) {
+      console.error("Error al cambiar el estado del personal:", error);
+      const errorMsg =
+        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+      Swal.fire("Error", errorMsg, "error");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Separar datos de personal y de plantel_personal
+    const { fk_plantel, plantel_personal_estado, ...personalData } = formData;
+
+    try {
+      let personalResponse;
+      if (currentItem) {
+        // Actualizar personal existente
+        personalResponse = await axios.put(
+          `${API_URL}/${currentItem.id_personal}`,
+          personalData,
+          { withCredentials: true }
+        );
+        Swal.fire("¡Actualizado!", "Personal actualizado.", "success");
+      } else {
+        // Crear nuevo personal
+        personalResponse = await axios.post(API_URL, personalData, {
+          withCredentials: true,
+        });
+        Swal.fire("¡Creado!", "Personal creado.", "success");
+      }
+
+      const personalId = currentItem?.id_personal || personalResponse.data.data.id_personal;
+
+      // Manejar asignación a plantel si se proporcionaron datos
+      if (fk_plantel && plantel_personal_estado) {
+        // Primero, intentar obtener la asignación existente
+        const existingPlantelPersonal = await axios.get(
+          `http://localhost:8080/controlestudios/servidor/plantel_personal/personal/${personalId}`,
+          { withCredentials: true }
+        );
+
+        if (existingPlantelPersonal.data.data.length > 0) {
+          // Si ya existe, actualizar
+          const assignmentId = existingPlantelPersonal.data.data[0].id_plantel_personal;
+          await axios.put(
+            `http://localhost:8080/controlestudios/servidor/plantel_personal/${assignmentId}`,
+            {
+              fk_plantel: fk_plantel,
+              fk_personal: personalId,
+              estado: plantel_personal_estado,
+            },
+            { withCredentials: true }
+          );
+          Swal.fire("¡Actualizado!", "Asignación a plantel actualizada.", "success");
+        } else {
+          // Si no existe, crear
+          await axios.post(
+            "http://localhost:8080/controlestudios/servidor/plantel_personal",
+            {
+              fk_plantel: fk_plantel,
+              fk_personal: personalId,
+              estado: plantel_personal_estado,
+            },
+            { withCredentials: true }
+          );
+          Swal.fire("¡Creado!", "Asignación a plantel creada.", "success");
+        }
+      }
+
+      cargar();
+      closeModal();
+    } catch (error) {
+      console.error("Error al guardar personal o asignación a plantel:", error);
+      const errorMsg = error.response?.data?.message || "Ocurrió un error.";
+      Swal.fire("Error", errorMsg, "error");
+    }
   };
 
   return (
@@ -96,6 +239,7 @@ const MenuPersonal = () => {
           items={items}
           isLoading={isLoading}
           onEdit={openModal}
+          cambioEstados={cambioEstados}
           onDelete={async (id) => {
             try {
               const respuesta = await axios.delete(`${API_URL}/${id}`, {
@@ -113,43 +257,9 @@ const MenuPersonal = () => {
         <PersonalModal
           isOpen={isModalOpen}
           onClose={closeModal}
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              if (currentItem) {
-                const respuesta = await axios.put(
-                  `${API_URL}/${currentItem.id_personal}`,
-                  formData,
-                  { withCredentials: true }
-                );
-                console.log(respuesta);
-                Swal.fire("¡Actualizado!", "Personal actualizado.", "success");
-              } else {
-                const respuesta = await axios.post(API_URL, formData, {
-                  withCredentials: true,
-                });
-                console.log(respuesta);
-                Swal.fire("¡Creado!", "Personal creado.", "success");
-              }
-              cargar();
-              closeModal();
-            } catch (error) {
-              const errData = error.response?.data;
-              if (errData?.errors) {
-                const errors = Object.entries(errData.errors)
-                  .map(([k, v]) => `${k}: ${v.join(", ")}`)
-                  .join("\n");
-                Swal.fire("Error de validación", errors, "error");
-              } else {
-                Swal.fire(
-                  "Error",
-                  errData?.message || "Ocurrió un error.",
-                  "error"
-                );
-              }
-            }
-          }}
+          onSubmit={handleSubmit}
           personas={personas}
+          planteles={planteles}
           formData={formData}
           setFormData={setFormData}
           currentItem={currentItem}

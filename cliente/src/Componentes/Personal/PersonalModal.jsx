@@ -6,6 +6,7 @@ export const PersonalModal = ({
   onClose,
   onSubmit,
   personas,
+  planteles,
   formData,
   setFormData,
   currentItem,
@@ -22,6 +23,7 @@ export const PersonalModal = ({
             formData={formData}
             setFormData={setFormData}
             personas={personas}
+            planteles={planteles}
           />
           <div className="flex justify-end mt-4">
             <button

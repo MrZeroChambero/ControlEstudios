@@ -44,7 +44,11 @@ function registrarRutasPersona(AltoRouter $router)
   $mapAuthenticated('GET', '/personas', function () {
     try {
       $pdo = Conexion::obtener();
-      $personas = Persona::consultarTodos($pdo);
+      $filtros = [];
+      if (isset($_GET['tipo_persona'])) {
+          $filtros['tipo_persona'] = $_GET['tipo_persona'];
+      }
+      $personas = Persona::consultarTodos($pdo, $filtros);
       http_response_code(200);
       echo json_encode(['status' => 'success', 'data' => $personas, 'back' => true], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
@@ -137,6 +141,34 @@ function registrarRutasPersona(AltoRouter $router)
     } catch (Exception $e) {
       http_response_code(500);
       echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
+    }
+  });
+
+  // PUT /personas/estado/[i:id]
+  $mapAuthenticated('PUT', '/personas/estado/[i:id]', function ($id) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['estado'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'El estado es requerido.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    try {
+        $pdo = Conexion::obtener();
+        $sql = "UPDATE personas SET estado = ? WHERE id_persona = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$data['estado'], $id]);
+
+        if ($stmt->rowCount() > 0) {
+            http_response_code(200);
+            echo json_encode(['status' => 'success', 'message' => 'Estado de la persona actualizado exitosamente.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        } else {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Persona no encontrada o el estado ya era el mismo.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 

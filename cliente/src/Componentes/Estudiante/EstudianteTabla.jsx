@@ -1,112 +1,140 @@
-import React from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import React, { useState } from "react";
+import DataTable from "react-data-table-component";
+import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 
 const EstudianteTabla = ({
   estudiantes = [],
   isCargando = false,
   info = "no se muestra",
   onEditar,
-  onActivar,
-  onDesactivar,
+  cambioEstados,
   onEliminar,
   onVer,
 }) => {
-  if (isCargando)
-    return <p className="text-center text-gray-500">Cargando estudiantes...</p>;
-  if (!Array.isArray(estudiantes) || estudiantes.length === 0)
-    console.log("en la tabla", "estudiantes:", estudiantes);
-  if (!Array.isArray(estudiantes) || estudiantes.length === 0)
-    return <p className="text-center text-gray-500">{info}</p>;
+  const [filterText, setFilterText] = useState("");
 
-  const obtenerNombre = (p) =>
-    `${p.primer_nombre || ""} ${p.segundo_nombre || ""} ${
-      p.primer_apellido || ""
-    } ${p.segundo_apellido || ""}`
-      .replace(/\s+/g, " ")
-      .trim();
+  const filteredItems = estudiantes.filter(
+    (item) =>
+      `${item.primer_nombre} ${item.segundo_nombre} ${item.primer_apellido} ${item.segundo_apellido}`
+        .toLowerCase()
+        .includes(filterText.toLowerCase())
+  );
+
+  const columns = [
+    {
+      name: "Nombre",
+      selector: (row) => `${row.primer_nombre || ""} ${row.segundo_nombre || ""}`.trim(),
+      sortable: true,
+    },
+    {
+      name: "Apellidos",
+      selector: (row) => `${row.primer_apellido || ""} ${row.segundo_apellido || ""}`.trim(),
+      sortable: true,
+    },
+    {
+      name: "Género",
+      selector: (row) => row.genero || "N/A",
+      sortable: true,
+      width: "100px",
+    },
+    {
+      name: "Estado",
+      selector: (row) => row.estado || "activo",
+      sortable: true,
+      width: "100px",
+    },
+    {
+      name: "Acciones",
+      cell: (row) => (
+        <div className="text-center">
+           <button
+            onClick={() => cambioEstados(row)}
+            className={`text-2xl mr-2 ${
+              row.estado === "activo"
+                ? "text-green-500 hover:text-green-600"
+                : "text-gray-400 hover:text-gray-500"
+            }`}
+            title={row.estado === "activo" ? "Desactivar" : "Activar"}
+          >
+            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+          </button>
+          <button
+            onClick={() => onEditar && onEditar(row)}
+            className="text-yellow-500 hover:text-yellow-700 mr-4"
+            title="Editar"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => onEliminar && onEliminar(row)}
+            className="text-red-500 hover:text-red-700 mr-4"
+            title="Eliminar"
+          >
+            <FaTrash />
+          </button>
+          <button
+            onClick={() => onVer && onVer(row)}
+            className="text-blue-500 hover:text-blue-700"
+            title="Ver"
+          >
+            Ver
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const subHeaderComponent = (
+    <input
+      type="text"
+      placeholder="Buscar..."
+      className="w-1/4 p-2 border border-gray-300 rounded-md"
+      onChange={(e) => setFilterText(e.target.value)}
+      value={filterText}
+    />
+  );
+
+  const customStyles = {
+    table: {
+      style: {
+        width: '100%',
+        tableLayout: 'auto',
+      },
+    },
+    headCells: {
+      style: {
+        whiteSpace: 'normal',
+      },
+    },
+    cells: {
+      style: {
+        whiteSpace: 'normal',
+      },
+    },
+  };
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-white">
-        <thead className="bg-gray-800 text-white">
-          <tr>
-            <th className="py-3 px-4 uppercase font-semibold text-sm text-left">
-              Nombre
-            </th>
-            <th className="py-3 px-4 uppercase font-semibold text-sm text-left">
-              Apellidos
-            </th>
-            <th className="py-3 px-4 uppercase font-semibold text-sm text-left">
-              Estado
-            </th>
-            <th className="py-3 px-4 uppercase font-semibold text-sm text-center">
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody className="text-gray-700">
-          {estudiantes.map((est) => {
-            const nombre = `${est.primer_nombre || ""} ${
-              est.segundo_nombre || ""
-            }`.trim();
-            const apellidos = `${est.primer_apellido || ""} ${
-              est.segundo_apellido || ""
-            }`.trim();
-            return (
-              <tr
-                key={est.id_estudiante}
-                className="border-b hover:bg-gray-100"
-              >
-                <td className="py-3 px-4">{nombre}</td>
-                <td className="py-3 px-4">{apellidos}</td>
-                <td className="py-3 px-4">{est.estado || "activo"}</td>
-                <td className="py-3 px-4 text-center">
-                  <button
-                    onClick={() => onEditar && onEditar(est)}
-                    className="text-yellow-500 hover:text-yellow-700 mr-4"
-                    title="Editar"
-                  >
-                    <FaEdit />
-                  </button>
-                  {est.estado === "activo" ? (
-                    <button
-                      onClick={() => onDesactivar && onDesactivar(est)}
-                      className="text-red-500 hover:text-red-700 mr-4"
-                      title="Desactivar"
-                    >
-                      Desactivar
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => onActivar && onActivar(est)}
-                      className="text-green-500 hover:text-green-700 mr-4"
-                      title="Activar"
-                    >
-                      Activar
-                    </button>
-                  )}
-                  <button
-                    onClick={() => onEliminar && onEliminar(est)}
-                    className="text-red-500 hover:text-red-700 mr-4"
-                    title="Eliminar"
-                  >
-                    <FaTrash />
-                  </button>
-                  <button
-                    onClick={() => onVer && onVer(est)}
-                    className="text-blue-500 hover:text-blue-700"
-                    title="Ver"
-                  >
-                    Ver
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <DataTable
+        columns={columns}
+        data={filteredItems}
+        customStyles={customStyles}
+        progressPending={isCargando}
+        progressComponent={<p className="text-center text-gray-500">Cargando estudiantes...</p>}
+        noDataComponent={<p className="text-center text-gray-500">{info}</p>}
+        pagination
+        paginationComponentOptions={{
+          rowsPerPageText: "Filas por página:",
+          rangeSeparatorText: "de",
+        }}
+        subHeader
+        subHeaderComponent={subHeaderComponent}
+        striped
+        highlightOnHover
+      />
     </div>
   );
 };
 
 export default EstudianteTabla;
+

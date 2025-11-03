@@ -1,7 +1,7 @@
 import React from "react";
 import { personalFormConfig } from "./formConfig";
 
-export const PersonalForm = ({ formData, setFormData, personas }) => {
+export const PersonalForm = ({ formData, setFormData, personas, planteles }) => {
   const onChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -25,6 +25,24 @@ export const PersonalForm = ({ formData, setFormData, personas }) => {
                 {`${p.primer_nombre || ""} ${p.primer_apellido || ""} - ${
                   p.cedula || "N/A"
                 }`}
+              </option>
+            ))}
+          </select>
+        );
+      }
+      if (f.name === "fk_plantel") {
+        return (
+          <select
+            name="fk_plantel"
+            value={value}
+            onChange={onChange}
+            className="w-full p-2 border rounded"
+            required={f.required}
+          >
+            <option value="">Seleccione un plantel</option>
+            {planteles.map((p) => (
+              <option key={p.id_plantel} value={p.id_plantel}>
+                {p.nombre}
               </option>
             ))}
           </select>

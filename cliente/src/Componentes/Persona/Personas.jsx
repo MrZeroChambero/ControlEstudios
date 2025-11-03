@@ -196,6 +196,24 @@ const MenuPersonas = () => {
     });
   };
 
+  const cambioEstados = async (persona) => {
+    const nuevoEstado = persona.estado === "activo" ? "inactivo" : "activo";
+    try {
+      const response = await axios.put(
+        `${API_URL}/estado/${persona.id_persona}`,
+        { estado: nuevoEstado },
+        { withCredentials: true }
+      );
+      Swal.fire("¡Estado cambiado!", response.data.message, "success");
+      solicitudPersonas(); // Recargar la lista de personas
+    } catch (error) {
+      console.error("Error al cambiar el estado de la persona:", error);
+      const errorMsg =
+        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+      Swal.fire("Error", errorMsg, "error");
+    }
+  };
+
   return (
     <>
       <div className="p-6 bg-white rounded-lg shadow-md">
@@ -217,6 +235,7 @@ const MenuPersonas = () => {
           isLoading={isLoading}
           onEdit={openModal}
           onDelete={handleDelete}
+          cambioEstados={cambioEstados}
         />
       </div>
 

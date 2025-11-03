@@ -55,7 +55,6 @@ const CrearEstudiante = ({
 
   useEffect(() => {
     if (!isOpen) resetForm();
-    // eslint-disable-next-line
   }, [isOpen]);
 
   const resetForm = () => {

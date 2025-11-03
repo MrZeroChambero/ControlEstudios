@@ -165,9 +165,23 @@ class Persona
     }
   }
 
-  public static function consultarTodos(PDO $pdo)
+  public static function consultarTodos(PDO $pdo, array $filtros = [])
   {
-    $stmt = $pdo->query("SELECT * FROM personas");
+    $sql = "SELECT * FROM personas";
+    $where = [];
+    $params = [];
+
+    if (!empty($filtros['tipo_persona'])) {
+        $where[] = "tipo_persona = ?";
+        $params[] = $filtros['tipo_persona'];
+    }
+
+    if (!empty($where)) {
+        $sql .= " WHERE " . implode(" AND ", $where);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
 

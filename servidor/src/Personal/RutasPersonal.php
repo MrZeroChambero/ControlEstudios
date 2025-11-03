@@ -32,7 +32,7 @@ function registrarRutasPersonal(AltoRouter $router)
   $mapAuthenticated('GET', '/personal', function () {
     try {
       $pdo = Conexion::obtener();
-      $items = Personal::consultarTodos($pdo);
+      $items = Personal::consultarTodosConPersona($pdo);
       http_response_code(200);
       echo json_encode(['status' => 'success', 'data' => $items, 'back' => true], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
@@ -45,7 +45,7 @@ function registrarRutasPersonal(AltoRouter $router)
   $mapAuthenticated('GET', '/personal/[i:id]', function ($id) {
     try {
       $pdo = Conexion::obtener();
-      $item = Personal::consultar($pdo, $id);
+      $item = Personal::consultarConPersona($pdo, $id);
       if ($item) {
         http_response_code(200);
         echo json_encode(['status' => 'success', 'data' => $item, 'back' => true], JSON_UNESCAPED_UNICODE);
@@ -69,14 +69,7 @@ function registrarRutasPersonal(AltoRouter $router)
     }
     try {
       $pdo = Conexion::obtener();
-      $personal = new Personal(
-        $data['id_persona'] ?? null,
-        $data['cargo'] ?? '',
-        $data['fecha_contratacion'] ?? null,
-        $data['codigo_rac'] ?? null,
-        $data['cargo_tipo_personal'] ?? null
-        // agregar otros campos según el constructor en Micodigo\Personal\Personal
-      );
+      $personal = new Personal($data);
       $resultado = $personal->crear($pdo);
       if (is_numeric($resultado)) {
         http_response_code(201);
@@ -105,19 +98,7 @@ function registrarRutasPersonal(AltoRouter $router)
     }
     try {
       $pdo = Conexion::obtener();
-      $personalExistente = Personal::consultar($pdo, $id);
-      if (!$personalExistente) {
-        http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Personal no encontrado.', 'back' => true], JSON_UNESCAPED_UNICODE);
-        return;
-      }
-      $personal = new Personal(
-        $data['id_persona'] ?? $personalExistente['id_persona'],
-        $data['cargo'] ?? $personalExistente['cargo'],
-        $data['fecha_contratacion'] ?? $personalExistente['fecha_contratacion'],
-        $data['codigo_rac'] ?? $personalExistente['codigo_rac'],
-        $data['cargo_tipo_personal'] ?? $personalExistente['cargo_tipo_personal']
-      );
+      $personal = new Personal($data);
       $personal->id_personal = $id;
       $resultado = $personal->actualizar($pdo);
       if ($resultado === true) {
@@ -133,6 +114,35 @@ function registrarRutasPersonal(AltoRouter $router)
     } catch (Exception $e) {
       http_response_code(500);
       echo json_encode(['status' => 'error', 'message' => 'Error del servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
+    }
+  });
+
+  // PUT /personal/estado/[i:id]
+  $mapAuthenticated('PUT', '/personal/estado/[i:id]', function ($id) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['estado'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'El estado es requerido.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        return;
+    }
+
+    try {
+        $pdo = Conexion::obtener();
+        $resultado = Personal::cambiarEstado($pdo, $id, $data['estado']);
+
+        if ($resultado === true) {
+            http_response_code(200);
+            echo json_encode(['status' => 'success', 'message' => 'Estado del personal actualizado exitosamente.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        } elseif (is_array($resultado)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Error de validación.', 'errors' => $resultado, 'back' => true], JSON_UNESCAPED_UNICODE);
+        } else {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => 'No se pudo actualizar el estado del personal.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Error en el servidor: ' . $e->getMessage(), 'back' => true], JSON_UNESCAPED_UNICODE);
     }
   });
 

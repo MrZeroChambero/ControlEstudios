@@ -10,45 +10,35 @@ class Personal
 {
   public $id_personal;
   public $id_persona;
-  public $codigo_rac;
-  public $cargo;
   public $funcion;
   public $fecha_contratacion;
   public $nivel_academico;
-  public $anios_servicio;
   public $horas_trabajo;
-  public $situacion_trabajador;
-  public $observacion;
   public $rif;
-  public $estado_civil;
   public $etnia_religion;
   public $cantidad_hijas;
   public $cantidad_hijos_varones;
+  public $estado;
 
   public function __construct(array $data = [])
   {
     $this->id_personal = $data['id_personal'] ?? null;
     $this->id_persona = $data['id_persona'] ?? null;
-    $this->codigo_rac = $data['codigo_rac'] ?? null;
-    $this->cargo = $data['cargo'] ?? null;
     $this->funcion = $data['funcion'] ?? null;
     $this->fecha_contratacion = $data['fecha_contratacion'] ?? null;
     $this->nivel_academico = $data['nivel_academico'] ?? null;
-    $this->anios_servicio = $data['anios_servicio'] ?? null;
     $this->horas_trabajo = $data['horas_trabajo'] ?? null;
-    $this->situacion_trabajador = $data['situacion_trabajador'] ?? null;
-    $this->observacion = $data['observacion'] ?? null;
     $this->rif = $data['rif'] ?? null;
-    $this->estado_civil = $data['estado_civil'] ?? null;
     $this->etnia_religion = $data['etnia_religion'] ?? null;
     $this->cantidad_hijas = $data['cantidad_hijas'] ?? null;
     $this->cantidad_hijos_varones = $data['cantidad_hijos_varones'] ?? null;
+    $this->estado = $data['estado'] ?? 'activo';
   }
 
   private function _saneado(array $data): array
   {
     $map = $data;
-    $ints = ['id_persona', 'anios_servicio', 'cantidad_hijas', 'cantidad_hijos_varones', 'id_personal'];
+    $ints = ['id_persona', 'cantidad_hijas', 'cantidad_hijos_varones', 'id_personal'];
     foreach ($map as $k => $v) {
       if (is_string($v)) {
         $v = trim($v);
@@ -77,10 +67,10 @@ class Personal
     $v = new Validator($data, [], 'es');
 
     // campos requeridos según la tabla
-    $v->rule('required', ['id_persona', 'cargo', 'funcion', 'fecha_contratacion']);
+    $v->rule('required', ['id_persona', 'funcion', 'fecha_contratacion', 'estado']);
 
     // enteros condicionales
-    $intFields = ['id_persona', 'anios_servicio', 'cantidad_hijas', 'cantidad_hijos_varones'];
+    $intFields = ['id_persona', 'cantidad_hijas', 'cantidad_hijos_varones'];
     foreach ($intFields as $f) {
       if (isset($data[$f]) && $data[$f] !== null && $data[$f] !== '') {
         $v->rule('integer', $f);
@@ -97,12 +87,11 @@ class Personal
     }
 
     // longitudes máximas
-    $v->rule('lengthMax', 'codigo_rac', 50);
     $v->rule('lengthMax', 'nivel_academico', 100);
-    $v->rule('lengthMax', 'situacion_trabajador', 100);
     $v->rule('lengthMax', 'rif', 20);
-    $v->rule('lengthMax', 'estado_civil', 50);
     $v->rule('lengthMax', 'etnia_religion', 100);
+
+    $v->rule('in', 'estado', ['activo', 'inactivo', 'suspendido', 'jubilado']);
 
     if ($v->validate()) {
       return true;
@@ -117,25 +106,20 @@ class Personal
     if ($errores !== true) return $errores;
 
     try {
-      $sql = "INSERT INTO personal (id_persona, codigo_rac, cargo, funcion, fecha_contratacion, nivel_academico, anios_servicio, horas_trabajo, situacion_trabajador, observacion, rif, estado_civil, etnia_religion, cantidad_hijas, cantidad_hijos_varones)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO personal (id_persona, funcion, fecha_contratacion, nivel_academico, horas_trabajo, rif, etnia_religion, cantidad_hijas, cantidad_hijos_varones, estado)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $this->id_persona,
-        $this->codigo_rac,
-        $this->cargo,
         $this->funcion,
         $this->fecha_contratacion,
         $this->nivel_academico,
-        $this->anios_servicio,
         $this->horas_trabajo,
-        $this->situacion_trabajador,
-        $this->observacion,
         $this->rif,
-        $this->estado_civil,
         $this->etnia_religion,
         $this->cantidad_hijas,
-        $this->cantidad_hijos_varones
+        $this->cantidad_hijos_varones,
+        $this->estado
       ]);
       $this->id_personal = (int)$pdo->lastInsertId();
       return $this->id_personal;
@@ -154,28 +138,37 @@ class Personal
     if ($errores !== true) return $errores;
 
     try {
-      $sql = "UPDATE personal SET id_persona=?, codigo_rac=?, cargo=?, funcion=?, fecha_contratacion=?, nivel_academico=?, anios_servicio=?, horas_trabajo=?, situacion_trabajador=?, observacion=?, rif=?, estado_civil=?, etnia_religion=?, cantidad_hijas=?, cantidad_hijos_varones=? WHERE id_personal=?";
+      $sql = "UPDATE personal SET id_persona=?, funcion=?, fecha_contratacion=?, nivel_academico=?, horas_trabajo=?, rif=?, etnia_religion=?, cantidad_hijas=?, cantidad_hijos_varones=?, estado=? WHERE id_personal=?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
         $this->id_persona,
-        $this->codigo_rac,
-        $this->cargo,
         $this->funcion,
         $this->fecha_contratacion,
         $this->nivel_academico,
-        $this->anios_servicio,
         $this->horas_trabajo,
-        $this->situacion_trabajador,
-        $this->observacion,
         $this->rif,
-        $this->estado_civil,
         $this->etnia_religion,
         $this->cantidad_hijas,
         $this->cantidad_hijos_varones,
+        $this->estado,
         $this->id_personal
       ]);
     } catch (Exception $e) {
       return false;
+    }
+  }
+
+  public static function cambiarEstado(PDO $pdo, $id, $nuevo_estado)
+  {
+    if (!in_array($nuevo_estado, ['activo', 'inactivo', 'suspendido', 'jubilado'])) {
+        return ['estado' => ['El estado proporcionado no es válido.']];
+    }
+    try {
+        $sql = "UPDATE personal SET estado = ? WHERE id_personal = ?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$nuevo_estado, $id]);
+    } catch (Exception $e) {
+        return false;
     }
   }
 
@@ -217,7 +210,7 @@ class Personal
   public static function consultarTodosConPersona(PDO $pdo)
   {
     try {
-      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula
+      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula, p.estado
               FROM personal p
               LEFT JOIN personas per ON p.id_persona = per.id_persona
               ORDER BY p.id_personal ASC";
@@ -231,7 +224,7 @@ class Personal
   public static function consultarConPersona(PDO $pdo, $id)
   {
     try {
-      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula
+      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula, per.genero, per.estado
               FROM personal p
               LEFT JOIN personas per ON p.id_persona = per.id_persona
               WHERE p.id_personal = ?";

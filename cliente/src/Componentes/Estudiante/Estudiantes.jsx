@@ -83,6 +83,24 @@ const MenuPersonas = () => {
     setIsModalOpen(true);
   };
 
+  const cambioEstados = async (estudiante) => {
+    const nuevoEstado = estudiante.estado === "activo" ? "inactivo" : "activo";
+    try {
+      const response = await axios.put(
+        `${API_URL}/estado/${estudiante.id_estudiante}`,
+        { estado: nuevoEstado },
+        { withCredentials: true }
+      );
+      Swal.fire("¡Estado cambiado!", response.data.message, "success");
+      cargarEstudiantes(); // Recargar la lista de estudiantes
+    } catch (error) {
+      console.error("Error al cambiar el estado del estudiante:", error);
+      const errorMsg =
+        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+      Swal.fire("Error", errorMsg, "error");
+    }
+  };
+
   return (
     <>
       <div className="p-6 bg-white rounded-lg shadow-md">
@@ -105,6 +123,7 @@ const MenuPersonas = () => {
           isCargando={isCargando}
           onEditar={handleEditar}
           onEliminar={handleEliminar}
+          cambioEstados={cambioEstados}
         />
       </div>
 

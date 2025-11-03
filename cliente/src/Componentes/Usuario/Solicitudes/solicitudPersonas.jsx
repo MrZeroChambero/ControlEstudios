@@ -1,7 +1,10 @@
 import axios from "axios";
 import Swal from "sweetalert2";
-export const solicitudPersonas = async ({ setPersonas }) => {
-  const URL = "http://localhost:8080/controlestudios/servidor/personas";
+export const solicitudPersonas = async ({ setPersonas, tipo }) => {
+  let URL = "http://localhost:8080/controlestudios/servidor/personas";
+  if (tipo) {
+    URL += `?tipo_persona=${tipo}`;
+  }
   try {
     const response = await axios.get(URL, { withCredentials: true });
     //console.log("se soliciton los datos de personas");

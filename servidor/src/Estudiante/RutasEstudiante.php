@@ -52,7 +52,7 @@ function registrarRutasEstudiante(AltoRouter $router, callable $mapAuthenticated
 
       // Usamos nombres explícitos para evitar ambigüedad
       $sql = "SELECT e.id_estudiante, p.id_persona,
-        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido
+        p.primer_nombre, p.segundo_nombre, p.primer_apellido, p.segundo_apellido, p.genero, p.estado
       FROM estudiantes e
       JOIN personas p ON (e.{$fk} = p.id_persona)
       ORDER BY p.primer_apellido, p.primer_nombre";
@@ -66,6 +66,8 @@ function registrarRutasEstudiante(AltoRouter $router, callable $mapAuthenticated
           'segundo_nombre' => $r['segundo_nombre'],
           'primer_apellido' => $r['primer_apellido'],
           'segundo_apellido' => $r['segundo_apellido'],
+          'genero' => $r['genero'],
+          'estado' => $r['estado'],
         ];
       }, $rows);
       $sendJson(['back' => true, 'estudiantes' => $list], 200);
@@ -165,68 +167,47 @@ function registrarRutasEstudiante(AltoRouter $router, callable $mapAuthenticated
   };
 
   // Activar / Desactivar / Eliminar: comprueban existencia de columna 'estado' antes de ejecutar
-  $handlerActivar = function ($id = null) use ($sendJson, $hasColumn) {
+  $handlerEstado = function ($id = null) use ($sendJson, $hasColumn) {
     try {
       if (empty($id)) {
         $sendJson(['back' => false, 'msg' => 'ID requerido.'], 400);
         return;
       }
-      $pdo = Conexion::obtener();
-      if (!$hasColumn($pdo, 'estudiantes', 'estado')) {
-        $sendJson(['back' => false, 'msg' => "Operación no soportada: columna 'estado' no existe en la tabla estudiantes."], 400);
-        return;
-      }
-      $stmt = $pdo->prepare("UPDATE estudiantes SET estado = 'activo' WHERE id_estudiante = ?");
-      $ok = $stmt->execute([$id]);
-      if ($ok) $sendJson(['back' => true, 'msg' => 'Estudiante activado.']);
-      else $sendJson(['back' => false, 'msg' => 'No se pudo activar.'], 500);
-    } catch (Exception $e) {
-      $sendJson(['back' => false, 'msg' => 'Error al activar.', 'error' => $e->getMessage()], 500);
-    }
-  };
-
-  $handlerDesactivar = function ($id = null) use ($sendJson, $hasColumn) {
-    try {
-      if (empty($id)) {
-        $sendJson(['back' => false, 'msg' => 'ID requerido.'], 400);
-        return;
-      }
-      $pdo = Conexion::obtener();
-      if (!$hasColumn($pdo, 'estudiantes', 'estado')) {
-        $sendJson(['back' => false, 'msg' => "Operación no soportada: columna 'estado' no existe en la tabla estudiantes."], 400);
-        return;
-      }
-      $stmt = $pdo->prepare("UPDATE estudiantes SET estado = 'inactivo' WHERE id_estudiante = ?");
-      $ok = $stmt->execute([$id]);
-      if ($ok) $sendJson(['back' => true, 'msg' => 'Estudiante desactivado.']);
-      else $sendJson(['back' => false, 'msg' => 'No se pudo desactivar.'], 500);
-    } catch (Exception $e) {
-      $sendJson(['back' => false, 'msg' => 'Error al desactivar.', 'error' => $e->getMessage()], 500);
-    }
-  };
-
-  $handlerDelete = function ($id = null) use ($sendJson, $hasColumn) {
-    try {
-      if (empty($id)) {
-        $sendJson(['back' => false, 'msg' => 'ID requerido.'], 400);
-        return;
-      }
-      $pdo = Conexion::obtener();
-      if (!$hasColumn($pdo, 'estudiantes', 'estado')) {
-        // si no existe 'estado', intentar borrar fila físicamente
-        $stmt = $pdo->prepare("DELETE FROM estudiantes WHERE id_estudiante = ?");
-        $ok = $stmt->execute([$id]);
-        if ($ok) {
-          $sendJson(['back' => true, 'msg' => 'Estudiante eliminado.']);
+      $data = json_decode(file_get_contents('php://input'), true);
+      if (!isset($data['estado'])) {
+          $sendJson(['status' => 'error', 'message' => 'El estado es requerido.', 'back' => true], 400);
           return;
-        }
-        $sendJson(['back' => false, 'msg' => 'No se pudo eliminar.'], 500);
+      }
+
+      $pdo = Conexion::obtener();
+      if (!$hasColumn($pdo, 'estudiantes', 'estado')) {
+        $sendJson(['back' => false, 'msg' => "Operación no soportada: columna 'estado' no existe en la tabla estudiantes."], 400);
         return;
       }
-      $stmt = $pdo->prepare("UPDATE estudiantes SET estado = 'eliminado' WHERE id_estudiante = ?");
+      $stmt = $pdo->prepare("UPDATE estudiantes SET estado = ? WHERE id_estudiante = ?");
+      $ok = $stmt->execute([$data['estado'], $id]);
+      if ($ok) $sendJson(['back' => true, 'msg' => 'Estado del estudiante actualizado.']);
+      else $sendJson(['back' => false, 'msg' => 'No se pudo actualizar el estado.'], 500);
+    } catch (Exception $e) {
+      $sendJson(['back' => false, 'msg' => 'Error al actualizar estado.', 'error' => $e->getMessage()], 500);
+    }
+  };
+
+  $handlerDelete = function ($id = null) use ($sendJson) {
+    try {
+      if (empty($id)) {
+        $sendJson(['back' => false, 'msg' => 'ID requerido.'], 400);
+        return;
+      }
+      $pdo = Conexion::obtener();
+      $stmt = $pdo->prepare("DELETE FROM estudiantes WHERE id_estudiante = ?");
       $ok = $stmt->execute([$id]);
-      if ($ok) $sendJson(['back' => true, 'msg' => 'Estudiante marcado como eliminado.']);
-      else $sendJson(['back' => false, 'msg' => 'No se pudo eliminar.'], 500);
+      if ($ok) {
+        $sendJson(['back' => true, 'msg' => 'Estudiante eliminado.']);
+        return;
+      }
+      $sendJson(['back' => false, 'msg' => 'No se pudo eliminar.'], 500);
+      return;
     } catch (Exception $e) {
       $sendJson(['back' => false, 'msg' => 'Error al eliminar.', 'error' => $e->getMessage()], 500);
     }
@@ -312,7 +293,6 @@ function registrarRutasEstudiante(AltoRouter $router, callable $mapAuthenticated
   $router->map('GET', '/estudiantes/[:id]', $handlerDetail);
   $router->map('POST', '/estudiantes', $handlerCreate);
   $router->map('PUT', '/estudiantes/[:id]', $handlerUpdate);
-  $router->map('PATCH', '/estudiantes/[:id]/activar', $handlerActivar);
-  $router->map('PATCH', '/estudiantes/[:id]/desactivar', $handlerDesactivar);
+  $router->map('PUT', '/estudiantes/estado/[:id]', $handlerEstado);
   $router->map('DELETE', '/estudiantes/[:id]', $handlerDelete);
 }

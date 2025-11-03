@@ -9,49 +9,33 @@ use Valitron\Validator;
 class Plantel
 {
   public $id_plantel;
+  public $codigo_dependencia;
   public $cod_estado;
   public $estado;
   public $municipio;
   public $parroquia;
-  public $codigo_dependencia;
   public $codigo_estadistico;
-  public $codigo_plantel;
-  public $nombre_plantel_nomina;
+  public $nombre;
   public $nivel;
   public $modalidad;
   public $ubicacion_geografica;
+  public $coordenadas;
 
-  public function __construct(
-    $cod_estado,
-    $estado,
-    $municipio,
-    $parroquia,
-    $codigo_plantel,
-    $nombre_plantel_nomina,
-    $codigo_dependencia = null,
-    $codigo_estadistico = null,
-    $nivel = null,
-    $modalidad = null,
-    $ubicacion_geografica = null
-  ) {
-    $this->cod_estado = $cod_estado;
-    $this->estado = $estado;
-    $this->municipio = $municipio;
-    $this->parroquia = $parroquia;
-    $this->codigo_dependencia = $codigo_dependencia;
-    $this->codigo_estadistico = $codigo_estadistico;
-    $this->codigo_plantel = $codigo_plantel;
-    $this->nombre_plantel_nomina = $nombre_plantel_nomina;
-    $this->nivel = $nivel;
-    $this->modalidad = $modalidad;
-    $this->ubicacion_geografica = $ubicacion_geografica;
+  public function __construct(array $data = [])
+  {
+    $this->codigo_dependencia = $data['codigo_dependencia'] ?? null;
+    $this->cod_estado = $data['cod_estado'] ?? null;
+    $this->estado = $data['estado'] ?? null;
+    $this->municipio = $data['municipio'] ?? null;
+    $this->parroquia = $data['parroquia'] ?? null;
+    $this->codigo_estadistico = $data['codigo_estadistico'] ?? null;
+    $this->nombre = $data['nombre'] ?? null;
+    $this->nivel = $data['nivel'] ?? null;
+    $this->modalidad = $data['modalidad'] ?? null;
+    $this->ubicacion_geografica = $data['ubicacion_geografica'] ?? null;
+    $this->coordenadas = $data['coordenadas'] ?? null;
   }
 
-  /**
-   * Valida los datos del objeto Plantel usando Valitron.
-   * @param array $data Los datos a validar.
-   * @return array|bool Un array con errores o verdadero si la validación es exitosa.
-   */
   private function _validarDatos(array $data)
   {
     Validator::lang('es');
@@ -59,25 +43,24 @@ class Plantel
 
     $v->rules([
       'required' => [
+        ['codigo_dependencia'],
         ['cod_estado'],
         ['estado'],
         ['municipio'],
         ['parroquia'],
-        ['codigo_plantel'],
-        ['nombre_plantel_nomina']
+        ['nombre']
       ],
       'lengthMax' => [
         ['cod_estado', 10],
         ['estado', 50],
         ['municipio', 50],
         ['parroquia', 50],
-        ['codigo_dependencia', 20],
         ['codigo_estadistico', 20],
-        ['codigo_plantel', 20],
-        ['nombre_plantel_nomina', 255],
+        ['nombre', 255],
         ['nivel', 50],
         ['modalidad', 50],
-        ['ubicacion_geografica', 255]
+        ['ubicacion_geografica', 255],
+        ['coordenadas', 255]
       ]
     ]);
 
@@ -88,11 +71,6 @@ class Plantel
     }
   }
 
-  /**
-   * Crea un nuevo registro de plantel con validación previa.
-   * @param PDO $pdo Objeto de conexión a la base de datos.
-   * @return int|array|false El ID insertado, un array de errores, o falso si falla.
-   */
   public function crear(PDO $pdo)
   {
     $data = get_object_vars($this);
@@ -102,20 +80,20 @@ class Plantel
     }
 
     try {
-      $sql = "INSERT INTO planteles (cod_estado, estado, municipio, parroquia, codigo_dependencia, codigo_estadistico, codigo_plantel, nombre_plantel_nomina, nivel, modalidad, ubicacion_geografica) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO planteles (codigo_dependencia, cod_estado, estado, municipio, parroquia, codigo_estadistico, nombre, nivel, modalidad, ubicacion_geografica, coordenadas) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
+        $this->codigo_dependencia,
         $this->cod_estado,
         $this->estado,
         $this->municipio,
         $this->parroquia,
-        $this->codigo_dependencia,
         $this->codigo_estadistico,
-        $this->codigo_plantel,
-        $this->nombre_plantel_nomina,
+        $this->nombre,
         $this->nivel,
         $this->modalidad,
-        $this->ubicacion_geografica
+        $this->ubicacion_geografica,
+        $this->coordenadas
       ]);
       $this->id_plantel = $pdo->lastInsertId();
       return $this->id_plantel;
@@ -124,11 +102,6 @@ class Plantel
     }
   }
 
-  /**
-   * Actualiza los datos de un registro de plantel con validación.
-   * @param PDO $pdo Objeto de conexión.
-   * @return bool|array Verdadero si la actualización fue exitosa, o un array de errores si falla.
-   */
   public function actualizar(PDO $pdo)
   {
     if (empty($this->id_plantel)) {
@@ -142,20 +115,20 @@ class Plantel
     }
 
     try {
-      $sql = "UPDATE planteles SET cod_estado=?, estado=?, municipio=?, parroquia=?, codigo_dependencia=?, codigo_estadistico=?, codigo_plantel=?, nombre_plantel_nomina=?, nivel=?, modalidad=?, ubicacion_geografica=? WHERE id_plantel=?";
+      $sql = "UPDATE planteles SET codigo_dependencia=?, cod_estado=?, estado=?, municipio=?, parroquia=?, codigo_estadistico=?, nombre=?, nivel=?, modalidad=?, ubicacion_geografica=?, coordenadas=? WHERE id_plantel=?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
+        $this->codigo_dependencia,
         $this->cod_estado,
         $this->estado,
         $this->municipio,
         $this->parroquia,
-        $this->codigo_dependencia,
         $this->codigo_estadistico,
-        $this->codigo_plantel,
-        $this->nombre_plantel_nomina,
+        $this->nombre,
         $this->nivel,
         $this->modalidad,
         $this->ubicacion_geografica,
+        $this->coordenadas,
         $this->id_plantel
       ]);
     } catch (Exception $e) {
@@ -163,12 +136,6 @@ class Plantel
     }
   }
 
-  /**
-   * Elimina un registro de plantel por ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id El ID del registro a eliminar.
-   * @return bool Verdadero si la eliminación fue exitosa.
-   */
   public static function eliminar(PDO $pdo, $id)
   {
     try {
@@ -180,48 +147,29 @@ class Plantel
     }
   }
 
-  /**
-   * Consulta los datos de un registro por su ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id ID del registro a consultar.
-   * @return object|false Un objeto Plantel con sus datos o false si no se encuentra.
-   */
   public static function consultar(PDO $pdo, $id)
   {
     try {
       $sql = "SELECT * FROM planteles WHERE id_plantel = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
-      $data = $stmt->fetch(PDO::FETCH_ASSOC);
-      if ($data) {
-        $plantel = new self(
-          $data['cod_estado'],
-          $data['estado'],
-          $data['municipio'],
-          $data['parroquia'],
-          $data['codigo_plantel'],
-          $data['nombre_plantel_nomina'],
-          $data['codigo_dependencia'],
-          $data['codigo_estadistico'],
-          $data['nivel'],
-          $data['modalidad'],
-          $data['ubicacion_geografica']
-        );
-        $plantel->id_plantel = $data['id_plantel'];
-        return $plantel;
-      }
-      return false;
+      return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
       return false;
     }
   }
 
-  /**
-   * Verifica la existencia de un registro de plantel por su ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id ID del registro a verificar.
-   * @return bool Verdadero si existe, falso si no.
-   */
+  public static function consultarTodos(PDO $pdo)
+  {
+    try {
+      $sql = "SELECT * FROM planteles";
+      $stmt = $pdo->query($sql);
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      return [];
+    }
+  }
+
   public static function verificarID(PDO $pdo, $id)
   {
     try {

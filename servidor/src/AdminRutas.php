@@ -109,6 +109,14 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de personal
   require_once __DIR__ . '/Personal/RutasPersonal.php';
   registrarRutasPersonal($router);
+
+  // Incluye y registra las rutas de planteles
+  require_once __DIR__ . '/Personal/RutasPlantel.php';
+  registrarRutasPlantel($router);
+
+  // Incluye y registra las rutas de plantel_personal
+  require_once __DIR__ . '/Personal/RutasPlantelPersonal.php';
+  registrarRutasPlantelPersonal($router);
   // require_once __DIR__ . '/mostrar.php';
   // rutasMostrar($router);
   // Incluye y registra las rutas de temas

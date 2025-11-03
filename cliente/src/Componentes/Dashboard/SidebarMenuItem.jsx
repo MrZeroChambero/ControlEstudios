@@ -16,8 +16,8 @@ const toUrlSlug = (text) => {
     .replace(/\s+/g, "-") // Reemplaza espacios con -
     .replace(p, (c) => b.charAt(a.indexOf(c))) // Reemplaza caracteres especiales
     .replace(/&/g, "-y-") // Reemplaza & con '-y-'
-    .replace(/[^\w\-]+/g, "") // Elimina todos los caracteres no alfanuméricos
-    .replace(/\-\-+/g, "-") // Reemplaza múltiples - con uno solo
+    .replace(/[^\w-]+/g, "") // Elimina todos los caracteres no alfanuméricos
+    .replace(/--+/g, "-") // Reemplaza múltiples - con uno solo
     .replace(/^-+/, "") // Quita - del inicio
     .replace(/-+$/, ""); // Quita - del final
 };
