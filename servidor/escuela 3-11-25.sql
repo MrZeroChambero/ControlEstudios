@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-11-2025 a las 03:21:33
+-- Tiempo de generación: 03-11-2025 a las 22:13:03
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -156,7 +156,7 @@ CREATE TABLE `areas_aprendizaje` (
   `id_area_aprendizaje` int(11) NOT NULL,
   `fk_componente` int(11) NOT NULL,
   `nombre_area` varchar(100) NOT NULL,
-  `especialista` enum('guia','cbit','cultura','educacion_fisica','cocina','artes_oficios','musica','teatro') NOT NULL
+  `fk_funcion` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -443,6 +443,18 @@ CREATE TABLE `evaluaciones` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `funcion_personal`
+--
+
+CREATE TABLE `funcion_personal` (
+  `id_funcion_personal` int(11) NOT NULL,
+  `nombre` varchar(40) NOT NULL,
+  `tipo` set('Docente','Obrero','Administrativo','Especialista') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `grado_seccion`
 --
 
@@ -656,7 +668,7 @@ CREATE TABLE `patologias` (
 CREATE TABLE `personal` (
   `id_personal` int(11) NOT NULL,
   `fk_persona` int(11) NOT NULL,
-  `funcion` enum('Docente','Administrativo','Obrero','CBIT','CNAE','UPE') NOT NULL,
+  `fk_funcion` int(11) NOT NULL,
   `fecha_contratacion` date NOT NULL,
   `nivel_academico` varchar(100) DEFAULT NULL,
   `horas_trabajo` float DEFAULT NULL,
@@ -1055,7 +1067,8 @@ ALTER TABLE `anios_escolares`
 --
 ALTER TABLE `areas_aprendizaje`
   ADD PRIMARY KEY (`id_area_aprendizaje`),
-  ADD KEY `fk_componente` (`fk_componente`);
+  ADD KEY `fk_componente` (`fk_componente`),
+  ADD KEY `fk_funcion` (`fk_funcion`);
 
 --
 -- Indices de la tabla `asistencia`
@@ -1162,6 +1175,12 @@ ALTER TABLE `estudiantes`
 --
 ALTER TABLE `evaluaciones`
   ADD PRIMARY KEY (`id_evaluacion`);
+
+--
+-- Indices de la tabla `funcion_personal`
+--
+ALTER TABLE `funcion_personal`
+  ADD PRIMARY KEY (`id_funcion_personal`);
 
 --
 -- Indices de la tabla `grado_seccion`
@@ -1286,7 +1305,8 @@ ALTER TABLE `personal`
   ADD PRIMARY KEY (`id_personal`),
   ADD UNIQUE KEY `rif` (`rif`),
   ADD KEY `fk_cargo` (`fk_cargo`),
-  ADD KEY `fk_persona` (`fk_persona`);
+  ADD KEY `fk_persona` (`fk_persona`),
+  ADD KEY `fk_funcion` (`fk_funcion`);
 
 --
 -- Indices de la tabla `personas`
@@ -1542,6 +1562,12 @@ ALTER TABLE `evaluaciones`
   MODIFY `id_evaluacion` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `funcion_personal`
+--
+ALTER TABLE `funcion_personal`
+  MODIFY `id_funcion_personal` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `grado_seccion`
 --
 ALTER TABLE `grado_seccion`
@@ -1756,7 +1782,8 @@ ALTER TABLE `actividad`
 -- Filtros para la tabla `areas_aprendizaje`
 --
 ALTER TABLE `areas_aprendizaje`
-  ADD CONSTRAINT `areas_aprendizaje_ibfk_1` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `areas_aprendizaje_ibfk_1` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `areas_aprendizaje_ibfk_2` FOREIGN KEY (`fk_funcion`) REFERENCES `funcion_personal` (`id_funcion_personal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `asistencia`
@@ -1910,7 +1937,8 @@ ALTER TABLE `parentesco`
 --
 ALTER TABLE `personal`
   ADD CONSTRAINT `personal_ibfk_1` FOREIGN KEY (`fk_cargo`) REFERENCES `cargos` (`id_cargo`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `personal_ibfk_2` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `personal_ibfk_2` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `personal_ibfk_3` FOREIGN KEY (`fk_funcion`) REFERENCES `funcion_personal` (`id_funcion_personal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `planificaciones`
