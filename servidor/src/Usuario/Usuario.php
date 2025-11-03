@@ -12,15 +12,15 @@ class Usuario
   use ValidarDatos;
 
   public $id_usuario;
-  public $id_persona;
+  public $fk_persona;
   public $nombre_usuario;
   public $clave;
   public $estado;
   public $rol;
 
-  public function __construct(?int $id_persona, string $nombre_usuario, string $clave, string $estado, ?string $rol)
+  public function __construct(?int $fk_persona, string $nombre_usuario, string $clave, string $estado, ?string $rol)
   {
-    $this->id_persona = $id_persona;
+    $this->fk_persona = $fk_persona;
     $this->nombre_usuario = $nombre_usuario;
     $this->clave = $clave;
     $this->estado = $estado;
@@ -70,10 +70,10 @@ class Usuario
   public function crear(PDO $pdo)
   {
     try {
-      $sql = "INSERT INTO usuarios (id_persona, nombre_usuario, contrasena_hash, estado, rol) VALUES (?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO usuarios (fk_persona, nombre_usuario, contrasena_hash, estado, rol) VALUES (?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
-        $this->id_persona,
+        $this->fk_persona,
         $this->nombre_usuario,
         $this->clave,
         $this->estado,
@@ -100,13 +100,13 @@ class Usuario
 
     try {
       if (!empty($this->clave)) {
-        $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, contrasena_hash=?, estado=?, rol=? WHERE id_usuario=?";
+        $sql = "UPDATE usuarios SET fk_persona=?, nombre_usuario=?, contrasena_hash=?, estado=?, rol=? WHERE id_usuario=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([$this->id_persona, $this->nombre_usuario, $this->clave, $this->estado, $this->rol, $this->id_usuario]);
+        return $stmt->execute([$this->fk_persona, $this->nombre_usuario, $this->clave, $this->estado, $this->rol, $this->id_usuario]);
       } else {
-        $sql = "UPDATE usuarios SET id_persona=?, nombre_usuario=?, estado=?, rol=? WHERE id_usuario=?";
+        $sql = "UPDATE usuarios SET fk_persona=?, nombre_usuario=?, estado=?, rol=? WHERE id_usuario=?";
         $stmt = $pdo->prepare($sql);
-        return $stmt->execute([$this->id_persona, $this->nombre_usuario, $this->estado, $this->rol, $this->id_usuario]);
+        return $stmt->execute([$this->fk_persona, $this->nombre_usuario, $this->estado, $this->rol, $this->id_usuario]);
       }
     } catch (Exception $e) {
       return false;
@@ -133,7 +133,7 @@ class Usuario
   public static function consultarTodos(PDO $pdo): array
   {
     try {
-      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol FROM usuarios";
+      $sql = "SELECT id_usuario, fk_persona, nombre_usuario, estado, rol FROM usuarios";
       $stmt = $pdo->query($sql);
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
@@ -152,7 +152,7 @@ class Usuario
       $stmt->execute([$id]);
       $data = $stmt->fetch(PDO::FETCH_ASSOC);
       if ($data) {
-        return ['id_persona' => $data['id_persona'], 'nombre_usuario' => $data['nombre_usuario'], 'estado' => $data['estado'], 'rol' => $data['rol']];
+        return ['fk_persona' => $data['fk_persona'], 'nombre_usuario' => $data['nombre_usuario'], 'estado' => $data['estado'], 'rol' => $data['rol']];
       }
       return false;
     } catch (Exception $e) {
@@ -172,7 +172,7 @@ class Usuario
       $data = $stmt->fetch(PDO::FETCH_ASSOC);
       if ($data) {
         $usuario = new self(
-          $data['id_persona'],
+          $data['fk_persona'],
           $data['nombre_usuario'],
           $data['contrasena_hash'],
           $data['estado'],
@@ -205,12 +205,12 @@ class Usuario
   /**
    * Busca un usuario por el ID de la persona.
    */
-  public static function buscarPorPersona(PDO $pdo, int $id_persona)
+  public static function buscarPorPersona(PDO $pdo, int $fk_persona)
   {
     try {
-      $sql = "SELECT id_usuario, id_persona, nombre_usuario, estado, rol FROM usuarios WHERE id_persona = ?";
+      $sql = "SELECT id_usuario, fk_persona, nombre_usuario, estado, rol FROM usuarios WHERE fk_persona = ?";
       $stmt = $pdo->prepare($sql);
-      $stmt->execute([$id_persona]);
+      $stmt->execute([$fk_persona]);
       return $stmt->fetch(PDO::FETCH_OBJ);
     } catch (Exception $e) {
       return false;

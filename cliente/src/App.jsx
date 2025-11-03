@@ -10,12 +10,13 @@ import { Personas } from "./Componentes/Persona/Personas.jsx";
 import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPage.jsx";
 import { Personal } from "./Componentes/Personal/Personal.jsx";
 import "./index.css";
+import { Estudiantes } from "./Componentes/Estudiante/Estudiantes.jsx";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<AdminRutas />} />
-      <Route path="Estudiantes" element={<Dashboard />} />
+      <Route path="Estudiantes" element={<Estudiantes />} />
       <Route path="Personal" element={<Personal />} />
       <Route path="Estudiantes" element={<Dashboard />} />
       <Route path="Representantes" element={<Dashboard />} />

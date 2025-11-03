@@ -11,26 +11,35 @@ class Estudiante
 {
   public $id_estudiante;
   public $id_persona;
-  public $codigo_estudiantil;
-  public $grado_actual;
-  public $seccion_actual;
+  public $cedula_escolar;
   public $fecha_ingreso_escuela;
   public $vive_con_padres;
+  public $orden_nacimiento;
+  public $tiempo_gestacion;
+  public $embarazo_deseado;
+  public $tipo_parto;
+  public $control_esfinteres;
 
   public function __construct(
     $id_persona,
-    $codigo_estudiantil,
-    $grado_actual,
+    $cedula_escolar,
     $fecha_ingreso_escuela,
-    $seccion_actual = null,
-    $vive_con_padres = null
+    $vive_con_padres = 'si',
+    $orden_nacimiento = null,
+    $tiempo_gestacion = null,
+    $embarazo_deseado = 'si',
+    $tipo_parto = 'normal',
+    $control_esfinteres = 'si'
   ) {
     $this->id_persona = $id_persona;
-    $this->codigo_estudiantil = $codigo_estudiantil;
-    $this->grado_actual = $grado_actual;
-    $this->seccion_actual = $seccion_actual;
+    $this->cedula_escolar = $cedula_escolar;
     $this->fecha_ingreso_escuela = $fecha_ingreso_escuela;
     $this->vive_con_padres = $vive_con_padres;
+    $this->orden_nacimiento = $orden_nacimiento;
+    $this->tiempo_gestacion = $tiempo_gestacion;
+    $this->embarazo_deseado = $embarazo_deseado;
+    $this->tipo_parto = $tipo_parto;
+    $this->control_esfinteres = $control_esfinteres;
   }
 
   /**
@@ -40,33 +49,31 @@ class Estudiante
    */
   private function _validarDatos(array $data)
   {
-    // Carga los mensajes de validación personalizados
     Validator::lang('es');
-
-    // Instancia el validador pasando los datos y el idioma 'es'
     $v = new Validator($data, [], 'es');
 
-    // Define las reglas de validación
     $v->rules([
       'required' => [
         ['id_persona'],
-        ['codigo_estudiantil'],
-        ['grado_actual'],
+        ['cedula_escolar'],
         ['fecha_ingreso_escuela']
       ],
       'numeric' => [
-        ['id_persona']
+        ['id_persona'],
+        ['orden_nacimiento'],
+        ['tiempo_gestacion']
       ],
       'lengthMax' => [
-        ['codigo_estudiantil', 20],
-        ['grado_actual', 20],
-        ['seccion_actual', 10]
+        ['cedula_escolar', 20]
       ],
       'date' => [
         ['fecha_ingreso_escuela']
       ],
-      'boolean' => [
-        ['vive_con_padres']
+      'in' => [
+        ['vive_con_padres', ['si', 'no']],
+        ['embarazo_deseado', ['si', 'no']],
+        ['tipo_parto', ['cesaria', 'normal']],
+        ['control_esfinteres', ['si', 'no']]
       ]
     ]);
 
@@ -91,22 +98,24 @@ class Estudiante
     }
 
     try {
-      $sql = "INSERT INTO estudiantes (id_persona, codigo_estudiantil, grado_actual, seccion_actual, fecha_ingreso_escuela, vive_con_padres) VALUES (?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO estudiantes (id_persona, cedula_escolar, fecha_ingreso_escuela, vive_con_padres, orden_nacimiento, tiempo_gestacion, embarazo_deseado, tipo_parto, control_esfinteres) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $this->id_persona,
-        $this->codigo_estudiantil,
-        $this->grado_actual,
-        $this->seccion_actual,
+        $this->cedula_escolar,
         $this->fecha_ingreso_escuela,
-        $this->vive_con_padres
+        $this->vive_con_padres,
+        $this->orden_nacimiento,
+        $this->tiempo_gestacion,
+        $this->embarazo_deseado,
+        $this->tipo_parto,
+        $this->control_esfinteres
       ]);
       $this->id_estudiante = $pdo->lastInsertId();
       return $this->id_estudiante;
     } catch (Exception $e) {
-      // Manejar error de duplicidad de código estudiantil
       if ($e->getCode() == 23000) {
-        return ['codigo_estudiantil' => ['El código estudiantil ya se encuentra registrado.']];
+        return ['cedula_escolar' => ['La cédula/código escolar ya se encuentra registrado.']];
       }
       return false;
     }
@@ -130,20 +139,22 @@ class Estudiante
     }
 
     try {
-      $sql = "UPDATE estudiantes SET codigo_estudiantil=?, grado_actual=?, seccion_actual=?, fecha_ingreso_escuela=?, vive_con_padres=? WHERE id_estudiante=?";
+      $sql = "UPDATE estudiantes SET cedula_escolar=?, fecha_ingreso_escuela=?, vive_con_padres=?, orden_nacimiento=?, tiempo_gestacion=?, embarazo_deseado=?, tipo_parto=?, control_esfinteres=? WHERE id_estudiante=?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
-        $this->codigo_estudiantil,
-        $this->grado_actual,
-        $this->seccion_actual,
+        $this->cedula_escolar,
         $this->fecha_ingreso_escuela,
         $this->vive_con_padres,
+        $this->orden_nacimiento,
+        $this->tiempo_gestacion,
+        $this->embarazo_deseado,
+        $this->tipo_parto,
+        $this->control_esfinteres,
         $this->id_estudiante
       ]);
     } catch (Exception $e) {
-      // Manejar error de duplicidad de código estudiantil
       if ($e->getCode() == 23000) {
-        return ['codigo_estudiantil' => ['El código estudiantil ya se encuentra registrado.']];
+        return ['cedula_escolar' => ['La cédula/código escolar ya se encuentra registrado.']];
       }
       return false;
     }
@@ -205,11 +216,14 @@ class Estudiante
       if ($data) {
         $estudiante = new self(
           $data['id_persona'],
-          $data['codigo_estudiantil'],
-          $data['grado_actual'],
+          $data['cedula_escolar'],
           $data['fecha_ingreso_escuela'],
-          $data['seccion_actual'],
-          $data['vive_con_padres']
+          $data['vive_con_padres'] ?? 'si',
+          $data['orden_nacimiento'] ?? null,
+          $data['tiempo_gestacion'] ?? null,
+          $data['embarazo_deseado'] ?? 'si',
+          $data['tipo_parto'] ?? 'normal',
+          $data['control_esfinteres'] ?? 'si'
         );
         $estudiante->id_estudiante = $data['id_estudiante'];
         return $estudiante;

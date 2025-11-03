@@ -16,6 +16,80 @@ function registrarTodasLasRutas(): Router
   // Ejemplo: si tu API está en /controlestudios/servidor/, la base es /controlestudios/servidor
   $router->setBasePath('/controlestudios/servidor');
 
+  // Middleware de autenticación centralizado
+  $authMiddleware = function () {
+    // Añadimos cabeceras CORS aquí también para las respuestas de bloqueo
+    $allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173'
+    ];
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (in_array($origin, $allowedOrigins, true)) {
+      header("Access-Control-Allow-Origin: {$origin}");
+      header('Access-Control-Allow-Credentials: true');
+      header('Vary: Origin');
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    // Permitir preflight sin validar sesión
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+      http_response_code(200);
+      exit;
+    }
+
+    // Si no viene cookie, bloqueamos
+    if (!isset($_COOKIE['session_token'])) {
+      http_response_code(403);
+      echo json_encode([
+        'back' => false,
+        'blocked' => true,
+        'msg' => 'Acceso bloqueado: credenciales requeridas.'
+      ], JSON_UNESCAPED_UNICODE);
+      exit;
+    }
+
+    // Validar token en la base de datos (asume clase Login con obtenerUsuarioPorHash)
+    try {
+      $hash = $_COOKIE['session_token'];
+      $pdo = \Micodigo\Config\Conexion::obtener();
+      $login = new \Micodigo\Login\Login($pdo);
+      $usuario = $login->obtenerUsuarioPorHash($hash);
+
+      if (!$usuario) {
+        // Cookie inválida o expirada -> bloquear y borrar cookie
+        setcookie('session_token', '', time() - 3600, '/');
+        http_response_code(403);
+        echo json_encode([
+          'back' => false,
+          'blocked' => true,
+          'msg' => 'Acceso bloqueado: sesión inválida o expirada.'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+      }
+
+      // Si llega aquí, la sesión es válida: continua ejecución
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode([
+        'back' => false,
+        'blocked' => true,
+        'msg' => 'Error del servidor al validar la sesión.'
+      ], JSON_UNESCAPED_UNICODE);
+      exit;
+    }
+  };
+
+  // Wrapper para mapear rutas que requieren autenticación
+  $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware) {
+    $router->map($method, $route, function (...$params) use ($authMiddleware, $target) {
+      // Ejecuta middleware que bloqueará si no está autorizado
+      $authMiddleware();
+      // Si no salió, llama al handler original con los parámetros de ruta
+      call_user_func_array($target, $params);
+    });
+  };
+
   // Incluye y registra las rutas de autenticación
   require_once __DIR__ . '/Login/RutasLogin.php';
   registrarRutasLogin($router);
@@ -28,10 +102,16 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Persona/RutasPersona.php';
   registrarRutasPersona($router);
 
+  // Registrar rutas de estudiantes (sin middleware en el archivo de rutas)
+  require_once __DIR__ . '/Estudiante/RutasEstudiante.php';
+  registrarRutasEstudiante($router, $mapAuthenticated);
+
   // Incluye y registra las rutas de personal
   require_once __DIR__ . '/Personal/RutasPersonal.php';
   registrarRutasPersonal($router);
-
+  // require_once __DIR__ . '/mostrar.php';
+  // rutasMostrar($router);
+  // Incluye y registra las rutas de temas
 
   return $router;
 }

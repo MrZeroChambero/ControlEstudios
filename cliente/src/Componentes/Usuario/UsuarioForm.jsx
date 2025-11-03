@@ -23,12 +23,12 @@ export const UsuarioForm = ({
   return (
     <form onSubmit={onSubmit}>
       <div className="mb-4">
-        <label className={formStyles.label} htmlFor="id_persona">
+        <label className={formStyles.label} htmlFor="fk_persona">
           Persona
         </label>
         <select
-          name="id_persona"
-          value={formData.id_persona}
+          name="fk_persona"
+          value={formData.fk_persona}
           onChange={datosFormulario}
           className={formStyles.input}
           required
@@ -36,7 +36,7 @@ export const UsuarioForm = ({
         >
           <option value="">Seleccione una persona</option>
           {personas.map((persona) => (
-            <option key={persona.id_persona} value={persona.id_persona}>
+            <option key={persona.fk_persona} value={persona.fk_persona}>
               {`${persona.primer_nombre} ${persona.primer_apellido} - ${persona.cedula}`}
             </option>
           ))}

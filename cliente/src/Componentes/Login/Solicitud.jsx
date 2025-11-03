@@ -28,6 +28,7 @@ export const Solicitud = async (e, username, password, navigate) => {
     }
   } catch (error) {
     if (error.response) {
+      console.log(error.response.data);
       // El servidor respondió con un código de estado fuera del rango 2xx
       switch (error.response.status) {
         case 400: // Bad Request

@@ -61,9 +61,9 @@ function registrarRutasUsuario(AltoRouter $router)
     $usuarioTemp = new Usuario(null, '', '', '', null);
     $erroresContrasena = $usuarioTemp->validarContrasena($data['contrasena'] ?? '');
     if ($erroresContrasena !== true) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
-        return;
+      http_response_code(400);
+      echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
+      return;
     }
 
     // 2. Hashear la contraseña
@@ -73,7 +73,7 @@ function registrarRutasUsuario(AltoRouter $router)
 
     // 3. Validar el resto de los datos (incluyendo el hash de la clave)
     $usuario = new Usuario(
-      $data['id_persona'],
+      $data['fk_persona'],
       $data['nombre_usuario'],
       $data['clave'],
       $data['estado'],
@@ -82,9 +82,9 @@ function registrarRutasUsuario(AltoRouter $router)
 
     $errores = $usuario->validarDatos($data);
     if ($errores !== true) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
-        return;
+      http_response_code(400);
+      echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
+      return;
     }
 
     // 4. Crear el usuario en la BD
@@ -133,29 +133,29 @@ function registrarRutasUsuario(AltoRouter $router)
 
       // 1. Si se proporciona una nueva contraseña, validarla
       if (!empty($data['contrasena'])) {
-          $erroresContrasena = $usuarioTemp->validarContrasena($data['contrasena']);
-          if ($erroresContrasena !== true) {
-              http_response_code(400);
-              echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
-              return;
-          }
-          // Si es válida, la hasheamos para la siguiente validación y para guardarla
-          $dataToValidate['clave'] = password_hash($data['contrasena'], PASSWORD_DEFAULT);
+        $erroresContrasena = $usuarioTemp->validarContrasena($data['contrasena']);
+        if ($erroresContrasena !== true) {
+          http_response_code(400);
+          echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $erroresContrasena], JSON_UNESCAPED_UNICODE);
+          return;
+        }
+        // Si es válida, la hasheamos para la siguiente validación y para guardarla
+        $dataToValidate['clave'] = password_hash($data['contrasena'], PASSWORD_DEFAULT);
       }
 
       // 2. Validar el resto de los datos
       $errores = $usuarioTemp->validarDatos($dataToValidate, true);
       if ($errores !== true) {
-          http_response_code(400);
-          echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
-          return;
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Datos inválidos.', 'back' => true, 'errors' => $errores], JSON_UNESCAPED_UNICODE);
+        return;
       }
 
       // 3. Crear el objeto Usuario final y actualizar
       $clave = $dataToValidate['clave'] ?? $usuarioExistente->clave;
 
       $usuario = new Usuario(
-        $data['id_persona'] ?? $usuarioExistente->id_persona,
+        $data['fk_persona'] ?? $usuarioExistente->fk_persona,
         $data['nombre_usuario'] ?? $usuarioExistente->nombre_usuario,
         $clave,
         $data['estado'] ?? $usuarioExistente->estado,
