@@ -11,6 +11,8 @@ import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPag
 import { Personal } from "./Componentes/Personal/Personal.jsx";
 import "./index.css";
 import { Estudiantes } from "./Componentes/Estudiante/Estudiantes.jsx";
+import { ComponentesAprendizajes } from "./Componentes/ComponentesAprendisaje/ComponentesAprendizajes.jsx";
+import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendizajes.jsx";
 
 function App() {
   return (
@@ -20,7 +22,11 @@ function App() {
       <Route path="Personal" element={<Personal />} />
       <Route path="Estudiantes" element={<Dashboard />} />
       <Route path="Representantes" element={<Dashboard />} />
-      <Route path="Areas de aprendizaje y temas" element={<Dashboard />} />
+      <Route path="areas-de-aprendizaje" element={<AreasAprendizajes />} />
+      <Route
+        path="componentes-de-aprendizaje"
+        element={<ComponentesAprendizajes />}
+      />
       <Route path="Asistencia de estudiantes" element={<Dashboard />} />
       <Route path="Competencias" element={<Dashboard />} />
       <Route path="Indicadores" element={<Dashboard />} />

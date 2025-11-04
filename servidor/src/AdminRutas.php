@@ -117,9 +117,19 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de plantel_personal
   require_once __DIR__ . '/Personal/RutasPlantelPersonal.php';
   registrarRutasPlantelPersonal($router);
+  // Incluye y registra las rutas de función del personal
+  require_once __DIR__ . '/FuncionPersonal/RutasFuncionPersonal.php';
+  registrarRutasFuncionPersonal($router);
+  // Incluye y registra las rutas de áreas de aprendizaje
+  require_once __DIR__ . '/AreasAprendizaje/RutasAreasAprendizaje.php';
+  registrarRutasAreasAprendizaje($router);
   // require_once __DIR__ . '/mostrar.php';
   // rutasMostrar($router);
   // Incluye y registra las rutas de temas
+
+  // Incluye y registra las rutas de componentes de aprendizaje
+  require_once __DIR__ . '/ComponentesAprendizaje/RutasComponentesAprendizaje.php';
+  registrarRutasComponentesAprendizaje($router);
 
   return $router;
 }

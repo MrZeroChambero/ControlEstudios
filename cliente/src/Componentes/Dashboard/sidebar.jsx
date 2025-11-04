@@ -8,9 +8,9 @@ import {
   MdReport,
   MdSupport,
   MdLogout,
-  MdArrowRight,
 } from "react-icons/md";
 import { SidebarMenuItem } from "./SidebarMenuItem";
+import { menuSections } from "./configuracion";
 
 export const Sidebar = () => {
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -19,11 +19,9 @@ export const Sidebar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Leer los datos del localStorage
     const storedUsuario = localStorage.getItem("usuario");
     const storedNivel = localStorage.getItem("nivel");
 
-    // Actualizar el estado del componente
     if (storedUsuario) {
       setUsuario(storedUsuario);
     }
@@ -31,51 +29,6 @@ export const Sidebar = () => {
       setNivel(storedNivel);
     }
   }, []);
-
-  const menuSections = {
-    Entrada: [
-      "Areas de aprendizaje y temas",
-      "Asistencia de estudiantes",
-      "Competencias",
-      "Estudiantes",
-      "Evaluaciones",
-      "Indicadores",
-      "Representantes",
-      "Personal",
-      "Personas",
-      "usuarios",
-    ],
-    Proceso: [
-      "Gestión de grados y secciones",
-      "Inscripción",
-      "Planificación Académica",
-      "Gestión de rendimiento académico",
-      "Gestión de horarios",
-    ],
-    Salidas: [
-      "Certificados de matrícula y estudios",
-      "Certificado de educación primaria",
-      "Informe descriptivo del desempeño escolar",
-      "Sábana escolar",
-      "Constancia de prosecución",
-      "Reportes de asistencia por estudiante/sección",
-      "Directorios del personal y listados de clases",
-      "Reportes demográficos y de salud escolar",
-      "Planillas de inscripción digitalizadas",
-      "Constancias de estudio digitalizadas",
-      "Certificación de funciones para el personal",
-      "Horarios",
-      "Planificación Académica",
-    ],
-    Servicios: [
-      "Copias de seguridad",
-      "Restauración de base de datos",
-      "Usuarios",
-      "Auditoría",
-      "Configuración de años escolares",
-      "Creación de cédula escolar",
-    ],
-  };
 
   const menuIcons = {
     Entrada: <MdInput className="w-5 h-5 mr-3" />,
@@ -94,8 +47,6 @@ export const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      // Llama al endpoint del backend para invalidar la sesión y la cookie.
-      // Es importante enviar 'withCredentials' para que la cookie se envíe.
       await axios.post(
         "http://localhost:8080/controlestudios/servidor/cerrar-sesion",
         {},
@@ -103,10 +54,9 @@ export const Sidebar = () => {
       );
     } catch (error) {
       console.error("Error al cerrar sesión en el servidor:", error);
-      // Continuamos con la limpieza local incluso si el servidor falla
     } finally {
-      localStorage.clear(); // Limpia todos los datos de usuario del localStorage
-      navigate("/login"); // Redirige al usuario a la página de login
+      localStorage.clear();
+      navigate("/login");
     }
   };
 
@@ -130,7 +80,7 @@ export const Sidebar = () => {
             key={section}
             title={section}
             icon={menuIcons[section]}
-            subItems={menuSections[section]}
+            subItems={menuSections[section]} // Ahora enviamos el array de objetos
             isOpen={openDropdowns[section]}
             onToggle={() => toggleDropdown(section)}
           />
