@@ -123,6 +123,13 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de áreas de aprendizaje
   require_once __DIR__ . '/AreasAprendizaje/RutasAreasAprendizaje.php';
   registrarRutasAreasAprendizaje($router);
+  // Incluye y registra las rutas de contenidos
+  require_once __DIR__ . '/Contenidos/RutasContenidos.php';
+  registrarRutasContenidos($router);
+  // Incluye y registra las rutas de temas
+  require_once __DIR__ . '/Temas/RutasTemas.php';
+  registrarRutasTemas($router);
+
   // require_once __DIR__ . '/mostrar.php';
   // rutasMostrar($router);
   // Incluye y registra las rutas de temas

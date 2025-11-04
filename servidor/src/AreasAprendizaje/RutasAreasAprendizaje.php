@@ -7,6 +7,7 @@ function registrarRutasAreasAprendizaje(AltoRouter $router)
   $controlador = new ControladoraAreas();
 
   $router->map('GET', '/areas_aprendizaje', [$controlador, 'listar']);
+  $router->map('GET', '/areas_aprendizaje/listar-select', [$controlador, 'listarSelect']);
   $router->map('POST', '/areas_aprendizaje', [$controlador, 'crear']);
   $router->map('PUT', '/areas_aprendizaje/[i:id]', function ($id) use ($controlador) {
     $controlador->actualizar($id);

@@ -76,6 +76,7 @@ class ControladoraAreas
     }
   }
 
+
   public function crear()
   {
     try {

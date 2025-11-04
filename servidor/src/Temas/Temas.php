@@ -2,176 +2,136 @@
 
 namespace Micodigo\Temas;
 
+use Micodigo\Config\Conexion;
 use PDO;
 use Exception;
-use Valitron\Validator;
 
 class Temas
 {
   public $id_tema;
-  public $id_planificacion;
+  public $fk_contenido;
+  public $codigo;
   public $nombre_tema;
   public $descripcion;
+  public $orden_tema;
+  public $estado;
 
-  public function __construct(
-    $id_planificacion,
-    $nombre_tema,
-    $descripcion = null
-  ) {
-    $this->id_planificacion = $id_planificacion;
+  public function __construct($fk_contenido = null, $codigo = null, $nombre_tema = null, $descripcion = null, $orden_tema = 1)
+  {
+    $this->fk_contenido = $fk_contenido;
+    $this->codigo = $codigo;
     $this->nombre_tema = $nombre_tema;
     $this->descripcion = $descripcion;
+    $this->orden_tema = $orden_tema;
+    $this->estado = 'activo';
   }
 
-  /**
-   * Valida los datos del objeto Temas usando Valitron.
-   * @param array $data Los datos a validar.
-   * @return array|bool Un array con errores o verdadero si la validación es exitosa.
-   */
-  private function _validarDatos(array $data)
-  {
-    Validator::lang('es');
-    $v = new Validator($data, [], 'es');
-
-    $v->rules([
-      'required' => [
-        ['id_planificacion'],
-        ['nombre_tema']
-      ],
-      'numeric' => [
-        ['id_planificacion']
-      ],
-      'lengthMax' => [
-        ['nombre_tema', 255]
-      ]
-    ]);
-
-    if ($v->validate()) {
-      return true;
-    } else {
-      return $v->errors();
-    }
-  }
-
-  /**
-   * Crea un nuevo registro de tema con validación previa.
-   * @param PDO $pdo Objeto de conexión a la base de datos.
-   * @return int|array|false El ID insertado, un array de errores, o falso si falla.
-   */
-  public function crear(PDO $pdo)
-  {
-    $data = get_object_vars($this);
-    $errores = $this->_validarDatos($data);
-    if ($errores !== true) {
-      return $errores;
-    }
-
-    try {
-      $sql = "INSERT INTO temas (id_planificacion, nombre_tema, descripcion) VALUES (?, ?, ?)";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([
-        $this->id_planificacion,
-        $this->nombre_tema,
-        $this->descripcion
-      ]);
-      $this->id_tema = $pdo->lastInsertId();
-      return $this->id_tema;
-    } catch (Exception $e) {
-      return false;
-    }
-  }
-
-  /**
-   * Actualiza los datos de un registro de tema con validación.
-   * @param PDO $pdo Objeto de conexión.
-   * @return bool|array Verdadero si la actualización fue exitosa, o un array de errores si falla.
-   */
-  public function actualizar(PDO $pdo)
-  {
-    if (empty($this->id_tema)) {
-      return ['id_tema' => ['El ID es requerido para la actualización.']];
-    }
-
-    $data = get_object_vars($this);
-    $errores = $this->_validarDatos($data);
-    if ($errores !== true) {
-      return $errores;
-    }
-
-    try {
-      $sql = "UPDATE temas SET id_planificacion=?, nombre_tema=?, descripcion=? WHERE id_tema=?";
-      $stmt = $pdo->prepare($sql);
-      return $stmt->execute([
-        $this->id_planificacion,
-        $this->nombre_tema,
-        $this->descripcion,
-        $this->id_tema
-      ]);
-    } catch (Exception $e) {
-      return false;
-    }
-  }
-
-  /**
-   * Elimina un registro de tema por ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id El ID del registro a eliminar.
-   * @return bool Verdadero si la eliminación fue exitosa.
-   */
-  public static function eliminar(PDO $pdo, $id)
+  public static function consultarPorContenido($pdo, $id_contenido)
   {
     try {
-      $sql = "DELETE FROM temas WHERE id_tema=?";
+      $sql = "SELECT * FROM temas WHERE fk_contenido = ? ORDER BY orden_tema, nombre_tema";
       $stmt = $pdo->prepare($sql);
-      return $stmt->execute([$id]);
+      $stmt->execute([$id_contenido]);
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al consultar temas por contenido: " . $e->getMessage());
     }
   }
 
-  /**
-   * Consulta los datos de un registro por su ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id ID del registro a consultar.
-   * @return object|false Un objeto Temas con sus datos o false si no se encuentra.
-   */
-  public static function consultar(PDO $pdo, $id)
+  public static function consultarActualizar($pdo, $id)
   {
     try {
       $sql = "SELECT * FROM temas WHERE id_tema = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
-      $data = $stmt->fetch(PDO::FETCH_ASSOC);
-      if ($data) {
-        $tema = new self(
-          $data['id_planificacion'],
-          $data['nombre_tema'],
-          $data['descripcion']
-        );
-        $tema->id_tema = $data['id_tema'];
+      $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($resultado) {
+        $tema = new Temas();
+        $tema->id_tema = $resultado['id_tema'];
+        $tema->fk_contenido = $resultado['fk_contenido'];
+        $tema->codigo = $resultado['codigo'];
+        $tema->nombre_tema = $resultado['nombre_tema'];
+        $tema->descripcion = $resultado['descripcion'];
+        $tema->orden_tema = $resultado['orden_tema'];
+        $tema->estado = $resultado['estado'];
         return $tema;
       }
-      return false;
+      return null;
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al consultar tema para actualizar: " . $e->getMessage());
     }
   }
 
-  /**
-   * Verifica la existencia de un registro de tema por su ID.
-   * @param PDO $pdo Objeto de conexión.
-   * @param int $id ID del registro a verificar.
-   * @return bool Verdadero si existe, falso si no.
-   */
-  public static function verificarID(PDO $pdo, $id)
+  public function crear($pdo)
   {
     try {
-      $sql = "SELECT COUNT(*) FROM temas WHERE id_tema = ?";
+      $sql = "INSERT INTO temas (fk_contenido, codigo, nombre_tema, descripcion, orden_tema, estado) 
+                    VALUES (?, ?, ?, ?, ?, ?)";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([
+        $this->fk_contenido,
+        $this->codigo,
+        $this->nombre_tema,
+        $this->descripcion,
+        $this->orden_tema,
+        $this->estado
+      ]);
+      return $pdo->lastInsertId();
+    } catch (Exception $e) {
+      throw new Exception("Error al crear tema: " . $e->getMessage());
+    }
+  }
+
+  public function actualizar($pdo)
+  {
+    try {
+      $sql = "UPDATE temas 
+                    SET codigo = ?, nombre_tema = ?, descripcion = ?, orden_tema = ?
+                    WHERE id_tema = ?";
+      $stmt = $pdo->prepare($sql);
+      return $stmt->execute([
+        $this->codigo,
+        $this->nombre_tema,
+        $this->descripcion,
+        $this->orden_tema,
+        $this->id_tema
+      ]);
+    } catch (Exception $e) {
+      throw new Exception("Error al actualizar tema: " . $e->getMessage());
+    }
+  }
+
+  public static function eliminar($pdo, $id)
+  {
+    try {
+      $sql = "DELETE FROM temas WHERE id_tema = ?";
+      $stmt = $pdo->prepare($sql);
+      return $stmt->execute([$id]);
+    } catch (Exception $e) {
+      throw new Exception("Error al eliminar tema: " . $e->getMessage());
+    }
+  }
+
+  public static function cambiarEstado($pdo, $id)
+  {
+    try {
+      // Primero obtener el estado actual
+      $sql = "SELECT estado FROM temas WHERE id_tema = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
-      return $stmt->fetchColumn() > 0;
-    } catch (Exception $e) {
+      $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if ($resultado) {
+        $nuevoEstado = $resultado['estado'] === 'activo' ? 'inactivo' : 'activo';
+
+        $sql = "UPDATE temas SET estado = ? WHERE id_tema = ?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$nuevoEstado, $id]);
+      }
       return false;
+    } catch (Exception $e) {
+      throw new Exception("Error al cambiar estado del tema: " . $e->getMessage());
     }
   }
 }

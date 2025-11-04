@@ -13,6 +13,7 @@ import "./index.css";
 import { Estudiantes } from "./Componentes/Estudiante/Estudiantes.jsx";
 import { ComponentesAprendizajes } from "./Componentes/ComponentesAprendisaje/ComponentesAprendizajes.jsx";
 import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendizajes.jsx";
+import { Contenidos } from "./Componentes/Contenidos/Contenidos.jsx";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="Estudiantes" element={<Dashboard />} />
       <Route path="Representantes" element={<Dashboard />} />
       <Route path="areas-de-aprendizaje" element={<AreasAprendizajes />} />
+      <Route path="contenido" element={<Contenidos />} />
       <Route
         path="componentes-de-aprendizaje"
         element={<ComponentesAprendizajes />}
