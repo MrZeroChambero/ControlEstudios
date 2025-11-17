@@ -95,8 +95,8 @@ function registrarTodasLasRutas(): Router
   registrarRutasLogin($router);
 
   // Incluye y registra las rutas de usuarios
-  require_once __DIR__ . '/Usuario/RutasUsuario.php';
-  registrarRutasUsuario($router);
+  require_once __DIR__ . '/Usuarios/RutasUsuarios.php';
+  registrarRutasUsuarios($router);
 
   // Incluye y registra las rutas de personas
   require_once __DIR__ . '/Persona/RutasPersona.php';
@@ -123,6 +123,10 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de áreas de aprendizaje
   require_once __DIR__ . '/AreasAprendizaje/RutasAreasAprendizaje.php';
   registrarRutasAreasAprendizaje($router);
+  //Incluye y registra las rutas de evaluaciones
+  require_once __DIR__ . '/Evaluaciones/RutasEvaluaciones.php';
+  registrarRutasEvaluaciones($router);
+
   // Incluye y registra las rutas de contenidos
   require_once __DIR__ . '/Contenidos/RutasContenidos.php';
   registrarRutasContenidos($router);

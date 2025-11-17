@@ -9,13 +9,10 @@ import EstudianteTabla from "./EstudianteTabla";
 /**
  * Menú principal para estudiantes — sigue la estructura de Personas.jsx
  */
-export const Estudiantes = () => {
-  return <MenuPrincipal Formulario={MenuPersonas} />;
-};
 
 const API_URL = "http://localhost:8080/controlestudios/servidor/estudiantes";
 
-const MenuPersonas = () => {
+export const Estudiantes = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [isCargando, setIsCargando] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,7 +93,8 @@ const MenuPersonas = () => {
     } catch (error) {
       console.error("Error al cambiar el estado del estudiante:", error);
       const errorMsg =
-        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+        error.response?.data?.message ||
+        "Ocurrió un error al cambiar el estado.";
       Swal.fire("Error", errorMsg, "error");
     }
   };
@@ -142,5 +140,3 @@ const MenuPersonas = () => {
     </>
   );
 };
-
-export default MenuPersonas;

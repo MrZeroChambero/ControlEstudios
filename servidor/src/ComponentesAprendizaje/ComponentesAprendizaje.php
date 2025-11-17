@@ -22,7 +22,7 @@ class ComponentesAprendizaje
     public function crear(PDO $pdo): int|false
     {
         try {
-            $sql = "INSERT INTO componentes_aprendizaje (nombre_componente, estado) VALUES (?, ?)";
+            $sql = "INSERT INTO componentes_aprendizaje (nombre, estado) VALUES (?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$this->nombre_componente, $this->estado]);
 
@@ -40,7 +40,7 @@ class ComponentesAprendizaje
         }
 
         try {
-            $sql = "UPDATE componentes_aprendizaje SET nombre_componente = ? WHERE id_componente = ?";
+            $sql = "UPDATE componentes_aprendizaje SET nombre = ? WHERE id_componente = ?";
             $stmt = $pdo->prepare($sql);
             return $stmt->execute([$this->nombre_componente, $this->id_componente]);
         } catch (Exception $e) {
@@ -62,7 +62,7 @@ class ComponentesAprendizaje
     public static function consultarTodos(PDO $pdo): array
     {
         try {
-            $sql = "SELECT id_componente, nombre_componente, estado FROM componentes_aprendizaje";
+            $sql = "SELECT id_componente, nombre as nombre_componente, estado FROM componentes_aprendizaje";
             $stmt = $pdo->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
@@ -72,7 +72,7 @@ class ComponentesAprendizaje
     public static function consultarSelect(PDO $pdo): array
     {
         try {
-            $sql = "SELECT id_componente, nombre_componente, estado FROM componentes_aprendizaje where estado='activo' order by nombre_componente";
+            $sql = "SELECT id_componente, nombre as nombre_componente, estado FROM componentes_aprendizaje where estado='activo' order by nombre";
             $stmt = $pdo->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
@@ -83,7 +83,7 @@ class ComponentesAprendizaje
     public static function consultar(PDO $pdo, int $id)
     {
         try {
-            $sql = "SELECT * FROM componentes_aprendizaje WHERE id_componente = ?";
+            $sql = "SELECT id_componente, nombre as nombre_componente, estado FROM componentes_aprendizaje WHERE id_componente = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -95,7 +95,7 @@ class ComponentesAprendizaje
     public static function consultarActualizar(PDO $pdo, $id)
     {
         try {
-            $sql = "SELECT * FROM componentes_aprendizaje WHERE id_componente = ?";
+            $sql = "SELECT id_componente, nombre as nombre_componente, estado FROM componentes_aprendizaje WHERE id_componente = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);

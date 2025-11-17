@@ -5,7 +5,7 @@ import {
   MdVideocam,
 } from "react-icons/md";
 
-const MultimediaSection = () => {
+export const MultimediaSection = () => {
   return (
     <>
       {" "}
@@ -31,7 +31,7 @@ const MultimediaSection = () => {
     </>
   );
 };
-const GraficosSection = () => {
+export const GraficosSection = () => {
   return (
     <>
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
@@ -43,7 +43,7 @@ const GraficosSection = () => {
     </>
   );
 };
-const BotonesSection = () => {
+export const BotonesSection = () => {
   return (
     <>
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
@@ -62,25 +62,6 @@ const BotonesSection = () => {
           <MdSettings className="h-10 w-10 text-yellow-500 mb-2" />
           <span className="text-sm font-semibold">Configuración</span>
         </button>
-      </div>
-    </>
-  );
-};
-
-export const Main = () => {
-  return (
-    // Agregar el return
-    <>
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <BotonesSection />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <GraficosSection />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <MultimediaSection />
       </div>
     </>
   );

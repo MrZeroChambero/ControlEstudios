@@ -11,28 +11,26 @@ class Contenidos
   public $id_contenido;
   public $nombre;
   public $fk_area_aprendizaje;
-  public $nivel;
+  public $grado;
   public $descripcion;
-  public $orden_contenido;
   public $estado;
 
-  public function __construct($nombre = null, $fk_area_aprendizaje = null, $nivel = null, $descripcion = null, $orden_contenido = 1)
+  public function __construct($nombre = null, $fk_area_aprendizaje = null, $grado = null, $descripcion = null)
   {
     $this->nombre = $nombre;
     $this->fk_area_aprendizaje = $fk_area_aprendizaje;
-    $this->nivel = $nivel;
+    $this->grado = $grado;
     $this->descripcion = $descripcion;
-    $this->orden_contenido = $orden_contenido;
     $this->estado = 'activo';
   }
 
   public static function consultarTodos($pdo)
   {
     try {
-      $sql = "SELECT c.*, a.nombre_area 
+      $sql = "SELECT c.*, a.nombre as nombre_area 
                     FROM contenidos c
                     LEFT JOIN areas_aprendizaje a ON c.fk_area_aprendizaje = a.id_area_aprendizaje
-                    ORDER BY c.orden_contenido, c.nombre";
+                    ORDER BY  c.nombre";
       $stmt = $pdo->prepare($sql);
       $stmt->execute();
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -44,7 +42,7 @@ class Contenidos
   public static function consultarParaSelect($pdo)
   {
     try {
-      $sql = "SELECT id_contenido, nombre FROM contenidos WHERE estado = 'activo' ORDER BY orden_contenido, nombre";
+      $sql = "SELECT id_contenido, nombre FROM contenidos WHERE estado = 'activo' ORDER BY nombre";
       $stmt = $pdo->prepare($sql);
       $stmt->execute();
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -66,9 +64,8 @@ class Contenidos
         $contenido->id_contenido = $resultado['id_contenido'];
         $contenido->nombre = $resultado['nombre'];
         $contenido->fk_area_aprendizaje = $resultado['fk_area_aprendizaje'];
-        $contenido->nivel = $resultado['nivel'];
+        $contenido->grado = $resultado['grado'];
         $contenido->descripcion = $resultado['descripcion'];
-        $contenido->orden_contenido = $resultado['orden_contenido'];
         $contenido->estado = $resultado['estado'];
         return $contenido;
       }
@@ -81,15 +78,14 @@ class Contenidos
   public function crear($pdo)
   {
     try {
-      $sql = "INSERT INTO contenidos (nombre, fk_area_aprendizaje, nivel, descripcion, orden_contenido, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO contenidos (nombre, fk_area_aprendizaje, grado, descripcion, estado) 
+                    VALUES (?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $this->nombre,
         $this->fk_area_aprendizaje,
-        $this->nivel,
+        $this->grado,
         $this->descripcion,
-        $this->orden_contenido,
         $this->estado
       ]);
       return $pdo->lastInsertId();
@@ -102,15 +98,14 @@ class Contenidos
   {
     try {
       $sql = "UPDATE contenidos 
-                    SET nombre = ?, fk_area_aprendizaje = ?, nivel = ?, descripcion = ?, orden_contenido = ?
+                    SET nombre = ?, fk_area_aprendizaje = ?, grado = ?, descripcion = ?
                     WHERE id_contenido = ?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
         $this->nombre,
         $this->fk_area_aprendizaje,
-        $this->nivel,
+        $this->grado,
         $this->descripcion,
-        $this->orden_contenido,
         $this->id_contenido
       ]);
     } catch (Exception $e) {

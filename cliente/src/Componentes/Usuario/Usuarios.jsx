@@ -1,71 +1,81 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
-import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
 import { FaPlus } from "react-icons/fa";
-import { UsuarioTable } from "./UsuarioTable";
-import { UsuarioModal } from "./UsuarioModal";
-import { solicitudUsuarios } from "./Solicitudes/solicitudUsuarios";
-import { solicitudPersonas } from "./Solicitudes/solicitudPersonas";
-import { Enviar } from "./Solicitudes/Enviar";
-import { eliminar } from "./Solicitudes/eliminar";
+import { UsuariosTable } from "./UsuariosTable";
+import { UsuariosModal } from "./UsuariosModal";
+import { UsuariosViewModal } from "./UsuariosViewModal";
+import {
+  solicitarUsuarios,
+  eliminarUsuario,
+  enviarUsuario,
+  cambioEstadoUsuario,
+  solicitarPersonalParaSelect,
+  obtenerUsuarioCompleto,
+} from "./usuariosService";
 
 export const Usuarios = () => {
-  return <MenuPrincipal Formulario={MenuUsuarios} />;
-};
-
-const MenuUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [currentUsuario, setCurrentUsuario] = useState(null);
+  const [usuarioCompleto, setUsuarioCompleto] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [modoModal, setModoModal] = useState("crear");
   const [formData, setFormData] = useState({
-    id_persona: "",
+    fk_personal: "",
     nombre_usuario: "",
     contrasena: "",
-    rol: "", // Valor por defecto
+    rol: "",
   });
-  const [personas, setPersonas] = useState([]);
-  const API_URL = "http://localhost:8080/controlestudios/servidor/usuarios";
+  const [personal, setPersonal] = useState([]);
 
-  // Cargar usuarios al montar el componente
   useEffect(() => {
-    solicitudUsuarios({ setIsLoading, setUsuarios });
-    solicitudPersonas({ setPersonas });
+    cargarDatos();
   }, []);
+
+  const cargarDatos = async () => {
+    await solicitarUsuarios(setUsuarios, setIsLoading, Swal);
+    await solicitarPersonalParaSelect(setPersonal, Swal);
+  };
+
   const cambioEstados = async (usuario) => {
     const nuevoEstado = usuario.estado === "activo" ? "inactivo" : "activo";
     const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
 
-    try {
-      const dataToSend = { ...usuario, estado: nuevoEstado };
-      // La API de PUT requiere todos los campos, así que los enviamos.
-      // No enviamos la contraseña para no cambiarla.
-      delete dataToSend.contrasena;
-
-      await axios.put(`${API_URL}/${usuario.id_usuario}`, dataToSend, {
-        withCredentials: true,
-      });
-      Swal.fire("¡Éxito!", `Usuario ${accion}do correctamente.`, "success");
-      solicitudUsuarios({ setIsLoading, setUsuarios });
-    } catch (error) {
-      console.error(`Error al ${accion} el usuario:`, error);
-      Swal.fire("Error", `No se pudo ${accion} el usuario.`, "error");
-    }
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: `¿Deseas ${accion} este usuario?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, ${accion}`,
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await cambioEstadoUsuario(usuario.id_usuario, cargarDatos, Swal);
+        } catch (error) {
+          console.error(`Error al ${accion} el usuario:`, error);
+          Swal.fire("Error", `No se pudo ${accion} el usuario.`, "error");
+        }
+      }
+    });
   };
 
-  const openModal = (usuario = null) => {
-    setCurrentUser(usuario);
+  const openModal = (usuario = null, modo = "crear") => {
+    setCurrentUsuario(usuario);
+    setModoModal(modo);
     if (usuario) {
       setFormData({
-        id_persona: usuario.id_persona,
+        fk_personal: usuario.fk_personal,
         nombre_usuario: usuario.nombre_usuario,
-        contrasena: "", // La contraseña no se carga por seguridad
+        contrasena: "",
         rol: usuario.rol,
       });
     } else {
       setFormData({
-        id_persona: "",
+        fk_personal: "",
         nombre_usuario: "",
         contrasena: "",
         rol: "",
@@ -76,12 +86,55 @@ const MenuUsuarios = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setCurrentUser(null);
+    setCurrentUsuario(null);
+    setModoModal("crear");
+  };
+
+  const openViewModal = async (usuario) => {
+    setIsLoading(true);
+    try {
+      const usuarioCompleto = await obtenerUsuarioCompleto(
+        usuario.id_usuario,
+        Swal
+      );
+      setUsuarioCompleto(usuarioCompleto);
+      setIsViewModalOpen(true);
+    } catch (error) {
+      console.error("Error al cargar información del usuario:", error);
+      Swal.fire(
+        "Error",
+        "No se pudo cargar la información del usuario.",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const closeViewModal = () => {
+    setIsViewModalOpen(false);
+    setUsuarioCompleto(null);
   };
 
   const datosFormulario = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleView = (usuario) => {
+    openViewModal(usuario);
+  };
+
+  const handleEdit = (usuario) => {
+    openModal(usuario, "editar");
+  };
+
+  const handleDelete = (id) => {
+    eliminarUsuario(id, cargarDatos, Swal);
+  };
+
+  const handleSubmit = (e) => {
+    enviarUsuario(e, formData, currentUsuario, closeModal, cargarDatos, Swal);
   };
 
   return (
@@ -101,46 +154,31 @@ const MenuUsuarios = () => {
           sistema.
         </p>
 
-        <UsuarioTable
+        <UsuariosTable
           usuarios={usuarios}
           isLoading={isLoading}
-          onEdit={openModal}
-          onDelete={(id) =>
-            eliminar({
-              id,
-              Swal,
-              axios,
-              solicitudUsuarios,
-              API_URL,
-              setIsLoading,
-              setUsuarios,
-            })
-          }
+          onEdit={handleEdit}
+          onDelete={handleDelete}
           cambioEstados={cambioEstados}
+          onView={handleView}
         />
       </div>
 
-      <UsuarioModal
+      <UsuariosModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        onSubmit={(e) =>
-          Enviar({
-            e,
-            formData,
-            currentUser,
-            closeModal,
-            API_URL,
-            Swal,
-            axios,
-            solicitudUsuarios,
-            setIsLoading,
-            setUsuarios,
-          })
-        }
-        currentUser={currentUser}
+        onSubmit={handleSubmit}
+        currentUsuario={currentUsuario}
         formData={formData}
-        personas={personas}
         datosFormulario={datosFormulario}
+        personal={personal}
+        modo={modoModal}
+      />
+
+      <UsuariosViewModal
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        usuario={usuarioCompleto}
       />
     </>
   );

@@ -7,13 +7,9 @@ import { PersonalTable } from "./PersonalTable";
 import { PersonalModal } from "./PersonalModal";
 import { solicitudPersonas } from "../Usuario/Solicitudes/solicitudPersonas"; // reutilizar
 
-export const Personal = () => {
-  return <MenuPrincipal Formulario={MenuPersonal} />;
-};
-
 const API_URL = "http://localhost:8080/controlestudios/servidor/personal";
 
-const MenuPersonal = () => {
+export const Personal = () => {
   const [items, setItems] = useState([]);
   const [personas, setPersonas] = useState([]);
   const [planteles, setPlanteles] = useState([]);
@@ -63,7 +59,10 @@ const MenuPersonal = () => {
 
   const cargarPlanteles = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/controlestudios/servidor/planteles", { withCredentials: true });
+      const res = await axios.get(
+        "http://localhost:8080/controlestudios/servidor/planteles",
+        { withCredentials: true }
+      );
       if (res.data.back === undefined) {
         Swal.fire("Error", "No se pudieron cargar los planteles.", "error");
         setPlanteles([]);
@@ -147,7 +146,8 @@ const MenuPersonal = () => {
     } catch (error) {
       console.error("Error al cambiar el estado del personal:", error);
       const errorMsg =
-        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+        error.response?.data?.message ||
+        "Ocurrió un error al cambiar el estado.";
       Swal.fire("Error", errorMsg, "error");
     }
   };
@@ -175,7 +175,8 @@ const MenuPersonal = () => {
         Swal.fire("¡Creado!", "Personal creado.", "success");
       }
 
-      const personalId = currentItem?.id_personal || personalResponse.data.data.id_personal;
+      const personalId =
+        currentItem?.id_personal || personalResponse.data.data.id_personal;
 
       // Manejar asignación a plantel si se proporcionaron datos
       if (fk_plantel && plantel_personal_estado) {
@@ -187,7 +188,8 @@ const MenuPersonal = () => {
 
         if (existingPlantelPersonal.data.data.length > 0) {
           // Si ya existe, actualizar
-          const assignmentId = existingPlantelPersonal.data.data[0].id_plantel_personal;
+          const assignmentId =
+            existingPlantelPersonal.data.data[0].id_plantel_personal;
           await axios.put(
             `http://localhost:8080/controlestudios/servidor/plantel_personal/${assignmentId}`,
             {
@@ -197,7 +199,11 @@ const MenuPersonal = () => {
             },
             { withCredentials: true }
           );
-          Swal.fire("¡Actualizado!", "Asignación a plantel actualizada.", "success");
+          Swal.fire(
+            "¡Actualizado!",
+            "Asignación a plantel actualizada.",
+            "success"
+          );
         } else {
           // Si no existe, crear
           await axios.post(

@@ -10,10 +10,6 @@ import { eliminarAreasAprendizaje } from "./Solicitudes/eliminarAreasAprendizaje
 import { EnviarAreasAprendizaje } from "./Solicitudes/EnviarAreasAprendizaje";
 
 export const AreasAprendizajes = () => {
-  return <MenuPrincipal Formulario={MenuAreasAprendizajes} />;
-};
-
-const MenuAreasAprendizajes = () => {
   const [areas, setAreas] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentArea, setCurrentArea] = useState(null);

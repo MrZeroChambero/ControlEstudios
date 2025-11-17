@@ -6,10 +6,6 @@ import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
 import { PersonaTable } from "./PersonaTable";
 import { PersonaModal } from "./PersonaModal";
 
-export const Personas = () => {
-  return <MenuPrincipal Formulario={MenuPersonas} />;
-};
-
 const initialFormData = {
   primer_nombre: "",
   segundo_nombre: "",
@@ -26,7 +22,7 @@ const initialFormData = {
   tipo_persona: "",
 };
 
-const MenuPersonas = () => {
+export const Personas = () => {
   const [personas, setPersonas] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPersona, setCurrentPersona] = useState(null);
@@ -209,7 +205,8 @@ const MenuPersonas = () => {
     } catch (error) {
       console.error("Error al cambiar el estado de la persona:", error);
       const errorMsg =
-        error.response?.data?.message || "Ocurrió un error al cambiar el estado.";
+        error.response?.data?.message ||
+        "Ocurrió un error al cambiar el estado.";
       Swal.fire("Error", errorMsg, "error");
     }
   };

@@ -11,13 +11,12 @@ const formStyles = {
     "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg",
 };
 
-export const ContenidosModal = ({
+export const EvaluacionesModal = ({
   isOpen,
   onClose,
   onSubmit,
-  currentContenido,
+  currentEvaluacion,
   formData,
-  areas,
   datosFormulario,
   modo,
 }) => {
@@ -25,10 +24,10 @@ export const ContenidosModal = ({
 
   const titulo =
     modo === "ver"
-      ? "Ver Contenido"
-      : currentContenido
-      ? "Editar Contenido"
-      : "Crear Contenido";
+      ? "Ver Evaluación"
+      : currentEvaluacion
+      ? "Editar Evaluación"
+      : "Crear Evaluación";
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
@@ -36,81 +35,24 @@ export const ContenidosModal = ({
         <h2 className="text-2xl font-bold mb-6">{titulo}</h2>
         <form onSubmit={onSubmit}>
           <div className="mb-4">
-            <label className={formStyles.label} htmlFor="nombre">
-              Nombre del Contenido
+            <label className={formStyles.label} htmlFor="nombre_evaluacion">
+              Nombre de la Evaluación
             </label>
             {modo === "ver" ? (
-              <p className="text-gray-900">{formData.nombre}</p>
+              <p className="text-gray-900">{formData.nombre_evaluacion}</p>
             ) : (
               <input
                 type="text"
-                name="nombre"
-                value={formData.nombre}
+                name="nombre_evaluacion"
+                value={formData.nombre_evaluacion}
                 onChange={datosFormulario}
                 className={formStyles.input}
                 autoComplete="off"
                 required
-                placeholder="Ingrese el nombre del contenido"
+                placeholder="Ingrese el nombre de la evaluación"
               />
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="fk_area_aprendizaje">
-              Área de Aprendizaje
-            </label>
-            {modo === "ver" ? (
-              <p className="text-gray-900">
-                {areas.find(
-                  (a) => a.id_area_aprendizaje == formData.fk_area_aprendizaje
-                )?.nombre_area || "N/A"}
-              </p>
-            ) : (
-              <select
-                name="fk_area_aprendizaje"
-                value={formData.fk_area_aprendizaje}
-                onChange={datosFormulario}
-                className={formStyles.input}
-                required
-                autoComplete="off"
-              >
-                <option value="">Seleccione un área</option>
-                {areas.map((area) => (
-                  <option
-                    key={area.id_area_aprendizaje}
-                    value={area.id_area_aprendizaje}
-                  >
-                    {area.nombre_area}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="grado">
-              grado
-            </label>
-            {modo === "ver" ? (
-              <p className="text-gray-900">{formData.grado}</p>
-            ) : (
-              <select
-                name="grado"
-                value={formData.grado}
-                onChange={datosFormulario}
-                className={formStyles.input}
-                required
-                autoComplete="off"
-              >
-                <option value="">Seleccione un grado</option>
-                <option value="primero">Primero</option>
-                <option value="segundo">Segundo</option>
-                <option value="tercero">Tercero</option>
-                <option value="cuarto">Cuarto</option>
-                <option value="quinto">Quinto</option>
-                <option value="sexto">Sexto</option>
-              </select>
-            )}
-          </div>
-
           <div className="mb-6">
             <label className={formStyles.label} htmlFor="descripcion">
               Descripción
@@ -125,7 +67,7 @@ export const ContenidosModal = ({
                 className={formStyles.input}
                 autoComplete="off"
                 rows="3"
-                placeholder="Descripción del contenido (opcional)"
+                placeholder="Descripción de la evaluación (opcional)"
               />
             )}
           </div>
@@ -139,7 +81,7 @@ export const ContenidosModal = ({
                 Cancelar
               </button>
               <button type="submit" className={formStyles.submitButton}>
-                {currentContenido ? "Actualizar" : "Guardar"}
+                {currentEvaluacion ? "Actualizar" : "Guardar"}
               </button>
             </div>
           )}

@@ -6,6 +6,8 @@ use Micodigo\Config\Conexion;
 use Valitron\Validator;
 use Exception;
 
+use PDO;
+
 class ControladoraAreas
 {
   public function __construct()
@@ -40,15 +42,14 @@ class ControladoraAreas
     }, 'ya está en uso.');
   }
 
-  private function validarExistenciaForanea($tabla, $campoId, $valor, $campoNombre)
+  private function validarExistenciaForanea($tabla, $campoId, $valor)
   {
     try {
       $pdo = Conexion::obtener();
-      $sql = "SELECT {$campoNombre} FROM {$tabla} WHERE {$campoId} = ?";
+      $sql = "SELECT COUNT(*) FROM {$tabla} WHERE {$campoId} = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$valor]);
-      $resultado = $stmt->fetch(\PDO::FETCH_ASSOC);
-      return $resultado ? $resultado[$campoNombre] : false;
+      return $stmt->fetchColumn() > 0;
     } catch (Exception $e) {
       return false;
     }
@@ -118,8 +119,8 @@ class ControladoraAreas
       $v->rule('textoEspanol', 'nombre_area');
 
       // Validar existencia de claves foráneas
-      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente'], 'nombre_componente');
-      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion'], 'nombre');
+      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente']);
+      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion']);
 
       if (!$nombreComponente) {
         $v->error('fk_componente', 'El componente seleccionado no existe');
@@ -219,8 +220,8 @@ class ControladoraAreas
       $v->rule('textoEspanol', 'nombre_area');
 
       // Validar existencia de claves foráneas
-      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente'], 'nombre_componente');
-      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion'], 'nombre');
+      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente']);
+      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion']);
 
       if (!$nombreComponente) {
         $v->error('fk_componente', 'El componente seleccionado no existe');
@@ -244,8 +245,7 @@ class ControladoraAreas
 
           if ($area->actualizar($pdo)) {
             // Agregar nombres de las relaciones para la respuesta
-            $area->nombre_componente = $nombreComponente;
-            $area->nombre_funcion = $nombreFuncion;
+
 
             header('Content-Type: application/json');
             echo json_encode([
@@ -254,7 +254,13 @@ class ControladoraAreas
               'message' => 'Área de aprendizaje actualizada exitosamente.'
             ]);
           } else {
-            throw new Exception('No se pudo actualizar el área de aprendizaje en la base de datos');
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode([
+              'back' => false,
+              'message' => 'Error al actualizar el área de aprendizaje.',
+              'data' => $area ?: null,
+            ]);
           }
         } else {
           http_response_code(404);
@@ -278,7 +284,7 @@ class ControladoraAreas
       header('Content-Type: application/json');
       echo json_encode([
         'back' => false,
-        'message' => 'Error en el servidor al actualizar el área de aprendizaje.',
+        'message' => 'Error en el servidor al actualizar el área de aprendizaje. ssss',
         'error_details' => $e->getMessage()
       ]);
     }

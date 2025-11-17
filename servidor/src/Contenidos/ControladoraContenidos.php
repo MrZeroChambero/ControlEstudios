@@ -38,19 +38,20 @@ class ControladoraContenidos
     }, 'ya está en uso.');
   }
 
-  private function validarExistenciaForanea($tabla, $campoId, $valor, $campoNombre)
+
+  private function validarExistenciaForanea($tabla, $campoId, $valor)
   {
     try {
       $pdo = Conexion::obtener();
-      $sql = "SELECT {$campoNombre} FROM {$tabla} WHERE {$campoId} = ?";
+      $sql = "SELECT COUNT(*) FROM {$tabla} WHERE {$campoId} = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$valor]);
-      $resultado = $stmt->fetch(\PDO::FETCH_ASSOC);
-      return $resultado ? $resultado[$campoNombre] : false;
+      return $stmt->fetchColumn() > 0;
     } catch (Exception $e) {
       return false;
     }
   }
+
 
   public function listar()
   {
@@ -95,7 +96,7 @@ class ControladoraContenidos
       $v = new Validator($data);
 
       // Validaciones básicas
-      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'nivel'])
+      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'grado'])
         ->message('{field} es requerido');
 
       $v->rule('lengthMax', 'nombre', 255)
@@ -110,14 +111,9 @@ class ControladoraContenidos
       $v->rule('min', 'fk_area_aprendizaje', 1)
         ->message('El área de aprendizaje debe ser válida');
 
-      $v->rule('in', 'nivel', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
-        ->message('El nivel debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
+      $v->rule('in', 'grado', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
+        ->message('El grado debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
 
-      $v->rule('integer', 'orden_contenido')
-        ->message('El orden debe ser un número entero');
-
-      $v->rule('min', 'orden_contenido', 1)
-        ->message('El orden debe ser al menos 1');
 
       // Validación personalizada para texto en español
       $v->addRule('textoEspanol', function ($field, $value) {
@@ -130,7 +126,7 @@ class ControladoraContenidos
       }
 
       // Validar existencia de área de aprendizaje
-      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje'], 'nombre_area');
+      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje']);
 
       if (!$nombreArea) {
         $v->error('fk_area_aprendizaje', 'El área de aprendizaje seleccionada no existe');
@@ -144,9 +140,8 @@ class ControladoraContenidos
         $contenido = new Contenidos(
           $data['nombre'],
           $data['fk_area_aprendizaje'],
-          $data['nivel'],
-          $data['descripcion'] ?? null,
-          $data['orden_contenido'] ?? 1
+          $data['grado'],
+          $data['descripcion'] ?? null
         );
 
         $id = $contenido->crear($pdo);
@@ -207,7 +202,7 @@ class ControladoraContenidos
       $v = new Validator($data);
 
       // Validaciones básicas
-      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'nivel'])
+      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'grado'])
         ->message('{field} es requerido');
 
       $v->rule('lengthMax', 'nombre', 255)
@@ -222,14 +217,9 @@ class ControladoraContenidos
       $v->rule('min', 'fk_area_aprendizaje', 1)
         ->message('El área de aprendizaje debe ser válida');
 
-      $v->rule('in', 'nivel', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
-        ->message('El nivel debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
+      $v->rule('in', 'grado', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
+        ->message('El grado debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
 
-      $v->rule('integer', 'orden_contenido')
-        ->message('El orden debe ser un número entero');
-
-      $v->rule('min', 'orden_contenido', 1)
-        ->message('El orden debe ser al menos 1');
 
       // Validación personalizada para texto en español
       $v->addRule('textoEspanol', function ($field, $value) {
@@ -242,7 +232,7 @@ class ControladoraContenidos
       }
 
       // Validar existencia de área de aprendizaje
-      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje'], 'nombre_area');
+      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje']);
 
       if (!$nombreArea) {
         $v->error('fk_area_aprendizaje', 'El área de aprendizaje seleccionada no existe');
@@ -258,9 +248,8 @@ class ControladoraContenidos
         if ($contenido) {
           $contenido->nombre = $data['nombre'];
           $contenido->fk_area_aprendizaje = $data['fk_area_aprendizaje'];
-          $contenido->nivel = $data['nivel'];
+          $contenido->grado = $data['grado'];
           $contenido->descripcion = $data['descripcion'] ?? null;
-          $contenido->orden_contenido = $data['orden_contenido'] ?? 1;
 
           if ($contenido->actualizar($pdo)) {
             // Agregar nombre del área para la respuesta

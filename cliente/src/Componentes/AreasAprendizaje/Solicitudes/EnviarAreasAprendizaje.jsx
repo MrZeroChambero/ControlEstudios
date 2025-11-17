@@ -43,11 +43,12 @@ export const EnviarAreasAprendizaje = async (props) => {
       solicitudAreasAprendizaje({ setIsLoading, setAreas });
       closeModal();
     } else {
-      throw new Error("El backend no respondió correctamente");
+      console.error(response);
     }
   } catch (error) {
     console.error("Error al guardar área de aprendizaje:", error);
     const errorData = error.response?.data;
+    console.log(error);
 
     if (errorData) {
       console.error(

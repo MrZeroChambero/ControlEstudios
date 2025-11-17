@@ -15,45 +15,88 @@ class ControladoraTemas
 
   private function limpiarTexto($texto)
   {
+    if ($texto === null) return null;
+
     $texto = trim($texto);
     $texto = preg_replace('/\s+/', ' ', $texto);
-    return $texto;
+    return $texto === '' ? null : $texto;
   }
 
-  private function validarExistenciaForanea($tabla, $campoId, $valor, $campoNombre)
+  private function validarTextoEspanol($campo, $valor, $obligatorio = false)
   {
-    try {
-      $pdo = Conexion::obtener();
-      $sql = "SELECT {$campoNombre} FROM {$tabla} WHERE {$campoId} = ?";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([$valor]);
-      $resultado = $stmt->fetch(\PDO::FETCH_ASSOC);
-      return $resultado ? $resultado[$campoNombre] : false;
-    } catch (Exception $e) {
-      return false;
+    if ($valor === null || $valor === '') {
+      if ($obligatorio) {
+        return "El campo {$campo} es requerido";
+      }
+      return null;
     }
+
+    // Solo letras (incluyendo acentos y ñ), números y espacios
+    if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s]+$/', $valor)) {
+      return "El campo {$campo} solo puede contener letras, números y espacios";
+    }
+
+    if (strlen(trim($valor)) === 0) {
+      return "El campo {$campo} no puede contener solo espacios";
+    }
+
+    // Validar longitud mínima (al menos 2 caracteres para campos obligatorios)
+    if ($obligatorio && strlen(trim($valor)) < 2) {
+      return "El campo {$campo} debe tener al menos 2 caracteres";
+    }
+
+    return null;
+  }
+
+  private function validarCodigo($campo, $valor)
+  {
+    if ($valor === null || $valor === '') {
+      return null; // Código es opcional
+    }
+
+    // Solo letras, números, guiones y guiones bajos
+    if (!preg_match('/^[a-zA-Z0-9_-]+$/', $valor)) {
+      return "El campo {$campo} solo puede contener letras, números, guiones y guiones bajos";
+    }
+
+    if (strlen(trim($valor)) < 2) {
+      return "El campo {$campo} debe tener al menos 2 caracteres";
+    }
+
+    return null;
+  }
+
+  private function enviarRespuesta($success, $message, $data = null, $statusCode = 200)
+  {
+    http_response_code($statusCode);
+    header('Content-Type: application/json');
+
+    $respuesta = [
+      'back' => $success,
+      'message' => $message
+    ];
+
+    if ($data !== null) {
+      $respuesta['data'] = $data;
+    }
+
+    echo json_encode($respuesta);
+    exit;
   }
 
   public function listarPorContenido($id_contenido)
   {
     try {
+      if (!is_numeric($id_contenido) || $id_contenido <= 0) {
+        $this->enviarRespuesta(false, 'ID de contenido inválido', null, 400);
+      }
+
       $pdo = Conexion::obtener();
       $temas = Temas::consultarPorContenido($pdo, $id_contenido);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $temas,
-        'message' => 'Temas del contenido obtenidos exitosamente.'
-      ]);
+      $this->enviarRespuesta(true, 'Temas del contenido obtenidos exitosamente', $temas);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los temas del contenido.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuesta(false, 'Error al obtener los temas del contenido: ' . $e->getMessage(), null, 500);
     }
   }
 
@@ -64,283 +107,200 @@ class ControladoraTemas
       $data = json_decode($input, true);
 
       if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+        $this->enviarRespuesta(false, 'Error en el formato JSON: ' . json_last_error_msg(), null, 400);
       }
 
-      // Limpiar textos
-      if (isset($data['nombre_tema'])) {
-        $data['nombre_tema'] = $this->limpiarTexto($data['nombre_tema']);
-      }
-      if (isset($data['descripcion'])) {
-        $data['descripcion'] = $this->limpiarTexto($data['descripcion']);
-      }
-      if (isset($data['codigo'])) {
-        $data['codigo'] = $this->limpiarTexto($data['codigo']);
+      // Limpiar y validar datos
+      $errores = [];
+
+      // Validar campos requeridos
+      if (empty($data['nombre_tema'])) {
+        $errores['nombre_tema'] = 'El nombre del tema es requerido';
       }
 
-      $v = new Validator($data);
-
-      // Validaciones básicas
-      $v->rule('required', ['nombre_tema', 'fk_contenido'])
-        ->message('{field} es requerido');
-
-      $v->rule('lengthMax', 'nombre_tema', 255)
-        ->message('El nombre del tema no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'descripcion', 255)
-        ->message('La descripción no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'codigo', 50)
-        ->message('El código no debe exceder los 50 caracteres');
-
-      $v->rule('integer', 'fk_contenido')
-        ->message('El contenido debe ser un número entero');
-
-      $v->rule('min', 'fk_contenido', 1)
-        ->message('El contenido debe ser válido');
-
-      $v->rule('integer', 'orden_tema')
-        ->message('El orden debe ser un número entero');
-
-      $v->rule('min', 'orden_tema', 1)
-        ->message('El orden debe ser al menos 1');
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\,\;\:\!\?\(\)\-]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y signos de puntuación');
-
-      $v->rule('textoEspanol', 'nombre_tema');
-      if (!empty($data['descripcion'])) {
-        $v->rule('textoEspanol', 'descripcion');
+      if (empty($data['fk_contenido'])) {
+        $errores['fk_contenido'] = 'El contenido es requerido';
       }
+
+      // Limpiar campos
+      $data['nombre_tema'] = $this->limpiarTexto($data['nombre_tema'] ?? '');
+      $data['descripcion'] = $this->limpiarTexto($data['descripcion'] ?? '');
+      $data['codigo'] = $this->limpiarTexto($data['codigo'] ?? '');
+
+      // Validar formato de campos de texto
+      $errorNombre = $this->validarTextoEspanol('nombre_tema', $data['nombre_tema'], true);
+      if ($errorNombre) $errores['nombre_tema'] = $errorNombre;
+
+      // Validar código solo si se proporciona
       if (!empty($data['codigo'])) {
-        $v->rule('regex', 'codigo', '/^[a-zA-Z0-9\-\_\.]+$/')->message('El código solo puede contener letras, números, guiones, puntos y guiones bajos');
+        $errorCodigo = $this->validarCodigo('codigo', $data['codigo']);
+        if ($errorCodigo) $errores['codigo'] = $errorCodigo;
       }
 
-      // Validar existencia del contenido
-      $nombreContenido = $this->validarExistenciaForanea('contenidos', 'id_contenido', $data['fk_contenido'], 'nombre');
-
-      if (!$nombreContenido) {
-        $v->error('fk_contenido', 'El contenido seleccionado no existe');
+      // Validar descripción solo si se proporciona
+      if (!empty($data['descripcion'])) {
+        $errorDescripcion = $this->validarTextoEspanol('descripcion', $data['descripcion'], false);
+        if ($errorDescripcion) $errores['descripcion'] = $errorDescripcion;
       }
 
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $tema = new Temas(
-          $data['fk_contenido'],
-          $data['codigo'] ?? null,
-          $data['nombre_tema'],
-          $data['descripcion'] ?? null,
-          $data['orden_tema'] ?? 1
-        );
+      // Validar contenido
+      if (!is_numeric($data['fk_contenido']) || $data['fk_contenido'] <= 0) {
+        $errores['fk_contenido'] = 'El contenido debe ser un número válido';
+      }
 
-        $id = $tema->crear($pdo);
+      if (!empty($errores)) {
+        $this->enviarRespuesta(false, 'Datos inválidos en la solicitud', ['errors' => $errores], 400);
+      }
 
-        if ($id) {
-          http_response_code(201);
-          $tema->id_tema = $id;
+      $pdo = Conexion::obtener();
+      $tema = new Temas(
+        $data['fk_contenido'],
+        $data['codigo'],
+        $data['nombre_tema'],
+        $data['descripcion']
+      );
 
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => true,
-            'data' => $tema,
-            'message' => 'Tema creado exitosamente.'
-          ]);
-        } else {
-          throw new Exception('No se pudo crear el tema en la base de datos');
-        }
+      $id = $tema->crear($pdo);
+
+      if ($id) {
+        // Obtener el tema creado para la respuesta
+        $temaCreado = Temas::consultarActualizar($pdo, $id);
+        $this->enviarRespuesta(true, 'Tema creado exitosamente', $temaCreado, 201);
       } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        $this->enviarRespuesta(false, 'No se pudo crear el tema en la base de datos', null, 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al crear el tema.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuesta(false, 'Error en el servidor al crear el tema: ' . $e->getMessage(), null, 500);
     }
   }
 
   public function actualizar($id)
   {
     try {
+      if (!is_numeric($id) || $id <= 0) {
+        $this->enviarRespuesta(false, 'ID de tema inválido', null, 400);
+      }
+
       $input = file_get_contents('php://input');
       $data = json_decode($input, true);
 
       if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+        $this->enviarRespuesta(false, 'Error en el formato JSON: ' . json_last_error_msg(), null, 400);
       }
 
-      // Limpiar textos
-      if (isset($data['nombre_tema'])) {
-        $data['nombre_tema'] = $this->limpiarTexto($data['nombre_tema']);
-      }
-      if (isset($data['descripcion'])) {
-        $data['descripcion'] = $this->limpiarTexto($data['descripcion']);
-      }
-      if (isset($data['codigo'])) {
-        $data['codigo'] = $this->limpiarTexto($data['codigo']);
+      $pdo = Conexion::obtener();
+
+      // Verificar que el tema existe
+      $temaExistente = Temas::consultarActualizar($pdo, $id);
+      if (!$temaExistente) {
+        $this->enviarRespuesta(false, 'El tema que intenta actualizar no existe', null, 404);
       }
 
-      $v = new Validator($data);
+      // Limpiar y validar datos
+      $errores = [];
 
-      // Validaciones básicas
-      $v->rule('required', ['nombre_tema', 'fk_contenido'])
-        ->message('{field} es requerido');
-
-      $v->rule('lengthMax', 'nombre_tema', 255)
-        ->message('El nombre del tema no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'descripcion', 255)
-        ->message('La descripción no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'codigo', 50)
-        ->message('El código no debe exceder los 50 caracteres');
-
-      $v->rule('integer', 'fk_contenido')
-        ->message('El contenido debe ser un número entero');
-
-      $v->rule('min', 'fk_contenido', 1)
-        ->message('El contenido debe ser válido');
-
-      $v->rule('integer', 'orden_tema')
-        ->message('El orden debe ser un número entero');
-
-      $v->rule('min', 'orden_tema', 1)
-        ->message('El orden debe ser al menos 1');
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\,\;\:\!\?\(\)\-]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y signos de puntuación');
-
-      $v->rule('textoEspanol', 'nombre_tema');
-      if (!empty($data['descripcion'])) {
-        $v->rule('textoEspanol', 'descripcion');
+      // Validar campos requeridos
+      if (empty($data['nombre_tema'])) {
+        $errores['nombre_tema'] = 'El nombre del tema es requerido';
       }
+
+      if (empty($data['fk_contenido'])) {
+        $errores['fk_contenido'] = 'El contenido es requerido';
+      }
+
+      // Limpiar campos
+      $data['nombre_tema'] = $this->limpiarTexto($data['nombre_tema'] ?? '');
+      $data['descripcion'] = $this->limpiarTexto($data['descripcion'] ?? '');
+      $data['codigo'] = $this->limpiarTexto($data['codigo'] ?? '');
+
+      // Validar formato de campos de texto
+      $errorNombre = $this->validarTextoEspanol('nombre_tema', $data['nombre_tema'], true);
+      if ($errorNombre) $errores['nombre_tema'] = $errorNombre;
+
+      // Validar código solo si se proporciona
       if (!empty($data['codigo'])) {
-        $v->rule('regex', 'codigo', '/^[a-zA-Z0-9\-\_\.]+$/')->message('El código solo puede contener letras, números, guiones, puntos y guiones bajos');
+        $errorCodigo = $this->validarCodigo('codigo', $data['codigo']);
+        if ($errorCodigo) $errores['codigo'] = $errorCodigo;
       }
 
-      // Validar existencia del contenido
-      $nombreContenido = $this->validarExistenciaForanea('contenidos', 'id_contenido', $data['fk_contenido'], 'nombre');
-
-      if (!$nombreContenido) {
-        $v->error('fk_contenido', 'El contenido seleccionado no existe');
+      // Validar descripción solo si se proporciona
+      if (!empty($data['descripcion'])) {
+        $errorDescripcion = $this->validarTextoEspanol('descripcion', $data['descripcion'], false);
+        if ($errorDescripcion) $errores['descripcion'] = $errorDescripcion;
       }
 
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $tema = Temas::consultarActualizar($pdo, $id);
+      // Validar contenido
+      if (!is_numeric($data['fk_contenido']) || $data['fk_contenido'] <= 0) {
+        $errores['fk_contenido'] = 'El contenido debe ser un número válido';
+      }
 
-        if ($tema) {
-          $tema->codigo = $data['codigo'] ?? null;
-          $tema->nombre_tema = $data['nombre_tema'];
-          $tema->descripcion = $data['descripcion'] ?? null;
-          $tema->orden_tema = $data['orden_tema'] ?? 1;
+      if (!empty($errores)) {
+        $this->enviarRespuesta(false, 'Datos inválidos en la solicitud', ['errors' => $errores], 400);
+      }
 
-          if ($tema->actualizar($pdo)) {
-            header('Content-Type: application/json');
-            echo json_encode([
-              'back' => true,
-              'data' => $tema,
-              'message' => 'Tema actualizado exitosamente.'
-            ]);
-          } else {
-            throw new Exception('No se pudo actualizar el tema en la base de datos');
-          }
-        } else {
-          http_response_code(404);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Tema no encontrado.'
-          ]);
-        }
+      $temaExistente->codigo = $data['codigo'];
+      $temaExistente->nombre_tema = $data['nombre_tema'];
+      $temaExistente->descripcion = $data['descripcion'];
+      $temaExistente->fk_contenido = $data['fk_contenido'];
+
+      if ($temaExistente->actualizar($pdo)) {
+        $temaActualizado = Temas::consultarActualizar($pdo, $id);
+        $this->enviarRespuesta(true, 'Tema actualizado exitosamente', $temaActualizado);
       } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        $this->enviarRespuesta(false, 'No se pudo actualizar el tema en la base de datos', null, 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al actualizar el tema.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuesta(false, 'Error en el servidor al actualizar el tema: ' . $e->getMessage(), null, 500);
     }
   }
 
   public function eliminar($id)
   {
     try {
+      if (!is_numeric($id) || $id <= 0) {
+        $this->enviarRespuesta(false, 'ID de tema inválido', null, 400);
+      }
+
       $pdo = Conexion::obtener();
+
       if (Temas::eliminar($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Tema eliminado exitosamente.'
-        ]);
+        $this->enviarRespuesta(true, 'Tema eliminado exitosamente');
       } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al eliminar el tema.'
-        ]);
+        $this->enviarRespuesta(false, 'No se pudo eliminar el tema', null, 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al eliminar el tema.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuesta(false, 'Error al eliminar el tema: ' . $e->getMessage(), null, 500);
     }
   }
 
   public function cambiarEstado($id)
   {
     try {
+      if (!is_numeric($id) || $id <= 0) {
+        $this->enviarRespuesta(false, 'ID de tema inválido', null, 400);
+      }
+
       $pdo = Conexion::obtener();
+
       if (Temas::cambiarEstado($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Estado del tema cambiado exitosamente.'
-        ]);
+        $temaActualizado = Temas::consultarActualizar($pdo, $id);
+        $this->enviarRespuesta(true, 'Estado del tema cambiado exitosamente', $temaActualizado);
       } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al cambiar el estado del tema.'
-        ]);
+        $this->enviarRespuesta(false, 'No se pudo cambiar el estado del tema', null, 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al cambiar el estado del tema.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuesta(false, 'Error al cambiar el estado del tema: ' . $e->getMessage(), null, 500);
+    }
+  }
+
+  public function listarSelect($id_contenido = null)
+  {
+    try {
+      $pdo = Conexion::obtener();
+      $temas = Temas::consultarParaSelect($pdo, $id_contenido);
+      $this->enviarRespuesta(true, 'Temas para select obtenidos exitosamente', $temas);
+    } catch (Exception $e) {
+      $this->enviarRespuesta(false, 'Error al obtener los temas para select: ' . $e->getMessage(), null, 500);
     }
   }
 }

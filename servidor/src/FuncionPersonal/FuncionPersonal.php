@@ -35,4 +35,15 @@ class FuncionPersonal
       throw new Exception("Error al consultar funciones para select: " . $e->getMessage());
     }
   }
+  public static function verificarID(PDO $pdo, int $id): bool
+  {
+    try {
+      $sql = "SELECT COUNT(*) FROM funcion_personal WHERE id_funcion_personal = ?";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([$id]);
+      return $stmt->fetchColumn() > 0;
+    } catch (Exception $e) {
+      return false;
+    }
+  }
 }

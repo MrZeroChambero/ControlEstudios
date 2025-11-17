@@ -28,7 +28,8 @@ class AreasAprendizaje
   {
     try {
       $sql = "SELECT aa.*, 
-                           ca.nombre_componente,
+      aa.nombre as nombre_area,
+                           ca.nombre as nombre_componente,
                            fp.nombre as nombre_funcion
                     FROM areas_aprendizaje aa
                     LEFT JOIN componentes_aprendizaje ca ON aa.fk_componente = ca.id_componente
@@ -46,7 +47,7 @@ class AreasAprendizaje
   public static function consultarParaSelect($pdo)
   {
     try {
-      $sql = "SELECT id_area_aprendizaje, nombre_area 
+      $sql = "SELECT id_area_aprendizaje, nombre as nombre_area
                     FROM areas_aprendizaje 
                     WHERE estado = 'activo'
                     ORDER BY nombre_area";
@@ -62,7 +63,8 @@ class AreasAprendizaje
   public static function consultarActualizar($pdo, $id)
   {
     try {
-      $sql = "SELECT * FROM areas_aprendizaje WHERE id_area_aprendizaje = ?";
+      $sql = "SELECT id_area_aprendizaje, nombre as nombre_area, fk_componente, fk_funcion, estado
+                    FROM areas_aprendizaje WHERE id_area_aprendizaje = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
       $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -85,7 +87,7 @@ class AreasAprendizaje
   public function crear($pdo)
   {
     try {
-      $sql = "INSERT INTO areas_aprendizaje (nombre_area, fk_componente, fk_funcion, estado) 
+      $sql = "INSERT INTO areas_aprendizaje (nombre, fk_componente, fk_funcion, estado) 
                     VALUES (?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
@@ -104,15 +106,16 @@ class AreasAprendizaje
   {
     try {
       $sql = "UPDATE areas_aprendizaje 
-                    SET nombre_area = ?, fk_componente = ?, fk_funcion = ?
+                    SET nombre = ?, fk_componente = ?, fk_funcion = ?
                     WHERE id_area_aprendizaje = ?";
       $stmt = $pdo->prepare($sql);
-      return $stmt->execute([
+      $resultado = $stmt->execute([
         $this->nombre_area,
         $this->fk_componente,
         $this->fk_funcion,
         $this->id_area_aprendizaje
       ]);
+      return $resultado;
     } catch (Exception $e) {
       throw new Exception("Error al actualizar área de aprendizaje: " . $e->getMessage());
     }

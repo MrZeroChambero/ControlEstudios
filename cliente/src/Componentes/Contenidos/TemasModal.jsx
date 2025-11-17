@@ -1,51 +1,44 @@
 import React, { useState } from "react";
 import DataTable from "react-data-table-component";
-import { FaTimes } from "react-icons/fa";
+import {
+  FaTimes,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaToggleOn,
+  FaToggleOff,
+} from "react-icons/fa";
 
-export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
+export const TemasModal = ({
+  isOpen,
+  onClose,
+  contenido,
+  temas,
+  onAgregarTema,
+  onEditarTema,
+  onEliminarTema,
+  onCambiarEstadoTema,
+}) => {
   const [filterText, setFilterText] = useState("");
 
   if (!isOpen) return null;
 
-  const filteredTemas = temas.filter(
-    (tema) =>
-      tema.nombre_tema.toLowerCase().includes(filterText.toLowerCase()) ||
-      (tema.codigo &&
-        tema.codigo.toLowerCase().includes(filterText.toLowerCase())) ||
-      (tema.descripcion &&
-        tema.descripcion.toLowerCase().includes(filterText.toLowerCase()))
+  const filteredTemas = temas.filter((tema) =>
+    tema.nombre_tema.toLowerCase().includes(filterText.toLowerCase())
   );
 
   const columns = [
     {
-      name: "Código",
-      selector: (row) => row.codigo || "N/A",
+      name: "ID",
+      selector: (row) => row.id_tema,
       sortable: true,
-      width: "120px",
+      width: "80px",
     },
     {
       name: "Nombre del Tema",
       selector: (row) => row.nombre_tema,
       sortable: true,
       wrap: true,
-    },
-    {
-      name: "Descripción",
-      selector: (row) => row.descripcion || "N/A",
-      sortable: true,
-      wrap: true,
-      cell: (row) => (
-        <div className="max-w-xs truncate" title={row.descripcion}>
-          {row.descripcion || "N/A"}
-        </div>
-      ),
-    },
-    {
-      name: "Orden",
-      selector: (row) => row.orden_tema,
-      sortable: true,
-      width: "100px",
-      center: true,
     },
     {
       name: "Estado",
@@ -63,6 +56,40 @@ export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
       sortable: true,
       selector: (row) => row.estado,
       width: "120px",
+      center: true,
+    },
+    {
+      name: "Acciones",
+      cell: (row) => (
+        <div className="flex space-x-2 justify-center">
+          <button
+            onClick={() => onEditarTema(row)}
+            className="text-yellow-500 hover:text-yellow-700 text-lg"
+            title="Editar"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => onCambiarEstadoTema(row)}
+            className={`text-2xl ${
+              row.estado === "activo"
+                ? "text-green-500 hover:text-green-600"
+                : "text-gray-400 hover:text-gray-500"
+            }`}
+            title={row.estado === "activo" ? "Desactivar" : "Activar"}
+          >
+            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+          </button>
+          <button
+            onClick={() => onEliminarTema(row)}
+            className="text-red-500 hover:text-red-700 text-lg"
+            title="Eliminar"
+          >
+            <FaTrash />
+          </button>
+        </div>
+      ),
+      width: "150px",
       center: true,
     },
   ];
@@ -94,15 +121,23 @@ export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
     <div className="flex justify-between items-center mb-4">
       <input
         type="text"
-        placeholder="Buscar temas por nombre, código o descripción..."
+        placeholder="Buscar temas por nombre..."
         className="w-1/2 p-2 border border-gray-300 rounded-md"
         onChange={(e) => setFilterText(e.target.value)}
         value={filterText}
       />
-      <span className="text-sm text-gray-600">
-        {filteredTemas.length} tema{filteredTemas.length !== 1 ? "s" : ""}{" "}
-        encontrado{filteredTemas.length !== 1 ? "s" : ""}
-      </span>
+      <div className="flex items-center space-x-4">
+        <span className="text-sm text-gray-600">
+          {filteredTemas.length} tema{filteredTemas.length !== 1 ? "s" : ""}{" "}
+          encontrado{filteredTemas.length !== 1 ? "s" : ""}
+        </span>
+        <button
+          onClick={onAgregarTema}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+        >
+          <FaPlus className="mr-2" /> Agregar Tema
+        </button>
+      </div>
     </div>
   );
 
@@ -112,7 +147,7 @@ export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              Temas del Contenido
+              Gestión de Temas del Contenido
             </h2>
             <p className="text-gray-600 mt-1">
               <span className="font-semibold">Contenido:</span>{" "}
@@ -121,6 +156,12 @@ export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
                 <span className="ml-4">
                   <span className="font-semibold">Área:</span>{" "}
                   {contenido.nombre_area}
+                </span>
+              )}
+              {contenido?.grado && (
+                <span className="ml-4">
+                  <span className="font-semibold">Grado:</span>{" "}
+                  {contenido.grado}
                 </span>
               )}
             </p>
@@ -140,9 +181,15 @@ export const TemasModal = ({ isOpen, onClose, contenido, temas }) => {
             <p className="text-gray-500 text-lg mb-2">
               No hay temas registrados
             </p>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-sm mb-6">
               Este contenido no tiene temas asociados aún.
             </p>
+            <button
+              onClick={onAgregarTema}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center mx-auto"
+            >
+              <FaPlus className="mr-2" /> Agregar Primer Tema
+            </button>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-gray-200">

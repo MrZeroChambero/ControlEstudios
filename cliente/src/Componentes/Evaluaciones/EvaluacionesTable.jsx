@@ -6,52 +6,43 @@ import {
   FaToggleOn,
   FaToggleOff,
   FaEye,
-  FaList,
 } from "react-icons/fa";
 
-export const ContenidosTable = ({
-  contenidos,
+export const EvaluacionesTable = ({
+  evaluaciones,
   isLoading,
   onEdit,
   onDelete,
   cambioEstados,
   onView,
-  onViewTemas,
 }) => {
   const [filterText, setFilterText] = useState("");
 
-  const filteredItems = contenidos.filter(
+  const filteredItems = evaluaciones.filter(
     (item) =>
-      item.nombre.toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.nombre_area &&
-        item.nombre_area.toLowerCase().includes(filterText.toLowerCase())) ||
-      item.grado.toLowerCase().includes(filterText.toLowerCase())
+      item.nombre_evaluacion.toLowerCase().includes(filterText.toLowerCase()) ||
+      (item.descripcion &&
+        item.descripcion.toLowerCase().includes(filterText.toLowerCase()))
   );
 
   const columns = [
     {
       name: "ID",
-      selector: (row) => row.id_contenido,
+      selector: (row) => row.id_evaluacion,
       sortable: true,
       width: "80px",
     },
     {
-      name: "Nombre",
-      selector: (row) => row.nombre,
+      name: "Nombre de la Evaluación",
+      selector: (row) => row.nombre_evaluacion,
       sortable: true,
       wrap: true,
     },
     {
-      name: "Área de Aprendizaje",
-      selector: (row) => row.nombre_area,
+      name: "Descripción",
+      selector: (row) => row.descripcion || "N/A",
       sortable: true,
       wrap: true,
-    },
-    {
-      name: "Grado",
-      selector: (row) => row.grado,
-      sortable: true,
-      width: "120px",
     },
     {
       name: "Estado",
@@ -74,13 +65,6 @@ export const ContenidosTable = ({
       name: "Acciones",
       cell: (row) => (
         <div className="flex space-x-2 justify-center">
-          <button
-            onClick={() => onViewTemas(row)}
-            className="text-purple-500 hover:text-purple-700 text-lg"
-            title="Gestionar Temas"
-          >
-            <FaList />
-          </button>
           <button
             onClick={() => onView(row)}
             className="text-blue-500 hover:text-blue-700 text-lg"
@@ -107,7 +91,7 @@ export const ContenidosTable = ({
             <FaEdit />
           </button>
           <button
-            onClick={() => onDelete(row.id_contenido)}
+            onClick={() => onDelete(row.id_evaluacion)}
             className="text-red-500 hover:text-red-700 text-lg"
             title="Eliminar"
           >
@@ -122,7 +106,7 @@ export const ContenidosTable = ({
   const subHeaderComponent = (
     <input
       type="text"
-      placeholder="Buscar por nombre, área o grado..."
+      placeholder="Buscar por nombre o descripción..."
       className="w-1/4 p-2 border border-gray-300 rounded-md"
       onChange={(e) => setFilterText(e.target.value)}
       value={filterText}
@@ -160,11 +144,11 @@ export const ContenidosTable = ({
         data={filteredItems}
         progressPending={isLoading}
         progressComponent={
-          <p className="text-center text-gray-500">Cargando contenidos...</p>
+          <p className="text-center text-gray-500">Cargando evaluaciones...</p>
         }
         noDataComponent={
           <p className="text-center text-gray-500">
-            No hay contenidos para mostrar.
+            No hay evaluaciones para mostrar.
           </p>
         }
         pagination
