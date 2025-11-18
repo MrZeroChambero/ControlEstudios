@@ -21,6 +21,9 @@ class Persona
   public $telefono_principal;
   public $telefono_secundario;
   public $email;
+  public $tipo_persona;
+  public $tipo_sangre;
+  public $estado;
 
   public function __construct(array $data)
   {
@@ -36,6 +39,9 @@ class Persona
     $this->telefono_principal = $data['telefono_principal'] ?? null;
     $this->telefono_secundario = $data['telefono_secundario'] ?? null;
     $this->email = $data['email'] ?? null;
+    $this->tipo_persona = $data['tipo_persona'] ?? null;
+    $this->tipo_sangre = $data['tipo_sangre'] ?? null;
+    $this->estado = $data['estado'] ?? null;
   }
 
   private function _validarDatos(PDO $pdo)
@@ -65,7 +71,8 @@ class Persona
         ['genero'],
         ['nacionalidad'],
         ['direccion'],
-        ['telefono_principal']
+        ['telefono_principal'],
+        ['tipo_sangre']
       ],
       'lengthMax' => [
         ['primer_nombre', 50],
@@ -80,7 +87,10 @@ class Persona
         ['email', 100]
       ],
       'date' => [['fecha_nacimiento', 'Y-m-d']],
-      'in' => [['genero', ['M', 'F', 'Otro']]],
+      'in' => [
+        ['genero', ['M', 'F']],
+        ['tipo_sangre', ['No sabe', 'O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']]
+      ],
       'email' => [['email']],
       'uniqueCedula' => [['cedula']]
     ]);
@@ -99,7 +109,7 @@ class Persona
     }
 
     try {
-      $sql = "INSERT INTO personas (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, genero, cedula, nacionalidad, direccion, telefono_principal, telefono_secundario, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO personas (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, genero, cedula, nacionalidad, direccion, telefono_principal, telefono_secundario, email, tipo_persona, tipo_sangre, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $this->primer_nombre,
@@ -113,7 +123,10 @@ class Persona
         $this->direccion,
         $this->telefono_principal,
         $this->telefono_secundario,
-        $this->email
+        $this->email,
+        $this->tipo_persona,
+        $this->tipo_sangre,
+        $this->estado
       ]);
       $this->id_persona = $pdo->lastInsertId();
       return $this->id_persona;
@@ -122,6 +135,8 @@ class Persona
       if ($e->getCode() == '23000') { // Error de integridad (duplicado)
         if (strpos($e->getMessage(), 'email') !== false) {
           return ['email' => ['El correo electrónico ya está en uso.']];
+        } else if (strpos($e->getMessage(), 'cedula') !== false) {
+          return ['cedula' => ['La cédula ya está en uso.']];
         }
       }
       return false;
@@ -138,7 +153,7 @@ class Persona
     }
 
     try {
-      $sql = "UPDATE personas SET primer_nombre=?, segundo_nombre=?, primer_apellido=?, segundo_apellido=?, fecha_nacimiento=?, genero=?, cedula=?, nacionalidad=?, direccion=?, telefono_principal=?, telefono_secundario=?, email=? WHERE id_persona=?";
+      $sql = "UPDATE personas SET primer_nombre=?, segundo_nombre=?, primer_apellido=?, segundo_apellido=?, fecha_nacimiento=?, genero=?, cedula=?, nacionalidad=?, direccion=?, telefono_principal=?, telefono_secundario=?, email=?, tipo_persona=?, tipo_sangre=?, estado=? WHERE id_persona=?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
         $this->primer_nombre,
@@ -153,12 +168,17 @@ class Persona
         $this->telefono_principal,
         $this->telefono_secundario,
         $this->email,
+        $this->tipo_persona,
+        $this->tipo_sangre,
+        $this->estado,
         $this->id_persona
       ]);
     } catch (Exception $e) {
       if ($e->getCode() == '23000') {
         if (strpos($e->getMessage(), 'email') !== false) {
           return ['email' => ['El correo electrónico ya está en uso.']];
+        } else if (strpos($e->getMessage(), 'cedula') !== false) {
+          return ['cedula' => ['La cédula ya está en uso.']];
         }
       }
       return false;
@@ -172,12 +192,12 @@ class Persona
     $params = [];
 
     if (!empty($filtros['tipo_persona'])) {
-        $where[] = "tipo_persona = ?";
-        $params[] = $filtros['tipo_persona'];
+      $where[] = "tipo_persona = ?";
+      $params[] = $filtros['tipo_persona'];
     }
 
     if (!empty($where)) {
-        $sql .= " WHERE " . implode(" AND ", $where);
+      $sql .= " WHERE " . implode(" AND ", $where);
     }
 
     $stmt = $pdo->prepare($sql);

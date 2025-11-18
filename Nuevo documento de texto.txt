@@ -1,0 +1,703 @@
+Endpoints del Backend
+A continuación se describen los endpoints disponibles en el backend, organizados por módulo.
+
+Módulo de Personas
+GET /personas
+Descripción: Obtiene todas las personas. Puede filtrarse por tipo de persona.
+
+Parámetros de consulta:
+
+tipo_persona (opcional): Filtra por tipo de persona.
+
+Respuesta exitosa (200):
+
+json
+{
+  "status": "success",
+  "data": [ ... ],
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "Error del servidor al obtener las personas.",
+  "back": true
+}
+GET /personas/[i:id]
+Descripción: Obtiene una persona por su ID.
+
+Parámetros de ruta:
+
+id: ID de la persona.
+
+Respuesta exitosa (200):
+
+json
+{
+  "status": "success",
+  "data": { ... },
+  "back": true
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "status": "error",
+  "message": "Persona no encontrada.",
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "Error del servidor al consultar la persona.",
+  "back": true
+}
+POST /personas
+Descripción: Crea una nueva persona.
+
+Cuerpo de la solicitud: Datos de la persona en JSON.
+
+Respuesta exitosa (201):
+
+json
+{
+  "status": "success",
+  "message": "Persona creada exitosamente.",
+  "data": { ... },
+  "back": true
+}
+Respuesta de validación (400):
+
+json
+{
+  "status": "error",
+  "message": "Error de validación.",
+  "errors": { ... },
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "No se pudo crear la persona.",
+  "back": true
+}
+PUT /personas/[i:id]
+Descripción: Actualiza una persona existente.
+
+Parámetros de ruta:
+
+id: ID de la persona.
+
+Cuerpo de la solicitud: Datos actualizados de la persona en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "status": "success",
+  "message": "Persona actualizada exitosamente.",
+  "back": true
+}
+Respuesta de validación (400):
+
+json
+{
+  "status": "error",
+  "message": "Error de validación.",
+  "errors": { ... },
+  "back": true
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "status": "error",
+  "message": "Persona no encontrada.",
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "No se pudo actualizar la persona.",
+  "back": true
+}
+PUT /personas/estado/[i:id]
+Descripción: Actualiza el estado de una persona.
+
+Parámetros de ruta:
+
+id: ID de la persona.
+
+Cuerpo de la solicitud:
+
+json
+{
+  "estado": "nuevo_estado"
+}
+Respuesta exitosa (200):
+
+json
+{
+  "status": "success",
+  "message": "Estado de la persona actualizado exitosamente.",
+  "back": true
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "status": "error",
+  "message": "Persona no encontrada o el estado ya era el mismo.",
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "Error en el servidor: ...",
+  "back": true
+}
+DELETE /personas/[i:id]
+Descripción: Elimina una persona.
+
+Parámetros de ruta:
+
+id: ID de la persona.
+
+Respuesta exitosa (200):
+
+json
+{
+  "status": "success",
+  "message": "Persona eliminada exitosamente.",
+  "back": true
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "status": "error",
+  "message": "Persona no encontrada.",
+  "back": true
+}
+Respuesta de conflicto (409) si hay clave foránea:
+
+json
+{
+  "status": "error",
+  "message": "No se puede eliminar a la persona porque está asociada a otros registros (ej. un usuario).",
+  "back": true
+}
+Respuesta de error (500):
+
+json
+{
+  "status": "error",
+  "message": "No se pudo eliminar la persona.",
+  "back": true
+}
+Módulo de Personal
+GET /personal
+Descripción: Lista todo el personal.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Personal obtenido exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener el personal.",
+  "error_details": "..."
+}
+GET /personal/personas-candidatas
+Descripción: Lista personas candidatas para ser personal (incompletas o estudiantes/representantes mayores de 18 años).
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Personas para personal obtenidas exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener las personas para personal.",
+  "error_details": "..."
+}
+GET /personal/[i:id]
+Descripción: Obtiene un personal completo por ID.
+
+Parámetros de ruta:
+
+id: ID del personal.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Personal obtenido exitosamente."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Personal no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener el personal.",
+  "error_details": "..."
+}
+POST /personal/persona
+Descripción: Crea una nueva persona (parte 1 del proceso de crear personal).
+
+Cuerpo de la solicitud: Datos de la persona en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Persona creada exitosamente. Continúe con los datos de personal."
+}
+Respuesta de validación (400):
+
+json
+{
+  "back": false,
+  "errors": { ... },
+  "message": "Datos inválidos en la solicitud."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al crear la persona.",
+  "error_details": "..."
+}
+POST /personal/persona/[i:id]/completar
+Descripción: Completa los datos de personal (parte 2 del proceso).
+
+Parámetros de ruta:
+
+id: ID de la persona.
+
+Cuerpo de la solicitud: Datos de personal en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Personal creado exitosamente."
+}
+Respuesta de validación (400):
+
+json
+{
+  "back": false,
+  "errors": { ... },
+  "message": "Datos inválidos en la solicitud."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Persona no encontrada."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al crear el personal.",
+  "error_details": "..."
+}
+PUT /personal/[i:id]
+Descripción: Actualiza los datos de un personal.
+
+Parámetros de ruta:
+
+id: ID del personal.
+
+Cuerpo de la solicitud: Datos actualizados de personal en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Personal actualizado exitosamente."
+}
+Respuesta de validación (400):
+
+json
+{
+  "back": false,
+  "errors": { ... },
+  "message": "Datos inválidos en la solicitud."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Personal no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al actualizar el personal.",
+  "error_details": "..."
+}
+PATCH /personal/[i:id]/estado
+Descripción: Cambia el estado del personal (en realidad cambia el estado de la persona asociada).
+
+Parámetros de ruta:
+
+id: ID del personal.
+
+Cuerpo de la solicitud:
+
+json
+{
+  "estado": "nuevo_estado"
+}
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "message": "Estado del personal actualizado exitosamente."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Personal no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al cambiar el estado del personal.",
+  "error_details": "..."
+}
+DELETE /personal/[i:id]
+Descripción: Elimina un personal.
+
+Parámetros de ruta:
+
+id: ID del personal.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "message": "Personal eliminado exitosamente."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Personal no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al eliminar el personal.",
+  "error_details": "..."
+}
+GET /personal/cargos
+Descripción: Lista los cargos para select.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Cargos obtenidos exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener los cargos.",
+  "error_details": "..."
+}
+GET /personal/funciones
+Descripción: Lista las funciones para select.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Funciones obtenidas exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener las funciones.",
+  "error_details": "..."
+}
+Módulo de Cargos
+GET /cargos
+Descripción: Lista todos los cargos.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Cargos obtenidos exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener los cargos.",
+  "error_details": "..."
+}
+GET /cargos/select
+Descripción: Lista cargos para select (solo campos básicos).
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Cargos obtenidos exitosamente para select."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener los cargos para select.",
+  "error_details": "..."
+}
+GET /cargos/[i:id]
+Descripción: Obtiene un cargo por ID.
+
+Parámetros de ruta:
+
+id: ID del cargo.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Cargo obtenido exitosamente."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Cargo no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener el cargo.",
+  "error_details": "..."
+}
+POST /cargos
+Descripción: Crea un nuevo cargo.
+
+Cuerpo de la solicitud: Datos del cargo en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Cargo creado exitosamente."
+}
+Respuesta de validación (400):
+
+json
+{
+  "back": false,
+  "errors": { ... },
+  "message": "Datos inválidos en la solicitud."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al crear el cargo.",
+  "error_details": "..."
+}
+PUT /cargos/[i:id]
+Descripción: Actualiza un cargo existente.
+
+Parámetros de ruta:
+
+id: ID del cargo.
+
+Cuerpo de la solicitud: Datos actualizados del cargo en JSON.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": { ... },
+  "message": "Cargo actualizado exitosamente."
+}
+Respuesta de validación (400):
+
+json
+{
+  "back": false,
+  "errors": { ... },
+  "message": "Datos inválidos en la solicitud."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Cargo no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al actualizar el cargo.",
+  "error_details": "..."
+}
+DELETE /cargos/[i:id]
+Descripción: Elimina un cargo.
+
+Parámetros de ruta:
+
+id: ID del cargo.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "message": "Cargo eliminado exitosamente."
+}
+Respuesta si no se encuentra (404):
+
+json
+{
+  "back": false,
+  "message": "Cargo no encontrado."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error en el servidor al eliminar el cargo.",
+  "error_details": "..."
+}
+Módulo de Funciones del Personal
+GET /funcion_personal
+Descripción: Lista todas las funciones del personal.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Funciones del personal obtenidas exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener las funciones del personal.",
+  "error_details": "..."
+}
+GET /funcion_personal/listar-select
+Descripción: Lista funciones del personal para select.
+
+Respuesta exitosa (200):
+
+json
+{
+  "back": true,
+  "data": [ ... ],
+  "message": "Funciones del personal para select obtenidas exitosamente."
+}
+Respuesta de error (500):
+
+json
+{
+  "back": false,
+  "message": "Error al obtener las funciones del personal para select.",
+  "error_details": "..."
+}
+Notas Generales
+Autenticación: Todas las rutas (excepto las de autenticación que no se muestran aquí) requieren autenticación mediante cookie session_token.
+
+Middleware de autenticación: Si la autenticación falla, se retorna un error 401 o 403 con un mensaje correspondiente.
+
+Formato de respuestas: Las respuestas exitosas suelen tener "back": true y las errores "back": false.
+
+Manejo de errores: Los errores de servidor (500) incluyen un mensaje y, a veces, detalles del error.
+
+Este documento cubre los endpoints de los módulos de Personas, Personal, Cargos y Funciones del Personal. Si hay más módulos, se deberían documentar de manera similar.

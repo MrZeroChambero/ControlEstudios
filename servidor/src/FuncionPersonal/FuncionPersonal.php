@@ -27,7 +27,7 @@ class FuncionPersonal
   public static function consultarParaSelect($pdo)
   {
     try {
-      $sql = "SELECT id_funcion_personal, nombre, tipo FROM funcion_personal where tipo='Especialista' || tipo='Docente' ORDER BY tipo, nombre";
+      $sql = "SELECT id_funcion_personal, nombre, tipo FROM funcion_personal ORDER BY tipo, nombre";
       $stmt = $pdo->prepare($sql);
       $stmt->execute();
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -35,6 +35,7 @@ class FuncionPersonal
       throw new Exception("Error al consultar funciones para select: " . $e->getMessage());
     }
   }
+
   public static function verificarID(PDO $pdo, int $id): bool
   {
     try {

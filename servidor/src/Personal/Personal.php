@@ -2,249 +2,377 @@
 
 namespace Micodigo\Personal;
 
+use Micodigo\Config\Conexion;
 use PDO;
 use Exception;
-use Valitron\Validator;
 
 class Personal
 {
-  public $id_personal;
-  public $id_persona;
-  public $funcion;
-  public $fecha_contratacion;
-  public $nivel_academico;
-  public $horas_trabajo;
-  public $rif;
-  public $etnia_religion;
-  public $cantidad_hijas;
-  public $cantidad_hijos_varones;
-  public $estado;
-
-  public function __construct(array $data = [])
+  public static function consultarTodoElPersonal($pdo)
   {
-    $this->id_personal = $data['id_personal'] ?? null;
-    $this->id_persona = $data['id_persona'] ?? null;
-    $this->funcion = $data['funcion'] ?? null;
-    $this->fecha_contratacion = $data['fecha_contratacion'] ?? null;
-    $this->nivel_academico = $data['nivel_academico'] ?? null;
-    $this->horas_trabajo = $data['horas_trabajo'] ?? null;
-    $this->rif = $data['rif'] ?? null;
-    $this->etnia_religion = $data['etnia_religion'] ?? null;
-    $this->cantidad_hijas = $data['cantidad_hijas'] ?? null;
-    $this->cantidad_hijos_varones = $data['cantidad_hijos_varones'] ?? null;
-    $this->estado = $data['estado'] ?? 'activo';
-  }
-
-  private function _saneado(array $data): array
-  {
-    $map = $data;
-    $ints = ['id_persona', 'cantidad_hijas', 'cantidad_hijos_varones', 'id_personal'];
-    foreach ($map as $k => $v) {
-      if (is_string($v)) {
-        $v = trim($v);
-        if ($v === '') {
-          $map[$k] = null;
-          continue;
-        }
-      }
-      if (in_array($k, $ints, true) && $map[$k] !== null) {
-        if (is_numeric($map[$k])) {
-          $map[$k] = (int)$map[$k];
-        }
-      }
-      // normalizar hora (acepta HH:MM o HH:MM:SS)
-      if ($k === 'horas_trabajo' && $map[$k] !== null) {
-        $map[$k] = preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/', $map[$k]) ? $map[$k] : null;
-      }
-    }
-    return $map;
-  }
-
-  private function _validarDatos(array $data)
-  {
-    Validator::lang('es');
-    $data = $this->_saneado($data);
-    $v = new Validator($data, [], 'es');
-
-    // campos requeridos según la tabla
-    $v->rule('required', ['id_persona', 'funcion', 'fecha_contratacion', 'estado']);
-
-    // enteros condicionales
-    $intFields = ['id_persona', 'cantidad_hijas', 'cantidad_hijos_varones'];
-    foreach ($intFields as $f) {
-      if (isset($data[$f]) && $data[$f] !== null && $data[$f] !== '') {
-        $v->rule('integer', $f);
-        $v->rule('min', $f, 0);
-      }
-    }
-
-    // fecha
-    $v->rule('date', 'fecha_contratacion');
-
-    // hora (regex)
-    if (isset($data['horas_trabajo']) && $data['horas_trabajo'] !== null) {
-      $v->rule('regex', 'horas_trabajo', '/^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/');
-    }
-
-    // longitudes máximas
-    $v->rule('lengthMax', 'nivel_academico', 100);
-    $v->rule('lengthMax', 'rif', 20);
-    $v->rule('lengthMax', 'etnia_religion', 100);
-
-    $v->rule('in', 'estado', ['activo', 'inactivo', 'suspendido', 'jubilado']);
-
-    if ($v->validate()) {
-      return true;
-    }
-    return $v->errors();
-  }
-
-  public function crear(PDO $pdo)
-  {
-    $data = get_object_vars($this);
-    $errores = $this->_validarDatos($data);
-    if ($errores !== true) return $errores;
-
     try {
-      $sql = "INSERT INTO personal (id_persona, funcion, fecha_contratacion, nivel_academico, horas_trabajo, rif, etnia_religion, cantidad_hijas, cantidad_hijos_varones, estado)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $sql = "SELECT 
+                    per.id_personal,
+                    per.fk_persona,
+                    per.fk_cargo,
+                    per.fk_funcion,
+                    per.fecha_contratacion,
+                    per.nivel_academico,
+                    per.horas_trabajo,
+                    per.rif,
+                    per.etnia_religion,
+                    per.cantidad_hijas,
+                    per.cantidad_hijos_varones,
+                    per.estado,
+                    per.cod_dependencia,
+                    p.primer_nombre,
+                    p.segundo_nombre,
+                    p.primer_apellido,
+                    p.segundo_apellido,
+                    p.cedula,
+                    p.fecha_nacimiento,
+                    p.genero,
+                    p.nacionalidad,
+                    p.direccion,
+                    p.telefono_principal,
+                    p.telefono_secundario,
+                    p.email,
+                    p.tipo_sangre,
+                    c.nombre_cargo,
+                    c.tipo as tipo_cargo,
+                    fp.nombre as nombre_funcion,
+                    fp.tipo as tipo_funcion,
+                    TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
+                FROM personal per
+                INNER JOIN personas p ON per.fk_persona = p.id_persona
+                LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
+                LEFT JOIN funcion_personal fp ON per.fk_funcion = fp.id_funcion_personal
+                ORDER BY p.primer_nombre, p.primer_apellido";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al consultar todo el personal: " . $e->getMessage());
+    }
+  }
+
+  public static function consultarPersonasParaPersonal($pdo)
+  {
+    try {
+      $sql = "SELECT 
+                        p.id_persona,
+                        p.primer_nombre,
+                        p.segundo_nombre,
+                        p.primer_apellido,
+                        p.segundo_apellido,
+                        p.cedula,
+                        p.fecha_nacimiento,
+                        p.tipo_persona,
+                        p.estado,
+                        TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
+                    FROM personas p
+                    WHERE p.estado = 'incompleto' 
+                    AND p.tipo_persona = 'personal'
+                    OR (
+                        p.estado = 'activo' 
+                        AND p.tipo_persona IN ('estudiante', 'representante')
+                        AND TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) >= 18
+                    )
+                    AND p.id_persona NOT IN (
+                        SELECT fk_persona FROM personal WHERE estado = 'activo'
+                    )
+                    ORDER BY p.primer_nombre, p.primer_apellido";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al consultar personas para personal: " . $e->getMessage());
+    }
+  }
+
+  public static function verificarCedulaExistente($pdo, $cedula, $id_persona = null)
+  {
+    try {
+      $sql = "SELECT COUNT(*) as count FROM personas WHERE cedula = ?";
+      $params = [$cedula];
+      if ($id_persona !== null) {
+        $sql .= " AND id_persona != ?";
+        $params[] = $id_persona;
+      }
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute($params);
+      $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+      return $resultado['count'] > 0;
+    } catch (Exception $e) {
+      throw new Exception("Error al verificar cédula existente: " . $e->getMessage());
+    }
+  }
+
+  public static function crearPersona($pdo, $datosPersona)
+  {
+    try {
+      $sql = "INSERT INTO personas (
+                        primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+                        fecha_nacimiento, genero, cedula, nacionalidad, direccion,
+                        telefono_principal, telefono_secundario, email, tipo_persona, tipo_sangre, estado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
-        $this->id_persona,
-        $this->funcion,
-        $this->fecha_contratacion,
-        $this->nivel_academico,
-        $this->horas_trabajo,
-        $this->rif,
-        $this->etnia_religion,
-        $this->cantidad_hijas,
-        $this->cantidad_hijos_varones,
-        $this->estado
+        $datosPersona['primer_nombre'],
+        $datosPersona['segundo_nombre'],
+        $datosPersona['primer_apellido'],
+        $datosPersona['segundo_apellido'],
+        $datosPersona['fecha_nacimiento'],
+        $datosPersona['genero'],
+        $datosPersona['cedula'],
+        $datosPersona['nacionalidad'],
+        $datosPersona['direccion'],
+        $datosPersona['telefono_principal'],
+        $datosPersona['telefono_secundario'],
+        $datosPersona['email'],
+        $datosPersona['tipo_persona'],
+        $datosPersona['tipo_sangre'],
+        $datosPersona['estado']
       ]);
-      $this->id_personal = (int)$pdo->lastInsertId();
-      return $this->id_personal;
+      return $pdo->lastInsertId();
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al crear persona: " . $e->getMessage());
     }
   }
 
-  public function actualizar(PDO $pdo)
+  public static function obtenerPersonaPorId($pdo, $id_persona)
   {
-    if (empty($this->id_personal)) {
-      return ['id_personal' => ['El ID es requerido para la actualización.']];
-    }
-    $data = get_object_vars($this);
-    $errores = $this->_validarDatos($data);
-    if ($errores !== true) return $errores;
-
     try {
-      $sql = "UPDATE personal SET id_persona=?, funcion=?, fecha_contratacion=?, nivel_academico=?, horas_trabajo=?, rif=?, etnia_religion=?, cantidad_hijas=?, cantidad_hijos_varones=?, estado=? WHERE id_personal=?";
+      $sql = "SELECT 
+                        id_persona,
+                        primer_nombre,
+                        segundo_nombre,
+                        primer_apellido,
+                        segundo_apellido,
+                        cedula,
+                        tipo_persona,
+                        estado
+                    FROM personas 
+                    WHERE id_persona = ?";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([$id_persona]);
+      return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al obtener persona por ID: " . $e->getMessage());
+    }
+  }
+
+  public static function crearPersonal($pdo, $datosPersonal)
+  {
+    try {
+      $sql = "INSERT INTO personal (
+                        fk_persona, fk_cargo, fk_funcion, fecha_contratacion,
+                        nivel_academico, horas_trabajo, rif, etnia_religion,
+                        cantidad_hijas, cantidad_hijos_varones, cod_dependencia, estado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([
+        $datosPersonal['fk_persona'],
+        $datosPersonal['fk_cargo'],
+        $datosPersonal['fk_funcion'],
+        $datosPersonal['fecha_contratacion'],
+        $datosPersonal['nivel_academico'],
+        $datosPersonal['horas_trabajo'],
+        $datosPersonal['rif'],
+        $datosPersonal['etnia_religion'],
+        $datosPersonal['cantidad_hijas'],
+        $datosPersonal['cantidad_hijos_varones'],
+        $datosPersonal['cod_dependencia'],
+        $datosPersonal['estado']
+      ]);
+      return $pdo->lastInsertId();
+    } catch (Exception $e) {
+      throw new Exception("Error al crear personal: " . $e->getMessage());
+    }
+  }
+
+  public static function actualizarEstadoPersona($pdo, $id_persona, $estado)
+  {
+    try {
+      $sql = "UPDATE personas SET estado = ? WHERE id_persona = ?";
+      $stmt = $pdo->prepare($sql);
+      return $stmt->execute([$estado, $id_persona]);
+    } catch (Exception $e) {
+      throw new Exception("Error al actualizar estado de persona: " . $e->getMessage());
+    }
+  }
+
+  public static function obtenerPersonalCompleto($pdo, $id_personal)
+  {
+    try {
+      $sql = "SELECT 
+                        per.*,
+                        p.primer_nombre,
+                        p.segundo_nombre,
+                        p.primer_apellido,
+                        p.segundo_apellido,
+                        p.cedula,
+                        p.fecha_nacimiento,
+                        p.genero,
+                        p.nacionalidad,
+                        p.direccion,
+                        p.telefono_principal,
+                        p.telefono_secundario,
+                        p.email,
+                        p.tipo_sangre,
+                        c.nombre_cargo,
+                        c.tipo as tipo_cargo,
+                        fp.nombre as nombre_funcion,
+                        fp.tipo as tipo_funcion,
+                        TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) as edad
+                    FROM personal per
+                    INNER JOIN personas p ON per.fk_persona = p.id_persona
+                    LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
+                    LEFT JOIN funcion_personal fp ON per.fk_funcion = fp.id_funcion_personal
+                    WHERE per.id_personal = ?";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([$id_personal]);
+      return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al obtener personal completo: " . $e->getMessage());
+    }
+  }
+
+  public static function actualizarPersonal($pdo, $id_personal, $datosPersonal)
+  {
+    try {
+      $sql = "UPDATE personal SET 
+                    fk_cargo = ?,
+                    fk_funcion = ?,
+                    fecha_contratacion = ?,
+                    nivel_academico = ?,
+                    horas_trabajo = ?,
+                    rif = ?,
+                    etnia_religion = ?,
+                    cantidad_hijas = ?,
+                    cantidad_hijos_varones = ?,
+                    cod_dependencia = ?,
+                    estado = ?
+                WHERE id_personal = ?";
+
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
-        $this->id_persona,
-        $this->funcion,
-        $this->fecha_contratacion,
-        $this->nivel_academico,
-        $this->horas_trabajo,
-        $this->rif,
-        $this->etnia_religion,
-        $this->cantidad_hijas,
-        $this->cantidad_hijos_varones,
-        $this->estado,
-        $this->id_personal
+        $datosPersonal['fk_cargo'],
+        $datosPersonal['fk_funcion'],
+        $datosPersonal['fecha_contratacion'],
+        $datosPersonal['nivel_academico'],
+        $datosPersonal['horas_trabajo'],
+        $datosPersonal['rif'],
+        $datosPersonal['etnia_religion'],
+        $datosPersonal['cantidad_hijas'],
+        $datosPersonal['cantidad_hijos_varones'],
+        $datosPersonal['cod_dependencia'],
+        $datosPersonal['estado'],
+        $id_personal
       ]);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al actualizar personal: " . $e->getMessage());
     }
   }
 
-  public static function cambiarEstado(PDO $pdo, $id, $nuevo_estado)
+  // NUEVO MÉTODO: Actualizar persona
+  public static function actualizarPersona($pdo, $id_persona, $datosPersona)
   {
-    if (!in_array($nuevo_estado, ['activo', 'inactivo', 'suspendido', 'jubilado'])) {
-        return ['estado' => ['El estado proporcionado no es válido.']];
-    }
     try {
-        $sql = "UPDATE personal SET estado = ? WHERE id_personal = ?";
-        $stmt = $pdo->prepare($sql);
-        return $stmt->execute([$nuevo_estado, $id]);
-    } catch (Exception $e) {
-        return false;
-    }
-  }
+      $sql = "UPDATE personas SET 
+                    primer_nombre = ?,
+                    segundo_nombre = ?,
+                    primer_apellido = ?,
+                    segundo_apellido = ?,
+                    fecha_nacimiento = ?,
+                    genero = ?,
+                    cedula = ?,
+                    nacionalidad = ?,
+                    direccion = ?,
+                    telefono_principal = ?,
+                    telefono_secundario = ?,
+                    email = ?,
+                    tipo_sangre = ?
+                WHERE id_persona = ?";
 
-  public static function eliminar(PDO $pdo, $id)
-  {
-    try {
-      $sql = "DELETE FROM personal WHERE id_personal=?";
       $stmt = $pdo->prepare($sql);
-      return $stmt->execute([$id]);
+      return $stmt->execute([
+        $datosPersona['primer_nombre'],
+        $datosPersona['segundo_nombre'],
+        $datosPersona['primer_apellido'],
+        $datosPersona['segundo_apellido'],
+        $datosPersona['fecha_nacimiento'],
+        $datosPersona['genero'],
+        $datosPersona['cedula'],
+        $datosPersona['nacionalidad'],
+        $datosPersona['direccion'],
+        $datosPersona['telefono_principal'],
+        $datosPersona['telefono_secundario'],
+        $datosPersona['email'],
+        $datosPersona['tipo_sangre'],
+        $id_persona
+      ]);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al actualizar persona: " . $e->getMessage());
     }
   }
 
-  public static function consultar(PDO $pdo, $id)
+  public static function cambiarEstadoPersonal($pdo, $id_personal, $estado)
   {
     try {
-      $sql = "SELECT * FROM personal WHERE id_personal = ?";
+      $sql = "UPDATE personal SET estado = ? WHERE id_personal = ?";
       $stmt = $pdo->prepare($sql);
-      $stmt->execute([$id]);
-      $data = $stmt->fetch(PDO::FETCH_ASSOC);
-      return $data ?: false;
+      return $stmt->execute([$estado, $id_personal]);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al cambiar estado del personal: " . $e->getMessage());
     }
   }
 
-  public static function consultarTodos(PDO $pdo)
+  public static function eliminarPersonal($pdo, $id_personal)
   {
     try {
-      $sql = "SELECT * FROM personal ORDER BY id_personal ASC";
-      $stmt = $pdo->query($sql);
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    } catch (Exception $e) {
-      return [];
-    }
-  }
-
-  public static function consultarTodosConPersona(PDO $pdo)
-  {
-    try {
-      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula, p.estado
-              FROM personal p
-              LEFT JOIN personas per ON p.id_persona = per.id_persona
-              ORDER BY p.id_personal ASC";
-      $stmt = $pdo->query($sql);
-      return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    } catch (Exception $e) {
-      return [];
-    }
-  }
-
-  public static function consultarConPersona(PDO $pdo, $id)
-  {
-    try {
-      $sql = "SELECT p.*, per.primer_nombre, per.segundo_nombre, per.primer_apellido, per.segundo_apellido, per.cedula, per.genero, per.estado
-              FROM personal p
-              LEFT JOIN personas per ON p.id_persona = per.id_persona
-              WHERE p.id_personal = ?";
+      $sql = "DELETE FROM personal WHERE id_personal = ?";
       $stmt = $pdo->prepare($sql);
-      $stmt->execute([$id]);
-      return $stmt->fetch(PDO::FETCH_ASSOC) ?: false;
+      return $stmt->execute([$id_personal]);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al eliminar personal: " . $e->getMessage());
     }
   }
 
-  public static function verificarID(PDO $pdo, $id)
+  public static function cambiarEstadoPersona($pdo, $id_persona, $estado)
   {
     try {
-      $sql = "SELECT COUNT(1) FROM personal WHERE id_personal = ?";
+      $sql = "UPDATE personas SET estado = ? WHERE id_persona = ?";
       $stmt = $pdo->prepare($sql);
-      $stmt->execute([$id]);
-      return (int)$stmt->fetchColumn() > 0;
+      return $stmt->execute([$estado, $id_persona]);
     } catch (Exception $e) {
-      return false;
+      throw new Exception("Error al cambiar estado de persona: " . $e->getMessage());
+    }
+  }
+
+  public static function consultarCargos($pdo)
+  {
+    try {
+      $sql = "SELECT id_cargo, nombre_cargo, tipo FROM cargos ORDER BY nombre_cargo";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al consultar cargos: " . $e->getMessage());
+    }
+  }
+
+  public static function consultarFunciones($pdo)
+  {
+    try {
+      $sql = "SELECT id_funcion_personal, nombre, tipo FROM funcion_personal ORDER BY nombre";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+      throw new Exception("Error al consultar funciones: " . $e->getMessage());
     }
   }
 }

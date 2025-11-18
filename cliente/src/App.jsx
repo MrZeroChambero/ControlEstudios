@@ -15,13 +15,14 @@ import { ComponentesAprendizajes } from "./Componentes/ComponentesAprendisaje/Co
 import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendizajes.jsx";
 import { Contenidos } from "./Componentes/Contenidos/Contenidos.jsx";
 import { Evaluaciones } from "./Componentes/Evaluaciones/MenuEvaluaciones.jsx";
+import { Personal } from "./Componentes/Personal/Personal.jsx";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<AdminRutas />} />
       <Route path="Estudiantes" element={<Estudiantes />} />
-      {/* <Route path="Personal" element={<Personal />} /> */}
+      <Route path="Personal" element={<Personal />} />
       <Route path="Estudiantes" element={<Dashboard />} />
       <Route path="Representantes" element={<Dashboard />} />
       <Route path="areas-de-aprendizaje" element={<AreasAprendizajes />} />
