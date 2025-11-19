@@ -130,7 +130,7 @@ export const eliminarPersonal = async (id, cargarDatos, Swal) => {
   });
 };
 
-// Servicios para creación de personal (ya existentes)
+// Servicios para creación de personal
 export const solicitarPersonasParaPersonal = async (setPersonas, Swal) => {
   try {
     const response = await axios.get(`${API_URL}/personas-candidatas`, {
@@ -295,18 +295,16 @@ export const solicitarFunciones = async (setFunciones, Swal) => {
 // Cambio de estado del personal (actualiza el estado de la persona asociada)
 export const cambioEstadoPersonal = async (id, cargarDatos, Swal) => {
   try {
-    // Obtener el personal actual para saber el estado actual de la persona
+    // Obtener el personal actual para saber el estado actual
     const personalResponse = await axios.get(`${API_URL}/${id}`, {
       withCredentials: true,
     });
 
     if (personalResponse.data && personalResponse.data.back === true) {
       const personal = personalResponse.data.data;
-      // El estado actual de la persona
       const estadoActual = personal.estado;
       const nuevoEstado = estadoActual === "activo" ? "inactivo" : "activo";
 
-      // Se envía el nuevo estado para la persona
       const response = await axios.patch(
         `${API_URL}/${id}/estado`,
         { estado: nuevoEstado },
@@ -333,46 +331,5 @@ export const cambioEstadoPersonal = async (id, cargarDatos, Swal) => {
       "error"
     );
     throw error;
-  }
-};
-
-// Actualizar una persona (para edición)
-export const actualizarPersona = async (id, formData, Swal) => {
-  try {
-    const response = await axios.put(
-      `http://localhost:8080/controlestudios/servidor/personas/${id}`,
-      formData,
-      { withCredentials: true }
-    );
-
-    if (response.data && response.data.back === true) {
-      // No mostrar alerta de éxito aquí porque se mostrará al actualizar el personal
-      return response.data.data;
-    } else {
-      throw new Error("El backend no respondió correctamente");
-    }
-  } catch (error) {
-    console.error("Error al actualizar persona:", error);
-    const errorData = error.response?.data;
-
-    if (errorData) {
-      if (errorData.back === false) {
-        if (errorData.errors) {
-          const errors = Object.entries(errorData.errors).map(
-            ([key, value]) =>
-              `${key}: ${Array.isArray(value) ? value.join(", ") : value}`
-          );
-          const errorMsg = errors.join("\n");
-          Swal.fire("Error de validación", errorMsg, "error");
-        } else {
-          Swal.fire("Error", errorData.message || "Ocurrió un error.", "error");
-        }
-      } else {
-        Swal.fire("Error", "Error de comunicación con el servidor.", "error");
-      }
-    } else {
-      Swal.fire("Error", "Error de conexión con el servidor.", "error");
-    }
-    return null;
   }
 };

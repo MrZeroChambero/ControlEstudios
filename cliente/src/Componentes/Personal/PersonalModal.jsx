@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaSearch, FaUserPlus } from "react-icons/fa";
+import {
+  FaPlus,
+  FaSearch,
+  FaUserPlus,
+  FaArrowLeft,
+  FaArrowRight,
+} from "react-icons/fa";
 import {
   solicitarPersonasParaPersonal,
   crearPersona,
   completarPersonal,
   actualizarPersonal,
-  actualizarPersona,
   solicitarCargos,
   solicitarFunciones,
 } from "./personalService";
@@ -27,6 +32,7 @@ export const PersonalModal = ({
   const [modoEdicion, setModoEdicion] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Datos del formulario
   const [formDataPersona, setFormDataPersona] = useState({
@@ -59,28 +65,27 @@ export const PersonalModal = ({
     estado: "activo",
   });
 
-  // Validaciones
+  // Validaciones mejoradas
   const validarCampoPersona = (name, value) => {
     let error = "";
 
     switch (name) {
       case "primer_nombre":
         if (!value.trim()) error = "El primer nombre es requerido";
-        else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
-          error = "Solo letras y espacios";
-        else if (value.trim().length < 2) error = "Mínimo 2 caracteres";
+        else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$/.test(value))
+          error = "Solo letras y espacios, entre 2 y 50 caracteres";
         break;
 
       case "primer_apellido":
         if (!value.trim()) error = "El primer apellido es requerido";
-        else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
-          error = "Solo letras y espacios";
-        else if (value.trim().length < 2) error = "Mínimo 2 caracteres";
+        else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,50}$/.test(value))
+          error = "Solo letras y espacios, entre 2 y 50 caracteres";
         break;
 
       case "cedula":
         if (!value.trim()) error = "La cédula es requerida";
-        else if (!/^[0-9-]+$/.test(value)) error = "Solo números y guiones";
+        else if (!/^[VEve]?[-]?[0-9]{5,9}$/.test(value))
+          error = "Formato de cédula inválido (Ej: V-12345678)";
         break;
 
       case "fecha_nacimiento":
@@ -97,6 +102,7 @@ export const PersonalModal = ({
             age--;
           }
           if (age < 18) error = "Debe ser mayor de 18 años";
+          if (age > 100) error = "Edad inválida";
         }
         break;
 
@@ -107,8 +113,28 @@ export const PersonalModal = ({
 
       case "telefono_principal":
         if (!value.trim()) error = "El teléfono principal es requerido";
-        else if (!/^[0-9+-\s()]+$/.test(value))
-          error = "Formato de teléfono inválido";
+        else if (!/^(\+?58)?[0-9]{10,11}$/.test(value.replace(/[-\s()]/g, "")))
+          error = "Formato de teléfono venezolano inválido";
+        break;
+
+      case "direccion":
+        if (!value.trim()) error = "La dirección es requerida";
+        else if (value.length < 10)
+          error = "La dirección debe tener al menos 10 caracteres";
+        break;
+
+      case "segundo_nombre":
+      case "segundo_apellido":
+        if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{0,50}$/.test(value))
+          error = "Solo letras y espacios, máximo 50 caracteres";
+        break;
+
+      case "telefono_secundario":
+        if (
+          value &&
+          !/^(\+?58)?[0-9]{10,11}$/.test(value.replace(/[-\s()]/g, ""))
+        )
+          error = "Formato de teléfono venezolano inválido";
         break;
 
       default:
@@ -132,15 +158,35 @@ export const PersonalModal = ({
 
       case "fecha_contratacion":
         if (!value) error = "La fecha de contratación es requerida";
+        else {
+          const contratacionDate = new Date(value);
+          const today = new Date();
+          if (contratacionDate > today) error = "La fecha no puede ser futura";
+        }
         break;
 
       case "horas_trabajo":
-        if (value && (value < 0 || value > 168)) error = "Horas inválidas";
+        if (value && (value < 0 || value > 168))
+          error = "Horas inválidas (0-168)";
         break;
 
       case "cantidad_hijas":
       case "cantidad_hijos_varones":
-        if (value && (value < 0 || value > 50)) error = "Cantidad inválida";
+        if (value && (value < 0 || value > 50))
+          error = "Cantidad inválida (0-50)";
+        break;
+
+      case "nivel_academico":
+        if (value && value.length > 100) error = "Máximo 100 caracteres";
+        break;
+
+      case "rif":
+        if (value && !/^[JVG]-\d{8}-\d$/.test(value))
+          error = "Formato RIF inválido (Ej: J-12345678-9)";
+        break;
+
+      case "cod_dependencia":
+        if (value && value.length > 20) error = "Máximo 20 caracteres";
         break;
 
       default:
@@ -205,8 +251,9 @@ export const PersonalModal = ({
     if (isOpen) {
       cargarDatosIniciales();
       if (currentPersonal) {
-        // Modo edición
+        // Modo edición - cargar datos existentes
         setModoEdicion(true);
+        // Cargar datos de persona
         setFormDataPersona({
           primer_nombre: currentPersonal.primer_nombre || "",
           segundo_nombre: currentPersonal.segundo_nombre || "",
@@ -222,6 +269,7 @@ export const PersonalModal = ({
           email: currentPersonal.email || "",
           tipo_sangre: currentPersonal.tipo_sangre || "No sabe",
         });
+        // Cargar datos de personal
         setFormDataPersonal({
           fk_cargo: currentPersonal.fk_cargo || "",
           fk_funcion: currentPersonal.fk_funcion || "",
@@ -235,7 +283,7 @@ export const PersonalModal = ({
           cod_dependencia: currentPersonal.cod_dependencia || "",
           estado: currentPersonal.estado || "activo",
         });
-        setPaso(1); // Empezar en el paso 1 (datos de persona) para edición
+        setPaso(1); // Empezar en paso 1 para edición completa
       } else {
         // Modo creación
         setModoEdicion(false);
@@ -258,44 +306,48 @@ export const PersonalModal = ({
 
   const handleSeleccionarPersona = (persona) => {
     setPersonaSeleccionada(persona);
-    // Cargar datos de la persona seleccionada en el formulario
-    setFormDataPersona({
-      primer_nombre: persona.primer_nombre || "",
-      segundo_nombre: persona.segundo_nombre || "",
-      primer_apellido: persona.primer_apellido || "",
-      segundo_apellido: persona.segundo_apellido || "",
-      fecha_nacimiento: persona.fecha_nacimiento || "",
-      genero: persona.genero || "",
-      cedula: persona.cedula || "",
-      nacionalidad: persona.nacionalidad || "Venezolana",
-      direccion: persona.direccion || "",
-      telefono_principal: persona.telefono_principal || "",
-      telefono_secundario: persona.telefono_secundario || "",
-      email: persona.email || "",
-      tipo_sangre: persona.tipo_sangre || "No sabe",
-    });
-    // Ir directamente al paso 3 (datos de personal) cuando se selecciona una persona existente
+    // Ir directamente al paso 3 cuando se selecciona una persona existente
     setPaso(3);
   };
 
   const handleCrearNuevaPersona = () => {
     setPersonaSeleccionada(null);
-    setPaso(2); // Ir al paso 2 para crear una nueva persona
+    setPaso(2);
   };
 
   const validarFormularioPersona = () => {
     const newErrors = {};
-    Object.keys(formDataPersona).forEach((key) => {
-      if (
-        key !== "segundo_nombre" &&
-        key !== "segundo_apellido" &&
-        key !== "telefono_secundario" &&
-        key !== "email"
-      ) {
-        const error = validarCampoPersona(key, formDataPersona[key]);
-        if (error) newErrors[key] = error;
-      }
+    const camposRequeridos = [
+      "primer_nombre",
+      "primer_apellido",
+      "cedula",
+      "fecha_nacimiento",
+      "genero",
+      "direccion",
+      "telefono_principal",
+      "tipo_sangre",
+      "nacionalidad",
+    ];
+
+    camposRequeridos.forEach((key) => {
+      const error = validarCampoPersona(key, formDataPersona[key]);
+      if (error) newErrors[key] = error;
     });
+
+    // Validar campos opcionales solo si tienen valor
+    if (formDataPersona.email) {
+      const error = validarCampoPersona("email", formDataPersona.email);
+      if (error) newErrors.email = error;
+    }
+
+    if (formDataPersona.telefono_secundario) {
+      const error = validarCampoPersona(
+        "telefono_secundario",
+        formDataPersona.telefono_secundario
+      );
+      if (error) newErrors.telefono_secundario = error;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -313,6 +365,36 @@ export const PersonalModal = ({
       const error = validarCampoPersonal(key, formDataPersonal[key]);
       if (error) newErrors[key] = error;
     });
+
+    // Validar campos opcionales solo si tienen valor
+    if (formDataPersonal.horas_trabajo) {
+      const error = validarCampoPersonal(
+        "horas_trabajo",
+        formDataPersonal.horas_trabajo
+      );
+      if (error) newErrors.horas_trabajo = error;
+    }
+
+    if (formDataPersonal.rif) {
+      const error = validarCampoPersonal("rif", formDataPersonal.rif);
+      if (error) newErrors.rif = error;
+    }
+
+    if (formDataPersonal.cantidad_hijas) {
+      const error = validarCampoPersonal(
+        "cantidad_hijas",
+        formDataPersonal.cantidad_hijas
+      );
+      if (error) newErrors.cantidad_hijas = error;
+    }
+
+    if (formDataPersonal.cantidad_hijos_varones) {
+      const error = validarCampoPersonal(
+        "cantidad_hijos_varones",
+        formDataPersonal.cantidad_hijos_varones
+      );
+      if (error) newErrors.cantidad_hijos_varones = error;
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -343,67 +425,108 @@ export const PersonalModal = ({
     }
   };
 
+  // CORREGIDO: Enviar todos los datos en una sola solicitud
   const handleSubmitPersonal = async (e) => {
     e.preventDefault();
-    setTouched(
-      Object.keys(formDataPersonal).reduce(
-        (acc, key) => ({ ...acc, [key]: true }),
-        {}
-      )
-    );
+    if (isSubmitting) return;
 
-    if (!validarFormularioPersonal()) {
+    setIsSubmitting(true);
+
+    // Marcar todos los campos como tocados
+    const allTouched = {};
+    Object.keys(formDataPersonal).forEach((key) => {
+      allTouched[key] = true;
+    });
+    if (modoEdicion) {
+      Object.keys(formDataPersona).forEach((key) => {
+        allTouched[key] = true;
+      });
+    }
+    setTouched(allTouched);
+
+    // Validar formularios
+    let esValido = true;
+
+    if (modoEdicion) {
+      esValido = validarFormularioPersona() && validarFormularioPersonal();
+    } else {
+      esValido = validarFormularioPersonal();
+    }
+
+    if (!esValido) {
       Swal.fire(
         "Error",
         "Por favor corrige los errores en el formulario",
         "error"
       );
+      setIsSubmitting(false);
       return;
     }
 
-    if (modoEdicion) {
-      // Actualizar persona y personal existente
-      try {
-        // Actualizar la persona
-        const personaActualizada = await actualizarPersona(
-          currentPersonal.id_persona,
-          formDataPersona,
+    try {
+      if (modoEdicion) {
+        // VERIFICAR que tenemos el ID del personal
+        if (!currentPersonal || !currentPersonal.id_personal) {
+          Swal.fire(
+            "Error",
+            "No se pudo identificar el personal a actualizar.",
+            "error"
+          );
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Enviar todos los datos en una sola solicitud
+        const datosCompletos = {
+          // Datos de personal
+          ...formDataPersonal,
+          // Datos de persona
+          ...formDataPersona,
+        };
+
+        console.log("Enviando datos completos:", datosCompletos);
+        console.log("ID del personal:", currentPersonal.id_personal);
+
+        const resultado = await actualizarPersonal(
+          currentPersonal.id_personal,
+          datosCompletos,
           Swal
         );
 
-        if (personaActualizada) {
-          // Actualizar el personal
-          const personalActualizado = await actualizarPersonal(
-            currentPersonal.id_personal,
-            formDataPersonal,
-            Swal
-          );
-
-          if (personalActualizado) {
-            onSuccess(personalActualizado);
-            onClose();
-            resetForm();
-          }
+        if (resultado) {
+          onSuccess(resultado);
+          onClose();
+          resetForm();
         }
-      } catch (error) {
-        console.error("Error al actualizar:", error);
-      }
-    } else {
-      // Crear nuevo personal
-      const idPersona = personaSeleccionada
-        ? personaSeleccionada.id_persona
-        : personaCreada.id_persona;
-      const resultado = await completarPersonal(
-        idPersona,
-        formDataPersonal,
-        Swal
-      );
+      } else {
+        // Crear nuevo personal
+        const idPersona = personaSeleccionada
+          ? personaSeleccionada.id_persona
+          : personaCreada.id_persona;
 
-      if (resultado) {
-        onSuccess(resultado);
-        onClose();
-        resetForm();
+        if (!idPersona) {
+          Swal.fire("Error", "No se pudo identificar la persona.", "error");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const resultado = await completarPersonal(
+          idPersona,
+          formDataPersonal,
+          Swal
+        );
+
+        if (resultado) {
+          onSuccess(resultado);
+          onClose();
+          resetForm();
+        }
       }
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      Swal.fire("Error", "Ocurrió un error al guardar los datos.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -414,6 +537,8 @@ export const PersonalModal = ({
     setModoEdicion(false);
     setErrors({});
     setTouched({});
+    setBusqueda("");
+    setIsSubmitting(false);
     setFormDataPersona({
       primer_nombre: "",
       segundo_nombre: "",
@@ -452,13 +577,10 @@ export const PersonalModal = ({
   // Navegación entre pasos
   const handleSiguiente = () => {
     if (paso === 1 && personaSeleccionada) {
-      // Si hay persona seleccionada, ir directamente a datos de personal
       setPaso(3);
     } else if (paso === 1) {
-      // Si no hay persona seleccionada, ir a crear persona
       setPaso(2);
     } else if (paso === 2) {
-      // Validar formulario de persona antes de continuar
       if (validarFormularioPersona()) {
         setPaso(3);
       } else {
@@ -505,13 +627,28 @@ export const PersonalModal = ({
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-4xl">
-        <h2 className="text-2xl font-bold mb-6">
-          {modoEdicion
-            ? "Editar Personal"
-            : paso === 1 && "Seleccionar o Crear Personal"}
-          {!modoEdicion && paso === 2 && "Datos de la Persona"}
-          {!modoEdicion && paso === 3 && "Datos de Personal"}
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">
+            {modoEdicion
+              ? "Editar Personal"
+              : paso === 1 && "Seleccionar o Crear Personal"}
+            {!modoEdicion && paso === 2 && "Datos de la Persona"}
+            {!modoEdicion && paso === 3 && "Datos de Personal"}
+          </h2>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Paso {paso} de 3</span>
+            <div className="flex space-x-1">
+              {[1, 2, 3].map((step) => (
+                <div
+                  key={step}
+                  className={`w-3 h-3 rounded-full ${
+                    paso === step ? "bg-blue-600" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Paso 1: Selección de Persona (solo para creación) */}
         {!modoEdicion && paso === 1 && (
@@ -538,42 +675,45 @@ export const PersonalModal = ({
               </div>
             </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              <h3 className="text-lg font-semibold mb-3">
+            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3 p-4 bg-gray-50 border-b">
                 Personas Disponibles (Mayores de 18 años)
               </h3>
               {filtrarPersonas.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
+                <p className="text-gray-500 text-center py-8">
                   No hay personas disponibles para asignar como personal.
                 </p>
               ) : (
-                filtrarPersonas.map((persona) => (
-                  <div
-                    key={persona.id_persona}
-                    className="border border-gray-200 rounded-lg p-4 mb-3 hover:bg-gray-50 cursor-pointer transition duration-200"
-                    onClick={() => handleSeleccionarPersona(persona)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold text-lg">
-                          {persona.primer_nombre} {persona.segundo_nombre || ""}{" "}
-                          {persona.primer_apellido}{" "}
-                          {persona.segundo_apellido || ""}
-                        </h4>
-                        <p className="text-gray-600">
-                          Cédula: {persona.cedula}
-                        </p>
-                        <p className="text-gray-600">
-                          Tipo: {persona.tipo_persona} | Estado:{" "}
-                          {persona.estado} | Edad: {persona.edad} años
-                        </p>
+                <div className="divide-y">
+                  {filtrarPersonas.map((persona) => (
+                    <div
+                      key={persona.id_persona}
+                      className="p-4 hover:bg-blue-50 cursor-pointer transition duration-200"
+                      onClick={() => handleSeleccionarPersona(persona)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold text-lg">
+                            {persona.primer_nombre}{" "}
+                            {persona.segundo_nombre || ""}{" "}
+                            {persona.primer_apellido}{" "}
+                            {persona.segundo_apellido || ""}
+                          </h4>
+                          <p className="text-gray-600">
+                            Cédula: {persona.cedula}
+                          </p>
+                          <p className="text-gray-600">
+                            Tipo: {persona.tipo_persona} | Estado:{" "}
+                            {persona.estado} | Edad: {persona.edad} años
+                          </p>
+                        </div>
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                          {persona.tipo_persona}
+                        </span>
                       </div>
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                        {persona.tipo_persona}
-                      </span>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
 
@@ -581,9 +721,9 @@ export const PersonalModal = ({
               <button
                 type="button"
                 onClick={handleCancelar}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
               >
-                Cancelar
+                <FaArrowLeft className="mr-2" /> Cancelar
               </button>
               <button
                 type="button"
@@ -593,9 +733,10 @@ export const PersonalModal = ({
                   busqueda &&
                   filtrarPersonas.length === 0
                 }
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
               >
-                {personaSeleccionada ? "Continuar" : "Crear Nueva Persona"}
+                {personaSeleccionada ? "Continuar" : "Crear Nueva Persona"}{" "}
+                <FaArrowRight className="ml-2" />
               </button>
             </div>
           </div>
@@ -636,6 +777,11 @@ export const PersonalModal = ({
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("segundo_nombre", "persona")}
                 />
+                {errors.segundo_nombre && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.segundo_nombre}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -668,6 +814,11 @@ export const PersonalModal = ({
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("segundo_apellido", "persona")}
                 />
+                {errors.segundo_apellido && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.segundo_apellido}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -681,7 +832,7 @@ export const PersonalModal = ({
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("cedula", "persona")}
                   required
-                  disabled={!!personaSeleccionada}
+                  placeholder="V-12345678"
                 />
                 {errors.cedula && (
                   <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>
@@ -728,6 +879,20 @@ export const PersonalModal = ({
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2">
+                  Nacionalidad *
+                </label>
+                <input
+                  type="text"
+                  name="nacionalidad"
+                  value={formDataPersona.nacionalidad}
+                  onChange={handleChangePersona}
+                  onBlur={(e) => handleBlur(e, "persona")}
+                  className={getInputClass("nacionalidad", "persona")}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
                   Tipo de Sangre *
                 </label>
                 <select
@@ -761,6 +926,7 @@ export const PersonalModal = ({
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("direccion", "persona")}
                   required
+                  placeholder="Av. Principal, Edificio X, Piso Y"
                 />
                 {errors.direccion && (
                   <p className="text-red-500 text-xs mt-1">
@@ -780,6 +946,7 @@ export const PersonalModal = ({
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("telefono_principal", "persona")}
                   required
+                  placeholder="04141234567"
                 />
                 {errors.telefono_principal && (
                   <p className="text-red-500 text-xs mt-1">
@@ -798,7 +965,13 @@ export const PersonalModal = ({
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("telefono_secundario", "persona")}
+                  placeholder="04241234567"
                 />
+                {errors.telefono_secundario && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.telefono_secundario}
+                  </p>
+                )}
               </div>
               <div className="col-span-2">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -811,6 +984,7 @@ export const PersonalModal = ({
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
                   className={getInputClass("email", "persona")}
+                  placeholder="ejemplo@correo.com"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -822,9 +996,9 @@ export const PersonalModal = ({
               <button
                 type="button"
                 onClick={handleAnterior}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
               >
-                Atrás
+                <FaArrowLeft className="mr-2" /> Atrás
               </button>
               <div>
                 <button
@@ -836,9 +1010,10 @@ export const PersonalModal = ({
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
                 >
-                  Continuar con Datos de Personal
+                  Continuar con Datos de Personal{" "}
+                  <FaArrowRight className="ml-2" />
                 </button>
               </div>
             </div>
@@ -849,11 +1024,11 @@ export const PersonalModal = ({
         {(paso === 3 || modoEdicion) && (
           <form onSubmit={handleSubmitPersonal}>
             {!modoEdicion && (
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-blue-800">
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-blue-800 mb-2">
                   Persona Seleccionada:
                 </h3>
-                <p>
+                <p className="text-blue-700">
                   {personaSeleccionada
                     ? `${personaSeleccionada.primer_nombre} ${personaSeleccionada.primer_apellido} - ${personaSeleccionada.cedula}`
                     : `${personaCreada.primer_nombre} ${personaCreada.primer_apellido} - ${personaCreada.cedula}`}
@@ -862,11 +1037,11 @@ export const PersonalModal = ({
             )}
 
             {modoEdicion && (
-              <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
-                <h3 className="font-semibold text-yellow-800">
+              <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 className="font-semibold text-yellow-800 mb-2">
                   Editando Personal:
                 </h3>
-                <p>
+                <p className="text-yellow-700">
                   {currentPersonal.primer_nombre}{" "}
                   {currentPersonal.primer_apellido} - {currentPersonal.cedula}
                 </p>
@@ -956,13 +1131,8 @@ export const PersonalModal = ({
                       onBlur={(e) => handleBlur(e, "persona")}
                       className={getInputClass("cedula", "persona")}
                       required
-                      disabled={!!personaSeleccionada}
+                      // Quitamos el disabled para permitir edición
                     />
-                    {errors.cedula && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.cedula}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -977,11 +1147,6 @@ export const PersonalModal = ({
                       className={getInputClass("fecha_nacimiento", "persona")}
                       required
                     />
-                    {errors.fecha_nacimiento && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.fecha_nacimiento}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -999,11 +1164,6 @@ export const PersonalModal = ({
                       <option value="M">Masculino</option>
                       <option value="F">Femenino</option>
                     </select>
-                    {errors.genero && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.genero}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -1041,11 +1201,6 @@ export const PersonalModal = ({
                       className={getInputClass("direccion", "persona")}
                       required
                     />
-                    {errors.direccion && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.direccion}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -1060,11 +1215,6 @@ export const PersonalModal = ({
                       className={getInputClass("telefono_principal", "persona")}
                       required
                     />
-                    {errors.telefono_principal && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.telefono_principal}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -1094,11 +1244,6 @@ export const PersonalModal = ({
                       onBlur={(e) => handleBlur(e, "persona")}
                       className={getInputClass("email", "persona")}
                     />
-                    {errors.email && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.email}
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1219,7 +1364,13 @@ export const PersonalModal = ({
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
                     className={getInputClass("nivel_academico", "personal")}
+                    placeholder="Licenciatura, Maestría, Doctorado..."
                   />
+                  {errors.nivel_academico && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.nivel_academico}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -1234,6 +1385,7 @@ export const PersonalModal = ({
                     className={getInputClass("horas_trabajo", "personal")}
                     min="0"
                     max="168"
+                    placeholder="40"
                   />
                   {errors.horas_trabajo && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1252,7 +1404,11 @@ export const PersonalModal = ({
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
                     className={getInputClass("rif", "personal")}
+                    placeholder="J-12345678-9"
                   />
+                  {errors.rif && (
+                    <p className="text-red-500 text-xs mt-1">{errors.rif}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -1265,6 +1421,7 @@ export const PersonalModal = ({
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
                     className={getInputClass("etnia_religion", "personal")}
+                    placeholder="Ej: Católico, Evangélico, etc."
                   />
                 </div>
                 <div>
@@ -1280,6 +1437,7 @@ export const PersonalModal = ({
                     className={getInputClass("cantidad_hijas", "personal")}
                     min="0"
                     max="50"
+                    placeholder="0"
                   />
                   {errors.cantidad_hijas && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1303,6 +1461,7 @@ export const PersonalModal = ({
                     )}
                     min="0"
                     max="50"
+                    placeholder="0"
                   />
                   {errors.cantidad_hijos_varones && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1321,7 +1480,13 @@ export const PersonalModal = ({
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
                     className={getInputClass("cod_dependencia", "personal")}
+                    placeholder="Código interno de dependencia"
                   />
+                  {errors.cod_dependencia && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.cod_dependencia}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1331,9 +1496,9 @@ export const PersonalModal = ({
                 <button
                   type="button"
                   onClick={handleAnterior}
-                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
                 >
-                  Atrás
+                  <FaArrowLeft className="mr-2" /> Atrás
                 </button>
               ) : (
                 <div></div>
@@ -1348,9 +1513,14 @@ export const PersonalModal = ({
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {modoEdicion ? "Actualizar Personal" : "Guardar Personal"}
+                  {isSubmitting
+                    ? "Guardando..."
+                    : modoEdicion
+                    ? "Actualizar Personal"
+                    : "Guardar Personal"}
                 </button>
               </div>
             </div>
