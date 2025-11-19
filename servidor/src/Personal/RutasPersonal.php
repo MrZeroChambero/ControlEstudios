@@ -1,10 +1,10 @@
 <?php
 
-use Micodigo\Personal\ControladoraPersonal;
+use Micodigo\Personal\Personal;
 
 function registrarRutasPersonal(AltoRouter $router)
 {
-  $controlador = new ControladoraPersonal();
+  $controlador = new Personal();
 
   // Middleware de autenticación
   $authMiddleware = function () {
@@ -39,8 +39,6 @@ function registrarRutasPersonal(AltoRouter $router)
   $mapAuthenticated('PUT', '/personal/[i:id]', [$controlador, 'actualizarPersonal']);
   $mapAuthenticated('PATCH', '/personal/[i:id]/estado', [$controlador, 'cambiarEstadoPersonal']);
   $mapAuthenticated('DELETE', '/personal/[i:id]', [$controlador, 'eliminarPersonal']);
-
-  // Rutas de consulta para cargos y funciones
   $mapAuthenticated('GET', '/personal/cargos', [$controlador, 'listarCargos']);
   $mapAuthenticated('GET', '/personal/funciones', [$controlador, 'listarFunciones']);
 }

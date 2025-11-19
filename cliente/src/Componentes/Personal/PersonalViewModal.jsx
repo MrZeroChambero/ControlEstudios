@@ -16,6 +16,44 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
           Información Completa del Personal
         </h2>
 
+        <div className="mb-8">
+          <h3 className={formStyles.sectionTitle}>Estados</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className={formStyles.label}>Estado Persona</label>
+              <p className={formStyles.value}>
+                <span
+                  className={`px-2 py-1 text-xs font-bold rounded-full ${
+                    personal.estado === "activo"
+                      ? "bg-green-200 text-green-800"
+                      : personal.estado === "incompleto"
+                      ? "bg-yellow-200 text-yellow-800"
+                      : "bg-red-200 text-red-800"
+                  }`}
+                >
+                  {personal.estado_persona_nombre || personal.estado}
+                </span>
+              </p>
+            </div>
+            <div>
+              <label className={formStyles.label}>Estado Personal</label>
+              <p className={formStyles.value}>
+                <span
+                  className={`px-2 py-1 text-xs font-bold rounded-full ${
+                    personal.estado_personal === "activo"
+                      ? "bg-green-200 text-green-800"
+                      : personal.estado_personal === "incompleto"
+                      ? "bg-yellow-200 text-yellow-800"
+                      : "bg-red-200 text-red-800"
+                  }`}
+                >
+                  {personal.estado_personal_nombre || personal.estado_personal}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Información Personal */}
         <div className="mb-8">
           <h3 className={formStyles.sectionTitle}>Información Personal</h3>
@@ -177,20 +215,6 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
               <label className={formStyles.label}>Código de Dependencia</label>
               <p className={formStyles.value}>
                 {personal.cod_dependencia || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Estado</label>
-              <p className={formStyles.value}>
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    personal.estado === "activo"
-                      ? "bg-green-200 text-green-800"
-                      : "bg-red-200 text-red-800"
-                  }`}
-                >
-                  {personal.estado}
-                </span>
               </p>
             </div>
           </div>

@@ -82,20 +82,40 @@ export const PersonalTable = ({
       width: "120px",
     },
     {
-      name: "Estado",
+      name: "Estado Persona",
       cell: (row) => (
         <span
           className={`px-2 py-1 text-xs font-bold rounded-full ${
             row.estado === "activo"
               ? "bg-green-200 text-green-800"
+              : row.estado === "incompleto"
+              ? "bg-yellow-200 text-yellow-800"
               : "bg-red-200 text-red-800"
           }`}
         >
-          {row.estado}
+          {row.estado_persona_nombre || row.estado}
         </span>
       ),
       sortable: true,
-      width: "100px",
+      width: "140px",
+    },
+    {
+      name: "Estado Personal",
+      cell: (row) => (
+        <span
+          className={`px-2 py-1 text-xs font-bold rounded-full ${
+            row.estado_personal === "activo"
+              ? "bg-green-200 text-green-800"
+              : row.estado_personal === "incompleto"
+              ? "bg-yellow-200 text-yellow-800"
+              : "bg-red-200 text-red-800"
+          }`}
+        >
+          {row.estado_personal_nombre || row.estado_personal}
+        </span>
+      ),
+      sortable: true,
+      width: "140px",
     },
     {
       name: "Acciones",
@@ -115,7 +135,11 @@ export const PersonalTable = ({
                 ? "text-green-500 hover:text-green-600"
                 : "text-gray-400 hover:text-gray-500"
             }`}
-            title={row.estado === "activo" ? "Desactivar" : "Activar"}
+            title={
+              row.estado === "activo"
+                ? "Desactivar (persona)"
+                : "Activar (persona)"
+            }
           >
             {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
           </button>
@@ -135,7 +159,7 @@ export const PersonalTable = ({
           </button>
         </div>
       ),
-      width: "200px",
+      width: "220px",
     },
   ];
 

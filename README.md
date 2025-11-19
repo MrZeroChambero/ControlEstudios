@@ -95,6 +95,38 @@ El backend expone varios endpoints para gestionar los recursos de la aplicación
 
 _(Se pueden documentar aquí otros endpoints para Estudiantes, Inscripciones, etc., siguiendo el mismo formato)._
 
+### Estudiantes (`/estudiantes`)
+
+Tabla sugerida `estudiantes` (si no existe):
+
+```sql
+CREATE TABLE estudiantes (
+    id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
+    fk_persona INT NOT NULL,
+    grado TINYINT NOT NULL, -- 1 a 6
+    seccion VARCHAR(10) NULL,
+    fecha_registro DATE NOT NULL,
+    estado ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
+    CONSTRAINT fk_estudiante_persona FOREIGN KEY (fk_persona) REFERENCES personas(id_persona) ON DELETE CASCADE
+);
+```
+
+Reglas de negocio de edad por grado:
+
+- 1er grado: 5–6 años (excepción: se permite 5).
+- Cada grado siguiente: edad mínima = anterior +1, edad máxima = anterior +2 (hasta 6to).
+- Edad mínima general: 6 años (salvo la excepción anterior).
+
+Endpoints:
+
+- `GET /estudiantes` Lista estudiantes.
+- `GET /estudiantes/candidatos` Lista personas candidatas (tipo_persona = estudiante, estado = incompleto, sin registro en estudiantes).
+- `POST /estudiantes/candidatos` Crea persona candidata (persona.estado = incompleto, tipo_persona = estudiante).
+- `POST /estudiantes/registrar/{id_persona}` Registra estudiante (crea fila en estudiantes y activa persona: persona.estado = activo).
+- `GET /estudiantes/{id}` Obtiene estudiante por ID.
+- `PUT /estudiantes/{id}` Actualiza grado/sección/estado (validación edad-grado).
+- `PATCH /estudiantes/{id}/estado` Cambia estado del estudiante.
+
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.

@@ -51,6 +51,7 @@ export const PersonalModal = ({
     tipo_sangre: "No sabe",
   });
 
+  // Eliminado 'estado'
   const [formDataPersonal, setFormDataPersonal] = useState({
     fk_cargo: "",
     fk_funcion: "",
@@ -62,7 +63,6 @@ export const PersonalModal = ({
     cantidad_hijas: "",
     cantidad_hijos_varones: "",
     cod_dependencia: "",
-    estado: "activo",
   });
 
   // Validaciones mejoradas
@@ -230,30 +230,21 @@ export const PersonalModal = ({
     }
   };
 
-  const getInputClass = (fieldName, tipo) => {
-    const baseClass =
+  const getInputClass = (fieldName) => {
+    const base =
       "w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200";
-    const isTouched = touched[fieldName];
-    const hasError = errors[fieldName];
-
-    if (!isTouched) {
-      return `${baseClass} border-gray-300 focus:border-blue-500 focus:ring-blue-500`;
-    }
-
-    if (hasError) {
-      return `${baseClass} border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50`;
-    } else {
-      return `${baseClass} border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50`;
-    }
+    if (!touched[fieldName])
+      return `${base} border-gray-300 focus:border-blue-500 focus:ring-blue-500`;
+    return errors[fieldName]
+      ? `${base} border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50`
+      : `${base} border-green-500 focus:border-green-500 focus:ring-green-500 bg-green-50`;
   };
 
   useEffect(() => {
     if (isOpen) {
       cargarDatosIniciales();
       if (currentPersonal) {
-        // Modo edición - cargar datos existentes
         setModoEdicion(true);
-        // Cargar datos de persona
         setFormDataPersona({
           primer_nombre: currentPersonal.primer_nombre || "",
           segundo_nombre: currentPersonal.segundo_nombre || "",
@@ -269,7 +260,6 @@ export const PersonalModal = ({
           email: currentPersonal.email || "",
           tipo_sangre: currentPersonal.tipo_sangre || "No sabe",
         });
-        // Cargar datos de personal
         setFormDataPersonal({
           fk_cargo: currentPersonal.fk_cargo || "",
           fk_funcion: currentPersonal.fk_funcion || "",
@@ -281,11 +271,9 @@ export const PersonalModal = ({
           cantidad_hijas: currentPersonal.cantidad_hijas || "",
           cantidad_hijos_varones: currentPersonal.cantidad_hijos_varones || "",
           cod_dependencia: currentPersonal.cod_dependencia || "",
-          estado: currentPersonal.estado || "activo",
         });
         setPaso(1); // Empezar en paso 1 para edición completa
       } else {
-        // Modo creación
         setModoEdicion(false);
         resetForm();
       }
@@ -298,15 +286,14 @@ export const PersonalModal = ({
     await solicitarFunciones(setFunciones, Swal);
   };
 
-  const filtrarPersonas = personas.filter((persona) =>
-    `${persona.primer_nombre} ${persona.primer_apellido} ${persona.cedula}`
+  const filtrarPersonas = personas.filter((p) =>
+    `${p.primer_nombre} ${p.primer_apellido} ${p.cedula}`
       .toLowerCase()
       .includes(busqueda.toLowerCase())
   );
 
-  const handleSeleccionarPersona = (persona) => {
-    setPersonaSeleccionada(persona);
-    // Ir directamente al paso 3 cuando se selecciona una persona existente
+  const handleSeleccionarPersona = (p) => {
+    setPersonaSeleccionada(p);
     setPaso(3);
   };
 
@@ -316,8 +303,7 @@ export const PersonalModal = ({
   };
 
   const validarFormularioPersona = () => {
-    const newErrors = {};
-    const camposRequeridos = [
+    const req = [
       "primer_nombre",
       "primer_apellido",
       "cedula",
@@ -328,74 +314,58 @@ export const PersonalModal = ({
       "tipo_sangre",
       "nacionalidad",
     ];
-
-    camposRequeridos.forEach((key) => {
-      const error = validarCampoPersona(key, formDataPersona[key]);
-      if (error) newErrors[key] = error;
+    const newErrors = {};
+    req.forEach((k) => {
+      const err = validarCampoPersona(k, formDataPersona[k]);
+      if (err) newErrors[k] = err;
     });
-
-    // Validar campos opcionales solo si tienen valor
     if (formDataPersona.email) {
-      const error = validarCampoPersona("email", formDataPersona.email);
-      if (error) newErrors.email = error;
+      const err = validarCampoPersona("email", formDataPersona.email);
+      if (err) newErrors.email = err;
     }
-
     if (formDataPersona.telefono_secundario) {
-      const error = validarCampoPersona(
+      const err = validarCampoPersona(
         "telefono_secundario",
         formDataPersona.telefono_secundario
       );
-      if (error) newErrors.telefono_secundario = error;
+      if (err) newErrors.telefono_secundario = err;
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validarFormularioPersonal = () => {
+    const req = ["fk_cargo", "fk_funcion", "fecha_contratacion"];
     const newErrors = {};
-    const camposRequeridos = [
-      "fk_cargo",
-      "fk_funcion",
-      "fecha_contratacion",
-      "estado",
-    ];
-
-    camposRequeridos.forEach((key) => {
-      const error = validarCampoPersonal(key, formDataPersonal[key]);
-      if (error) newErrors[key] = error;
+    req.forEach((k) => {
+      const err = validarCampoPersonal(k, formDataPersonal[k]);
+      if (err) newErrors[k] = err;
     });
-
-    // Validar campos opcionales solo si tienen valor
     if (formDataPersonal.horas_trabajo) {
-      const error = validarCampoPersonal(
+      const err = validarCampoPersonal(
         "horas_trabajo",
         formDataPersonal.horas_trabajo
       );
-      if (error) newErrors.horas_trabajo = error;
+      if (err) newErrors.horas_trabajo = err;
     }
-
     if (formDataPersonal.rif) {
-      const error = validarCampoPersonal("rif", formDataPersonal.rif);
-      if (error) newErrors.rif = error;
+      const err = validarCampoPersonal("rif", formDataPersonal.rif);
+      if (err) newErrors.rif = err;
     }
-
     if (formDataPersonal.cantidad_hijas) {
-      const error = validarCampoPersonal(
+      const err = validarCampoPersonal(
         "cantidad_hijas",
         formDataPersonal.cantidad_hijas
       );
-      if (error) newErrors.cantidad_hijas = error;
+      if (err) newErrors.cantidad_hijas = err;
     }
-
     if (formDataPersonal.cantidad_hijos_varones) {
-      const error = validarCampoPersonal(
+      const err = validarCampoPersonal(
         "cantidad_hijos_varones",
         formDataPersonal.cantidad_hijos_varones
       );
-      if (error) newErrors.cantidad_hijos_varones = error;
+      if (err) newErrors.cantidad_hijos_varones = err;
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -404,127 +374,80 @@ export const PersonalModal = ({
     e.preventDefault();
     setTouched(
       Object.keys(formDataPersona).reduce(
-        (acc, key) => ({ ...acc, [key]: true }),
+        (acc, k) => ({ ...acc, [k]: true }),
         {}
       )
     );
 
     if (!validarFormularioPersona()) {
-      Swal.fire(
-        "Error",
-        "Por favor corrige los errores en el formulario",
-        "error"
-      );
+      Swal.fire("Error", "Corrige los errores del formulario", "error");
       return;
     }
 
-    const resultado = await crearPersona(formDataPersona, Swal);
-    if (resultado) {
-      setPersonaCreada(resultado);
+    const r = await crearPersona(formDataPersona, Swal);
+    if (r) {
+      setPersonaCreada(r);
       setPaso(3);
     }
   };
 
-  // CORREGIDO: Enviar todos los datos en una sola solicitud
   const handleSubmitPersonal = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     setIsSubmitting(true);
 
-    // Marcar todos los campos como tocados
     const allTouched = {};
-    Object.keys(formDataPersonal).forEach((key) => {
-      allTouched[key] = true;
-    });
-    if (modoEdicion) {
-      Object.keys(formDataPersona).forEach((key) => {
-        allTouched[key] = true;
-      });
-    }
+    Object.keys(formDataPersonal).forEach((k) => (allTouched[k] = true));
+    if (modoEdicion)
+      Object.keys(formDataPersona).forEach((k) => (allTouched[k] = true));
     setTouched(allTouched);
 
-    // Validar formularios
-    let esValido = true;
-
-    if (modoEdicion) {
-      esValido = validarFormularioPersona() && validarFormularioPersonal();
-    } else {
-      esValido = validarFormularioPersonal();
-    }
-
-    if (!esValido) {
-      Swal.fire(
-        "Error",
-        "Por favor corrige los errores en el formulario",
-        "error"
-      );
+    let valido =
+      (modoEdicion ? validarFormularioPersona() : true) &&
+      validarFormularioPersonal();
+    if (!valido) {
+      Swal.fire("Error", "Corrige los errores del formulario", "error");
       setIsSubmitting(false);
       return;
     }
 
     try {
       if (modoEdicion) {
-        // VERIFICAR que tenemos el ID del personal
-        if (!currentPersonal || !currentPersonal.id_personal) {
-          Swal.fire(
-            "Error",
-            "No se pudo identificar el personal a actualizar.",
-            "error"
-          );
+        if (!currentPersonal?.id_personal) {
+          Swal.fire("Error", "No se identificó el personal.", "error");
           setIsSubmitting(false);
           return;
         }
-
-        // Enviar todos los datos en una sola solicitud
-        const datosCompletos = {
-          // Datos de personal
-          ...formDataPersonal,
-          // Datos de persona
-          ...formDataPersona,
-        };
-
-        console.log("Enviando datos completos:", datosCompletos);
-        console.log("ID del personal:", currentPersonal.id_personal);
-
-        const resultado = await actualizarPersonal(
+        const datos = { ...formDataPersonal, ...formDataPersona };
+        const r = await actualizarPersonal(
           currentPersonal.id_personal,
-          datosCompletos,
+          datos,
           Swal
         );
-
-        if (resultado) {
-          onSuccess(resultado);
+        if (r) {
+          onSuccess(r);
           onClose();
           resetForm();
         }
       } else {
-        // Crear nuevo personal
         const idPersona = personaSeleccionada
           ? personaSeleccionada.id_persona
           : personaCreada.id_persona;
-
         if (!idPersona) {
-          Swal.fire("Error", "No se pudo identificar la persona.", "error");
+          Swal.fire("Error", "Persona no identificada.", "error");
           setIsSubmitting(false);
           return;
         }
-
-        const resultado = await completarPersonal(
-          idPersona,
-          formDataPersonal,
-          Swal
-        );
-
-        if (resultado) {
-          onSuccess(resultado);
+        const r = await completarPersonal(idPersona, formDataPersonal, Swal);
+        if (r) {
+          onSuccess(r);
           onClose();
           resetForm();
         }
       }
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      Swal.fire("Error", "Ocurrió un error al guardar los datos.", "error");
+    } catch {
+      Swal.fire("Error", "Error al guardar.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -565,7 +488,6 @@ export const PersonalModal = ({
       cantidad_hijas: "",
       cantidad_hijos_varones: "",
       cod_dependencia: "",
-      estado: "activo",
     });
   };
 
@@ -576,47 +498,33 @@ export const PersonalModal = ({
 
   // Navegación entre pasos
   const handleSiguiente = () => {
-    if (paso === 1 && personaSeleccionada) {
-      setPaso(3);
-    } else if (paso === 1) {
-      setPaso(2);
-    } else if (paso === 2) {
-      if (validarFormularioPersona()) {
-        setPaso(3);
-      } else {
-        Swal.fire(
-          "Error",
-          "Por favor corrige los errores en el formulario",
-          "error"
-        );
-      }
+    if (paso === 1 && personaSeleccionada) setPaso(3);
+    else if (paso === 1) setPaso(2);
+    else if (paso === 2) {
+      if (validarFormularioPersona()) setPaso(3);
+      else Swal.fire("Error", "Corrige los errores", "error");
     }
   };
 
   const handleAnterior = () => {
-    if (paso === 3 && !personaSeleccionada) {
-      setPaso(2);
-    } else if (paso === 2 || (paso === 3 && personaSeleccionada)) {
-      setPaso(1);
-    }
+    if (paso === 3 && !personaSeleccionada) setPaso(2);
+    else if (paso === 2 || (paso === 3 && personaSeleccionada)) setPaso(1);
   };
 
   // Filtrar funciones según el tipo de cargo seleccionado
-  const funcionesFiltradas = funciones.filter((funcion) => {
+  const funcionesFiltradas = funciones.filter((f) => {
     if (!formDataPersonal.fk_cargo) return true;
-
     const cargoSeleccionado = cargos.find(
       (c) => c.id_cargo == formDataPersonal.fk_cargo
     );
     if (!cargoSeleccionado) return true;
-
     switch (cargoSeleccionado.tipo) {
       case "Administrativo":
-        return funcion.tipo === "Administrativo";
+        return f.tipo === "Administrativo";
       case "Docente":
-        return funcion.tipo === "Docente" || funcion.tipo === "Especialista";
+        return f.tipo === "Docente" || f.tipo === "Especialista";
       case "Obrero":
-        return funcion.tipo === "Obrero";
+        return f.tipo === "Obrero";
       default:
         return true;
     }
@@ -631,18 +539,20 @@ export const PersonalModal = ({
           <h2 className="text-2xl font-bold">
             {modoEdicion
               ? "Editar Personal"
-              : paso === 1 && "Seleccionar o Crear Personal"}
-            {!modoEdicion && paso === 2 && "Datos de la Persona"}
-            {!modoEdicion && paso === 3 && "Datos de Personal"}
+              : paso === 1
+              ? "Seleccionar o Crear Persona"
+              : paso === 2
+              ? "Datos de la Persona"
+              : "Datos de Personal"}
           </h2>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500">Paso {paso} de 3</span>
             <div className="flex space-x-1">
-              {[1, 2, 3].map((step) => (
+              {[1, 2, 3].map((st) => (
                 <div
-                  key={step}
+                  key={st}
                   className={`w-3 h-3 rounded-full ${
-                    paso === step ? "bg-blue-600" : "bg-gray-300"
+                    paso === st ? "bg-blue-600" : "bg-gray-300"
                   }`}
                 />
               ))}
@@ -667,7 +577,7 @@ export const PersonalModal = ({
                 <FaSearch className="absolute left-3 top-3 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar persona por nombre, apellido o cédula..."
+                  placeholder="Buscar persona (nombre, apellido, cédula)..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
@@ -677,38 +587,34 @@ export const PersonalModal = ({
 
             <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
               <h3 className="text-lg font-semibold mb-3 p-4 bg-gray-50 border-b">
-                Personas Disponibles (Mayores de 18 años)
+                Personas Disponibles
               </h3>
               {filtrarPersonas.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">
-                  No hay personas disponibles para asignar como personal.
+                  No hay personas disponibles.
                 </p>
               ) : (
                 <div className="divide-y">
-                  {filtrarPersonas.map((persona) => (
+                  {filtrarPersonas.map((p) => (
                     <div
-                      key={persona.id_persona}
-                      className="p-4 hover:bg-blue-50 cursor-pointer transition duration-200"
-                      onClick={() => handleSeleccionarPersona(persona)}
+                      key={p.id_persona}
+                      className="p-4 hover:bg-blue-50 cursor-pointer"
+                      onClick={() => handleSeleccionarPersona(p)}
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-semibold text-lg">
-                            {persona.primer_nombre}{" "}
-                            {persona.segundo_nombre || ""}{" "}
-                            {persona.primer_apellido}{" "}
-                            {persona.segundo_apellido || ""}
+                            {p.primer_nombre} {p.segundo_nombre || ""}{" "}
+                            {p.primer_apellido} {p.segundo_apellido || ""}
                           </h4>
+                          <p className="text-gray-600">Cédula: {p.cedula}</p>
                           <p className="text-gray-600">
-                            Cédula: {persona.cedula}
-                          </p>
-                          <p className="text-gray-600">
-                            Tipo: {persona.tipo_persona} | Estado:{" "}
-                            {persona.estado} | Edad: {persona.edad} años
+                            Tipo: {p.tipo_persona} | Estado: {p.estado} | Edad:{" "}
+                            {p.edad} años
                           </p>
                         </div>
                         <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                          {persona.tipo_persona}
+                          {p.tipo_persona}
                         </span>
                       </div>
                     </div>
@@ -721,7 +627,7 @@ export const PersonalModal = ({
               <button
                 type="button"
                 onClick={handleCancelar}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"
               >
                 <FaArrowLeft className="mr-2" /> Cancelar
               </button>
@@ -733,7 +639,7 @@ export const PersonalModal = ({
                   busqueda &&
                   filtrarPersonas.length === 0
                 }
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
               >
                 {personaSeleccionada ? "Continuar" : "Crear Nueva Persona"}{" "}
                 <FaArrowRight className="ml-2" />
@@ -746,8 +652,10 @@ export const PersonalModal = ({
         {!modoEdicion && paso === 2 && (
           <form onSubmit={handleSubmitPersona}>
             <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* Campos persona */}
+              {/* (igual que antes, usando getInputClass) */}
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Primer Nombre *
                 </label>
                 <input
@@ -756,7 +664,7 @@ export const PersonalModal = ({
                   value={formDataPersona.primer_nombre}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("primer_nombre", "persona")}
+                  className={getInputClass("primer_nombre")}
                   required
                 />
                 {errors.primer_nombre && (
@@ -766,7 +674,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Segundo Nombre
                 </label>
                 <input
@@ -775,16 +683,11 @@ export const PersonalModal = ({
                   value={formDataPersona.segundo_nombre}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("segundo_nombre", "persona")}
+                  className={getInputClass("segundo_nombre")}
                 />
-                {errors.segundo_nombre && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.segundo_nombre}
-                  </p>
-                )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Primer Apellido *
                 </label>
                 <input
@@ -793,7 +696,7 @@ export const PersonalModal = ({
                   value={formDataPersona.primer_apellido}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("primer_apellido", "persona")}
+                  className={getInputClass("primer_apellido")}
                   required
                 />
                 {errors.primer_apellido && (
@@ -803,7 +706,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Segundo Apellido
                 </label>
                 <input
@@ -812,25 +715,18 @@ export const PersonalModal = ({
                   value={formDataPersona.segundo_apellido}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("segundo_apellido", "persona")}
+                  className={getInputClass("segundo_apellido")}
                 />
-                {errors.segundo_apellido && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.segundo_apellido}
-                  </p>
-                )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Cédula *
-                </label>
+                <label className="block text-sm font-bold mb-2">Cédula *</label>
                 <input
                   type="text"
                   name="cedula"
                   value={formDataPersona.cedula}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("cedula", "persona")}
+                  className={getInputClass("cedula")}
                   required
                   placeholder="V-12345678"
                 />
@@ -839,7 +735,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Fecha de Nacimiento *
                 </label>
                 <input
@@ -848,7 +744,7 @@ export const PersonalModal = ({
                   value={formDataPersona.fecha_nacimiento}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("fecha_nacimiento", "persona")}
+                  className={getInputClass("fecha_nacimiento")}
                   required
                 />
                 {errors.fecha_nacimiento && (
@@ -858,15 +754,13 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Género *
-                </label>
+                <label className="block text-sm font-bold mb-2">Género *</label>
                 <select
                   name="genero"
                   value={formDataPersona.genero}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("genero", "persona")}
+                  className={getInputClass("genero")}
                   required
                 >
                   <option value="">Seleccione...</option>
@@ -878,7 +772,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Nacionalidad *
                 </label>
                 <input
@@ -887,12 +781,12 @@ export const PersonalModal = ({
                   value={formDataPersona.nacionalidad}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("nacionalidad", "persona")}
+                  className={getInputClass("nacionalidad")}
                   required
                 />
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Tipo de Sangre *
                 </label>
                 <select
@@ -900,22 +794,28 @@ export const PersonalModal = ({
                   value={formDataPersona.tipo_sangre}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("tipo_sangre", "persona")}
+                  className={getInputClass("tipo_sangre")}
                   required
                 >
-                  <option value="No sabe">No sabe</option>
-                  <option value="O-">O-</option>
-                  <option value="O+">O+</option>
-                  <option value="A-">A-</option>
-                  <option value="A+">A+</option>
-                  <option value="B-">B-</option>
-                  <option value="B+">B+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="AB+">AB+</option>
+                  {[
+                    "No sabe",
+                    "O-",
+                    "O+",
+                    "A-",
+                    "A+",
+                    "B-",
+                    "B+",
+                    "AB-",
+                    "AB+",
+                  ].map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Dirección *
                 </label>
                 <input
@@ -924,9 +824,8 @@ export const PersonalModal = ({
                   value={formDataPersona.direccion}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("direccion", "persona")}
+                  className={getInputClass("direccion")}
                   required
-                  placeholder="Av. Principal, Edificio X, Piso Y"
                 />
                 {errors.direccion && (
                   <p className="text-red-500 text-xs mt-1">
@@ -935,7 +834,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Teléfono Principal *
                 </label>
                 <input
@@ -944,9 +843,8 @@ export const PersonalModal = ({
                   value={formDataPersona.telefono_principal}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("telefono_principal", "persona")}
+                  className={getInputClass("telefono_principal")}
                   required
-                  placeholder="04141234567"
                 />
                 {errors.telefono_principal && (
                   <p className="text-red-500 text-xs mt-1">
@@ -955,7 +853,7 @@ export const PersonalModal = ({
                 )}
               </div>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-sm font-bold mb-2">
                   Teléfono Secundario
                 </label>
                 <input
@@ -964,27 +862,18 @@ export const PersonalModal = ({
                   value={formDataPersona.telefono_secundario}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("telefono_secundario", "persona")}
-                  placeholder="04241234567"
+                  className={getInputClass("telefono_secundario")}
                 />
-                {errors.telefono_secundario && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.telefono_secundario}
-                  </p>
-                )}
               </div>
               <div className="col-span-2">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Email
-                </label>
+                <label className="block text-sm font-bold mb-2">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={formDataPersona.email}
                   onChange={handleChangePersona}
                   onBlur={(e) => handleBlur(e, "persona")}
-                  className={getInputClass("email", "persona")}
-                  placeholder="ejemplo@correo.com"
+                  className={getInputClass("email")}
                 />
                 {errors.email && (
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -996,7 +885,7 @@ export const PersonalModal = ({
               <button
                 type="button"
                 onClick={handleAnterior}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"
               >
                 <FaArrowLeft className="mr-2" /> Atrás
               </button>
@@ -1004,16 +893,15 @@ export const PersonalModal = ({
                 <button
                   type="button"
                   onClick={handleCancelar}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mr-2 transition duration-200"
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mr-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
                 >
-                  Continuar con Datos de Personal{" "}
-                  <FaArrowRight className="ml-2" />
+                  Continuar <FaArrowRight className="ml-2" />
                 </button>
               </div>
             </div>
@@ -1048,15 +936,15 @@ export const PersonalModal = ({
               </div>
             )}
 
-            {/* En modo edición, mostrar también el formulario de persona */}
             {modoEdicion && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
                   Información Personal
                 </h3>
                 <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Campos persona en edición (reutilizados) */}
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Primer Nombre *
                     </label>
                     <input
@@ -1065,17 +953,12 @@ export const PersonalModal = ({
                       value={formDataPersona.primer_nombre}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("primer_nombre", "persona")}
+                      className={getInputClass("primer_nombre")}
                       required
                     />
-                    {errors.primer_nombre && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.primer_nombre}
-                      </p>
-                    )}
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Segundo Nombre
                     </label>
                     <input
@@ -1084,11 +967,11 @@ export const PersonalModal = ({
                       value={formDataPersona.segundo_nombre}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("segundo_nombre", "persona")}
+                      className={getInputClass("segundo_nombre")}
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Primer Apellido *
                     </label>
                     <input
@@ -1097,17 +980,12 @@ export const PersonalModal = ({
                       value={formDataPersona.primer_apellido}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("primer_apellido", "persona")}
+                      className={getInputClass("primer_apellido")}
                       required
                     />
-                    {errors.primer_apellido && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.primer_apellido}
-                      </p>
-                    )}
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Segundo Apellido
                     </label>
                     <input
@@ -1116,11 +994,11 @@ export const PersonalModal = ({
                       value={formDataPersona.segundo_apellido}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("segundo_apellido", "persona")}
+                      className={getInputClass("segundo_apellido")}
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Cédula *
                     </label>
                     <input
@@ -1129,13 +1007,12 @@ export const PersonalModal = ({
                       value={formDataPersona.cedula}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("cedula", "persona")}
+                      className={getInputClass("cedula")}
                       required
-                      // Quitamos el disabled para permitir edición
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Fecha de Nacimiento *
                     </label>
                     <input
@@ -1144,12 +1021,12 @@ export const PersonalModal = ({
                       value={formDataPersona.fecha_nacimiento}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("fecha_nacimiento", "persona")}
+                      className={getInputClass("fecha_nacimiento")}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Género *
                     </label>
                     <select
@@ -1157,7 +1034,7 @@ export const PersonalModal = ({
                       value={formDataPersona.genero}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("genero", "persona")}
+                      className={getInputClass("genero")}
                       required
                     >
                       <option value="">Seleccione...</option>
@@ -1166,7 +1043,7 @@ export const PersonalModal = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Tipo de Sangre *
                     </label>
                     <select
@@ -1174,22 +1051,28 @@ export const PersonalModal = ({
                       value={formDataPersona.tipo_sangre}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("tipo_sangre", "persona")}
+                      className={getInputClass("tipo_sangre")}
                       required
                     >
-                      <option value="No sabe">No sabe</option>
-                      <option value="O-">O-</option>
-                      <option value="O+">O+</option>
-                      <option value="A-">A-</option>
-                      <option value="A+">A+</option>
-                      <option value="B-">B-</option>
-                      <option value="B+">B+</option>
-                      <option value="AB-">AB-</option>
-                      <option value="AB+">AB+</option>
+                      {[
+                        "No sabe",
+                        "O-",
+                        "O+",
+                        "A-",
+                        "A+",
+                        "B-",
+                        "B+",
+                        "AB-",
+                        "AB+",
+                      ].map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Dirección *
                     </label>
                     <input
@@ -1198,12 +1081,12 @@ export const PersonalModal = ({
                       value={formDataPersona.direccion}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("direccion", "persona")}
+                      className={getInputClass("direccion")}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Teléfono Principal *
                     </label>
                     <input
@@ -1212,12 +1095,12 @@ export const PersonalModal = ({
                       value={formDataPersona.telefono_principal}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("telefono_principal", "persona")}
+                      className={getInputClass("telefono_principal")}
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Teléfono Secundario
                     </label>
                     <input
@@ -1226,14 +1109,11 @@ export const PersonalModal = ({
                       value={formDataPersona.telefono_secundario}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass(
-                        "telefono_secundario",
-                        "persona"
-                      )}
+                      className={getInputClass("telefono_secundario")}
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-sm font-bold mb-2">
                       Email
                     </label>
                     <input
@@ -1242,7 +1122,7 @@ export const PersonalModal = ({
                       value={formDataPersona.email}
                       onChange={handleChangePersona}
                       onBlur={(e) => handleBlur(e, "persona")}
-                      className={getInputClass("email", "persona")}
+                      className={getInputClass("email")}
                     />
                   </div>
                 </div>
@@ -1255,7 +1135,7 @@ export const PersonalModal = ({
               </h3>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Cargo *
                   </label>
                   <select
@@ -1263,13 +1143,13 @@ export const PersonalModal = ({
                     value={formDataPersonal.fk_cargo}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("fk_cargo", "personal")}
+                    className={getInputClass("fk_cargo")}
                     required
                   >
                     <option value="">Seleccione un cargo</option>
-                    {cargos.map((cargo) => (
-                      <option key={cargo.id_cargo} value={cargo.id_cargo}>
-                        {cargo.nombre_cargo} ({cargo.tipo})
+                    {cargos.map((c) => (
+                      <option key={c.id_cargo} value={c.id_cargo}>
+                        {c.nombre_cargo} ({c.tipo})
                       </option>
                     ))}
                   </select>
@@ -1280,7 +1160,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Función *
                   </label>
                   <select
@@ -1288,16 +1168,16 @@ export const PersonalModal = ({
                     value={formDataPersonal.fk_funcion}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("fk_funcion", "personal")}
+                    className={getInputClass("fk_funcion")}
                     required
                   >
                     <option value="">Seleccione una función</option>
-                    {funcionesFiltradas.map((funcion) => (
+                    {funcionesFiltradas.map((f) => (
                       <option
-                        key={funcion.id_funcion_personal}
-                        value={funcion.id_funcion_personal}
+                        key={f.id_funcion_personal}
+                        value={f.id_funcion_personal}
                       >
-                        {funcion.nombre} ({funcion.tipo})
+                        {f.nombre} ({f.tipo})
                       </option>
                     ))}
                   </select>
@@ -1314,7 +1194,7 @@ export const PersonalModal = ({
                     )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Fecha de Contratación *
                   </label>
                   <input
@@ -1323,7 +1203,7 @@ export const PersonalModal = ({
                     value={formDataPersonal.fecha_contratacion}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("fecha_contratacion", "personal")}
+                    className={getInputClass("fecha_contratacion")}
                     required
                   />
                   {errors.fecha_contratacion && (
@@ -1333,28 +1213,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Estado *
-                  </label>
-                  <select
-                    name="estado"
-                    value={formDataPersonal.estado}
-                    onChange={handleChangePersonal}
-                    onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("estado", "personal")}
-                    required
-                  >
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                    <option value="suspendido">Suspendido</option>
-                    <option value="jubilado">Jubilado</option>
-                  </select>
-                  {errors.estado && (
-                    <p className="text-red-500 text-xs mt-1">{errors.estado}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Nivel Académico
                   </label>
                   <input
@@ -1363,8 +1222,8 @@ export const PersonalModal = ({
                     value={formDataPersonal.nivel_academico}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("nivel_academico", "personal")}
-                    placeholder="Licenciatura, Maestría, Doctorado..."
+                    className={getInputClass("nivel_academico")}
+                    placeholder="Licenciatura..."
                   />
                   {errors.nivel_academico && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1373,7 +1232,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Horas de Trabajo
                   </label>
                   <input
@@ -1382,7 +1241,7 @@ export const PersonalModal = ({
                     value={formDataPersonal.horas_trabajo}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("horas_trabajo", "personal")}
+                    className={getInputClass("horas_trabajo")}
                     min="0"
                     max="168"
                     placeholder="40"
@@ -1394,16 +1253,14 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    RIF
-                  </label>
+                  <label className="block text-sm font-bold mb-2">RIF</label>
                   <input
                     type="text"
                     name="rif"
                     value={formDataPersonal.rif}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("rif", "personal")}
+                    className={getInputClass("rif")}
                     placeholder="J-12345678-9"
                   />
                   {errors.rif && (
@@ -1411,7 +1268,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Etnia/Religión
                   </label>
                   <input
@@ -1420,12 +1277,11 @@ export const PersonalModal = ({
                     value={formDataPersonal.etnia_religion}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("etnia_religion", "personal")}
-                    placeholder="Ej: Católico, Evangélico, etc."
+                    className={getInputClass("etnia_religion")}
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Cantidad de Hijas
                   </label>
                   <input
@@ -1434,10 +1290,9 @@ export const PersonalModal = ({
                     value={formDataPersonal.cantidad_hijas}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("cantidad_hijas", "personal")}
+                    className={getInputClass("cantidad_hijas")}
                     min="0"
                     max="50"
-                    placeholder="0"
                   />
                   {errors.cantidad_hijas && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1446,7 +1301,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Cantidad de Hijos Varones
                   </label>
                   <input
@@ -1455,13 +1310,9 @@ export const PersonalModal = ({
                     value={formDataPersonal.cantidad_hijos_varones}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass(
-                      "cantidad_hijos_varones",
-                      "personal"
-                    )}
+                    className={getInputClass("cantidad_hijos_varones")}
                     min="0"
                     max="50"
-                    placeholder="0"
                   />
                   {errors.cantidad_hijos_varones && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1470,7 +1321,7 @@ export const PersonalModal = ({
                   )}
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                  <label className="block text-sm font-bold mb-2">
                     Código de Dependencia
                   </label>
                   <input
@@ -1479,8 +1330,7 @@ export const PersonalModal = ({
                     value={formDataPersonal.cod_dependencia}
                     onChange={handleChangePersonal}
                     onBlur={(e) => handleBlur(e, "personal")}
-                    className={getInputClass("cod_dependencia", "personal")}
-                    placeholder="Código interno de dependencia"
+                    className={getInputClass("cod_dependencia")}
                   />
                   {errors.cod_dependencia && (
                     <p className="text-red-500 text-xs mt-1">
@@ -1496,25 +1346,25 @@ export const PersonalModal = ({
                 <button
                   type="button"
                   onClick={handleAnterior}
-                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 flex items-center"
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"
                 >
                   <FaArrowLeft className="mr-2" /> Atrás
                 </button>
               ) : (
-                <div></div>
+                <div />
               )}
               <div>
                 <button
                   type="button"
                   onClick={handleCancelar}
-                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mr-2 transition duration-200"
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mr-2"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isSubmitting
                     ? "Guardando..."
