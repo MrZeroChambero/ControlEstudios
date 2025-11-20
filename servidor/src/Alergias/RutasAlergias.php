@@ -43,4 +43,9 @@ function registrarRutasAlergias(AltoRouter $router)
   $map('GET', '/estudiantes/[i:id]/alergias', [$ctrlLista, 'listarAlergiasEstudiante']);
   $map('POST', '/estudiantes/alergias', [$ctrlLista, 'asignarAlergia']);
   $map('DELETE', '/estudiantes/alergias/[i:id]', [$ctrlLista, 'eliminarAlergiaAsignada']);
+
+  // Alias lista-alergias (frontend)
+  $map('GET', '/lista-alergias/estudiante/[i:id]', [$ctrlLista, 'listarAlergiasEstudiante']);
+  $map('POST', '/lista-alergias', [$ctrlLista, 'asignarAlergia']);
+  $map('DELETE', '/lista-alergias/[i:id]', [$ctrlLista, 'eliminarAlergiaAsignada']);
 }

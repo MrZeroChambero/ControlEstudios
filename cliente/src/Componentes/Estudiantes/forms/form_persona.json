@@ -1,0 +1,103 @@
+{
+  "title": "Datos Básicos de la Persona",
+  "defaults": {
+    "tipo": "estudiante",
+    "estado": "incompleto",
+    "nacionalidad": "Venezolana",
+    "tipo_sangre": "No sabe"
+  },
+  "fields": [
+    {
+      "name": "primer_nombre",
+      "label": "Primer nombre",
+      "type": "text",
+      "required": true,
+      "maxLength": 50
+    },
+    {
+      "name": "segundo_nombre",
+      "label": "Segundo nombre",
+      "type": "text",
+      "required": false,
+      "maxLength": 50
+    },
+    {
+      "name": "primer_apellido",
+      "label": "Primer apellido",
+      "type": "text",
+      "required": true,
+      "maxLength": 50
+    },
+    {
+      "name": "segundo_apellido",
+      "label": "Segundo apellido",
+      "type": "text",
+      "required": false,
+      "maxLength": 50
+    },
+    {
+      "name": "fecha_nacimiento",
+      "label": "Fecha de nacimiento",
+      "type": "date",
+      "required": true
+    },
+    {
+      "name": "genero",
+      "label": "Género",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "M", "label": "Masculino" },
+        { "value": "F", "label": "Femenino" }
+      ]
+    },
+    {
+      "name": "cedula",
+      "label": "Cédula",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9]{5,12}$"
+    },
+    {
+      "name": "nacionalidad",
+      "label": "Nacionalidad",
+      "type": "select",
+      "required": true,
+      "options": ["Venezolana", "Extranjera"]
+    },
+    {
+      "name": "direccion",
+      "label": "Dirección",
+      "type": "textarea",
+      "required": false,
+      "maxLength": 255
+    },
+    {
+      "name": "telefono_principal",
+      "label": "Teléfono principal",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9()+-s]{6,20}$"
+    },
+    {
+      "name": "telefono_secundario",
+      "label": "Teléfono secundario",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9()+-s]{6,20}$"
+    },
+    {
+      "name": "email",
+      "label": "Correo electrónico",
+      "type": "email",
+      "required": false
+    },
+    {
+      "name": "tipo_sangre",
+      "label": "Tipo de sangre",
+      "type": "select",
+      "required": true,
+      "options": ["No sabe", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
+    }
+  ]
+}

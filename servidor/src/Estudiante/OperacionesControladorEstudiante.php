@@ -55,7 +55,6 @@ trait OperacionesControladorEstudiante
         $this->sendJson(400, 'error', 'Errores de validación.', null, $v->errors());
         return;
       }
-      $grado = (int)$data['grado'];
       $pdo = Conexion::obtener();
       $persona = Persona::consultar($pdo, $id_persona);
       if (!$persona) {
@@ -64,11 +63,6 @@ trait OperacionesControladorEstudiante
       }
       if ($persona['tipo_persona'] !== 'estudiante' || $persona['estado'] !== 'incompleto') {
         $this->sendJson(400, 'error', 'La persona no es candidata válida.');
-        return;
-      }
-      $edadValid = (new Persona([]))->validarEdadPorGrado($persona['fecha_nacimiento'], $grado); // instancia temporal para lógica
-      if ($edadValid !== true) {
-        $this->sendJson(400, 'error', 'Validación de edad/grade falló.', null, $edadValid);
         return;
       }
       $id_est = self::registrarEstudiante($pdo, $id_persona, $data);
@@ -120,20 +114,10 @@ trait OperacionesControladorEstudiante
   {
     try {
       $data = $this->parseJsonInput();
-      if (empty($data['grado'])) {
-        $this->sendJson(400, 'error', 'Grado requerido.');
-        return;
-      }
       $pdo = Conexion::obtener();
       $actual = self::consultarEstudiantePorId($pdo, $id_estudiante);
       if (!$actual) {
         $this->sendJson(404, 'error', 'Estudiante no encontrado.');
-        return;
-      }
-      $persona = \Micodigo\Persona\Persona::consultar($pdo, $actual['fk_persona']);
-      $edadValid = (new Persona([]))->validarEdadPorGrado($persona['fecha_nacimiento'], (int)$data['grado']);
-      if ($edadValid !== true) {
-        $this->sendJson(400, 'error', 'Validación de edad/grade falló.', null, $edadValid);
         return;
       }
       $ok = self::actualizarEstudiante($pdo, $id_estudiante, $data);

@@ -1,0 +1,75 @@
+{
+  "title": "Datos del Estudiante",
+  "defaults": {
+    "cedula_escolar": "",
+    "fecha_ingreso_escuela": "",
+    "vive_con_padres": "si",
+    "orden_nacimiento": 1,
+    "tiempo_gestacion": 38,
+    "embarazo_deseado": "si",
+    "tipo_parto": "normal",
+    "control_esfinteres": "si",
+    "control_embarazo": "si"
+  },
+  "fields": [
+    {
+      "name": "cedula_escolar",
+      "label": "Cédula escolar (opcional)",
+      "type": "text",
+      "required": false
+    },
+    {
+      "name": "fecha_ingreso_escuela",
+      "label": "Fecha ingreso escuela",
+      "type": "date",
+      "required": false
+    },
+    {
+      "name": "vive_con_padres",
+      "label": "Vive con padres",
+      "type": "select",
+      "required": true,
+      "options": ["si", "no"]
+    },
+    {
+      "name": "orden_nacimiento",
+      "label": "Orden de nacimiento",
+      "type": "number",
+      "required": false
+    },
+    {
+      "name": "tiempo_gestacion",
+      "label": "Semanas de gestación",
+      "type": "number",
+      "required": false
+    },
+    {
+      "name": "embarazo_deseado",
+      "label": "Embarazo deseado",
+      "type": "select",
+      "required": true,
+      "options": ["si", "no"]
+    },
+    {
+      "name": "tipo_parto",
+      "label": "Tipo de parto",
+      "type": "select",
+      "required": true,
+      "options": ["normal", "cesaria"]
+    },
+    {
+      "name": "control_esfinteres",
+      "label": "Control esfínteres",
+      "type": "select",
+      "required": true,
+      "options": ["si", "no"]
+    },
+    {
+      "name": "control_embarazo",
+      "label": "Control embarazo",
+      "type": "select",
+      "required": true,
+      "options": ["si", "no"]
+    }
+  ]
+}

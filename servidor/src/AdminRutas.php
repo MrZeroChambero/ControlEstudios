@@ -106,6 +106,26 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Estudiante/RutasEstudiante.php';
   registrarRutasEstudiante($router, $mapAuthenticated);
 
+  // Registrar rutas de consultas médicas (placeholder)
+  require_once __DIR__ . '/ConsultasMedicas/RutasConsultasMedicas.php';
+  registrarRutasConsultasMedicas($router, $mapAuthenticated);
+
+  // Registrar rutas de documentos académicos
+  require_once __DIR__ . '/DocumentosAcademicos/RutasDocumentosAcademicos.php';
+  registrarRutasDocumentosAcademicos($router);
+
+  // Registrar rutas de alergias
+  require_once __DIR__ . '/Alergias/RutasAlergias.php';
+  registrarRutasAlergias($router);
+
+  // Registrar rutas de patologías / condiciones de salud
+  require_once __DIR__ . '/Patologia/RutasPatologias.php';
+  registrarRutasPatologias($router);
+
+  // Registrar rutas de vacunas
+  require_once __DIR__ . '/Vacuna/RutasVacunas.php';
+  registrarRutasVacunas($router);
+
   // Incluye y registra las rutas de personal
   require_once __DIR__ . '/Personal/RutasPersonal.php';
   registrarRutasPersonal($router);

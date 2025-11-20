@@ -1,0 +1,118 @@
+{
+  "title": "Salud del Estudiante",
+  "sections": [
+    {
+      "name": "alergias",
+      "label": "Alergias",
+      "repeatable": true,
+      "fields": [
+        {
+          "name": "fk_alergia",
+          "label": "Alergia",
+          "type": "select-remote",
+          "required": true,
+          "source": "alergias"
+        },
+        {
+          "name": "observaciones",
+          "label": "Observaciones",
+          "type": "textarea",
+          "required": false,
+          "maxLength": 255
+        }
+      ]
+    },
+    {
+      "name": "patologias",
+      "label": "Patologías / Condiciones de salud",
+      "repeatable": true,
+      "fields": [
+        {
+          "name": "fk_patologia",
+          "label": "Patología",
+          "type": "select-remote",
+          "required": true,
+          "source": "patologias"
+        },
+        {
+          "name": "tratamiento",
+          "label": "Tratamiento",
+          "type": "text",
+          "required": false,
+          "maxLength": 150
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "required": true,
+          "options": ["controlada", "no_controlada"]
+        },
+        {
+          "name": "observaciones",
+          "label": "Observaciones",
+          "type": "textarea",
+          "required": false,
+          "maxLength": 255
+        }
+      ]
+    },
+    {
+      "name": "vacunas",
+      "label": "Vacunas",
+      "repeatable": true,
+      "fields": [
+        {
+          "name": "fk_vacuna",
+          "label": "Vacuna",
+          "type": "select-remote",
+          "required": true,
+          "source": "vacunas"
+        },
+        {
+          "name": "fecha_aplicacion",
+          "label": "Fecha de aplicación",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "refuerzos",
+          "label": "Refuerzos",
+          "type": "number",
+          "required": false,
+          "min": 0,
+          "max": 10
+        }
+      ]
+    },
+    {
+      "name": "consultas_medicas",
+      "label": "Consultas médicas",
+      "repeatable": true,
+      "fields": [
+        {
+          "name": "tipo_consulta",
+          "label": "Tipo de consulta",
+          "type": "select",
+          "required": true,
+          "options": ["emergencia", "control", "evaluacion"]
+        },
+        { "name": "fecha", "label": "Fecha", "type": "date", "required": true },
+        {
+          "name": "descripcion",
+          "label": "Descripción/Diagnóstico",
+          "type": "textarea",
+          "required": true,
+          "maxLength": 255
+        },
+        {
+          "name": "tratamiento",
+          "label": "Tratamiento",
+          "type": "textarea",
+          "required": false,
+          "maxLength": 255
+        }
+      ]
+    }
+  ]
+}

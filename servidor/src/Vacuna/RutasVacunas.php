@@ -43,4 +43,10 @@ function registrarRutasVacunas(AltoRouter $router)
   $map('POST', '/estudiantes/vacunas', [$ctrlVacunasEst, 'asignarVacuna']);
   $map('PUT', '/estudiantes/vacunas/[i:id]', [$ctrlVacunasEst, 'actualizarVacunaEstudiante']);
   $map('DELETE', '/estudiantes/vacunas/[i:id]', [$ctrlVacunasEst, 'eliminarVacunaEstudiante']);
+
+  // Alias vacunas-estudiante (frontend)
+  $map('GET', '/vacunas-estudiante/estudiante/[i:id]', [$ctrlVacunasEst, 'listarVacunasEstudiante']);
+  $map('POST', '/vacunas-estudiante', [$ctrlVacunasEst, 'asignarVacuna']);
+  $map('PUT', '/vacunas-estudiante/[i:id]', [$ctrlVacunasEst, 'actualizarVacunaEstudiante']);
+  $map('DELETE', '/vacunas-estudiante/[i:id]', [$ctrlVacunasEst, 'eliminarVacunaEstudiante']);
 }

@@ -43,4 +43,10 @@ function registrarRutasPatologias(AltoRouter $router)
   $map('POST', '/estudiantes/condiciones-salud', [$ctrlCondicion, 'crearCondicion']);
   $map('PUT', '/estudiantes/condiciones-salud/[i:id]', [$ctrlCondicion, 'actualizarCondicion']);
   $map('DELETE', '/estudiantes/condiciones-salud/[i:id]', [$ctrlCondicion, 'eliminarCondicion']);
+
+  // Alias condiciones-salud (frontend)
+  $map('GET', '/condiciones-salud/estudiante/[i:id]', [$ctrlCondicion, 'listarCondicionesEstudiante']);
+  $map('POST', '/condiciones-salud', [$ctrlCondicion, 'crearCondicion']);
+  $map('PUT', '/condiciones-salud/[i:id]', [$ctrlCondicion, 'actualizarCondicion']);
+  $map('DELETE', '/condiciones-salud/[i:id]', [$ctrlCondicion, 'eliminarCondicion']);
 }

@@ -1,0 +1,48 @@
+{
+  "title": "Documentos Académicos",
+  "repeatable": {
+    "name": "documentos",
+    "label": "Lista de documentos",
+    "itemLabel": "Documento",
+    "fields": [
+      {
+        "name": "tipo_documento",
+        "label": "Tipo de documento",
+        "type": "select",
+        "required": true,
+        "options": [
+          {
+            "value": "constancia_nacimiento",
+            "label": "Constancia de nacimiento"
+          },
+          { "value": "cedula_estudiante", "label": "Cédula del estudiante" },
+          {
+            "value": "cedula_representante",
+            "label": "Cédula del representante"
+          },
+          { "value": "boletin", "label": "Boletín" },
+          {
+            "value": "carta_buena_conducta",
+            "label": "Carta de buena conducta"
+          },
+          { "value": "fotos", "label": "Fotos" },
+          { "value": "notas_certificadas", "label": "Notas certificadas" }
+        ]
+      },
+      {
+        "name": "entregado",
+        "label": "Entregado",
+        "type": "checkbox",
+        "required": true,
+        "default": false
+      },
+      {
+        "name": "observaciones",
+        "label": "Observaciones",
+        "type": "textarea",
+        "required": false,
+        "maxLength": 255
+      }
+    ]
+  }
+}

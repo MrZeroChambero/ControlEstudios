@@ -34,10 +34,10 @@ trait ValidacionesEstudiante
   {
     Validator::lang('es');
     $v = new Validator($data);
+    // Registro ya no exige grado ni seccion directamente.
     $v->rules([
-      'required' => [['grado']],
-      'integer' => [['grado']],
-      'in' => [['estado', ['activo', 'inactivo']]]
+      'in' => [['estado', ['activo', 'inactivo']]],
+      'lengthMax' => [['cedula_escolar', 30]]
     ]);
     return $v;
   }

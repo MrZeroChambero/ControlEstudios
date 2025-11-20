@@ -35,4 +35,10 @@ function registrarRutasDocumentosAcademicos(AltoRouter $router)
   $map('POST', '/estudiantes/documentos-academicos', [$ctrl, 'crearDocumentoAcademico']);
   $map('PUT', '/estudiantes/documentos-academicos/[i:id]', [$ctrl, 'actualizarDocumentoAcademico']);
   $map('DELETE', '/estudiantes/documentos-academicos/[i:id]', [$ctrl, 'eliminarDocumentoAcademico']);
+
+  // Alias compatibles con frontend actual
+  $map('GET', '/documentos-academicos/estudiante/[i:id]', [$ctrl, 'listarDocumentosEstudiante']);
+  $map('POST', '/documentos-academicos', [$ctrl, 'crearDocumentoAcademico']);
+  $map('PUT', '/documentos-academicos/[i:id]', [$ctrl, 'actualizarDocumentoAcademico']);
+  $map('DELETE', '/documentos-academicos/[i:id]', [$ctrl, 'eliminarDocumentoAcademico']);
 }

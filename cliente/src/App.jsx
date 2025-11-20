@@ -10,7 +10,7 @@ import { Personas } from "./Componentes/Persona/Personas.jsx";
 import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPage.jsx";
 
 import "./index.css";
-import { Estudiantes } from "./Componentes/Estudiante/Estudiantes.jsx";
+import { Estudiantes } from "./Componentes/Estudiantes/Estudiantes.jsx";
 import { ComponentesAprendizajes } from "./Componentes/ComponentesAprendisaje/ComponentesAprendizajes.jsx";
 import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendizajes.jsx";
 import { Contenidos } from "./Componentes/Contenidos/Contenidos.jsx";
@@ -23,7 +23,7 @@ function App() {
       <Route path="/" element={<AdminRutas />} />
       <Route path="Estudiantes" element={<Estudiantes />} />
       <Route path="Personal" element={<Personal />} />
-      <Route path="Estudiantes" element={<Dashboard />} />
+      {/* Ruta duplicada de Estudiantes removida para evitar conflictos */}
       <Route path="Representantes" element={<Dashboard />} />
       <Route path="areas-de-aprendizaje" element={<AreasAprendizajes />} />
       <Route path="contenido" element={<Contenidos />} />
