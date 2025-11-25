@@ -130,6 +130,14 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Personal/RutasPersonal.php';
   registrarRutasPersonal($router);
 
+  // Incluye y registra las rutas de representantes
+  require_once __DIR__ . '/Representate/RutasRepresentante.php';
+  registrarRutasRepresentante($router);
+
+  // Incluye y registra las rutas de habilidades
+  require_once __DIR__ . '/Habilidades/RutasHabilidades.php';
+  registrarRutasHabilidades($router);
+
   // Incluye y registra las rutas de cargos
   require_once __DIR__ . '/Cargo/RutasCargo.php';
   registrarRutasCargo($router);

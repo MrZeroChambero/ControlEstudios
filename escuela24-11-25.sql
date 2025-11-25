@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-11-2025 a las 21:04:52
+-- Tiempo de generación: 24-11-2025 a las 22:19:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -214,6 +214,7 @@ CREATE TABLE `auditoria` (
   `id_auditoria` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `fecha_accion` datetime NOT NULL DEFAULT current_timestamp(),
+  `accion` varchar(100) NOT NULL,
   `detalle` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -554,7 +555,7 @@ INSERT INTO `evaluaciones` (`id_evaluacion`, `nombre_evaluacion`, `descripcion`,
 CREATE TABLE `funcion_personal` (
   `id_funcion_personal` int(11) NOT NULL,
   `nombre` varchar(40) NOT NULL,
-  `tipo` set('Docente','Obrero','Administrativo','Especialista') NOT NULL
+  `tipo` enum('Docente','Obrero','Administrativo','Especialista') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -624,7 +625,7 @@ CREATE TABLE `grado_seccion` (
 CREATE TABLE `grupos_estudiantiles` (
   `id_grupos_estudiantiles` int(11) NOT NULL,
   `fk_horario` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL
+  `fk_estudiante` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -647,7 +648,10 @@ CREATE TABLE `habilidades` (
 
 CREATE TABLE `horarios` (
   `id_horario` int(11) NOT NULL,
-  `fk_imparticion_clases` int(11) NOT NULL,
+  `fk_aula` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `fk_area` int(11) NOT NULL,
+  `fk_personal` int(11) NOT NULL,
   `grupo` enum('completo','subgrupo') NOT NULL,
   `dia_semana` enum('lunes','martes','miercoles','jueves','viernes') NOT NULL,
   `hora_inicio` float NOT NULL,
@@ -678,7 +682,7 @@ CREATE TABLE `imparticion_clases` (
 CREATE TABLE `indicadores` (
   `id_indicador` int(11) NOT NULL,
   `fk_competencia` int(11) NOT NULL,
-  `descripcion_indicador` text NOT NULL,
+  `nombre` varchar(256) NOT NULL,
   `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -759,9 +763,7 @@ CREATE TABLE `lista_alergias` (
 CREATE TABLE `literal` (
   `id_literal` int(11) NOT NULL,
   `literal` enum('A1','A2','A3','B1','B2','B3','C1','C2','C3','D1','D2','D3','E1','E2','E3') NOT NULL,
-  `descripcion` varchar(255) NOT NULL,
-  `porcentaje_min` decimal(5,2) NOT NULL,
-  `porcentaje_max` decimal(5,2) NOT NULL
+  `descripcion` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -847,9 +849,9 @@ CREATE TABLE `personal` (
 
 INSERT INTO `personal` (`id_personal`, `fk_persona`, `fk_funcion`, `fecha_contratacion`, `nivel_academico`, `horas_trabajo`, `rif`, `etnia_religion`, `cantidad_hijas`, `cantidad_hijos_varones`, `estado`, `fk_cargo`, `cod_dependencia`) VALUES
 (1, 35, 8, '2025-11-11', 'dsadsadas', NULL, NULL, 'sdsadsa', 4, 2, 'activo', 2, ''),
-(2, 45, 20, '2025-11-21', 'sdasdasd', 35, '23123213123', 'sdqsadsad', 4, 5, 'activo', 1, ''),
-(3, 45, 14, '2008-07-21', 'sdasdasd', 35, 'J-23166123-6', 'sdqsadsad', 4, 5, 'activo', 1, ''),
-(5, 62, 25, '2025-08-21', 'sdasdasd', 0, 'J-43166123-7', '', 42, 12, 'activo', 6, '2255525252');
+(2, 45, 6, '2025-10-30', 'sdasdasd', 35, 'J-12345678-9', 'sdqsadsad', 4, 5, 'activo', 3, 'ddas'),
+(5, 62, 25, '2025-08-21', 'sdasdasd', 0, 'J-43166123-7', '', 42, 12, 'activo', 6, '2255525252'),
+(6, 14, 4, '2025-04-06', 'adsdsadsa', 40, 'J-23166183-6', '', 3, 0, 'activo', 3, '66666666');
 
 -- --------------------------------------------------------
 
@@ -925,7 +927,7 @@ INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer
 (42, 'Marta', 'Elena', 'Silva', 'Núñez', '1980-11-23', 'F', '22233344-1', 'Venezolana', 'Av. 2, Edif. Z, Piso 3', '04162223334', '02412222222', 'marta.silva.rep@email.com', 'representante', 'B+', 'activo'),
 (43, 'José', 'Gregorio', 'Quintero', 'López', '1968-04-10', 'M', '33344455-2', 'Colombiana', 'Zona Centro, Av. Libertador', '04263334445', '02513333333', 'jose.quintero.rep@email.com', 'representante', 'A+', 'activo'),
 (44, 'Carmen', 'Rosa', 'Vargas', 'Pérez', '1979-07-07', 'F', '44455566-3', 'Venezolana', 'Res. Los Pinos, Apt 1A', '04124445556', '02714444444', 'carmen.vargas.rep@email.com', 'representante', 'O-', 'activo'),
-(45, 'AlfredoDOS', 'Daniel', 'Gómez', 'Blanco', '1972-09-15', 'M', '55566677', 'Peruana', 'Calle 3, Casa M', '04245556667', '02815555555', 'alfredo.gomez.rep@email.com', 'representante', 'AB+', 'inactivo'),
+(45, 'Alfredotres', 'Daniel', 'Gómez', 'Blanco', '1972-09-15', 'M', '55566677', 'Peruana', 'Calle 3, Casa M', '04245556667', '02815555555', 'alfredo.gomez.rep@email.com', 'representante', 'AB+', 'activo'),
 (46, 'Teresa', 'Luisa', 'Reyes', 'Torres', '1985-03-02', 'F', '66677788-5', 'Venezolana', 'Los Girasoles, Apt 2C', '04146667778', '02916666666', 'teresa.reyes.rep@email.com', 'representante', 'A-', 'activo'),
 (47, 'Humberto', 'Andrés', 'Castro', 'Sosa', '1965-12-30', 'M', '77788899-6', 'Chileno', 'Urbanización Vista Alegre', '04267778889', '02127777777', 'humberto.castro.rep@email.com', 'representante', 'B-', 'activo'),
 (48, 'Diana', 'Carolina', 'Flores', 'Zambrano', '1970-06-21', 'F', '88899900-7', 'Venezolana', 'El Paraíso, Quinta Sol', '04168889990', '02418888888', 'diana.flores.rep@email.com', 'representante', 'O+', 'activo'),
@@ -942,7 +944,7 @@ INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer
 (59, 'Tony', 'Antonio', 'Rangel', 'Herrera', '1981-10-25', 'M', '42434445-8', 'Venezolana', 'Los Laureles, Casa 15', '04244243444', '02516541098', 'tony.rangel.adm@instituto.edu.ve', 'personal', 'AB-', 'activo'),
 (60, 'Zuleima', 'Yelitza', 'Suárez', 'Flores', '1994-07-23', 'F', '46474849-9', 'Venezolana', 'Urb. Jardín, Calle J', '04124647484', '02715430987', 'zuleima.suarez.prof@instituto.edu.ve', 'personal', 'A-', 'activo'),
 (61, 'jose', 'segundo', 'camejo', 'camejo', '2025-11-12', 'M', '2555515', 'Venezolana', 'dsadsadsadsadsadsadsadsadsadsdsadadsada', '0141545124584', NULL, 'asdsadsadhha@gmail.com', 'personal', 'AB-', 'incompleto'),
-(62, 'persona creada para probar', NULL, 'creada para probar', NULL, '2003-06-14', 'M', 'V-822725272', 'Venezolana', 'Calle 3, Casa M', '04115444444', NULL, 'sdsadsadsdsa@gmail.com', 'personal', 'A-', 'inactivo');
+(62, 'persona creada para probar', 'sadsa', 'creada para probar', '', '2003-06-14', 'M', 'V-822725272', 'Venezolana', 'Calle 3, Casa M', '04115444444', '', 'sdsadsadsdsa@gmail.com', 'personal', 'A-', 'activo');
 
 -- --------------------------------------------------------
 
@@ -952,7 +954,9 @@ INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer
 
 CREATE TABLE `planificaciones` (
   `id_planificacion` int(11) NOT NULL,
-  `fk_imparticion_clases` int(11) NOT NULL,
+  `fk_personal` int(11) NOT NULL,
+  `fk_aula` int(11) NOT NULL,
+  `fk_area` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
   `tipo` enum('individual','aula') NOT NULL DEFAULT 'aula',
   `estado` enum('inactivo','activo') NOT NULL DEFAULT 'activo',
@@ -993,11 +997,12 @@ CREATE TABLE `preguntas` (
 CREATE TABLE `prosecucion` (
   `id_prosecucion` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
   `grado` enum('1','2','3','4','5','6') NOT NULL,
-  `literal` int(11) NOT NULL,
+  `fk_literal` int(11) NOT NULL,
   `paso_grado` enum('si','no') NOT NULL,
-  `observaciones` varchar(255) NOT NULL
+  `observaciones` varchar(255) NOT NULL,
+  `literalFinal` enum('si','no') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1061,7 +1066,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(27, 1, '5a608c17379d1dbe9c792b3243b064f5cd641d1195c3d23ab59d78b16fff70bf', '2025-11-18', '2025-11-19');
+(28, 1, 'a8dd2dc398a63eb068b709cce98830ba7277b370a6f983620ecbe969494a7d1f', '2025-11-19', '2025-11-20');
 
 -- --------------------------------------------------------
 
@@ -1183,8 +1188,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `fk_personal`, `nombre_usuario`, `contrasena_hash`, `estado`, `rol`, `ultimo_login`, `intentos_fallidos`, `fecha_bloqueo`) VALUES
-(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', 'Administrador', NULL, 0, NULL),
-(39, 3, 'jjjjjjjjjjjjjjjjjjjjjjjj', '$2y$10$tYVAs4jx.rwpGOvOLB6S.uVz.5yfovThTC2G2EgE.xToOycKVe6TG', 'activo', 'Docente', NULL, 0, NULL);
+(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', 'Administrador', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1365,7 +1369,7 @@ ALTER TABLE `grado_seccion`
 ALTER TABLE `grupos_estudiantiles`
   ADD PRIMARY KEY (`id_grupos_estudiantiles`),
   ADD KEY `fk_horario` (`fk_horario`),
-  ADD KEY `fk_inscripcion` (`fk_inscripcion`);
+  ADD KEY `fk_estudiante` (`fk_estudiante`);
 
 --
 -- Indices de la tabla `habilidades`
@@ -1379,7 +1383,10 @@ ALTER TABLE `habilidades`
 --
 ALTER TABLE `horarios`
   ADD PRIMARY KEY (`id_horario`),
-  ADD KEY `fk_imparticion_clases` (`fk_imparticion_clases`);
+  ADD KEY `fk_aula` (`fk_aula`),
+  ADD KEY `fk_momento` (`fk_momento`),
+  ADD KEY `fk_area` (`fk_area`),
+  ADD KEY `fk_personal` (`fk_personal`);
 
 --
 -- Indices de la tabla `imparticion_clases`
@@ -1484,8 +1491,10 @@ ALTER TABLE `personas`
 --
 ALTER TABLE `planificaciones`
   ADD PRIMARY KEY (`id_planificacion`),
-  ADD KEY `fk_imparticion_clases` (`fk_imparticion_clases`),
-  ADD KEY `fk_momento` (`fk_momento`);
+  ADD KEY `fk_momento` (`fk_momento`),
+  ADD KEY `fk_personal` (`fk_personal`),
+  ADD KEY `fk_area` (`fk_area`),
+  ADD KEY `fk_aula` (`fk_aula`);
 
 --
 -- Indices de la tabla `planificaciones_individuales`
@@ -1508,8 +1517,8 @@ ALTER TABLE `preguntas`
 ALTER TABLE `prosecucion`
   ADD PRIMARY KEY (`id_prosecucion`),
   ADD KEY `fk_estudiante` (`fk_estudiante`),
-  ADD KEY `fk_inscripcion` (`fk_inscripcion`),
-  ADD KEY `literal` (`literal`);
+  ADD KEY `fk_momento` (`fk_momento`),
+  ADD KEY `fk_literal` (`fk_literal`);
 
 --
 -- Indices de la tabla `representantes`
@@ -1766,7 +1775,7 @@ ALTER TABLE `parentesco`
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
@@ -1820,7 +1829,7 @@ ALTER TABLE `resultado_evaluacion`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `socioeconomico`
@@ -1931,7 +1940,7 @@ ALTER TABLE `estudiantes`
 --
 ALTER TABLE `grupos_estudiantiles`
   ADD CONSTRAINT `fk_grupos_horario` FOREIGN KEY (`fk_horario`) REFERENCES `horarios` (`id_horario`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `grupos_estudiantiles_ibfk_1` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `grupos_estudiantiles_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `habilidades`
@@ -1943,7 +1952,10 @@ ALTER TABLE `habilidades`
 -- Filtros para la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  ADD CONSTRAINT `horarios_ibfk_2` FOREIGN KEY (`fk_imparticion_clases`) REFERENCES `imparticion_clases` (`id_imparticion_clases`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `horarios_ibfk_1` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `horarios_ibfk_2` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `horarios_ibfk_3` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `horarios_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `imparticion_clases`
@@ -2016,7 +2028,9 @@ ALTER TABLE `personal`
 --
 ALTER TABLE `planificaciones`
   ADD CONSTRAINT `planificaciones_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `planificaciones_ibfk_2` FOREIGN KEY (`fk_imparticion_clases`) REFERENCES `imparticion_clases` (`id_imparticion_clases`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `planificaciones_ibfk_2` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `planificaciones_ibfk_3` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `planificaciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `planificaciones_individuales`
@@ -2036,8 +2050,8 @@ ALTER TABLE `preguntas`
 --
 ALTER TABLE `prosecucion`
   ADD CONSTRAINT `prosecucion_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `prosecucion_ibfk_2` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `prosecucion_ibfk_3` FOREIGN KEY (`literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `prosecucion_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `prosecucion_ibfk_5` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `representantes`

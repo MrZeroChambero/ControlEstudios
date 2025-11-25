@@ -16,6 +16,7 @@ import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendiza
 import { Contenidos } from "./Componentes/Contenidos/Contenidos.jsx";
 import { Evaluaciones } from "./Componentes/Evaluaciones/MenuEvaluaciones.jsx";
 import { Personal } from "./Componentes/Personal/Personal.jsx";
+import Representante from "./Componentes/Representantes/Representante.jsx";
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
       <Route path="Estudiantes" element={<Estudiantes />} />
       <Route path="Personal" element={<Personal />} />
       {/* Ruta duplicada de Estudiantes removida para evitar conflictos */}
-      <Route path="Representantes" element={<Dashboard />} />
+      <Route path="Representantes" element={<Representante />} />
       <Route path="areas-de-aprendizaje" element={<AreasAprendizajes />} />
       <Route path="contenido" element={<Contenidos />} />
       <Route
