@@ -18,7 +18,7 @@ export const menuSections = {
   Proceso: [
     {
       name: "Gestión de grados y secciones",
-      path: "gestion-de-grados-y-secciones",
+      path: "AnioEscolar",
     },
     { name: "Inscripción", path: "inscripcion" },
     { name: "Planificación Académica", path: "planificacion-academica" },

@@ -18,6 +18,7 @@ import { Evaluaciones } from "./Componentes/Evaluaciones/MenuEvaluaciones.jsx";
 import { Personal } from "./Componentes/Personal/Personal.jsx";
 import Representante from "./Componentes/Representantes/Representante.jsx";
 import Parentesco from "./Componentes/Parentesco/Parentesco.jsx";
+import AnioEscolar from "./Componentes/AnioEscolar/AnioEscolar.jsx";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         path="componentes-de-aprendizaje"
         element={<ComponentesAprendizajes />}
       />
+      <Route path="AnioEscolar" element={<AnioEscolar />} />
       <Route path="Parentesco" element={<Parentesco />} />
       <Route path="Asistencia de estudiantes" element={<Dashboard />} />
       <Route path="Competencias" element={<Dashboard />} />

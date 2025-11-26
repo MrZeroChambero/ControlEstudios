@@ -1,21 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
-import { solicitarMomentos, solicitarMomentosPorAnio, actualizarMomento } from '../../api/anioEscolarService';
-
-export default function MomentsEditor({ idAnio = null, initialMomentosIds = [], onSaved }) {
+import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import {
+  solicitarMomentos,
+  solicitarMomentosPorAnio,
+  actualizarMomento,
 } from "../../api/anioEscolarService";
 
-export default function MomentsEditor({ initialMomentosIds = [], onSaved }) {
+export default function MomentsEditor({
+  idAnio = null,
+  initialMomentosIds = [],
+  onSaved,
+}) {
   const [momentos, setMomentos] = useState([]);
+
+  const cargar = async () => {
+    try {
+      if (idAnio) {
+        await solicitarMomentosPorAnio(idAnio, setMomentos, Swal);
+      } else {
+        await solicitarMomentos(setMomentos, Swal);
+      }
+    } catch (e) {
+      console.error("Error cargando momentos", e);
+    }
+  };
 
   useEffect(() => {
     cargar();
-    if (idAnio) await solicitarMomentosPorAnio(idAnio, setMomentos, Swal);
-    else await solicitarMomentos(setMomentos, Swal);
-
-  const cargar = async () => {
-    await solicitarMomentos(setMomentos, Swal);
-  };
+  }, [idAnio]);
 
   const seleccionados = () => {
     if (idAnio) return momentos;

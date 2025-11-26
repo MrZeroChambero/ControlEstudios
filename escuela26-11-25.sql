@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-11-2025 a las 22:19:14
+-- Tiempo de generación: 26-11-2025 a las 11:05:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -640,6 +640,17 @@ CREATE TABLE `habilidades` (
   `nombre_habilidad` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `habilidades`
+--
+
+INSERT INTO `habilidades` (`id_habilidad`, `fk_representante`, `nombre_habilidad`) VALUES
+(2, 2, 'hablar paja'),
+(3, 2, 'lamer botas'),
+(4, 2, 'resarle a chavez'),
+(5, 1, 'hablar paja'),
+(6, 1, 'votar por el psuv');
+
 -- --------------------------------------------------------
 
 --
@@ -790,8 +801,18 @@ CREATE TABLE `parentesco` (
   `id_parentesco` int(11) NOT NULL,
   `fk_representante` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
-  `tipo_parentesco` enum('madre','padre','abuelo','tio','hermano','otro') NOT NULL
+  `tipo_parentesco` enum('madre','padre','abuelo','tio','hermano','otro','abuela','hermana','tia') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `parentesco`
+--
+
+INSERT INTO `parentesco` (`id_parentesco`, `fk_representante`, `fk_estudiante`, `tipo_parentesco`) VALUES
+(7, 2, 24, 'madre'),
+(12, 2, 14, 'padre'),
+(14, 2, 35, 'padre'),
+(15, 1, 5, 'padre');
 
 -- --------------------------------------------------------
 
@@ -896,7 +917,7 @@ INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer
 (11, 'Paula', 'Camila', 'Morales', 'Rojas', '2006-06-30', 'F', '11223344-0', 'Argentina', 'Av. 2, Edif. Z, Piso 3', '04121122334', '02818765432', 'paula.morales@email.com', 'estudiante', 'A-', 'activo'),
 (12, 'Ricardo', 'Jesús', 'Vargas', 'Leal', '2003-12-08', 'M', '22334455-1', 'Venezolana', 'Centro, Calle del Comercio', '04142233445', '02917654321', 'ricardo.vargas@email.com', 'estudiante', 'O-', 'activo'),
 (13, 'Luciana', 'Paz', 'Herrera', 'Gil', '2005-02-28', 'F', '33445566-2', 'Venezolana', 'Urbanización Vista Alegre', '04263344556', '02126543210', 'luciana.herrera@email.com', 'estudiante', 'B+', 'activo'),
-(14, 'Adrián', 'Sebastián', 'Silva', 'Guzmán', '2004-08-07', 'M', '44556677-3', 'Uruguaya', 'Transversal 7, Casa A', '04164455667', '02415432109', 'adrian.silva@email.com', 'estudiante', 'AB+', 'activo'),
+(14, 'Adrián', 'Sebastián', 'Silva', 'Guzmán', '2004-08-07', 'M', '44556677-3', 'Uruguaya', 'Transversal 7, Casa A', '04164455667', '02415432109', 'adrian.silva@email.com', 'representante', 'AB+', 'activo'),
 (15, 'Gabriela', 'Fernanda', 'Quintero', 'Ríos', '2006-01-19', 'F', '55667788-4', 'Venezolana', 'Calle Ciega, Manzana 3', '04245566778', '02514321098', 'gabriela.quintero@email.com', 'estudiante', 'O+', 'activo'),
 (16, 'Mateo', 'Miguel', 'Arias', 'Zambrano', '2003-09-02', 'M', '66778899-5', 'Venezolana', 'Sector 9, Av. Bolivar', '04126677889', '02713210987', 'mateo.arias@email.com', 'estudiante', 'A+', 'activo'),
 (17, 'Elena', 'Victoria', 'Bravo', 'Mendoza', '2005-03-14', 'F', '77889900-6', 'Española', 'Edif. Central, Piso 7', '04147788990', '02812109876', 'elena.bravo@email.com', 'estudiante', 'A-', 'activo'),
@@ -1020,6 +1041,14 @@ CREATE TABLE `representantes` (
   `lugar_trabajo` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `representantes`
+--
+
+INSERT INTO `representantes` (`id_representante`, `fk_persona`, `oficio`, `nivel_educativo`, `profesion`, `lugar_trabajo`) VALUES
+(1, 14, 'piedrero', 'TSU', 'lava perros', 'en maracay'),
+(2, 51, 'trabaja pal psuv', '', 'lamebotas', 'en la alcaldía');
+
 -- --------------------------------------------------------
 
 --
@@ -1066,7 +1095,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(28, 1, 'a8dd2dc398a63eb068b709cce98830ba7277b370a6f983620ecbe969494a7d1f', '2025-11-19', '2025-11-20');
+(31, 1, 'a1fc4dd1d47b218c56d90db3cca7e93356bc5abb60f896649f85657338130cb3', '2025-11-26', '2025-11-27');
 
 -- --------------------------------------------------------
 
@@ -1709,7 +1738,7 @@ ALTER TABLE `grupos_estudiantiles`
 -- AUTO_INCREMENT de la tabla `habilidades`
 --
 ALTER TABLE `habilidades`
-  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios`
@@ -1769,7 +1798,7 @@ ALTER TABLE `momentos_academicos`
 -- AUTO_INCREMENT de la tabla `parentesco`
 --
 ALTER TABLE `parentesco`
-  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
@@ -1811,7 +1840,7 @@ ALTER TABLE `prosecucion`
 -- AUTO_INCREMENT de la tabla `representantes`
 --
 ALTER TABLE `representantes`
-  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `respaldos`
@@ -1829,7 +1858,7 @@ ALTER TABLE `resultado_evaluacion`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `socioeconomico`
