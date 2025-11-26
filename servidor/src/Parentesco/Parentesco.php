@@ -9,6 +9,7 @@ require_once __DIR__ . '/GestionParentesco.php';
 require_once __DIR__ . '/ValidacionesParentesco.php';
 require_once __DIR__ . '/OperacionesControladorParentesco.php';
 require_once __DIR__ . '/UtilidadesParentesco.php';
+require_once __DIR__ . '/TiposParentesco.php';
 
 class Parentesco
 {

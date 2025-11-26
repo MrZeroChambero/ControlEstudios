@@ -151,6 +151,9 @@ function registrarTodasLasRutas(): Router
   //Incluye y registra las rutas de evaluaciones
   require_once __DIR__ . '/Evaluaciones/RutasEvaluaciones.php';
   registrarRutasEvaluaciones($router);
+  // Incluye y registra las rutas de parentescos
+  require_once __DIR__ . '/Parentesco/RutasParentesco.php';
+  registrarRutasParentesco($router);
 
   // Incluye y registra las rutas de contenidos
   require_once __DIR__ . '/Contenidos/RutasContenidos.php';

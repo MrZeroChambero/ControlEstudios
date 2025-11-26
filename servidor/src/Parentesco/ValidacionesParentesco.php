@@ -6,16 +6,16 @@ use PDO;
 
 trait ValidacionesParentesco
 {
-  private static function tiposPermitidos(): array
+  private static function tiposPermitidos(PDO $pdo = null): array
   {
-    return ['padre', 'madre', 'representante', 'tutor', 'encargado'];
+    return TiposParentesco::obtenerTiposPermitidos($pdo);
   }
 
   public static function validarDatosCrear(PDO $pdo, array $data): array|bool
   {
     $err = [];
     foreach (['fk_estudiante', 'fk_representante', 'tipo_parentesco'] as $req) if (empty($data[$req])) $err[$req][] = 'Campo requerido';
-    if (!empty($data['tipo_parentesco']) && !in_array($data['tipo_parentesco'], self::tiposPermitidos(), true)) $err['tipo_parentesco'][] = 'Tipo no permitido';
+    if (!empty($data['tipo_parentesco']) && !in_array($data['tipo_parentesco'], self::tiposPermitidos($pdo), true)) $err['tipo_parentesco'][] = 'Tipo no permitido';
     if ($err) return $err;
 
     // Verificar estudiante existe y activo
@@ -26,11 +26,23 @@ trait ValidacionesParentesco
     else if ($est['estado'] !== 'activo') $err['fk_estudiante'][] = 'Estudiante no está activo';
 
     // Verificar representante existe y activo
-    $stmt = $pdo->prepare('SELECT r.id_representante, p.estado FROM representantes r INNER JOIN personas p ON r.fk_persona=p.id_persona WHERE r.id_representante=?');
+    $stmt = $pdo->prepare('SELECT r.id_representante, p.estado, p.genero FROM representantes r INNER JOIN personas p ON r.fk_persona=p.id_persona WHERE r.id_representante=?');
     $stmt->execute([$data['fk_representante']]);
     $rep = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$rep) $err['fk_representante'][] = 'Representante no existe';
     else if ($rep['estado'] !== 'activo') $err['fk_representante'][] = 'Representante no está activo';
+
+    // Validación por género del representante: opciones femeninas/masculinas + 'otro'
+    if ($rep && empty($err['fk_representante'])) {
+      $genero = $rep['genero'] ?? null; // 'F' | 'M' | null
+      $opcF = ['madre', 'abuela', 'hermana', 'tia', 'otro'];
+      $opcM = ['padre', 'abuelo', 'hermano', 'tio', 'otro'];
+      if ($genero === 'F' && !in_array($data['tipo_parentesco'], $opcF, true)) {
+        $err['tipo_parentesco'][] = 'Tipo no válido para género femenino';
+      } else if ($genero === 'M' && !in_array($data['tipo_parentesco'], $opcM, true)) {
+        $err['tipo_parentesco'][] = 'Tipo no válido para género masculino';
+      }
+    }
 
     // Restricción único padre/madre
     if (in_array($data['tipo_parentesco'], ['padre', 'madre'], true)) {
@@ -63,7 +75,21 @@ trait ValidacionesParentesco
     $fkEst = $data['fk_estudiante'] ?? $orig['fk_estudiante'];
     $fkRep = $data['fk_representante'] ?? $orig['fk_representante'];
 
-    if (!in_array($tipoNuevo, self::tiposPermitidos(), true)) $err['tipo_parentesco'][] = 'Tipo no permitido';
+    if (!in_array($tipoNuevo, self::tiposPermitidos($pdo), true)) $err['tipo_parentesco'][] = 'Tipo no permitido';
+
+    // Validación por género del representante en actualización
+    $stmtG = $pdo->prepare('SELECT p.genero FROM representantes r INNER JOIN personas p ON r.fk_persona=p.id_persona WHERE r.id_representante=?');
+    $stmtG->execute([$fkRep]);
+    $gRow = $stmtG->fetch(PDO::FETCH_ASSOC);
+    if ($gRow && isset($gRow['genero'])) {
+      $opcF = ['madre', 'abuela', 'hermana', 'tia', 'otro'];
+      $opcM = ['padre', 'abuelo', 'hermano', 'tio', 'otro'];
+      if ($gRow['genero'] === 'F' && !in_array($tipoNuevo, $opcF, true)) {
+        $err['tipo_parentesco'][] = 'Tipo no válido para género femenino';
+      } else if ($gRow['genero'] === 'M' && !in_array($tipoNuevo, $opcM, true)) {
+        $err['tipo_parentesco'][] = 'Tipo no válido para género masculino';
+      }
+    }
 
     // Restricción único padre/madre si se cambia o se reasigna
     if (in_array($tipoNuevo, ['padre', 'madre'], true)) {

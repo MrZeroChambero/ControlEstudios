@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import DataTable from "react-data-table-component";
 import { FaEdit, FaTrash, FaSync } from "react-icons/fa";
-import { TIPOS_OPCIONALES } from "./parentescoService";
+// Recibe tiposPermitidos desde el padre (Parentesco.jsx)
 
 const TablaParentescosRepresentante = ({
   data = [],
@@ -13,6 +13,7 @@ const TablaParentescosRepresentante = ({
   guardarEdicion,
   quitarParentesco,
   representanteSeleccionado,
+  tiposPermitidos = ["representante"],
 }) => {
   const columns = useMemo(() => {
     return [
@@ -36,15 +37,22 @@ const TablaParentescosRepresentante = ({
             editando?.id === row.id_parentesco &&
             editando?.contexto === "representante";
           if (!enEdicion) return row.tipo_parentesco;
-          const tiposDisponibles = [
-            "padre",
-            "madre",
-            ...TIPOS_OPCIONALES,
-          ].filter((t) => {
-            if (!row.fk_estudiante) return true; // fallback
+          const tiposBase = Array.isArray(tiposPermitidos)
+            ? tiposPermitidos
+            : ["representante"];
+          // Filtrar por género del representante seleccionado (padre)
+          const generoRepSel = representanteSeleccionado?.genero;
+          const tiposPorGenero =
+            generoRepSel === "F"
+              ? ["madre", "abuela", "hermana", "tia", "otro"]
+              : generoRepSel === "M"
+              ? ["padre", "abuelo", "hermano", "tio", "otro"]
+              : tiposBase;
+          const tiposDisponibles = tiposPorGenero.filter((t) => {
+            if (!row.id_estudiante) return true; // fallback
             const relacionadosMismoEst = data.filter(
               (p) =>
-                p.fk_estudiante === row.fk_estudiante &&
+                p.id_estudiante === row.id_estudiante &&
                 p.id_parentesco !== row.id_parentesco
             );
             if (
@@ -116,8 +124,6 @@ const TablaParentescosRepresentante = ({
           );
         },
         ignoreRowClick: true,
-        allowOverflow: true,
-        button: true,
         width: "180px",
       },
     ];
@@ -130,6 +136,8 @@ const TablaParentescosRepresentante = ({
     quitarParentesco,
     setTipoEdicion,
     data,
+    tiposPermitidos,
+    representanteSeleccionado?.genero,
   ]);
 
   return (

@@ -1,16 +1,15 @@
 export const menuSections = {
   Entrada: [
     { name: "Areas de aprendizaje", path: "areas-de-aprendizaje" },
-    { name: "Asistencia de estudiantes", path: "asistencia-de-estudiantes" },
     { name: "Contenido", path: "contenido" },
-    { name: "Competencias", path: "competencias" },
+    { name: "Parentesco Familiar", path: "Parentesco" },
+
     {
       name: "Componentes de Aprendizaje",
       path: "componentes-de-aprendizaje",
     },
     { name: "Estudiantes", path: "estudiantes" },
     { name: "Evaluaciones", path: "evaluaciones" },
-    { name: "Indicadores", path: "indicadores" },
     { name: "Representantes", path: "representantes" },
     { name: "Personal", path: "personal" },
     { name: "Personas", path: "personas" },

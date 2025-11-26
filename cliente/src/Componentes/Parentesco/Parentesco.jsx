@@ -10,7 +10,7 @@ import {
   actualizarParentesco,
   eliminarParentesco,
   inferirTipoPadreMadre,
-  TIPOS_OPCIONALES,
+  obtenerTiposParentesco,
 } from "./parentescoService";
 import SeleccionEntidad from "./SeleccionEntidad";
 import TablaParentescosEstudiante from "./TablaParentescosEstudiante";
@@ -29,11 +29,23 @@ export const Parentesco = () => {
   const [tipoManual, setTipoManual] = useState(""); // Para otros tipos distintos padre/madre
   const [editando, setEditando] = useState(null); // id_parentesco en edición
   const [tipoEdicion, setTipoEdicion] = useState("");
+  const [tiposPermitidos, setTiposPermitidos] = useState(["representante"]);
+
+  // Tipos válidos según género del representante (F/M) + 'otro'
+  const tiposPorGenero = (genero) => {
+    if (genero === "F") return ["madre", "abuela", "hermana", "tia", "otro"];
+    if (genero === "M") return ["padre", "abuelo", "hermano", "tio", "otro"];
+    return tiposPermitidos;
+  };
 
   // Cargar listas base
   useEffect(() => {
     listarEstudiantesActivos(setEstudiantes, Swal);
     listarRepresentantesActivos(setRepresentantes, Swal);
+    (async () => {
+      const tipos = await obtenerTiposParentesco(Swal);
+      setTiposPermitidos(tipos);
+    })();
   }, []);
 
   // Cargar parentescos cuando se selecciona estudiante
@@ -75,9 +87,18 @@ export const Parentesco = () => {
       return;
     }
     const lista = parentescosEstudiante;
-    // Tipo automático padre/madre
+    // Tipo automático padre/madre con filtro por género del representante
     let tipo = tipoManual.trim();
-    if (!tipo) tipo = inferirTipoPadreMadre(representanteSel.genero);
+    const opcionesValidas = tiposPorGenero(representanteSel?.genero);
+    if (!tipo) tipo = inferirTipoPadreMadre(representanteSel?.genero);
+    if (!opcionesValidas.includes(tipo)) {
+      Swal.fire(
+        "Tipo inválido",
+        "El tipo no corresponde al género del representante",
+        "warning"
+      );
+      return;
+    }
     // Validaciones UI
     if (tipo === "padre" && tienePadre(lista)) {
       Swal.fire("Error", "El estudiante ya tiene padre", "error");
@@ -120,7 +141,16 @@ export const Parentesco = () => {
     }
     const lista = parentescosRepresentante;
     let tipo = tipoManual.trim();
-    if (!tipo) tipo = inferirTipoPadreMadre(representanteSel.genero);
+    const opcionesValidas = tiposPorGenero(representanteSel?.genero);
+    if (!tipo) tipo = inferirTipoPadreMadre(representanteSel?.genero);
+    if (!opcionesValidas.includes(tipo)) {
+      Swal.fire(
+        "Tipo inválido",
+        "El tipo no corresponde al género del representante",
+        "warning"
+      );
+      return;
+    }
     // Validaciones: un representante puede ser padre/madre de muchos estudiantes, no hace falta revisar padre/madre globalmente; sólo duplicado exacto.
     if (lista.some((p) => p.id_estudiante === estudianteSel.id_estudiante)) {
       // Si ya existe relación con ese estudiante, impedir duplicado
@@ -177,18 +207,38 @@ export const Parentesco = () => {
         (p) => p.id_parentesco === id
       );
       idEstudianteValidar =
-        registro?.fk_estudiante || estudianteSel?.id_estudiante;
+        estudianteSel?.id_estudiante || registro?.id_estudiante || null;
     } else {
       const registro = parentescosRepresentante.find(
         (p) => p.id_parentesco === id
       );
-      idEstudianteValidar = registro?.fk_estudiante; // En contexto representante siempre viene en el registro
+      idEstudianteValidar =
+        registro?.id_estudiante || estudianteSel?.id_estudiante || null;
     }
     if (!idEstudianteValidar) {
       Swal.fire(
         "Error",
         "No se pudo identificar el estudiante para validar",
         "error"
+      );
+      return;
+    }
+    // Validación por género antes de actualizar
+    const opcionesValidasGenero = (() => {
+      const genero =
+        contexto === "estudiante"
+          ? parentescosEstudiante.find((p) => p.id_parentesco === id)
+              ?.rep_genero || representanteSel?.genero
+          : representanteSel?.genero;
+      if (genero === "F") return ["madre", "abuela", "hermana", "tia", "otro"];
+      if (genero === "M") return ["padre", "abuelo", "hermano", "tio", "otro"];
+      return tiposPermitidos;
+    })();
+    if (!opcionesValidasGenero.includes(tipoEdicion)) {
+      Swal.fire(
+        "Tipo inválido",
+        "El tipo no corresponde al género del representante",
+        "warning"
       );
       return;
     }
@@ -333,8 +383,10 @@ export const Parentesco = () => {
                   onChange={(e) => setTipoManual(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Tipo automático (padre/madre)</option>
-                  {TIPOS_OPCIONALES.map((t) => (
+                  {(estudianteSel && representanteSel
+                    ? tiposPorGenero(representanteSel?.genero)
+                    : tiposPermitidos
+                  ).map((t) => (
                     <option key={t} value={t}>
                       {t}
                     </option>
@@ -361,6 +413,7 @@ export const Parentesco = () => {
               guardarEdicion={guardarEdicion}
               quitarParentesco={quitarParentesco}
               estudianteSeleccionado={estudianteSel}
+              tiposPermitidos={tiposPermitidos}
             />
           </div>
         </div>
@@ -387,8 +440,10 @@ export const Parentesco = () => {
                   onChange={(e) => setTipoManual(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="">Tipo automático (padre/madre)</option>
-                  {TIPOS_OPCIONALES.map((t) => (
+                  {(representanteSel && estudianteSel
+                    ? tiposPorGenero(representanteSel?.genero)
+                    : tiposPermitidos
+                  ).map((t) => (
                     <option key={t} value={t}>
                       {t}
                     </option>
@@ -415,6 +470,7 @@ export const Parentesco = () => {
               guardarEdicion={guardarEdicion}
               quitarParentesco={quitarParentesco}
               representanteSeleccionado={representanteSel}
+              tiposPermitidos={tiposPermitidos}
             />
           </div>
         </div>

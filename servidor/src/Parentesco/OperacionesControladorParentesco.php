@@ -56,7 +56,7 @@ trait OperacionesControladorParentesco
       $lista = ConsultasParentesco::consultarParentescosPorEstudiante($pdo, $id_estudiante);
       $this->sendJson(200, 'success', 'Parentescos del estudiante.', $lista);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar por estudiante.');
+      $this->sendJson(500, 'error', 'Error al listar por estudiante: ' . $e->getMessage());
     }
   }
 
@@ -67,7 +67,7 @@ trait OperacionesControladorParentesco
       $lista = ConsultasParentesco::consultarParentescosPorRepresentante($pdo, $id_representante);
       $this->sendJson(200, 'success', 'Parentescos del representante.', $lista);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar por representante.');
+      $this->sendJson(500, 'error', 'Error al listar por representante: ' . $e->getMessage());
     }
   }
 
@@ -115,6 +115,18 @@ trait OperacionesControladorParentesco
       $this->sendJson(200, 'success', 'Parentesco eliminado.', ['deleted' => $ok]);
     } catch (Exception $e) {
       $this->sendJson(500, 'error', 'Error al eliminar parentesco.');
+    }
+  }
+
+  public function listarTipos(): void
+  {
+    try {
+      $pdo = Conexion::obtener();
+      // Usar configuración dinámica desde JSON con fallback
+      $tipos = TiposParentesco::obtenerTiposPermitidos($pdo);
+      $this->sendJson(200, 'success', 'Tipos de parentesco.', $tipos);
+    } catch (Exception $e) {
+      $this->sendJson(500, 'error', 'Error al obtener tipos.');
     }
   }
 }

@@ -41,4 +41,5 @@ function registrarRutasParentesco(AltoRouter $router)
   // Consultas específicas
   $mapAuthenticated('GET', '/parentescos/estudiante/[i:id_estudiante]', [$controlador, 'listarPorEstudiante']);
   $mapAuthenticated('GET', '/parentescos/representante/[i:id_representante]', [$controlador, 'listarPorRepresentante']);
+  $mapAuthenticated('GET', '/parentescos/tipos', [$controlador, 'listarTipos']);
 }

@@ -47,7 +47,7 @@ trait ConsultasParentesco
   public static function consultarParentescosPorEstudiante(PDO $pdo, int $id_estudiante): array
   {
     $sql = "SELECT pa.id_parentesco, pa.tipo_parentesco,
-            pr.primer_nombre AS rep_primer_nombre, pr.primer_apellido AS rep_primer_apellido, pr.cedula AS rep_cedula, r.id_representante
+            pr.primer_nombre AS rep_primer_nombre, pr.primer_apellido AS rep_primer_apellido, pr.cedula AS rep_cedula, r.id_representante, pr.genero AS rep_genero
             FROM parentesco pa
             INNER JOIN representantes r ON pa.fk_representante = r.id_representante
             INNER JOIN personas pr ON r.fk_persona = pr.id_persona
@@ -61,7 +61,7 @@ trait ConsultasParentesco
   public static function consultarParentescosPorRepresentante(PDO $pdo, int $id_representante): array
   {
     $sql = "SELECT pa.id_parentesco, pa.tipo_parentesco,
-            pe.primer_nombre AS est_primer_nombre, pe.primer_apellido AS est_primer_apellido, pe.cedula AS est_cedula, e.id_estudiante
+        pe.primer_nombre AS est_primer_nombre, pe.primer_apellido AS est_primer_apellido, pe.cedula AS est_cedula, e.id_estudiante
             FROM parentesco pa
             INNER JOIN estudiantes e ON pa.fk_estudiante = e.id_estudiante
             INNER JOIN personas pe ON e.id_persona = pe.id_persona

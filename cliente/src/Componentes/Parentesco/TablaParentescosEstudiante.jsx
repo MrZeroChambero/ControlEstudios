@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import DataTable from "react-data-table-component";
 import { FaEdit, FaTrash, FaSync } from "react-icons/fa";
-import { TIPOS_OPCIONALES } from "./parentescoService";
+// Recibe tiposPermitidos desde el padre (Parentesco.jsx)
 
 const TablaParentescosEstudiante = ({
   data = [],
@@ -13,6 +13,7 @@ const TablaParentescosEstudiante = ({
   guardarEdicion,
   quitarParentesco,
   estudianteSeleccionado,
+  tiposPermitidos = ["representante"],
 }) => {
   const columns = useMemo(() => {
     return [
@@ -36,11 +37,18 @@ const TablaParentescosEstudiante = ({
             editando?.id === row.id_parentesco &&
             editando?.contexto === "estudiante";
           if (!enEdicion) return row.tipo_parentesco;
-          const tiposDisponibles = [
-            "padre",
-            "madre",
-            ...TIPOS_OPCIONALES,
-          ].filter((t) => {
+          const tiposBase = Array.isArray(tiposPermitidos)
+            ? tiposPermitidos
+            : ["representante"];
+          // Filtrar por género del representante de la fila (rep_genero)
+          const generoRep = row.rep_genero;
+          const tiposPorGenero =
+            generoRep === "F"
+              ? ["madre", "abuela", "hermana", "tia", "otro"]
+              : generoRep === "M"
+              ? ["padre", "abuelo", "hermano", "tio", "otro"]
+              : tiposBase;
+          const tiposDisponibles = tiposPorGenero.filter((t) => {
             if (
               t === "padre" &&
               data.some(
@@ -118,8 +126,6 @@ const TablaParentescosEstudiante = ({
           );
         },
         ignoreRowClick: true,
-        allowOverflow: true,
-        button: true,
         width: "180px",
       },
     ];
@@ -132,6 +138,7 @@ const TablaParentescosEstudiante = ({
     quitarParentesco,
     setTipoEdicion,
     data,
+    tiposPermitidos,
   ]);
   return (
     <div className="bg-white/80 backdrop-blur rounded-lg border border-gray-200 p-4 shadow-sm">
