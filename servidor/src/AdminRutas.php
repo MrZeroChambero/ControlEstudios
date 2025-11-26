@@ -170,5 +170,25 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/ComponentesAprendizaje/RutasComponentesAprendizaje.php';
   registrarRutasComponentesAprendizaje($router);
 
+  // Incluye y registra las rutas de aulas
+  require_once __DIR__ . '/Aula/RutasAula.php';
+  registrarRutasAula($router);
+
+  // Incluye y registra las rutas de impartición de clases
+  require_once __DIR__ . '/ImparticionClases/RutasImparticionClases.php';
+  registrarRutasImparticionClases($router);
+
+  // Incluye y registra las rutas de grados y secciones
+  require_once __DIR__ . '/GradosSecciones/RutasGradosSecciones.php';
+  registrarRutasGradosSecciones($router);
+
+  // Incluye y registra las rutas de años escolares
+  require_once __DIR__ . '/AnioEscolar/RutasAnioEscolar.php';
+  registrarRutasAnioEscolar($router);
+
+  // Incluye y registra las rutas de momentos académicos
+  require_once __DIR__ . '/MomentoAcademico/RutasMomentoAcademico.php';
+  registrarRutasMomentoAcademico($router);
+
   return $router;
 }
