@@ -1,42 +1,70 @@
-import Swal from 'sweetalert2';
-import axios from 'axios';
+import axios from "axios";
 
-export const eliminarComponenteAprendizaje = (id, API_URL, refetchData) => {
+const formatearErrores = (errores) => {
+  if (!errores) {
+    return "No se pudo eliminar el componente de aprendizaje.";
+  }
+
+  return Object.values(errores)
+    .flat()
+    .map((mensaje) => `• ${mensaje}`)
+    .join("\n");
+};
+
+export const eliminarComponenteAprendizaje = ({
+  id,
+  API_URL,
+  refetchData,
+  Swal,
+}) => {
   Swal.fire({
-    title: '¿Estás seguro?',
-    text: "¡No podrás revertir esto!",
-    icon: 'warning',
+    title: "¿Estás seguro?",
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí, ¡elimínalo!',
-    cancelButtonText: 'Cancelar'
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#475569",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
   }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const response = await axios.delete(`${API_URL}/${id}`, { withCredentials: true });
-        if (response.data.back) {
-          Swal.fire(
-            '¡Eliminado!',
-            'El componente de aprendizaje ha sido eliminado.',
-            'success'
-          );
-          refetchData();
-        } else {
-          Swal.fire(
-            'Error',
-            response.data.message || 'No se pudo eliminar el componente.',
-            'error'
-          );
-        }
-      } catch (error) {
-        console.error('Error al eliminar el componente de aprendizaje:', error);
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API_URL}/${id}`, {
+        withCredentials: true,
+      });
+
+      if (response.data?.exito) {
         Swal.fire(
-          'Error',
-          'No se pudo eliminar el componente de aprendizaje.',
-          'error'
+          "¡Eliminado!",
+          response.data.mensaje ||
+            "El componente de aprendizaje fue eliminado correctamente.",
+          "success"
         );
+        refetchData();
+        return;
       }
+
+      const detalle =
+        formatearErrores(response.data?.errores) || response.data?.mensaje;
+      Swal.fire(
+        "Error",
+        (detalle || "No se pudo eliminar el componente.").replace(
+          /\n/g,
+          "<br>"
+        ),
+        "error"
+      );
+    } catch (error) {
+      console.error("Error al eliminar el componente de aprendizaje:", error);
+      const respuesta = error.response?.data;
+      const detalle =
+        formatearErrores(respuesta?.errores) ||
+        respuesta?.mensaje ||
+        "No se pudo eliminar el componente de aprendizaje.";
+      Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
     }
   });
 };

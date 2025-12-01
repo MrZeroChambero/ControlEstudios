@@ -3,372 +3,153 @@
 namespace Micodigo\Contenidos;
 
 use Micodigo\Config\Conexion;
-use Valitron\Validator;
 use Exception;
+use PDOException;
 
 class ControladoraContenidos
 {
-  public function __construct()
-  {
-    Validator::lang('es');
-  }
-
-  private function limpiarTexto($texto)
-  {
-    $texto = trim($texto);
-    $texto = preg_replace('/\s+/', ' ', $texto);
-    return $texto;
-  }
-
-  private function addUniqueRule(Validator $v, string $field, string $table, string $column, ?int $ignoreId = null)
-  {
-    $v->addRule('unique', function ($field, $value, array $params) use ($table, $column, $ignoreId) {
-      $pdo = Conexion::obtener();
-      $sql = "SELECT COUNT(*) FROM {$table} WHERE {$column} = ?";
-      $bindings = [$value];
-
-      if ($ignoreId !== null) {
-        $sql .= " AND id_contenido != ?";
-        $bindings[] = $ignoreId;
-      }
-
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute($bindings);
-      return $stmt->fetchColumn() == 0;
-    }, 'ya está en uso.');
-  }
-
-
-  private function validarExistenciaForanea($tabla, $campoId, $valor)
+  public function listar(): void
   {
     try {
-      $pdo = Conexion::obtener();
-      $sql = "SELECT COUNT(*) FROM {$tabla} WHERE {$campoId} = ?";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([$valor]);
-      return $stmt->fetchColumn() > 0;
-    } catch (Exception $e) {
-      return false;
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos();
+      $contenidos = $modelo->consultarContenidosCompletos($conexion);
+      $this->enviarRespuestaJson(200, 'exito', 'Contenidos consultados correctamente.', $contenidos);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al listar los contenidos.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-
-  public function listar()
+  public function listarSelect(): void
   {
     try {
-      $pdo = Conexion::obtener();
-      $contenidos = Contenidos::consultarTodos($pdo);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $contenidos,
-        'message' => 'Contenidos obtenidos exitosamente.'
-      ]);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los contenidos.',
-        'error_details' => $e->getMessage()
-      ]);
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos();
+      $contenidos = $modelo->consultarParaSelect($conexion);
+      $this->enviarRespuestaJson(200, 'exito', 'Contenidos activos obtenidos correctamente.', $contenidos);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al obtener los contenidos para selección.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function crear()
+  public function crear(): void
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
+      $entrada = $this->obtenerEntradaJson();
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos($entrada);
+      $resultado = $modelo->crear($conexion, $entrada);
 
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+      if (isset($resultado['errores'])) {
+        $this->enviarRespuestaJson(422, 'error', 'La información enviada no es válida.', null, $resultado['errores']);
+        return;
       }
 
-      // Limpiar textos
-      if (isset($data['nombre'])) {
-        $data['nombre'] = $this->limpiarTexto($data['nombre']);
-      }
-      if (isset($data['descripcion'])) {
-        $data['descripcion'] = $this->limpiarTexto($data['descripcion']);
-      }
-
-      $v = new Validator($data);
-
-      // Validaciones básicas
-      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'grado'])
-        ->message('{field} es requerido');
-
-      $v->rule('lengthMax', 'nombre', 255)
-        ->message('El nombre no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'descripcion', 255)
-        ->message('La descripción no debe exceder los 255 caracteres');
-
-      $v->rule('integer', 'fk_area_aprendizaje')
-        ->message('El área de aprendizaje debe ser un número entero');
-
-      $v->rule('min', 'fk_area_aprendizaje', 1)
-        ->message('El área de aprendizaje debe ser válida');
-
-      $v->rule('in', 'grado', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
-        ->message('El grado debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
-
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\,\;\:\!\?\(\)\-]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y signos de puntuación');
-
-      $v->rule('textoEspanol', 'nombre');
-      if (!empty($data['descripcion'])) {
-        $v->rule('textoEspanol', 'descripcion');
-      }
-
-      // Validar existencia de área de aprendizaje
-      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje']);
-
-      if (!$nombreArea) {
-        $v->error('fk_area_aprendizaje', 'El área de aprendizaje seleccionada no existe');
-      }
-
-      // Validar unicidad
-      $this->addUniqueRule($v, 'nombre', 'contenidos', 'nombre');
-
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $contenido = new Contenidos(
-          $data['nombre'],
-          $data['fk_area_aprendizaje'],
-          $data['grado'],
-          $data['descripcion'] ?? null
-        );
-
-        $id = $contenido->crear($pdo);
-
-        if ($id) {
-          http_response_code(201);
-          $contenido->id_contenido = $id;
-          // Agregar nombre del área para la respuesta
-          $contenido->nombre_area = $nombreArea;
-
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => true,
-            'data' => $contenido,
-            'message' => 'Contenido creado exitosamente.'
-          ]);
-        } else {
-          throw new Exception('No se pudo crear el contenido en la base de datos');
-        }
-      } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
-      }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al crear el contenido.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuestaJson(201, 'exito', 'Contenido registrado correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al registrar el contenido.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function actualizar($id)
+  public function actualizar(int $idContenido): void
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
+      $entrada = $this->obtenerEntradaJson();
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos();
+      $resultado = $modelo->actualizar($conexion, $idContenido, $entrada);
 
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['id_contenido']) ? 404 : 422;
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el contenido.', null, $resultado['errores']);
+        return;
       }
 
-      // Limpiar textos
-      if (isset($data['nombre'])) {
-        $data['nombre'] = $this->limpiarTexto($data['nombre']);
-      }
-      if (isset($data['descripcion'])) {
-        $data['descripcion'] = $this->limpiarTexto($data['descripcion']);
-      }
-
-      $v = new Validator($data);
-
-      // Validaciones básicas
-      $v->rule('required', ['nombre', 'fk_area_aprendizaje', 'grado'])
-        ->message('{field} es requerido');
-
-      $v->rule('lengthMax', 'nombre', 255)
-        ->message('El nombre no debe exceder los 255 caracteres');
-
-      $v->rule('lengthMax', 'descripcion', 255)
-        ->message('La descripción no debe exceder los 255 caracteres');
-
-      $v->rule('integer', 'fk_area_aprendizaje')
-        ->message('El área de aprendizaje debe ser un número entero');
-
-      $v->rule('min', 'fk_area_aprendizaje', 1)
-        ->message('El área de aprendizaje debe ser válida');
-
-      $v->rule('in', 'grado', ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'])
-        ->message('El grado debe ser uno de: primero, segundo, tercero, cuarto, quinto, sexto');
-
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.\,\;\:\!\?\(\)\-]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y signos de puntuación');
-
-      $v->rule('textoEspanol', 'nombre');
-      if (!empty($data['descripcion'])) {
-        $v->rule('textoEspanol', 'descripcion');
-      }
-
-      // Validar existencia de área de aprendizaje
-      $nombreArea = $this->validarExistenciaForanea('areas_aprendizaje', 'id_area_aprendizaje', $data['fk_area_aprendizaje']);
-
-      if (!$nombreArea) {
-        $v->error('fk_area_aprendizaje', 'El área de aprendizaje seleccionada no existe');
-      }
-
-      // Validar unicidad ignorando el registro actual
-      $this->addUniqueRule($v, 'nombre', 'contenidos', 'nombre', $id);
-
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $contenido = Contenidos::consultarActualizar($pdo, $id);
-
-        if ($contenido) {
-          $contenido->nombre = $data['nombre'];
-          $contenido->fk_area_aprendizaje = $data['fk_area_aprendizaje'];
-          $contenido->grado = $data['grado'];
-          $contenido->descripcion = $data['descripcion'] ?? null;
-
-          if ($contenido->actualizar($pdo)) {
-            // Agregar nombre del área para la respuesta
-            $contenido->nombre_area = $nombreArea;
-
-            header('Content-Type: application/json');
-            echo json_encode([
-              'back' => true,
-              'data' => $contenido,
-              'message' => 'Contenido actualizado exitosamente.'
-            ]);
-          } else {
-            throw new Exception('No se pudo actualizar el contenido en la base de datos');
-          }
-        } else {
-          http_response_code(404);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Contenido no encontrado.'
-          ]);
-        }
-      } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
-      }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al actualizar el contenido.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuestaJson(200, 'exito', 'Contenido actualizado correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al actualizar el contenido.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function eliminar($id)
+  public function eliminar(int $idContenido): void
   {
     try {
-      $pdo = Conexion::obtener();
-      if (Contenidos::eliminar($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Contenido eliminado exitosamente.'
-        ]);
-      } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al eliminar el contenido.'
-        ]);
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos();
+      $resultado = $modelo->eliminar($conexion, $idContenido);
+
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['relaciones']) ? 409 : 404;
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible eliminar el contenido.', null, $resultado['errores']);
+        return;
       }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al eliminar el contenido.',
-        'error_details' => $e->getMessage()
-      ]);
+
+      $this->enviarRespuestaJson(200, 'exito', 'Contenido eliminado correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al eliminar el contenido.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function cambiarEstado($id)
+  public function cambiarEstado(int $idContenido): void
   {
     try {
-      $pdo = Conexion::obtener();
-      if (Contenidos::cambiarEstado($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Estado del contenido cambiado exitosamente.'
-        ]);
-      } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al cambiar el estado del contenido.'
-        ]);
+      $entrada = $this->obtenerEntradaJson();
+      $estadoSolicitado = $entrada['estado'] ?? null;
+
+      $conexion = Conexion::obtener();
+      $modelo = new Contenidos();
+      $resultado = $modelo->cambiarEstado($conexion, $idContenido, $estadoSolicitado);
+
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['id_contenido']) ? 404 : 422;
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible cambiar el estado del contenido.', null, $resultado['errores']);
+        return;
       }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al cambiar el estado del contenido.',
-        'error_details' => $e->getMessage()
-      ]);
+
+      $mensaje = $resultado['datos']['estado'] === 'activo'
+        ? 'El contenido se activó correctamente.'
+        : 'El contenido se desactivó correctamente.';
+
+      $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del contenido.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function listarSelect()
+  private function obtenerEntradaJson(): array
   {
-    try {
-      $pdo = Conexion::obtener();
-      $contenidos = Contenidos::consultarParaSelect($pdo);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $contenidos,
-        'message' => 'Contenidos para select obtenidos exitosamente.'
-      ]);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los contenidos para select.',
-        'error_details' => $e->getMessage()
-      ]);
+    $cuerpo = file_get_contents('php://input');
+    if ($cuerpo === false || $cuerpo === '') {
+      return [];
     }
+
+    $datos = json_decode($cuerpo, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+      throw new Exception('El cuerpo de la solicitud contiene JSON inválido: ' . json_last_error_msg());
+    }
+
+    return is_array($datos) ? $datos : [];
+  }
+
+  private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
+  {
+    http_response_code($codigoHttp);
+    header('Content-Type: application/json; charset=utf-8');
+
+    $respuesta = [
+      'estado' => $estado,
+      'exito' => $estado === 'exito',
+      'mensaje' => $mensaje,
+    ];
+
+    if ($datos !== null) {
+      $respuesta['datos'] = $datos;
+    }
+
+    if ($errores !== null) {
+      $respuesta['errores'] = $errores;
+    }
+
+    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
   }
 }

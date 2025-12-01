@@ -1,15 +1,8 @@
-import React from "react";
-
-const formStyles = {
-  label: "block text-gray-700 text-sm font-bold mb-2",
-  input:
-    "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-  buttonContainer: "flex items-center justify-end",
-  cancelButton:
-    "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2",
-  submitButton:
-    "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg",
-};
+import React, { useMemo } from "react";
+import {
+  temaFormClasses,
+  contenidosFormClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const TemaFormModal = ({
   isOpen,
@@ -18,45 +11,85 @@ export const TemaFormModal = ({
   currentTema,
   formData,
   onChange,
-  modo,
+  contenido,
 }) => {
-  if (!isOpen) return null;
+  const titulo = currentTema ? "Editar tema" : "Agregar tema";
 
-  const titulo = currentTema ? "Editar Tema" : "Crear Tema";
+  const contenidoSeleccionado = useMemo(() => {
+    if (!contenido) {
+      return "Sin contenido seleccionado";
+    }
+
+    const nombre =
+      contenido.nombre_contenido ?? contenido.nombre ?? "Contenido";
+    return `${nombre} · ID ${contenido.id_contenido}`;
+  }, [contenido]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const manejarSubmit = (evento) => {
+    if (!contenido || !contenido.id_contenido) {
+      evento.preventDefault();
+      return;
+    }
+
+    onSubmit(evento);
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6">{titulo}</h2>
-        <form onSubmit={onSubmit}>
-          <div className="mb-6">
-            <label className={formStyles.label} htmlFor="nombre_tema">
-              Nombre del Tema *
+    <div className={temaFormClasses.overlay}>
+      <div className={temaFormClasses.content}>
+        <h2 className={temaFormClasses.title}>{titulo}</h2>
+        <form onSubmit={manejarSubmit}>
+          <div className={temaFormClasses.group}>
+            <label className={temaFormClasses.label}>Contenido asociado</label>
+            <input
+              type="text"
+              value={contenidoSeleccionado}
+              className={temaFormClasses.input}
+              readOnly
+              disabled
+            />
+            <p className={temaFormClasses.helper}>
+              El tema se vincula automáticamente al contenido seleccionado.
+            </p>
+          </div>
+
+          <div className={temaFormClasses.group}>
+            <label className={temaFormClasses.label} htmlFor="nombre_tema">
+              Nombre del tema
             </label>
             <input
+              id="nombre_tema"
               type="text"
               name="nombre_tema"
               value={formData.nombre_tema}
               onChange={onChange}
-              className={formStyles.input}
+              className={temaFormClasses.input}
               autoComplete="off"
+              placeholder="Ej. Introducción a los ecosistemas"
               required
-              placeholder="Ingrese el nombre del tema"
             />
-            <p className="text-gray-500 text-xs mt-1">
-              Solo letras, números y espacios
+            <p className={contenidosFormClasses.helper}>
+              Mínimo 3 caracteres. Se permiten letras, números y espacios.
             </p>
           </div>
 
-          <div className={formStyles.buttonContainer}>
+          <div className={temaFormClasses.actions}>
             <button
               type="button"
               onClick={onClose}
-              className={formStyles.cancelButton}
+              className={temaFormClasses.secondaryButton}
             >
               Cancelar
             </button>
-            <button type="submit" className={formStyles.submitButton}>
+            <button
+              type="submit"
+              className={temaFormClasses.primaryButton}
+              disabled={!contenido || !contenido.id_contenido}
+            >
               {currentTema ? "Actualizar" : "Guardar"}
             </button>
           </div>

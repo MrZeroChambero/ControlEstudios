@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import {
   FaEdit,
@@ -8,6 +8,11 @@ import {
   FaEye,
   FaList,
 } from "react-icons/fa";
+import {
+  contenidosTableClasses,
+  contenidosStatusClasses,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const ContenidosTable = ({
   contenidos,
@@ -17,167 +22,199 @@ export const ContenidosTable = ({
   cambioEstados,
   onView,
   onViewTemas,
+  formatearGrado,
 }) => {
-  const [filterText, setFilterText] = useState("");
+  const [filtro, setFiltro] = useState("");
 
-  const filteredItems = contenidos.filter(
-    (item) =>
-      item.nombre.toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.nombre_area &&
-        item.nombre_area.toLowerCase().includes(filterText.toLowerCase())) ||
-      item.grado.toLowerCase().includes(filterText.toLowerCase())
-  );
+  const registrosFiltrados = useMemo(() => {
+    const termino = filtro.trim().toLowerCase();
+    if (termino === "") {
+      return contenidos;
+    }
 
-  const columns = [
+    return contenidos.filter((item) => {
+      const nombre = item.nombre_contenido?.toLowerCase() ?? "";
+      const componente = item.nombre_componente?.toLowerCase() ?? "";
+      const area = item.nombre_area?.toLowerCase() ?? "";
+      const grado = item.grado?.toLowerCase() ?? "";
+
+      return (
+        nombre.includes(termino) ||
+        componente.includes(termino) ||
+        area.includes(termino) ||
+        grado.includes(termino)
+      );
+    });
+  }, [contenidos, filtro]);
+
+  const columnas = [
     {
-      name: "ID",
-      selector: (row) => row.id_contenido,
+      name: "Contenido",
+      selector: (row) => row.nombre_contenido,
       sortable: true,
-      width: "80px",
+      grow: 2,
+      wrap: true,
     },
     {
-      name: "Nombre",
-      selector: (row) => row.nombre,
+      name: "Componente",
+      selector: (row) => row.nombre_componente,
       sortable: true,
       wrap: true,
     },
     {
-      name: "Área de Aprendizaje",
-      selector: (row) => row.nombre_area,
+      name: "Área",
+      selector: (row) => row.nombre_area ?? "—",
       sortable: true,
       wrap: true,
     },
     {
       name: "Grado",
-      selector: (row) => row.grado,
+      selector: (row) => formatearGrado(row.grado),
       sortable: true,
       width: "120px",
+      center: true,
+      cell: (row) => (
+        <span className={contenidosStatusClasses.gradoTag}>
+          {formatearGrado(row.grado)}
+        </span>
+      ),
     },
     {
       name: "Estado",
+      selector: (row) => row.estado,
+      sortable: true,
+      width: "120px",
+      center: true,
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
+          className={`${contenidosStatusClasses.base} ${
             row.estado === "activo"
-              ? "bg-green-200 text-green-800"
-              : "bg-red-200 text-red-800"
+              ? contenidosStatusClasses.active
+              : contenidosStatusClasses.inactive
           }`}
         >
           {row.estado}
         </span>
       ),
-      sortable: true,
-      selector: (row) => row.estado,
-      width: "100px",
     },
     {
       name: "Acciones",
+      width: "220px",
       cell: (row) => (
-        <div className="flex space-x-2 justify-center">
+        <div className={contenidosTableClasses.actionGroup}>
           <button
+            type="button"
             onClick={() => onViewTemas(row)}
-            className="text-purple-500 hover:text-purple-700 text-lg"
-            title="Gestionar Temas"
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.temasButton}`}
+            title="Gestionar temas"
           >
-            <FaList />
+            <FaList className={contenidosIconClasses.base} />
           </button>
           <button
+            type="button"
             onClick={() => onView(row)}
-            className="text-blue-500 hover:text-blue-700 text-lg"
-            title="Ver"
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.viewButton}`}
+            title="Ver contenido"
           >
-            <FaEye />
+            <FaEye className={contenidosIconClasses.base} />
           </button>
           <button
-            onClick={() => cambioEstados(row)}
-            className={`text-2xl ${
+            type="button"
+            onClick={() => cambioEstados({ ...row })}
+            className={`${contenidosTableClasses.actionButton} ${
               row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? contenidosTableClasses.toggleOn
+                : contenidosTableClasses.toggleOff
             }`}
             title={row.estado === "activo" ? "Desactivar" : "Activar"}
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
+            type="button"
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700 text-lg"
-            title="Editar"
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.editButton}`}
+            title="Editar contenido"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
+            type="button"
             onClick={() => onDelete(row.id_contenido)}
-            className="text-red-500 hover:text-red-700 text-lg"
-            title="Eliminar"
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.deleteButton}`}
+            title="Eliminar contenido"
           >
-            <FaTrash />
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
-      width: "200px",
     },
   ];
 
-  const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre, área o grado..."
-      className="w-1/4 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+  const barraBusqueda = (
+    <div className={contenidosTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por contenido, componente o área"
+        className={contenidosTableClasses.filterInput}
+        value={filtro}
+        onChange={(evento) => setFiltro(evento.target.value)}
+      />
+    </div>
   );
 
-  const customStyles = {
-    table: {
+  const estilosPersonalizados = {
+    headRow: {
       style: {
-        width: "100%",
-        tableLayout: "auto",
+        backgroundColor: "#f8fafc",
+        fontSize: "13px",
+        fontWeight: 600,
+        textTransform: "uppercase",
       },
     },
     headCells: {
       style: {
-        whiteSpace: "normal",
-        fontWeight: "bold",
-        fontSize: "14px",
-        backgroundColor: "#f8fafc",
+        paddingLeft: "16px",
+        paddingRight: "16px",
       },
     },
     cells: {
       style: {
-        whiteSpace: "normal",
-        wordBreak: "break-word",
+        paddingLeft: "16px",
+        paddingRight: "16px",
       },
     },
   };
 
   return (
-    <div className="overflow-x-auto">
-      <DataTable
-        columns={columns}
-        customStyles={customStyles}
-        data={filteredItems}
-        progressPending={isLoading}
-        progressComponent={
-          <p className="text-center text-gray-500">Cargando contenidos...</p>
-        }
-        noDataComponent={
-          <p className="text-center text-gray-500">
-            No hay contenidos para mostrar.
-          </p>
-        }
-        pagination
-        paginationComponentOptions={{
-          rowsPerPageText: "Filas por página:",
-          rangeSeparatorText: "de",
-        }}
-        subHeader
-        subHeaderComponent={subHeaderComponent}
-        striped
-        highlightOnHover
-        responsive
-      />
-    </div>
+    <DataTable
+      columns={columnas}
+      data={registrosFiltrados}
+      progressPending={isLoading}
+      progressComponent={
+        <p className={contenidosTableClasses.helperText}>
+          Cargando contenidos...
+        </p>
+      }
+      noDataComponent={
+        <p className={contenidosTableClasses.helperText}>
+          No hay contenidos registrados.
+        </p>
+      }
+      customStyles={estilosPersonalizados}
+      pagination
+      paginationPerPage={10}
+      paginationRowsPerPageOptions={[5, 10, 15, 20]}
+      subHeader
+      subHeaderComponent={barraBusqueda}
+      highlightOnHover
+      striped
+      responsive
+      persistTableHead
+    />
   );
 };

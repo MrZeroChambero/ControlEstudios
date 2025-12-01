@@ -7,6 +7,11 @@ import {
   FaToggleOff,
   FaEye,
 } from "react-icons/fa";
+import {
+  areasTableClasses,
+  areasBadgeClasses,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const AreasAprendizajeTable = ({
   areas,
@@ -18,16 +23,19 @@ export const AreasAprendizajeTable = ({
 }) => {
   const [filterText, setFilterText] = useState("");
 
-  const filteredItems = areas.filter(
-    (item) =>
-      item.nombre_area.toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.nombre_componente &&
-        item.nombre_componente
-          .toLowerCase()
-          .includes(filterText.toLowerCase())) ||
-      (item.nombre_funcion &&
-        item.nombre_funcion.toLowerCase().includes(filterText.toLowerCase()))
-  );
+  const filterValue = filterText.toLowerCase();
+  const obtenerNombresComponentes = (item) =>
+    (item.componentes ?? [])
+      .map((componente) => componente.nombre_componente)
+      .join(", ");
+
+  const filteredItems = areas.filter((item) => {
+    const nombresComponentes = obtenerNombresComponentes(item);
+    return (
+      item.nombre_area.toLowerCase().includes(filterValue) ||
+      nombresComponentes.toLowerCase().includes(filterValue)
+    );
+  });
 
   const columns = [
     {
@@ -41,67 +49,70 @@ export const AreasAprendizajeTable = ({
       sortable: true,
     },
     {
-      name: "Componente",
-      selector: (row) => row.nombre_componente,
-      sortable: true,
-    },
-    {
-      name: "Función",
-      selector: (row) => row.nombre_funcion,
-      sortable: true,
+      name: "Componentes asociados",
+      selector: (row) =>
+        (row.componentes ?? [])
+          .map((componente) => componente.nombre_componente)
+          .join(", ") || "Sin componentes",
+      sortable: false,
+      wrap: true,
     },
     {
       name: "Estado",
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.estado === "activo"
-              ? "bg-green-200 text-green-800"
-              : "bg-red-200 text-red-800"
+          className={`${areasBadgeClasses.base} ${
+            row.estado_area === "activo"
+              ? areasBadgeClasses.active
+              : areasBadgeClasses.inactive
           }`}
         >
-          {row.estado}
+          {row.estado_area}
         </span>
       ),
       sortable: true,
-      selector: (row) => row.estado,
+      selector: (row) => row.estado_area,
       width: "100px",
     },
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="text-center">
+        <div className={areasTableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className="text-blue-500 hover:text-blue-700 mr-2"
+            className={`${areasTableClasses.actionButton} ${areasTableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye />
+            <FaEye className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => cambioEstados(row)}
-            className={`text-2xl mr-2 ${
-              row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+            className={`${areasTableClasses.actionButton} ${
+              row.estado_area === "activo"
+                ? areasTableClasses.toggleOn
+                : areasTableClasses.toggleOff
             }`}
-            title={row.estado === "activo" ? "Desactivar" : "Activar"}
+            title={row.estado_area === "activo" ? "Desactivar" : "Activar"}
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado_area === "activo" ? (
+              <FaToggleOn className="h-5 w-5" />
+            ) : (
+              <FaToggleOff className="h-5 w-5" />
+            )}
           </button>
           <button
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700 mr-2"
+            className={`${areasTableClasses.actionButton} ${areasTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_area_aprendizaje)}
-            className="text-red-500 hover:text-red-700"
+            className={`${areasTableClasses.actionButton} ${areasTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash />
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
@@ -109,13 +120,15 @@ export const AreasAprendizajeTable = ({
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre, componente o función..."
-      className="w-1/4 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={areasTableClasses.filterWrapper}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o componente..."
+        className={areasTableClasses.filterInput}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
   const customStyles = {
@@ -138,19 +151,19 @@ export const AreasAprendizajeTable = ({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className={areasTableClasses.wrapper}>
       <DataTable
         columns={columns}
         customStyles={customStyles}
         data={filteredItems}
         progressPending={isLoading}
         progressComponent={
-          <p className="text-center text-gray-500">
+          <p className={areasTableClasses.helperText}>
             Cargando áreas de aprendizaje...
           </p>
         }
         noDataComponent={
-          <p className="text-center text-gray-500">
+          <p className={areasTableClasses.helperText}>
             No hay áreas de aprendizaje para mostrar.
           </p>
         }

@@ -11,7 +11,7 @@ function registrarRutasTemas(AltoRouter $router)
   });
 
   $router->map('GET', '/temas/listar-select[/]?', function () use ($controlador) {
-    $id_contenido = $_GET['id_contenido'] ?? null;
+    $id_contenido = isset($_GET['id_contenido']) ? (int)$_GET['id_contenido'] : null;
     $controlador->listarSelect($id_contenido);
   });
 

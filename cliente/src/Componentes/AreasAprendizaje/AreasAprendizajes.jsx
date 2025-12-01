@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
 import { FaPlus } from "react-icons/fa";
 import { AreasAprendizajeTable } from "./AreasAprendizajeTable";
 import { AreasAprendizajeModal } from "./AreasAprendizajeModal";
 import { solicitudAreasAprendizaje } from "./Solicitudes/solicitudAreasAprendizaje";
 import { eliminarAreasAprendizaje } from "./Solicitudes/eliminarAreasAprendizaje";
 import { EnviarAreasAprendizaje } from "./Solicitudes/EnviarAreasAprendizaje";
+import { areasLayout } from "../EstilosCliente/EstilosClientes";
 
 export const AreasAprendizajes = () => {
   const [areas, setAreas] = useState([]);
@@ -17,89 +17,18 @@ export const AreasAprendizajes = () => {
   const [modoModal, setModoModal] = useState("crear"); // 'crear', 'editar', 'ver'
   const [formData, setFormData] = useState({
     nombre_area: "",
-    fk_componente: "",
-    fk_funcion: "",
   });
-  const [componentes, setComponentes] = useState([]);
-  const [funciones, setFunciones] = useState([]);
   const API_URL =
     "http://localhost:8080/controlestudios/servidor/areas_aprendizaje";
 
-  // Cargar áreas, componentes y funciones al montar el componente
+  // Cargar áreas al montar el componente
   useEffect(() => {
     solicitudAreasAprendizaje({ setIsLoading, setAreas });
-    solicitudComponentes();
-    solicitudFunciones();
   }, []);
 
-  const solicitudComponentes = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/controlestudios/servidor/componentes_aprendizaje/listar-select",
-        { withCredentials: true }
-      );
-
-      if (response.data && response.data.back === true) {
-        setComponentes(response.data.data);
-      } else {
-        console.error("Backend no respondió para componentes:", response.data);
-        Swal.fire("Error", "No se pudieron cargar los componentes.", "error");
-      }
-    } catch (error) {
-      console.error("Error al obtener componentes:", error);
-      const errorData = error.response?.data;
-      if (errorData && errorData.back === false) {
-        console.error(
-          "Error del backend:",
-          errorData.message,
-          errorData.error_details
-        );
-        Swal.fire(
-          "Error",
-          errorData.message || "No se pudieron cargar los componentes.",
-          "error"
-        );
-      } else {
-        Swal.fire("Error", "No se pudieron cargar los componentes.", "error");
-      }
-    }
-  };
-
-  const solicitudFunciones = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/controlestudios/servidor/funcion_personal/listar-select",
-        { withCredentials: true }
-      );
-
-      if (response.data && response.data.back === true) {
-        setFunciones(response.data.data);
-      } else {
-        console.error("Backend no respondió para funciones:", response.data);
-        Swal.fire("Error", "No se pudieron cargar las funciones.", "error");
-      }
-    } catch (error) {
-      console.error("Error al obtener funciones:", error);
-      const errorData = error.response?.data;
-      if (errorData && errorData.back === false) {
-        console.error(
-          "Error del backend:",
-          errorData.message,
-          errorData.error_details
-        );
-        Swal.fire(
-          "Error",
-          errorData.message || "No se pudieron cargar las funciones.",
-          "error"
-        );
-      } else {
-        Swal.fire("Error", "No se pudieron cargar las funciones.", "error");
-      }
-    }
-  };
-
   const cambioEstados = async (area) => {
-    const nuevoEstado = area.estado === "activo" ? "inactivo" : "activo";
+    const estadoActual = area.estado_area === "activo" ? "activo" : "inactivo";
+    const nuevoEstado = estadoActual === "activo" ? "inactivo" : "activo";
     const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
 
     try {
@@ -109,25 +38,27 @@ export const AreasAprendizajes = () => {
         { withCredentials: true }
       );
 
-      if (response.data && response.data.back === true) {
-        Swal.fire("¡Éxito!", `Área ${accion}da correctamente.`, "success");
+      if (response.data && response.data.exito === true) {
+        Swal.fire("¡Éxito!", response.data.mensaje, "success");
         solicitudAreasAprendizaje({ setIsLoading, setAreas });
       } else {
-        throw new Error("El backend no respondió correctamente");
+        throw new Error(
+          response.data?.mensaje || "El backend no respondió correctamente"
+        );
       }
     } catch (error) {
       console.error(`Error al ${accion} el área:`, error);
       const errorData = error.response?.data;
 
-      if (errorData && errorData.back === false) {
+      if (errorData && errorData.exito === false) {
         console.error(
           "Error del backend:",
-          errorData.message,
-          errorData.error_details
+          errorData.mensaje,
+          errorData.errores
         );
         Swal.fire(
           "Error",
-          errorData.message || `No se pudo ${accion} el área.`,
+          errorData.mensaje || `No se pudo ${accion} el área.`,
           "error"
         );
       } else {
@@ -142,14 +73,10 @@ export const AreasAprendizajes = () => {
     if (area) {
       setFormData({
         nombre_area: area.nombre_area,
-        fk_componente: area.fk_componente,
-        fk_funcion: area.fk_funcion,
       });
     } else {
       setFormData({
         nombre_area: "",
-        fk_componente: "",
-        fk_funcion: "",
       });
     }
     setIsModalOpen(true);
@@ -176,19 +103,15 @@ export const AreasAprendizajes = () => {
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">
-            Gestión de Áreas de Aprendizaje
-          </h2>
-          <button
-            onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
-          >
-            <FaPlus className="mr-2" /> Agregar Área
+      <div className={areasLayout.container}>
+        <div className={areasLayout.header}>
+          <h2 className={areasLayout.title}>Gestión de Áreas de Aprendizaje</h2>
+          <button onClick={() => openModal()} className={areasLayout.addButton}>
+            <FaPlus className="h-4 w-4" />
+            <span>Agregar Área</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className={areasLayout.description}>
           Aquí puedes crear, ver, actualizar y eliminar las áreas de aprendizaje
           del sistema.
         </p>
@@ -232,8 +155,6 @@ export const AreasAprendizajes = () => {
         }
         currentArea={currentArea}
         formData={formData}
-        componentes={componentes}
-        funciones={funciones}
         datosFormulario={datosFormulario}
         modo={modoModal}
       />

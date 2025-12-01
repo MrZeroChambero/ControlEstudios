@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
-import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
+import { FaPlus } from "react-icons/fa";
 import CrearEstudiante from "./CrearEstudiante";
 import EstudianteTabla from "./EstudianteTabla";
+import { estudiantesLayout } from "../EstilosCliente/EstilosClientes";
 
 /**
  * Menú principal para estudiantes — sigue la estructura de Personas.jsx
@@ -101,23 +101,23 @@ export const Estudiantes = () => {
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Gestión de Estudiantes</h2>
+      <div className={estudiantesLayout.container}>
+        <div className={estudiantesLayout.header}>
+          <h2 className={estudiantesLayout.title}>Gestión de Estudiantes</h2>
           <button
             onClick={abrirModalCrear}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            className={estudiantesLayout.addButton}
           >
-            <FaPlus className="mr-2" /> Agregar Estudiante
+            <FaPlus className="h-4 w-4" />
+            <span>Agregar Estudiante</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className={estudiantesLayout.description}>
           Administra los registros de estudiantes en el sistema.
         </p>
 
         <EstudianteTabla
           estudiantes={estudiantes}
-          info={estudiantes.length}
           isCargando={isCargando}
           onEditar={handleEditar}
           onEliminar={handleEliminar}

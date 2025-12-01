@@ -7,6 +7,12 @@ import {
   FaToggleOff,
   FaEye,
 } from "react-icons/fa";
+import {
+  personalTableClasses,
+  personalBadgeClasses,
+  estadoGenericoClases,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const PersonalTable = ({
   personal,
@@ -28,6 +34,31 @@ export const PersonalTable = ({
       (item.nombre_funcion &&
         item.nombre_funcion.toLowerCase().includes(filterText.toLowerCase()))
   );
+
+  const resolveEstadoBadge = (estado, fallback = "") => {
+    const normalized = (estado || fallback || "").toString().toLowerCase();
+    const base = estadoGenericoClases.base;
+    if (normalized === "activo") {
+      return `${base} ${estadoGenericoClases.active}`;
+    }
+    if (normalized === "incompleto") {
+      return `${base} ${personalBadgeClasses.incompleto}`;
+    }
+    if (normalized === "licencia") {
+      return `${base} ${personalBadgeClasses.licencia}`;
+    }
+    return `${base} ${estadoGenericoClases.inactive}`;
+  };
+
+  const resolveTipoPill = (tipo) => {
+    const normalized = (tipo || "").toString().toLowerCase();
+    const { typePill } = personalTableClasses;
+    if (normalized === "administrativo") return typePill.administrativo;
+    if (normalized === "docente") return typePill.docente;
+    if (normalized === "obrero") return typePill.obrero;
+    if (normalized === "especialista") return typePill.especialista;
+    return typePill.default;
+  };
 
   const columns = [
     {
@@ -66,16 +97,8 @@ export const PersonalTable = ({
     {
       name: "Tipo",
       cell: (row) => (
-        <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.tipo_cargo === "Administrativo"
-              ? "bg-purple-200 text-purple-800"
-              : row.tipo_cargo === "Docente"
-              ? "bg-blue-200 text-blue-800"
-              : "bg-green-200 text-green-800"
-          }`}
-        >
-          {row.tipo_cargo}
+        <span className={resolveTipoPill(row.tipo_cargo)}>
+          {row.tipo_cargo || "—"}
         </span>
       ),
       sortable: true,
@@ -85,15 +108,9 @@ export const PersonalTable = ({
       name: "Estado Persona",
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.estado === "activo"
-              ? "bg-green-200 text-green-800"
-              : row.estado === "incompleto"
-              ? "bg-yellow-200 text-yellow-800"
-              : "bg-red-200 text-red-800"
-          }`}
+          className={resolveEstadoBadge(row.estado, row.estado_persona_nombre)}
         >
-          {row.estado_persona_nombre || row.estado}
+          {row.estado_persona_nombre || row.estado || "—"}
         </span>
       ),
       sortable: true,
@@ -103,15 +120,12 @@ export const PersonalTable = ({
       name: "Estado Personal",
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.estado_personal === "activo"
-              ? "bg-green-200 text-green-800"
-              : row.estado_personal === "incompleto"
-              ? "bg-yellow-200 text-yellow-800"
-              : "bg-red-200 text-red-800"
-          }`}
+          className={resolveEstadoBadge(
+            row.estado_personal,
+            row.estado_personal_nombre
+          )}
         >
-          {row.estado_personal_nombre || row.estado_personal}
+          {row.estado_personal_nombre || row.estado_personal || "—"}
         </span>
       ),
       sortable: true,
@@ -120,20 +134,20 @@ export const PersonalTable = ({
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="flex space-x-2 justify-center">
+        <div className={personalTableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className="text-blue-500 hover:text-blue-700 text-lg"
+            className={`${personalTableClasses.actionButton} ${personalTableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye />
+            <FaEye className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => cambioEstados(row)}
-            className={`text-2xl ${
+            className={`${personalTableClasses.actionButton} ${
               row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? personalTableClasses.toggleOn
+                : personalTableClasses.toggleOff
             }`}
             title={
               row.estado === "activo"
@@ -141,21 +155,25 @@ export const PersonalTable = ({
                 : "Activar (persona)"
             }
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700 text-lg"
+            className={`${personalTableClasses.actionButton} ${personalTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_personal)}
-            className="text-red-500 hover:text-red-700 text-lg"
+            className={`${personalTableClasses.actionButton} ${personalTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash />
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
@@ -164,26 +182,50 @@ export const PersonalTable = ({
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre, cédula, cargo o función..."
-      className="w-1/4 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={personalTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, cédula, cargo o función..."
+        className={personalTableClasses.filterInput}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
+  const customStyles = {
+    table: {
+      style: {
+        width: "100%",
+        tableLayout: "auto",
+      },
+    },
+    headCells: {
+      style: {
+        whiteSpace: "normal",
+      },
+    },
+    cells: {
+      style: {
+        whiteSpace: "normal",
+      },
+    },
+  };
+
   return (
-    <div className="overflow-x-auto">
+    <div className={personalTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filteredItems}
+        customStyles={customStyles}
         progressPending={isLoading}
         progressComponent={
-          <p className="text-center text-gray-500">Cargando personal...</p>
+          <p className={personalTableClasses.helperText}>
+            Cargando personal...
+          </p>
         }
         noDataComponent={
-          <p className="text-center text-gray-500">
+          <p className={personalTableClasses.helperText}>
             No hay personal para mostrar.
           </p>
         }

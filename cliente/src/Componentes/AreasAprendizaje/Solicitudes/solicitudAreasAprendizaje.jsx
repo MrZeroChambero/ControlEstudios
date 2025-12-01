@@ -16,31 +16,28 @@ export const solicitudAreasAprendizaje = async ({ setIsLoading, setAreas }) => {
     );
 
     // Verificar si el backend respondió
-    if (response.data.back === undefined || !response.data.back) {
+    if (!response.data || response.data.exito !== true) {
       console.error("El backend no respondió correctamente:", response.data);
       Swal.fire(
         "Error",
-        "No se pudieron cargar las áreas de aprendizaje.",
+        response.data?.mensaje ||
+          "No se pudieron cargar las áreas de aprendizaje.",
         "error"
       );
       setAreas([]);
       return;
     }
 
-    setAreas(response.data.data);
+    setAreas(response.data.datos ?? []);
   } catch (error) {
     console.error("Error al obtener áreas de aprendizaje:", error);
     const errorData = error.response?.data;
 
-    if (errorData && errorData.back === false) {
-      console.error(
-        "Error del backend:",
-        errorData.message,
-        errorData.error_details
-      );
+    if (errorData && errorData.exito === false) {
+      console.error("Error del backend:", errorData.mensaje, errorData.errores);
       Swal.fire(
         "Error",
-        errorData.message || "No se pudieron cargar las áreas de aprendizaje.",
+        errorData.mensaje || "No se pudieron cargar las áreas de aprendizaje.",
         "error"
       );
     } else {

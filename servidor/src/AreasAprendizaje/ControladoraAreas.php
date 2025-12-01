@@ -3,370 +3,158 @@
 namespace Micodigo\AreasAprendizaje;
 
 use Micodigo\Config\Conexion;
-use Valitron\Validator;
 use Exception;
-
-use PDO;
+use PDOException;
 
 class ControladoraAreas
 {
-  public function __construct()
-  {
-    Validator::lang('es');
-  }
-
-  private function limpiarTexto($texto)
-  {
-    // Eliminar espacios al inicio y final
-    $texto = trim($texto);
-    // Reemplazar múltiples espacios por uno solo
-    $texto = preg_replace('/\s+/', ' ', $texto);
-    return $texto;
-  }
-
-  private function addUniqueRule(Validator $v, string $field, string $table, string $column, ?int $ignoreId = null)
-  {
-    $v->addRule('unique', function ($field, $value, array $params) use ($table, $column, $ignoreId) {
-      $pdo = Conexion::obtener();
-      $sql = "SELECT COUNT(*) FROM {$table} WHERE {$column} = ?";
-      $bindings = [$value];
-
-      if ($ignoreId !== null) {
-        $sql .= " AND id_area_aprendizaje != ?";
-        $bindings[] = $ignoreId;
-      }
-
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute($bindings);
-      return $stmt->fetchColumn() == 0;
-    }, 'ya está en uso.');
-  }
-
-  private function validarExistenciaForanea($tabla, $campoId, $valor)
+  public function listar(): void
   {
     try {
-      $pdo = Conexion::obtener();
-      $sql = "SELECT COUNT(*) FROM {$tabla} WHERE {$campoId} = ?";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([$valor]);
-      return $stmt->fetchColumn() > 0;
-    } catch (Exception $e) {
-      return false;
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje();
+      $areas = $modelo->consultarAreasCompletas($conexion);
+      $this->enviarRespuestaJson(200, 'exito', 'Áreas de aprendizaje consultadas correctamente.', $areas);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al listar las áreas.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function listar()
+  public function listarSelect(): void
   {
     try {
-      $pdo = Conexion::obtener();
-      $areas = AreasAprendizaje::consultarTodos($pdo);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $areas,
-        'message' => 'Áreas de aprendizaje obtenidas exitosamente.'
-      ]);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener las áreas de aprendizaje.',
-        'error_details' => $e->getMessage()
-      ]);
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje();
+      $areas = $modelo->consultarParaSelect($conexion);
+      $this->enviarRespuestaJson(200, 'exito', 'Áreas disponibles para selección obtenidas.', $areas);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al obtener las áreas para la lista.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-
-  public function crear()
+  public function crear(): void
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
+      $entrada = $this->obtenerEntradaJson();
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje($entrada);
+      $resultado = $modelo->crear($conexion, $entrada);
 
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+      if (isset($resultado['errores'])) {
+        $this->enviarRespuestaJson(422, 'error', 'La información enviada no es válida.', null, $resultado['errores']);
+        return;
       }
 
-      // Limpiar el texto del nombre del área
-      if (isset($data['nombre_area'])) {
-        $data['nombre_area'] = $this->limpiarTexto($data['nombre_area']);
+      $this->enviarRespuestaJson(201, 'exito', 'Área de aprendizaje creada correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al registrar el área.', null, ['detalle' => [$excepcion->getMessage()]]);
+    }
+  }
+
+  public function actualizar(int $idArea): void
+  {
+    try {
+      $entrada = $this->obtenerEntradaJson();
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje();
+      $resultado = $modelo->actualizar($conexion, $idArea, $entrada);
+
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['id_area_aprendizaje']) ? 404 : 422;
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el área.', null, $resultado['errores']);
+        return;
       }
 
-      $v = new Validator($data);
+      $this->enviarRespuestaJson(200, 'exito', 'Área de aprendizaje actualizada correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al actualizar el área.', null, ['detalle' => [$excepcion->getMessage()]]);
+    }
+  }
 
-      // Validaciones básicas
-      $v->rule('required', ['nombre_area', 'fk_componente', 'fk_funcion'])
-        ->message('{field} es requerido');
+  public function eliminar(int $idArea): void
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje();
+      $resultado = $modelo->eliminar($conexion, $idArea);
 
-      $v->rule('lengthMax', 'nombre_area', 100)
-        ->message('El nombre del área no debe exceder los 100 caracteres');
-
-      $v->rule('integer', ['fk_componente', 'fk_funcion'])
-        ->message('{field} debe ser un número entero');
-
-      $v->rule('min', 'fk_componente', 1)
-        ->message('El componente debe ser válido');
-
-      $v->rule('min', 'fk_funcion', 1)
-        ->message('La función debe ser válida');
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y puntos');
-
-      $v->rule('textoEspanol', 'nombre_area');
-
-      // Validar existencia de claves foráneas
-      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente']);
-      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion']);
-
-      if (!$nombreComponente) {
-        $v->error('fk_componente', 'El componente seleccionado no existe');
-      }
-
-      if (!$nombreFuncion) {
-        $v->error('fk_funcion', 'La función seleccionada no existe');
-      }
-
-      // Validar unicidad
-      $this->addUniqueRule($v, 'nombre_area', 'areas_aprendizaje', 'nombre_area');
-
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $area = new AreasAprendizaje(
-          $data['nombre_area'],
-          $data['fk_componente'],
-          $data['fk_funcion']
-        );
-
-        $id = $area->crear($pdo);
-
-        if ($id) {
-          http_response_code(201);
-          $area->id_area_aprendizaje = $id;
-          // Agregar nombres de las relaciones para la respuesta
-          $area->nombre_componente = $nombreComponente;
-          $area->nombre_funcion = $nombreFuncion;
-
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => true,
-            'data' => $area,
-            'message' => 'Área de aprendizaje creada exitosamente.'
-          ]);
-        } else {
-          throw new Exception('No se pudo crear el área de aprendizaje en la base de datos');
+      if (isset($resultado['errores'])) {
+        $codigo = 400;
+        if (isset($resultado['errores']['relaciones'])) {
+          $codigo = 409;
+        } elseif (isset($resultado['errores']['id_area_aprendizaje'])) {
+          $codigo = 404;
         }
-      } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible eliminar el área.', null, $resultado['errores']);
+        return;
       }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al crear el área de aprendizaje.',
-        'error_details' => $e->getMessage()
-      ]);
+
+      $this->enviarRespuestaJson(200, 'exito', 'Área de aprendizaje eliminada correctamente.', $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al eliminar el área.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function actualizar($id)
+  public function cambiarEstado(int $idArea): void
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
+      $entrada = $this->obtenerEntradaJson();
+      $estadoSolicitado = $entrada['estado_area'] ?? null;
 
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
+      $conexion = Conexion::obtener();
+      $modelo = new AreasAprendizaje();
+      $resultado = $modelo->cambiarEstado($conexion, $idArea, $estadoSolicitado);
+
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['id_area_aprendizaje']) ? 404 : 422;
+        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible cambiar el estado del área.', null, $resultado['errores']);
+        return;
       }
 
-      // Limpiar el texto del nombre del área
-      if (isset($data['nombre_area'])) {
-        $data['nombre_area'] = $this->limpiarTexto($data['nombre_area']);
-      }
+      $mensaje = $resultado['datos']['estado_area'] === 'activo'
+        ? 'El área se activó correctamente.'
+        : 'El área se desactivó correctamente.';
 
-      $v = new Validator($data);
-
-      // Validaciones básicas
-      $v->rule('required', ['nombre_area', 'fk_componente', 'fk_funcion'])
-        ->message('{field} es requerido');
-
-      $v->rule('lengthMax', 'nombre_area', 100)
-        ->message('El nombre del área no debe exceder los 100 caracteres');
-
-      $v->rule('integer', ['fk_componente', 'fk_funcion'])
-        ->message('{field} debe ser un número entero');
-
-      $v->rule('min', 'fk_componente', 1)
-        ->message('El componente debe ser válido');
-
-      $v->rule('min', 'fk_funcion', 1)
-        ->message('La función debe ser válida');
-
-      // Validación personalizada para texto en español
-      $v->addRule('textoEspanol', function ($field, $value) {
-        return preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\.]+$/', $value) && trim($value) !== '';
-      }, 'debe contener solo letras en español, espacios y puntos');
-
-      $v->rule('textoEspanol', 'nombre_area');
-
-      // Validar existencia de claves foráneas
-      $nombreComponente = $this->validarExistenciaForanea('componentes_aprendizaje', 'id_componente', $data['fk_componente']);
-      $nombreFuncion = $this->validarExistenciaForanea('funcion_personal', 'id_funcion_personal', $data['fk_funcion']);
-
-      if (!$nombreComponente) {
-        $v->error('fk_componente', 'El componente seleccionado no existe');
-      }
-
-      if (!$nombreFuncion) {
-        $v->error('fk_funcion', 'La función seleccionada no existe');
-      }
-
-      // Validar unicidad ignorando el registro actual
-      $this->addUniqueRule($v, 'nombre_area', 'areas_aprendizaje', 'nombre_area', $id);
-
-      if ($v->validate()) {
-        $pdo = Conexion::obtener();
-        $area = AreasAprendizaje::consultarActualizar($pdo, $id);
-
-        if ($area) {
-          $area->nombre_area = $data['nombre_area'];
-          $area->fk_componente = $data['fk_componente'];
-          $area->fk_funcion = $data['fk_funcion'];
-
-          if ($area->actualizar($pdo)) {
-            // Agregar nombres de las relaciones para la respuesta
-
-
-            header('Content-Type: application/json');
-            echo json_encode([
-              'back' => true,
-              'data' => $area,
-              'message' => 'Área de aprendizaje actualizada exitosamente.'
-            ]);
-          } else {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode([
-              'back' => false,
-              'message' => 'Error al actualizar el área de aprendizaje.',
-              'data' => $area ?: null,
-            ]);
-          }
-        } else {
-          http_response_code(404);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Área de aprendizaje no encontrada.'
-          ]);
-        }
-      } else {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $v->errors(),
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
-      }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al actualizar el área de aprendizaje. ssss',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
+    } catch (Exception | PDOException $excepcion) {
+      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del área.', null, ['detalle' => [$excepcion->getMessage()]]);
     }
   }
 
-  public function eliminar($id)
+  private function obtenerEntradaJson(): array
   {
-    try {
-      $pdo = Conexion::obtener();
-      if (AreasAprendizaje::eliminar($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Área de aprendizaje eliminada exitosamente.'
-        ]);
-      } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al eliminar el área de aprendizaje.'
-        ]);
-      }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al eliminar el área de aprendizaje.',
-        'error_details' => $e->getMessage()
-      ]);
+    $cuerpo = file_get_contents('php://input');
+    if ($cuerpo === false || $cuerpo === '') {
+      return [];
     }
+
+    $datos = json_decode($cuerpo, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+      throw new Exception('El cuerpo de la solicitud contiene JSON inválido: ' . json_last_error_msg());
+    }
+
+    return is_array($datos) ? $datos : [];
   }
 
-  public function cambiarEstado($id)
+  private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
   {
-    try {
-      $pdo = Conexion::obtener();
-      if (AreasAprendizaje::cambiarEstado($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Estado del área de aprendizaje cambiado exitosamente.'
-        ]);
-      } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al cambiar el estado del área de aprendizaje.'
-        ]);
-      }
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al cambiar el estado del área de aprendizaje.',
-        'error_details' => $e->getMessage()
-      ]);
-    }
-  }
+    http_response_code($codigoHttp);
+    header('Content-Type: application/json; charset=utf-8');
 
-  public function listarSelect()
-  {
-    try {
-      $pdo = Conexion::obtener();
-      $areas = AreasAprendizaje::consultarParaSelect($pdo);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $areas,
-        'message' => 'Áreas de aprendizaje para select obtenidas exitosamente.'
-      ]);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener las áreas de aprendizaje para select.',
-        'error_details' => $e->getMessage()
-      ]);
+    $respuesta = [
+      'estado' => $estado,
+      'exito' => $estado === 'exito',
+      'mensaje' => $mensaje
+    ];
+
+    if ($datos !== null) {
+      $respuesta['datos'] = $datos;
     }
+
+    if ($errores !== null) {
+      $respuesta['errores'] = $errores;
+    }
+
+    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
   }
 }

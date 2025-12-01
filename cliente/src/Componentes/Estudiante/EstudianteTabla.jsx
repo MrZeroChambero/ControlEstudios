@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import DataTable from "react-data-table-component";
-import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import {
+  FaEdit,
+  FaTrash,
+  FaToggleOn,
+  FaToggleOff,
+  FaEye,
+} from "react-icons/fa";
+import {
+  estudiantesTableClasses,
+  estadoGenericoClases,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 const EstudianteTabla = ({
   estudiantes = [],
   isCargando = false,
-  info = "no se muestra",
+  info = "No se encontraron estudiantes para mostrar",
   onEditar,
   cambioEstados,
   onEliminar,
@@ -13,22 +24,23 @@ const EstudianteTabla = ({
 }) => {
   const [filterText, setFilterText] = useState("");
 
-  const filteredItems = estudiantes.filter(
-    (item) =>
-      `${item.primer_nombre} ${item.segundo_nombre} ${item.primer_apellido} ${item.segundo_apellido}`
-        .toLowerCase()
-        .includes(filterText.toLowerCase())
+  const filteredItems = estudiantes.filter((item) =>
+    `${item.primer_nombre} ${item.segundo_nombre} ${item.primer_apellido} ${item.segundo_apellido}`
+      .toLowerCase()
+      .includes(filterText.toLowerCase())
   );
 
   const columns = [
     {
       name: "Nombre",
-      selector: (row) => `${row.primer_nombre || ""} ${row.segundo_nombre || ""}`.trim(),
+      selector: (row) =>
+        `${row.primer_nombre || ""} ${row.segundo_nombre || ""}`.trim(),
       sortable: true,
     },
     {
       name: "Apellidos",
-      selector: (row) => `${row.primer_apellido || ""} ${row.segundo_apellido || ""}`.trim(),
+      selector: (row) =>
+        `${row.primer_apellido || ""} ${row.segundo_apellido || ""}`.trim(),
       sortable: true,
     },
     {
@@ -41,43 +53,64 @@ const EstudianteTabla = ({
       name: "Estado",
       selector: (row) => row.estado || "activo",
       sortable: true,
-      width: "100px",
+      width: "140px",
+      cell: (row) => {
+        const estado = row.estado === "inactivo" ? "inactivo" : "activo";
+        const label = estado === "activo" ? "Activo" : "Inactivo";
+        const estadoClass =
+          estado === "activo"
+            ? estadoGenericoClases.active
+            : estadoGenericoClases.inactive;
+        return (
+          <span className={`${estadoGenericoClases.base} ${estadoClass}`}>
+            {label}
+          </span>
+        );
+      },
     },
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="text-center">
-           <button
+        <div className={estudiantesTableClasses.actionGroup}>
+          {onVer && (
+            <button
+              onClick={() => onVer(row)}
+              className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.viewButton}`}
+              title="Ver"
+            >
+              <FaEye className={contenidosIconClasses.base} />
+            </button>
+          )}
+          <button
             onClick={() => cambioEstados(row)}
-            className={`text-2xl mr-2 ${
+            className={`${estudiantesTableClasses.actionButton} ${
               row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? estudiantesTableClasses.toggleOn
+                : estudiantesTableClasses.toggleOff
             }`}
             title={row.estado === "activo" ? "Desactivar" : "Activar"}
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
             onClick={() => onEditar && onEditar(row)}
-            className="text-yellow-500 hover:text-yellow-700 mr-4"
+            className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
-            onClick={() => onEliminar && onEliminar(row)}
-            className="text-red-500 hover:text-red-700 mr-4"
+            onClick={() =>
+              onEliminar && onEliminar(row.id_estudiante || row.id)
+            }
+            className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash />
-          </button>
-          <button
-            onClick={() => onVer && onVer(row)}
-            className="text-blue-500 hover:text-blue-700"
-            title="Ver"
-          >
-            Ver
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
@@ -85,43 +118,51 @@ const EstudianteTabla = ({
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar..."
-      className="w-1/4 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={estudiantesTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o apellido"
+        className={estudiantesTableClasses.filterInput}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
   const customStyles = {
     table: {
       style: {
-        width: '100%',
-        tableLayout: 'auto',
+        width: "100%",
+        tableLayout: "auto",
       },
     },
     headCells: {
       style: {
-        whiteSpace: 'normal',
+        whiteSpace: "normal",
       },
     },
     cells: {
       style: {
-        whiteSpace: 'normal',
+        whiteSpace: "normal",
       },
     },
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className={estudiantesTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filteredItems}
         customStyles={customStyles}
         progressPending={isCargando}
-        progressComponent={<p className="text-center text-gray-500">Cargando estudiantes...</p>}
-        noDataComponent={<p className="text-center text-gray-500">{info}</p>}
+        progressComponent={
+          <p className={estudiantesTableClasses.helperText}>
+            Cargando estudiantes...
+          </p>
+        }
+        noDataComponent={
+          <p className={estudiantesTableClasses.helperText}>{info}</p>
+        }
         pagination
         paginationComponentOptions={{
           rowsPerPageText: "Filas por página:",
@@ -137,4 +178,3 @@ const EstudianteTabla = ({
 };
 
 export default EstudianteTabla;
-

@@ -1,18 +1,5 @@
 import React from "react";
-
-const estilos = {
-  label: "block text-gray-700 text-sm font-bold mb-2",
-  input:
-    "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-  error: "text-red-500 text-xs italic mt-1",
-  actions: "flex justify-between items-center mt-6",
-  backBtn:
-    "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg",
-  cancelBtn:
-    "bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg mr-3",
-  submitBtn:
-    "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg",
-};
+import { estudiantesFormClasses } from "../EstilosCliente/EstilosClientes";
 
 /**
  * EstudianteDatosForm
@@ -36,6 +23,8 @@ const EstudianteDatosForm = ({
   nombreCompleto = "",
   idPersona = "",
 }) => {
+  const classes = estudiantesFormClasses;
+
   return (
     <form
       onSubmit={(e) => {
@@ -44,112 +33,112 @@ const EstudianteDatosForm = ({
       }}
       noValidate
     >
-      <div className="mb-4">
-        <label className={estilos.label}>Nombre completo</label>
+      <div className={classes.group}>
+        <label className={classes.label}>Nombre completo</label>
         <input
           type="text"
           value={nombreCompleto}
           readOnly
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100"
+          className={classes.readOnly}
         />
         <input type="hidden" name="id_persona" value={idPersona} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={estilos.label}>Cédula escolar</label>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className={classes.group}>
+          <label className={classes.label}>Cédula escolar</label>
           <input
             name="cedula_escolar"
-            value={datos.cedula_escolar}
+            value={datos.cedula_escolar || ""}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.input}
           />
           {errors.cedula_escolar && (
-            <p className={estilos.error}>{errors.cedula_escolar}</p>
+            <p className={classes.error}>{errors.cedula_escolar}</p>
           )}
         </div>
 
-        <div>
-          <label className={estilos.label}>Fecha ingreso a la escuela</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Fecha ingreso a la escuela</label>
           <input
             type="date"
             name="fecha_ingreso_escuela"
-            value={datos.fecha_ingreso_escuela}
+            value={datos.fecha_ingreso_escuela || ""}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.input}
             required
           />
           {errors.fecha_ingreso_escuela && (
-            <p className={estilos.error}>{errors.fecha_ingreso_escuela}</p>
+            <p className={classes.error}>{errors.fecha_ingreso_escuela}</p>
           )}
         </div>
 
-        <div>
-          <label className={estilos.label}>Vive con padres</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Vive con padres</label>
           <select
             name="vive_con_padres"
             value={datos.vive_con_padres}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.select}
           >
             <option value="si">Sí</option>
             <option value="no">No</option>
           </select>
         </div>
 
-        <div>
-          <label className={estilos.label}>Orden de nacimiento</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Orden de nacimiento</label>
           <input
             name="orden_nacimiento"
-            value={datos.orden_nacimiento}
+            value={datos.orden_nacimiento || ""}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.input}
           />
         </div>
 
-        <div>
-          <label className={estilos.label}>Tiempo de gestación (semanas)</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Tiempo de gestación (semanas)</label>
           <input
             name="tiempo_gestacion"
-            value={datos.tiempo_gestacion}
+            value={datos.tiempo_gestacion || ""}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.input}
           />
         </div>
 
-        <div>
-          <label className={estilos.label}>Embarazo deseado</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Embarazo deseado</label>
           <select
             name="embarazo_deseado"
             value={datos.embarazo_deseado}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.select}
           >
             <option value="si">Sí</option>
             <option value="no">No</option>
           </select>
         </div>
 
-        <div>
-          <label className={estilos.label}>Tipo de parto</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Tipo de parto</label>
           <select
             name="tipo_parto"
             value={datos.tipo_parto}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.select}
           >
             <option value="normal">Normal</option>
             <option value="cesaria">Cesárea</option>
           </select>
         </div>
 
-        <div>
-          <label className={estilos.label}>Control esfínteres</label>
+        <div className={classes.group}>
+          <label className={classes.label}>Control esfínteres</label>
           <select
             name="control_esfinteres"
             value={datos.control_esfinteres}
             onChange={onChange}
-            className={estilos.input}
+            className={classes.select}
           >
             <option value="si">Sí</option>
             <option value="no">No</option>
@@ -157,19 +146,19 @@ const EstudianteDatosForm = ({
         </div>
       </div>
 
-      <div className={estilos.actions}>
-        <button type="button" onClick={onBack} className={estilos.backBtn}>
+      <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <button type="button" onClick={onBack} className={classes.backButton}>
           Volver a persona
         </button>
-        <div>
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className={estilos.cancelBtn}
+            className={classes.cancelButton}
           >
             Cancelar
           </button>
-          <button type="submit" className={estilos.submitBtn}>
+          <button type="submit" className={classes.primaryButton}>
             Crear estudiante
           </button>
         </div>

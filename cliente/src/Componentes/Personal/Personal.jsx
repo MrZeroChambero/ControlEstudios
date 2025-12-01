@@ -10,6 +10,7 @@ import {
   cambioEstadoPersonal,
   obtenerPersonalCompleto,
 } from "./personalService";
+import { personalLayout } from "../EstilosCliente/EstilosClientes";
 
 export const Personal = () => {
   const [personal, setPersonal] = useState([]);
@@ -107,17 +108,18 @@ export const Personal = () => {
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Gestión de Personal</h2>
+      <div className={personalLayout.container}>
+        <div className={personalLayout.header}>
+          <h2 className={personalLayout.title}>Gestión de Personal</h2>
           <button
             onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            className={personalLayout.addButton}
           >
-            <FaPlus className="mr-2" /> Agregar Personal
+            <FaPlus className="h-4 w-4" />
+            <span>Agregar Personal</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className={personalLayout.description}>
           Aquí puedes crear, ver, actualizar y eliminar el personal del sistema.
         </p>
 

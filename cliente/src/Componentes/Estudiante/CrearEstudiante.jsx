@@ -3,6 +3,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import EstudiantePersonaForm from "./EstudiantePersonaForm";
 import EstudianteDatosForm from "./EstudianteDatosForm";
+import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
 
 const API_BASE = "http://localhost:8080/controlestudios/servidor/estudiantes";
 const API_PERSONA = `${API_BASE}/persona`; // POST /estudiantes/persona
@@ -228,57 +229,63 @@ const CrearEstudiante = ({
 
   if (!isOpen) return null;
 
+  const modalTitle = estudianteActual
+    ? "Editar Estudiante"
+    : "Crear Estudiante";
+  const pasoDescripcion =
+    paso === 1
+      ? "Paso 1: Completa los datos personales para registrar al estudiante."
+      : "Paso 2: Añade la información académica y familiar del estudiante.";
+
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-3xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">
-            {estudianteActual ? "Editar Estudiante" : "Crear Estudiante"}
-          </h3>
+    <div
+      className={estudiantesModalClasses.overlay}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className={estudiantesModalClasses.content}>
+        <div className={estudiantesModalClasses.header}>
+          <h3 className={estudiantesModalClasses.title}>{modalTitle}</h3>
           <button
             onClick={() => {
               onClose();
               resetForm();
             }}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
+            className={estudiantesModalClasses.closeButton}
           >
             Cerrar
           </button>
         </div>
 
+        <p className={estudiantesModalClasses.subtitle}>{pasoDescripcion}</p>
+
         {paso === 1 && (
-          <>
-            <p className="mb-4 text-gray-600">Paso 1: Datos de la persona</p>
-            <EstudiantePersonaForm
-              formData={personaData}
-              onChange={manejarCambioPersona}
-              onSubmit={manejarEnvioPersona}
-              onCancel={() => {
-                onClose();
-                resetForm();
-              }}
-              errors={erroresPersona}
-            />
-          </>
+          <EstudiantePersonaForm
+            formData={personaData}
+            onChange={manejarCambioPersona}
+            onSubmit={manejarEnvioPersona}
+            onCancel={() => {
+              onClose();
+              resetForm();
+            }}
+            errors={erroresPersona}
+          />
         )}
 
         {paso === 2 && (
-          <>
-            <p className="mb-4 text-gray-600">Paso 2: Datos del estudiante</p>
-            <EstudianteDatosForm
-              datos={datosEstudiante}
-              onChange={manejarCambioEstudiante}
-              onSubmit={manejarEnvioEstudiante}
-              onBack={() => setPaso(1)}
-              onCancel={() => {
-                onClose();
-                resetForm();
-              }}
-              errors={erroresEstudiante}
-              nombreCompleto={nombreCompleto()}
-              idPersona={idPersona}
-            />
-          </>
+          <EstudianteDatosForm
+            datos={datosEstudiante}
+            onChange={manejarCambioEstudiante}
+            onSubmit={manejarEnvioEstudiante}
+            onBack={() => setPaso(1)}
+            onCancel={() => {
+              onClose();
+              resetForm();
+            }}
+            errors={erroresEstudiante}
+            nombreCompleto={nombreCompleto()}
+            idPersona={idPersona}
+          />
         )}
       </div>
     </div>

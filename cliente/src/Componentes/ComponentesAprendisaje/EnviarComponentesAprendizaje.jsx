@@ -1,82 +1,76 @@
-import Swal from "sweetalert2";
 import axios from "axios";
 
-export const enviarComponenteAprendizaje = async (
+const formatearErrores = (errores) => {
+  if (!errores) {
+    return "Ocurrió un error inesperado.";
+  }
+
+  return Object.values(errores)
+    .flat()
+    .map((mensaje) => `• ${mensaje}`)
+    .join("\n");
+};
+
+export const enviarComponenteAprendizaje = async ({
   formData,
   currentComponente,
   API_URL,
   refetchData,
-  closeModal
-) => {
+  closeModal,
+  Swal,
+}) => {
+  const payload = {
+    fk_area: formData.fk_area ? Number(formData.fk_area) : null,
+    nombre_componente: formData.nombre_componente.trim().replace(/\s+/g, " "),
+    especialista: formData.especialista.trim().replace(/\s+/g, " "),
+    evalua: formData.evalua,
+  };
+
   try {
-    let response;
-    if (currentComponente) {
-      // Actualizar
-      response = await axios.put(
-        `${API_URL}/${currentComponente.id_componente}`,
-        formData,
-        { withCredentials: true }
-      );
-    } else {
-      // Crear
-      response = await axios.post(API_URL, formData, { withCredentials: true });
-    }
+    const url = currentComponente
+      ? `${API_URL}/${currentComponente.id_componente}`
+      : API_URL;
+    const metodo = currentComponente ? axios.put : axios.post;
 
-    console.log(response.data);
+    const response = await metodo(url, payload, { withCredentials: true });
 
-    // Verificar si el backend respondió correctamente
-    if (response.data.back === true) {
-      Swal.fire("¡Guardado!", response.data.message, "success");
+    if (response.data?.exito) {
+      const mensaje =
+        response.data.mensaje ||
+        (currentComponente
+          ? "Componente actualizado correctamente."
+          : "Componente creado correctamente.");
+      Swal.fire("¡Éxito!", mensaje, "success");
       refetchData();
       closeModal();
-    } else {
-      // Manejar errores de validación del backend
-      const errorMsg = response.data.errors
-        ? Object.values(response.data.errors).flat().join("<br>")
-        : response.data.message || "Error de validación";
-      Swal.fire("Error de validación", errorMsg, "error");
+      return;
     }
+
+    const mensajeError =
+      formatearErrores(response.data?.errores) ||
+      response.data?.mensaje ||
+      "Los datos enviados no son válidos.";
+    Swal.fire(
+      "Error de validación",
+      mensajeError.replace(/\n/g, "<br>"),
+      "error"
+    );
   } catch (error) {
     console.error("Error al guardar el componente de aprendizaje:", error);
+    const respuesta = error.response?.data;
 
-    // Manejo de errores HTTP
-    if (error.response) {
-      const status = error.response.status;
-      const errorData = error.response.data;
-
-      if (status === 500) {
-        Swal.fire(
-          "Error del Servidor",
-          "Ocurrió un error interno en el servidor. Por favor, inténtelo nuevamente.",
-          "error"
-        );
-      } else if (status === 401) {
-        Swal.fire(
-          "Error de Credenciales",
-          "Su sesión ha expirado o no tiene autorización. Por favor, inicie sesión nuevamente.",
-          "warning"
-        );
-      } else if (status === 200) {
-        // Caso especial: Respuesta 200 pero error en el cuerpo
-        const errorMsg = errorData.errors
-          ? Object.values(errorData.errors).flat().join("<br>")
-          : errorData.message || "Error en el formato de respuesta";
-        Swal.fire("Error de Procesamiento", errorMsg, "error");
-      } else {
-        // Otros errores HTTP
-        const errorMsg = errorData?.message || `Error ${status} del servidor`;
-        Swal.fire("Error", errorMsg, "error");
-      }
-    } else if (error.request) {
-      // Error de red o sin respuesta
-      Swal.fire(
-        "Error de Red",
-        "No se pudo conectar con el servidor. Verifique su conexión e inténtelo nuevamente.",
-        "error"
-      );
-    } else {
-      // Otros errores
-      Swal.fire("Error", "Ocurrió un error inesperado", "error");
+    if (respuesta?.errores) {
+      const detalle = formatearErrores(respuesta.errores);
+      Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
+      return;
     }
+
+    const mensaje =
+      respuesta?.mensaje ||
+      (error.response
+        ? `Error ${error.response.status} del servidor.`
+        : "No se pudo comunicar con el servidor.");
+
+    Swal.fire("Error", mensaje, "error");
   }
 };

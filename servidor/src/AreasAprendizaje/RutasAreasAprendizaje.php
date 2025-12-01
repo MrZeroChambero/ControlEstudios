@@ -18,5 +18,4 @@ function registrarRutasAreasAprendizaje(AltoRouter $router)
   $router->map('PATCH', '/areas_aprendizaje/[i:id]/estado', function ($id) use ($controlador) {
     $controlador->cambiarEstado($id);
   });
-  $router->map('GET', '/areas_aprendizaje/listar-select', [$controlador, 'listarSelect']);
 }

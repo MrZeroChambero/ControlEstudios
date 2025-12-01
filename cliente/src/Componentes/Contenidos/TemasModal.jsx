@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import {
   FaTimes,
@@ -8,6 +8,12 @@ import {
   FaToggleOn,
   FaToggleOff,
 } from "react-icons/fa";
+import {
+  temasModalClasses,
+  temasTableClasses,
+  contenidosStatusClasses,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const TemasModal = ({
   isOpen,
@@ -18,215 +24,243 @@ export const TemasModal = ({
   onEditarTema,
   onEliminarTema,
   onCambiarEstadoTema,
+  formatearGrado,
 }) => {
-  const [filterText, setFilterText] = useState("");
+  const [filtro, setFiltro] = useState("");
 
-  if (!isOpen) return null;
+  const temasFiltrados = useMemo(() => {
+    const termino = filtro.trim().toLowerCase();
+    if (termino === "") {
+      return temas;
+    }
 
-  const filteredTemas = temas.filter((tema) =>
-    tema.nombre_tema.toLowerCase().includes(filterText.toLowerCase())
-  );
+    return temas.filter((tema) =>
+      tema.nombre_tema?.toLowerCase().includes(termino)
+    );
+  }, [filtro, temas]);
 
-  const columns = [
+  if (!isOpen) {
+    return null;
+  }
+
+  const columnas = [
     {
-      name: "ID",
-      selector: (row) => row.id_tema,
-      sortable: true,
-      width: "80px",
-    },
-    {
-      name: "Nombre del Tema",
+      name: "Tema",
       selector: (row) => row.nombre_tema,
       sortable: true,
+      grow: 2,
       wrap: true,
     },
     {
       name: "Estado",
+      selector: (row) => row.estado,
+      sortable: true,
+      width: "120px",
+      center: true,
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
+          className={`${contenidosStatusClasses.base} ${
             row.estado === "activo"
-              ? "bg-green-200 text-green-800"
-              : "bg-red-200 text-red-800"
+              ? contenidosStatusClasses.active
+              : contenidosStatusClasses.inactive
           }`}
         >
           {row.estado}
         </span>
       ),
-      sortable: true,
-      selector: (row) => row.estado,
-      width: "120px",
-      center: true,
     },
     {
       name: "Acciones",
+      width: "160px",
+      center: true,
       cell: (row) => (
-        <div className="flex space-x-2 justify-center">
+        <div className={temasTableClasses.actionGroup}>
           <button
+            type="button"
             onClick={() => onEditarTema(row)}
-            className="text-yellow-500 hover:text-yellow-700 text-lg"
-            title="Editar"
+            className={`${temasTableClasses.actionButton} ${temasTableClasses.editButton}`}
+            title="Editar tema"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
+            type="button"
             onClick={() => onCambiarEstadoTema(row)}
-            className={`text-2xl ${
+            className={`${temasTableClasses.actionButton} ${
               row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? temasTableClasses.toggleOn
+                : temasTableClasses.toggleOff
             }`}
             title={row.estado === "activo" ? "Desactivar" : "Activar"}
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
+            type="button"
             onClick={() => onEliminarTema(row)}
-            className="text-red-500 hover:text-red-700 text-lg"
-            title="Eliminar"
+            className={`${temasTableClasses.actionButton} ${temasTableClasses.deleteButton}`}
+            title="Eliminar tema"
           >
-            <FaTrash />
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
-      width: "150px",
-      center: true,
     },
   ];
 
-  const customStyles = {
-    table: {
+  const cabeceraTabla = (
+    <div className={temasTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar temas por nombre"
+        className={temasTableClasses.filterInput}
+        value={filtro}
+        onChange={(evento) => setFiltro(evento.target.value)}
+      />
+      <span className={temasTableClasses.stats}>
+        {temasFiltrados.length} tema
+        {temasFiltrados.length === 1 ? "" : "s"} encontrado
+        {temasFiltrados.length === 1 ? "" : "s"}
+      </span>
+      <button
+        type="button"
+        onClick={onAgregarTema}
+        className={temasTableClasses.addButton}
+      >
+        <FaPlus className={contenidosIconClasses.base} />
+        <span>Agregar tema</span>
+      </button>
+    </div>
+  );
+
+  const estilosPersonalizados = {
+    headRow: {
       style: {
-        width: "100%",
-        tableLayout: "auto",
+        backgroundColor: "#f8fafc",
+        fontSize: "12px",
+        fontWeight: 600,
+        textTransform: "uppercase",
       },
     },
     headCells: {
       style: {
-        whiteSpace: "normal",
-        fontWeight: "bold",
-        fontSize: "14px",
-        backgroundColor: "#f8fafc",
+        paddingLeft: "16px",
+        paddingRight: "16px",
       },
     },
     cells: {
       style: {
-        whiteSpace: "normal",
-        wordBreak: "break-word",
+        paddingLeft: "16px",
+        paddingRight: "16px",
       },
     },
   };
 
-  const subHeaderComponent = (
-    <div className="flex justify-between items-center mb-4">
-      <input
-        type="text"
-        placeholder="Buscar temas por nombre..."
-        className="w-1/2 p-2 border border-gray-300 rounded-md"
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-      <div className="flex items-center space-x-4">
-        <span className="text-sm text-gray-600">
-          {filteredTemas.length} tema{filteredTemas.length !== 1 ? "s" : ""}{" "}
-          encontrado{filteredTemas.length !== 1 ? "s" : ""}
-        </span>
-        <button
-          onClick={onAgregarTema}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
-        >
-          <FaPlus className="mr-2" /> Agregar Tema
-        </button>
-      </div>
-    </div>
-  );
+  const tituloContenido = contenido?.nombre_contenido ?? "Contenido sin nombre";
+  const descripcionArea = contenido?.nombre_area
+    ? `${contenido.nombre_area}`
+    : null;
+  const descripcionComponente = contenido?.nombre_componente
+    ? contenido.nombre_componente
+    : null;
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-6xl mx-4">
-        <div className="flex justify-between items-center mb-6">
+    <div className={temasModalClasses.overlay}>
+      <div className={temasModalClasses.content}>
+        <div className={temasModalClasses.header}>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              Gestión de Temas del Contenido
-            </h2>
-            <p className="text-gray-600 mt-1">
-              <span className="font-semibold">Contenido:</span>{" "}
-              {contenido?.nombre}
-              {contenido?.nombre_area && (
-                <span className="ml-4">
-                  <span className="font-semibold">Área:</span>{" "}
-                  {contenido.nombre_area}
-                </span>
+            <h2 className={temasModalClasses.title}>Gestión de temas</h2>
+            <p className={temasModalClasses.subtitle}>
+              <span className="font-semibold text-slate-700">Contenido:</span>{" "}
+              {tituloContenido}
+              {descripcionComponente && (
+                <>
+                  <span className="mx-2 text-slate-400">•</span>
+                  <span className="text-slate-600">
+                    {descripcionComponente}
+                  </span>
+                </>
+              )}
+              {descripcionArea && (
+                <>
+                  <span className="mx-2 text-slate-400">•</span>
+                  <span className="text-slate-600">{descripcionArea}</span>
+                </>
               )}
               {contenido?.grado && (
-                <span className="ml-4">
-                  <span className="font-semibold">Grado:</span>{" "}
-                  {contenido.grado}
-                </span>
+                <>
+                  <span className="mx-2 text-slate-400">•</span>
+                  <span className="text-slate-600">
+                    {formatearGrado(contenido.grado)}
+                  </span>
+                </>
               )}
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className={temasModalClasses.closeButton}
             title="Cerrar"
           >
-            <FaTimes />
+            <FaTimes className={contenidosIconClasses.base} />
           </button>
         </div>
 
         {temas.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📚</div>
-            <p className="text-gray-500 text-lg mb-2">
+          <div className="py-12 text-center">
+            <div className={temasModalClasses.emptyIcon}>📚</div>
+            <p className="mb-2 text-lg text-slate-600">
               No hay temas registrados
             </p>
-            <p className="text-gray-400 text-sm mb-6">
-              Este contenido no tiene temas asociados aún.
+            <p className="mb-6 text-sm text-slate-400">
+              Añade tu primer tema para comenzar la planificación.
             </p>
             <button
+              type="button"
               onClick={onAgregarTema}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center mx-auto"
+              className={temasTableClasses.addButton}
             >
-              <FaPlus className="mr-2" /> Agregar Primer Tema
+              <FaPlus className={contenidosIconClasses.base} />
+              <span>Agregar primer tema</span>
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-lg border border-gray-200">
-            <DataTable
-              columns={columns}
-              data={filteredTemas}
-              customStyles={customStyles}
-              pagination
-              paginationComponentOptions={{
-                rowsPerPageText: "Temas por página:",
-                rangeSeparatorText: "de",
-                noRowsPerPage: false,
-              }}
-              paginationPerPage={10}
-              paginationRowsPerPageOptions={[5, 10, 15, 20]}
-              noDataComponent={
-                <div className="text-center py-8">
-                  <p className="text-gray-500">
-                    No se encontraron temas que coincidan con la búsqueda.
-                  </p>
-                </div>
-              }
-              subHeader
-              subHeaderComponent={subHeaderComponent}
-              striped
-              highlightOnHover
-              responsive
-              dense
-            />
-          </div>
+          <DataTable
+            columns={columnas}
+            data={temasFiltrados}
+            customStyles={estilosPersonalizados}
+            pagination
+            paginationComponentOptions={{
+              rowsPerPageText: "Temas por página:",
+              rangeSeparatorText: "de",
+              noRowsPerPage: false,
+            }}
+            paginationPerPage={10}
+            paginationRowsPerPageOptions={[5, 10, 15, 20]}
+            noDataComponent={
+              <p className={temasModalClasses.subtitle}>
+                No se encontraron temas que coincidan con la búsqueda.
+              </p>
+            }
+            subHeader
+            subHeaderComponent={cabeceraTabla}
+            highlightOnHover
+            striped
+            responsive
+            dense
+          />
         )}
 
-        <div className="mt-6 flex justify-end border-t pt-4">
+        <div className={temasModalClasses.footer}>
           <button
             type="button"
             onClick={onClose}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+            className={temasModalClasses.footerButton}
           >
             Cerrar
           </button>

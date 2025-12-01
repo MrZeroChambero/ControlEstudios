@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-11-2025 a las 11:05:57
+-- Tiempo de generación: 01-12-2025 a las 03:11:35
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -148,46 +148,31 @@ CREATE TABLE `anios_escolares` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `aprobo`
+--
+
+CREATE TABLE `aprobo` (
+  `id_aprobo` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `grado` varchar(50) DEFAULT NULL,
+  `fk_literal` int(11) DEFAULT NULL,
+  `paso` enum('si','no') DEFAULT 'si',
+  `observaciones` varchar(255) DEFAULT NULL,
+  `final` enum('si','no') DEFAULT 'no'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `areas_aprendizaje`
 --
 
 CREATE TABLE `areas_aprendizaje` (
   `id_area_aprendizaje` int(11) NOT NULL,
-  `fk_componente` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL,
-  `fk_funcion` int(11) NOT NULL,
-  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
+  `nombre_area` varchar(100) NOT NULL,
+  `estado_area` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `areas_aprendizaje`
---
-
-INSERT INTO `areas_aprendizaje` (`id_area_aprendizaje`, `fk_componente`, `nombre`, `fk_funcion`, `estado`) VALUES
-(100, 100, 'Lengua y Literatura', 1, 'activo'),
-(101, 100, 'Idiomas Extranjeros (Inglés)', 12, 'activo'),
-(102, 100, 'Expresión Oral y Escrita', 1, 'activo'),
-(103, 100, 'Comprensión Lectora', 1, 'activo'),
-(104, 101, 'Números y Operaciones', 1, 'activo'),
-(105, 101, 'Geometría y Medida', 1, 'activo'),
-(106, 101, 'Estadística y Probabilidad', 1, 'activo'),
-(107, 101, 'Resolución de Problemas Matemáticos', 1, 'activo'),
-(108, 102, 'Seres Vivos y Salud', 1, 'activo'),
-(109, 102, 'Materia y Energía', 1, 'activo'),
-(110, 102, 'Tierra y Universo', 1, 'activo'),
-(111, 102, 'Ciencia, Tecnología y Sociedad', 1, 'activo'),
-(112, 103, 'Historia de Venezuela', 1, 'activo'),
-(113, 103, 'Geografía General y de Venezuela', 1, 'activo'),
-(114, 103, 'Formación Ciudadana', 1, 'activo'),
-(115, 103, 'Identidad Nacional y Valores', 1, 'activo'),
-(116, 104, 'Desarrollo Motor', 5, 'activo'),
-(117, 104, 'Deportes Colectivos', 13, 'activo'),
-(118, 104, 'Expresión Corporal', 11, 'activo'),
-(119, 104, 'Juegos Tradicionales', 5, 'activo'),
-(120, 105, 'Pensamiento Lógico', 1, 'activo'),
-(121, 105, 'Pensamiento Crítico', 1, 'activo'),
-(122, 105, 'Creatividad e Innovación', 1, 'activo'),
-(123, 105, 'Estrategias de Aprendizaje', 1, 'activo');
 
 -- --------------------------------------------------------
 
@@ -197,7 +182,7 @@ INSERT INTO `areas_aprendizaje` (`id_area_aprendizaje`, `fk_componente`, `nombre
 
 CREATE TABLE `asistencia` (
   `id_asistencia` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
   `asistencias` int(11) NOT NULL,
   `inasistencias` int(11) NOT NULL,
@@ -228,18 +213,17 @@ CREATE TABLE `aula` (
   `id_aula` int(11) NOT NULL,
   `fk_anio_escolar` int(11) NOT NULL,
   `fk_grado_seccion` int(11) NOT NULL,
-  `fk_guia` int(11) NOT NULL,
-  `cupos_disponibles` int(11) DEFAULT NULL,
+  `cupos` int(11) DEFAULT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `bloqueos_seguridad`
+-- Estructura de tabla para la tabla `bloqueos`
 --
 
-CREATE TABLE `bloqueos_seguridad` (
+CREATE TABLE `bloqueos` (
   `id_bloqueo` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `intentos` int(1) NOT NULL,
@@ -291,9 +275,10 @@ INSERT INTO `cargos` (`id_cargo`, `nombre_cargo`, `tipo`, `codigo`) VALUES
 
 CREATE TABLE `competencias` (
   `id_competencia` int(11) NOT NULL,
-  `fk_planificacion` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `nombre_competencia` int(11) NOT NULL,
   `descripcion_competencia` varchar(255) NOT NULL,
-  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
+  `reutilizable` enum('si','no') NOT NULL DEFAULT 'si'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -304,28 +289,12 @@ CREATE TABLE `competencias` (
 
 CREATE TABLE `componentes_aprendizaje` (
   `id_componente` int(11) NOT NULL,
-  `nombre` varchar(100) NOT NULL,
-  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
+  `fk_area` int(11) NOT NULL,
+  `nombre_componente` varchar(100) NOT NULL,
+  `especialista` varchar(50) NOT NULL,
+  `evalua` enum('si','no') NOT NULL,
+  `estado_componente` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `componentes_aprendizaje`
---
-
-INSERT INTO `componentes_aprendizaje` (`id_componente`, `nombre`, `estado`) VALUES
-(1, 'ejemplo 2', 'activo'),
-(4, 'sadsadsa', 'activo'),
-(15, 'dasdsads', 'activo'),
-(16, 'hola', 'activo'),
-(17, 'asdsa', 'activo'),
-(18, 'asdsa', 'activo'),
-(21, 'educiacion fisica', 'activo'),
-(100, 'Lenguaje, Comunicación y Cultura', 'activo'),
-(101, 'Matemática', 'activo'),
-(102, 'Ciencias Naturales y Sociedad', 'activo'),
-(103, 'Ciencias Sociales, Ciudadanía e Identidad', 'activo'),
-(104, 'Educación Física, Deporte y Recreación', 'activo'),
-(105, 'Desarrollo del Pensamiento para el Aprendizaje', 'activo');
 
 -- --------------------------------------------------------
 
@@ -370,78 +339,24 @@ CREATE TABLE `consultas_medicas` (
 
 CREATE TABLE `contenidos` (
   `id_contenido` int(11) NOT NULL,
-  `nombre` varchar(255) NOT NULL,
-  `fk_area_aprendizaje` int(11) NOT NULL,
+  `nombre_contenido` varchar(255) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
   `grado` enum('1','2','3','4','5','6','general') NOT NULL DEFAULT 'general',
-  `descripcion` text DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Volcado de datos para la tabla `contenidos`
+-- Estructura de tabla para la tabla `contenido_indicador`
 --
 
-INSERT INTO `contenidos` (`id_contenido`, `nombre`, `fk_area_aprendizaje`, `grado`, `descripcion`, `estado`) VALUES
-(100, 'El abecedario', 100, '1', 'Reconocimiento y escritura de las letras del abecedario', 'activo'),
-(101, 'Lectura de palabras simples', 100, '1', 'Lectura y comprensión de palabras de uso frecuente', 'activo'),
-(102, 'Escritura de oraciones cortas', 100, '1', 'Construcción de oraciones simples', 'activo'),
-(103, 'Números del 1 al 50', 104, '1', 'Reconocimiento, lectura y escritura de números', 'activo'),
-(104, 'Sumas y restas simples', 104, '1', 'Operaciones básicas de adición y sustracción', 'activo'),
-(105, 'Figuras geométricas básicas', 105, '1', 'Identificación de círculo, cuadrado, triángulo', 'activo'),
-(106, 'Partes del cuerpo humano', 108, '1', 'Identificación de partes principales del cuerpo', 'activo'),
-(107, 'Seres vivos y no vivos', 108, '1', 'Diferenciación entre seres vivos e inertes', 'activo'),
-(108, 'Cuidado del ambiente', 108, '1', 'Prácticas para conservar el medio ambiente', 'activo'),
-(109, 'Mi familia y mi escuela', 112, '1', 'Reconocimiento del entorno familiar y escolar', 'activo'),
-(110, 'Símbolos patrios', 112, '1', 'Identificación de la bandera, escudo e himno nacional', 'activo'),
-(111, 'Normas de convivencia', 114, '1', 'Aplicación de normas en el aula y la escuela', 'activo'),
-(200, 'Lectura y escritura inicial', 100, '1', 'Desarrollo de habilidades básicas de lectoescritura', 'activo'),
-(201, 'Comunicación oral', 100, '1', 'Expresión y comprensión oral en situaciones cotidianas', 'activo'),
-(202, 'Vocabulario básico', 100, '1', 'Ampliación del vocabulario activo', 'activo'),
-(203, 'Lectura comprensiva', 100, '2', 'Comprensión de textos cortos y sencillos', 'activo'),
-(204, 'Producción de textos narrativos', 100, '2', 'Creación de cuentos y narraciones breves', 'activo'),
-(205, 'Gramática básica', 100, '2', 'Reconocimiento de elementos gramaticales simples', 'activo'),
-(206, 'Textos informativos', 100, '3', 'Lectura y producción de textos expositivos', 'activo'),
-(207, 'Ortografía básica', 100, '3', 'Aplicación de reglas ortográficas elementales', 'activo'),
-(208, 'Literatura infantil venezolana', 100, '3', 'Conocimiento de autores y obras nacionales', 'activo'),
-(300, 'Sistema numérico del 1 al 100', 104, '1', 'Conocimiento del sistema de numeración decimal', 'activo'),
-(301, 'Operaciones básicas de adición', 104, '1', 'Sumas con números hasta 20', 'activo'),
-(302, 'Operaciones básicas de sustracción', 104, '1', 'Restas con números hasta 20', 'activo'),
-(303, 'Números hasta el 500', 104, '2', 'Lectura, escritura y comparación de números', 'activo'),
-(304, 'Sumas y restas con llevadas', 104, '2', 'Operaciones con números de dos dígitos', 'activo'),
-(305, 'Introducción a la multiplicación', 104, '2', 'Concepto de multiplicación como suma repetida', 'activo'),
-(306, 'Números hasta el 1000', 104, '3', 'Valor posicional de unidades, decenas y centenas', 'activo'),
-(307, 'Multiplicación de números de una cifra', 104, '3', 'Tablas de multiplicar del 1 al 10', 'activo'),
-(308, 'División exacta', 104, '3', 'Concepto de división como reparto equitativo', 'activo'),
-(400, 'El cuerpo humano', 108, '1', 'Conocimiento de las partes del cuerpo y sus funciones', 'activo'),
-(401, 'Los sentidos', 108, '1', 'Identificación y función de los cinco sentidos', 'activo'),
-(402, 'Hábitos de higiene', 108, '1', 'Prácticas de higiene personal', 'activo'),
-(403, 'Animales y plantas', 108, '2', 'Características y clasificación de seres vivos', 'activo'),
-(404, 'Ciclo de vida', 108, '2', 'Nacimiento, crecimiento y reproducción', 'activo'),
-(405, 'Alimentación saludable', 108, '2', 'Grupos de alimentos y nutrición', 'activo'),
-(406, 'Sistemas del cuerpo humano', 108, '3', 'Funcionamiento de sistemas básicos', 'activo'),
-(407, 'Ecosistemas venezolanos', 108, '3', 'Diversidad de ecosistemas nacionales', 'activo'),
-(408, 'Prevención de enfermedades', 108, '3', 'Medidas de prevención y cuidado de la salud', 'activo'),
-(500, 'Mi identidad personal y familiar', 112, '1', 'Reconocimiento de la identidad individual y familiar', 'activo'),
-(501, 'La comunidad escolar', 112, '1', 'Organización y funcionamiento de la escuela', 'activo'),
-(502, 'Símbolos patrios', 112, '1', 'Conocimiento y respeto a los símbolos nacionales', 'activo'),
-(503, 'La localidad', 112, '2', 'Características de la comunidad local', 'activo'),
-(504, 'Fechas patrias venezolanas', 112, '2', 'Conmemoraciones históricas importantes', 'activo'),
-(505, 'Héroes de la independencia', 112, '2', 'Vida y obra de próceres nacionales', 'activo'),
-(506, 'Estados de Venezuela', 112, '3', 'División político-territorial del país', 'activo'),
-(507, 'Pueblos originarios venezolanos', 112, '3', 'Culturas indígenas nacionales', 'activo'),
-(508, 'Proceso de independencia', 112, '3', 'Antecedentes y desarrollo de la independencia', 'activo'),
-(600, 'Coordinación motora básica', 116, '1', 'Desarrollo de habilidades motoras fundamentales', 'activo'),
-(601, 'Juegos tradicionales venezolanos', 116, '1', 'Práctica de juegos autóctonos', 'activo'),
-(602, 'Expresión corporal', 116, '1', 'Movimiento y expresión a través del cuerpo', 'activo'),
-(603, 'Habilidades gimnásticas básicas', 116, '2', 'Ejercicios elementales de gimnasia', 'activo'),
-(604, 'Deportes colectivos iniciales', 116, '2', 'Introducción a deportes en equipo', 'activo'),
-(605, 'Actividades rítmicas', 116, '2', 'Movimiento al compás de la música', 'activo'),
-(700, 'Normas de convivencia escolar', 114, '1', 'Aplicación de normas en el entorno escolar', 'activo'),
-(701, 'Valores de respeto y solidaridad', 114, '1', 'Práctica de valores en la vida diaria', 'activo'),
-(702, 'Derechos del niño', 114, '1', 'Conocimiento de los derechos fundamentales', 'activo'),
-(703, 'Responsabilidades en el hogar', 114, '2', 'Cumplimiento de deberes familiares', 'activo'),
-(704, 'Cuidado del ambiente', 114, '2', 'Prácticas de conservación ambiental', 'activo'),
-(705, 'Participación comunitaria', 114, '2', 'Involucramiento en actividades comunitarias', 'activo');
+CREATE TABLE `contenido_indicador` (
+  `id_contenido_indicador` int(11) NOT NULL,
+  `fk_contenido` int(11) NOT NULL,
+  `fk_indicador` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -528,23 +443,15 @@ INSERT INTO `estudiantes` (`id_estudiante`, `id_persona`, `cedula_escolar`, `fec
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `evaluaciones`
+-- Estructura de tabla para la tabla `evaluar`
 --
 
-CREATE TABLE `evaluaciones` (
-  `id_evaluacion` int(11) NOT NULL,
-  `nombre_evaluacion` varchar(150) NOT NULL,
-  `descripcion` varchar(255) DEFAULT NULL,
-  `estado` enum('activo','inactivo') NOT NULL
+CREATE TABLE `evaluar` (
+  `id_evaluar` int(11) NOT NULL,
+  `fk_indicador` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_literal` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `evaluaciones`
---
-
-INSERT INTO `evaluaciones` (`id_evaluacion`, `nombre_evaluacion`, `descripcion`, `estado`) VALUES
-(1, 'microclaseshhh', 'hhhhhh', 'activo'),
-(2, 'dsasdsa', 'dsadsadsadsa', 'activo');
 
 -- --------------------------------------------------------
 
@@ -661,7 +568,7 @@ CREATE TABLE `horarios` (
   `id_horario` int(11) NOT NULL,
   `fk_aula` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
-  `fk_area` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
   `fk_personal` int(11) NOT NULL,
   `grupo` enum('completo','subgrupo') NOT NULL,
   `dia_semana` enum('lunes','martes','miercoles','jueves','viernes') NOT NULL,
@@ -672,16 +579,17 @@ CREATE TABLE `horarios` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `imparticion_clases`
+-- Estructura de tabla para la tabla `imparte`
 --
 
-CREATE TABLE `imparticion_clases` (
-  `id_imparticion_clases` int(11) NOT NULL,
+CREATE TABLE `imparte` (
+  `id_imparte` int(11) NOT NULL,
   `fk_aula` int(11) NOT NULL,
-  `fk_docente` int(11) NOT NULL,
+  `fk_personal` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
-  `fk_area_aprendizaje` int(11) NOT NULL,
-  `tipo_docente` enum('Integral','Especialista') NOT NULL
+  `fk_componente` int(11) NOT NULL,
+  `tipo_docente` enum('aula','Especialista') NOT NULL,
+  `clases_totales` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -693,35 +601,10 @@ CREATE TABLE `imparticion_clases` (
 CREATE TABLE `indicadores` (
   `id_indicador` int(11) NOT NULL,
   `fk_competencia` int(11) NOT NULL,
-  `nombre` varchar(256) NOT NULL,
-  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `indicadores_descriptores`
---
-
-CREATE TABLE `indicadores_descriptores` (
-  `id_descriptor` int(11) NOT NULL,
-  `fk_indicador` int(11) NOT NULL,
-  `fk_literal` int(11) NOT NULL,
-  `tipo_descripcion` enum('Logro','Avance','Dificultad') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `indicador_evaluacion_contenido`
---
-
-CREATE TABLE `indicador_evaluacion_contenido` (
-  `id_ind_eva_con` int(11) NOT NULL,
-  `fk_indicador` int(11) NOT NULL,
-  `fk_contenido` int(11) NOT NULL,
-  `fk_evaluacion` int(11) NOT NULL,
-  `fecha` date NOT NULL
+  `nombre_indicador` varchar(255) NOT NULL,
+  `tipo` enum('ser','hacer','conocer') NOT NULL,
+  `orden` int(3) NOT NULL,
+  `ocultar` enum('si','no') NOT NULL DEFAULT 'no'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -735,8 +618,7 @@ CREATE TABLE `inscripciones` (
   `fk_estudiante` int(11) NOT NULL,
   `fk_representante` int(11) DEFAULT NULL,
   `fk_personal` int(11) NOT NULL,
-  `fk_imparticion_clases` int(11) NOT NULL,
-  `grado` enum('1','2','3','4','5','6') NOT NULL,
+  `fk_aula` int(11) NOT NULL,
   `fecha_inscripcion` date NOT NULL,
   `vive_con` varchar(200) DEFAULT NULL,
   `altura` float NOT NULL,
@@ -750,7 +632,15 @@ CREATE TABLE `inscripciones` (
   `cedula_estudiante` enum('si','no') DEFAULT 'no',
   `cedula_representante` enum('si','no') DEFAULT 'no',
   `fecha_retiro` date DEFAULT NULL,
-  `motivo_retiro` varchar(255) DEFAULT NULL
+  `motivo_retiro` varchar(255) DEFAULT NULL,
+  `tipo_vivienda` varchar(60) NOT NULL,
+  `zona_vivienda` varchar(60) NOT NULL,
+  `tenencia_viviencia` varchar(60) NOT NULL,
+  `ingreso_familiar` float NOT NULL,
+  `miembros_familia` int(2) NOT NULL,
+  `tareas_comunitarias` enum('si','no') NOT NULL,
+  `participar_comite` enum('si','no') NOT NULL,
+  `detalles_participacion` varchar(60) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -780,15 +670,16 @@ CREATE TABLE `literal` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `momentos_academicos`
+-- Estructura de tabla para la tabla `momentos`
 --
 
-CREATE TABLE `momentos_academicos` (
+CREATE TABLE `momentos` (
   `id_momento` int(11) NOT NULL,
   `fk_anio_escolar` int(11) NOT NULL,
   `nombre_momento` enum('1','2','3') NOT NULL,
   `fecha_inicio` date NOT NULL,
-  `fecha_fin` date NOT NULL
+  `fecha_fin` date NOT NULL,
+  `estado_momento` enum('activo','finalizado') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -977,7 +868,7 @@ CREATE TABLE `planificaciones` (
   `id_planificacion` int(11) NOT NULL,
   `fk_personal` int(11) NOT NULL,
   `fk_aula` int(11) NOT NULL,
-  `fk_area` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
   `tipo` enum('individual','aula') NOT NULL DEFAULT 'aula',
   `estado` enum('inactivo','activo') NOT NULL DEFAULT 'activo',
@@ -993,7 +884,19 @@ CREATE TABLE `planificaciones` (
 CREATE TABLE `planificaciones_individuales` (
   `id_planificaciones_individuales` int(11) NOT NULL,
   `fk_planificacion` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL
+  `fk_estudiante` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `plan_competencias`
+--
+
+CREATE TABLE `plan_competencias` (
+  `id_plan_com` int(11) NOT NULL,
+  `fk_competencias` int(11) NOT NULL,
+  `fk_planificacion` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1007,23 +910,6 @@ CREATE TABLE `preguntas` (
   `fk_usuario` int(11) NOT NULL,
   `pregunta` varchar(50) NOT NULL,
   `respuesta` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `prosecucion`
---
-
-CREATE TABLE `prosecucion` (
-  `id_prosecucion` int(11) NOT NULL,
-  `fk_estudiante` int(11) NOT NULL,
-  `fk_momento` int(11) NOT NULL,
-  `grado` enum('1','2','3','4','5','6') NOT NULL,
-  `fk_literal` int(11) NOT NULL,
-  `paso_grado` enum('si','no') NOT NULL,
-  `observaciones` varchar(255) NOT NULL,
-  `literalFinal` enum('si','no') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1065,20 +951,6 @@ CREATE TABLE `respaldos` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `resultado_evaluacion`
---
-
-CREATE TABLE `resultado_evaluacion` (
-  `resultado_evaluacion` int(11) NOT NULL,
-  `fk_ind_eva_con` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL,
-  `fk_literal` int(11) NOT NULL,
-  `observaciones` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `sesiones_usuario`
 --
 
@@ -1095,28 +967,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(31, 1, 'a1fc4dd1d47b218c56d90db3cca7e93356bc5abb60f896649f85657338130cb3', '2025-11-26', '2025-11-27');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `socioeconomico`
---
-
-CREATE TABLE `socioeconomico` (
-  `id_socio` int(11) NOT NULL,
-  `fk_representante` int(11) NOT NULL,
-  `fk_inscripcion` int(11) NOT NULL,
-  `tipo_vivienda` varchar(50) DEFAULT NULL,
-  `zona_vivienda` enum('urbana','rural') DEFAULT 'urbana',
-  `tenencia_vivienda` varchar(50) DEFAULT NULL,
-  `ingreso_familiar` float DEFAULT NULL,
-  `miembros_familia` int(4) DEFAULT NULL,
-  `tareas_comunitarias` enum('si','no') DEFAULT NULL,
-  `detalle_participacion` varchar(200) DEFAULT NULL,
-  `desea_participar_comite` enum('si','no') DEFAULT NULL,
-  `detalle_comite` varchar(200) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(32, 1, 'b9bad93cc5d5c53a6738a3525f111d361b971ffbc6b15ba4927fe5c786583352', '2025-11-30', '2025-12-01');
 
 -- --------------------------------------------------------
 
@@ -1130,69 +981,6 @@ CREATE TABLE `temas` (
   `nombre_tema` varchar(255) NOT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `temas`
---
-
-INSERT INTO `temas` (`id_tema`, `fk_contenido`, `nombre_tema`, `estado`) VALUES
-(1, 200, 'Reconocimiento de letras del abecedario', 'activo'),
-(2, 200, 'Silabeo y formación de palabras', 'activo'),
-(3, 200, 'Escritura de nombres propios', 'activo'),
-(4, 200, 'Lectura de palabras de uso frecuente', 'activo'),
-(5, 201, 'Saludos y presentaciones', 'activo'),
-(6, 201, 'Descripción de objetos y personas', 'activo'),
-(7, 201, 'Narración de experiencias personales', 'activo'),
-(8, 203, 'Identificación de ideas principales', 'activo'),
-(9, 203, 'Secuencia de eventos en textos', 'activo'),
-(10, 203, 'Inferencias simples', 'activo'),
-(11, 300, 'Conteo del 1 al 100', 'activo'),
-(12, 300, 'Lectura y escritura de números', 'activo'),
-(13, 300, 'Comparación de números (mayor, menor, igual)', 'activo'),
-(14, 300, 'Números pares e impares', 'activo'),
-(15, 301, 'Sumas sin llevadas', 'activo'),
-(16, 301, 'Propiedad conmutativa de la suma', 'activo'),
-(17, 301, 'Resolución de problemas con sumas', 'activo'),
-(18, 305, 'Concepto de multiplicación', 'activo'),
-(19, 305, 'Tablas del 2, 5 y 10', 'activo'),
-(20, 305, 'Multiplicación por 0 y 1', 'activo'),
-(21, 400, 'Partes de la cabeza, tronco y extremidades', 'activo'),
-(22, 400, 'Órganos principales y sus funciones', 'activo'),
-(23, 400, 'Cuidado del cuerpo', 'activo'),
-(24, 401, 'El sentido de la vista', 'activo'),
-(25, 401, 'El sentido del oído', 'activo'),
-(26, 401, 'El sentido del tacto', 'activo'),
-(27, 401, 'El sentido del olfato', 'activo'),
-(28, 401, 'El sentido del gusto', 'activo'),
-(29, 403, 'Animales vertebrados e invertebrados', 'activo'),
-(30, 403, 'Plantas comestibles y ornamentales', 'activo'),
-(31, 403, 'Animales en peligro de extinción en Venezuela', 'activo'),
-(32, 502, 'La Bandera Nacional', 'activo'),
-(33, 502, 'El Escudo Nacional', 'activo'),
-(34, 502, 'El Himno Nacional', 'activo'),
-(35, 502, 'Respeto a los símbolos patrios', 'activo'),
-(36, 505, 'Simón Bolívar: El Libertador', 'activo'),
-(37, 505, 'Antonio José de Sucre', 'activo'),
-(38, 505, 'Francisco de Miranda', 'activo'),
-(39, 505, 'José Félix Ribas', 'activo'),
-(40, 506, 'Capitales de los estados', 'activo'),
-(41, 506, 'Productos típicos por región', 'activo'),
-(42, 506, 'Ubicación geográfica de los estados', 'activo'),
-(43, 601, 'La ere', 'activo'),
-(44, 601, 'El gurrufío', 'activo'),
-(45, 601, 'El papagayo', 'activo'),
-(46, 601, 'Las metras', 'activo'),
-(47, 603, 'Voltereta adelante', 'activo'),
-(48, 603, 'Equilibrio sobre un pie', 'activo'),
-(49, 603, 'Salto de cuerda', 'activo'),
-(50, 603, 'Coordinación en carrera y salto', 'activo'),
-(51, 700, 'Respeto al turno de palabra', 'activo'),
-(52, 700, 'Cuidado de los materiales escolares', 'activo'),
-(53, 700, 'Convivencia con compañeros', 'activo'),
-(54, 702, 'Derecho a la educación', 'activo'),
-(55, 702, 'Derecho a la salud', 'activo'),
-(56, 702, 'Derecho al juego', 'activo'),
-(57, 702, 'Derecho a la identidad', 'activo');
 
 -- --------------------------------------------------------
 
@@ -1279,20 +1067,27 @@ ALTER TABLE `anios_escolares`
   ADD PRIMARY KEY (`id_anio_escolar`);
 
 --
+-- Indices de la tabla `aprobo`
+--
+ALTER TABLE `aprobo`
+  ADD PRIMARY KEY (`id_aprobo`),
+  ADD KEY `fk_estudiante` (`fk_estudiante`),
+  ADD KEY `fk_momento` (`fk_momento`),
+  ADD KEY `fk_literal` (`fk_literal`);
+
+--
 -- Indices de la tabla `areas_aprendizaje`
 --
 ALTER TABLE `areas_aprendizaje`
-  ADD PRIMARY KEY (`id_area_aprendizaje`),
-  ADD KEY `fk_componente` (`fk_componente`),
-  ADD KEY `fk_funcion` (`fk_funcion`);
+  ADD PRIMARY KEY (`id_area_aprendizaje`);
 
 --
 -- Indices de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
   ADD PRIMARY KEY (`id_asistencia`),
-  ADD KEY `fk_asistencia_inscripcion` (`fk_inscripcion`),
-  ADD KEY `fk_momento` (`fk_momento`);
+  ADD KEY `fk_momento` (`fk_momento`),
+  ADD KEY `fk_estudiante` (`fk_estudiante`);
 
 --
 -- Indices de la tabla `auditoria`
@@ -1307,13 +1102,12 @@ ALTER TABLE `auditoria`
 ALTER TABLE `aula`
   ADD PRIMARY KEY (`id_aula`),
   ADD KEY `fk_anio_escolar` (`fk_anio_escolar`),
-  ADD KEY `fk_grado_seccion` (`fk_grado_seccion`),
-  ADD KEY `fk_guia` (`fk_guia`);
+  ADD KEY `fk_grado_seccion` (`fk_grado_seccion`);
 
 --
--- Indices de la tabla `bloqueos_seguridad`
+-- Indices de la tabla `bloqueos`
 --
-ALTER TABLE `bloqueos_seguridad`
+ALTER TABLE `bloqueos`
   ADD PRIMARY KEY (`id_bloqueo`),
   ADD KEY `fk_usuario` (`fk_usuario`);
 
@@ -1329,13 +1123,14 @@ ALTER TABLE `cargos`
 --
 ALTER TABLE `competencias`
   ADD PRIMARY KEY (`id_competencia`),
-  ADD KEY `id_planificacion` (`fk_planificacion`);
+  ADD KEY `id_planificacion` (`fk_componente`);
 
 --
 -- Indices de la tabla `componentes_aprendizaje`
 --
 ALTER TABLE `componentes_aprendizaje`
-  ADD PRIMARY KEY (`id_componente`);
+  ADD PRIMARY KEY (`id_componente`),
+  ADD KEY `fk_area` (`fk_area`);
 
 --
 -- Indices de la tabla `condiciones_salud`
@@ -1357,7 +1152,15 @@ ALTER TABLE `consultas_medicas`
 --
 ALTER TABLE `contenidos`
   ADD PRIMARY KEY (`id_contenido`),
-  ADD KEY `id_area_aprendizaje` (`fk_area_aprendizaje`);
+  ADD KEY `fk_componente` (`fk_componente`);
+
+--
+-- Indices de la tabla `contenido_indicador`
+--
+ALTER TABLE `contenido_indicador`
+  ADD PRIMARY KEY (`id_contenido_indicador`),
+  ADD KEY `fk_contenido` (`fk_contenido`),
+  ADD KEY `fk_indicador` (`fk_indicador`);
 
 --
 -- Indices de la tabla `documentos_academicos`
@@ -1375,10 +1178,13 @@ ALTER TABLE `estudiantes`
   ADD UNIQUE KEY `codigo_estudiantil` (`cedula_escolar`);
 
 --
--- Indices de la tabla `evaluaciones`
+-- Indices de la tabla `evaluar`
 --
-ALTER TABLE `evaluaciones`
-  ADD PRIMARY KEY (`id_evaluacion`);
+ALTER TABLE `evaluar`
+  ADD PRIMARY KEY (`id_evaluar`),
+  ADD KEY `fk_indicador` (`fk_indicador`),
+  ADD KEY `fk_estudiante` (`fk_estudiante`),
+  ADD KEY `fk_literal` (`fk_literal`);
 
 --
 -- Indices de la tabla `funcion_personal`
@@ -1414,18 +1220,18 @@ ALTER TABLE `horarios`
   ADD PRIMARY KEY (`id_horario`),
   ADD KEY `fk_aula` (`fk_aula`),
   ADD KEY `fk_momento` (`fk_momento`),
-  ADD KEY `fk_area` (`fk_area`),
-  ADD KEY `fk_personal` (`fk_personal`);
+  ADD KEY `fk_personal` (`fk_personal`),
+  ADD KEY `fk_componente` (`fk_componente`);
 
 --
--- Indices de la tabla `imparticion_clases`
+-- Indices de la tabla `imparte`
 --
-ALTER TABLE `imparticion_clases`
-  ADD PRIMARY KEY (`id_imparticion_clases`),
-  ADD KEY `id_asignacion_aula` (`fk_aula`),
-  ADD KEY `id_docente` (`fk_docente`),
+ALTER TABLE `imparte`
+  ADD PRIMARY KEY (`id_imparte`),
   ADD KEY `fk_momento` (`fk_momento`),
-  ADD KEY `fk_area_aprendizaje` (`fk_area_aprendizaje`);
+  ADD KEY `fk_componente` (`fk_componente`),
+  ADD KEY `fk_personal` (`fk_personal`),
+  ADD KEY `fk_aula` (`fk_aula`);
 
 --
 -- Indices de la tabla `indicadores`
@@ -1435,31 +1241,14 @@ ALTER TABLE `indicadores`
   ADD KEY `fk_competencia` (`fk_competencia`);
 
 --
--- Indices de la tabla `indicadores_descriptores`
---
-ALTER TABLE `indicadores_descriptores`
-  ADD PRIMARY KEY (`id_descriptor`),
-  ADD UNIQUE KEY `idx_indicador_rango` (`fk_indicador`,`fk_literal`),
-  ADD KEY `id_literal` (`fk_literal`);
-
---
--- Indices de la tabla `indicador_evaluacion_contenido`
---
-ALTER TABLE `indicador_evaluacion_contenido`
-  ADD PRIMARY KEY (`id_ind_eva_con`),
-  ADD UNIQUE KEY `fk_indicador` (`fk_indicador`),
-  ADD KEY `fk_contenido` (`fk_contenido`),
-  ADD KEY `fk_evaluacion` (`fk_evaluacion`);
-
---
 -- Indices de la tabla `inscripciones`
 --
 ALTER TABLE `inscripciones`
   ADD PRIMARY KEY (`id_inscripcion`),
-  ADD KEY `fk_imparticion_clases` (`fk_imparticion_clases`),
   ADD KEY `fk_personal` (`fk_personal`),
   ADD KEY `fk_representante` (`fk_representante`),
-  ADD KEY `fk_estudiante` (`fk_estudiante`);
+  ADD KEY `fk_estudiante` (`fk_estudiante`),
+  ADD KEY `fk_aula` (`fk_aula`);
 
 --
 -- Indices de la tabla `lista_alergias`
@@ -1476,9 +1265,9 @@ ALTER TABLE `literal`
   ADD PRIMARY KEY (`id_literal`);
 
 --
--- Indices de la tabla `momentos_academicos`
+-- Indices de la tabla `momentos`
 --
-ALTER TABLE `momentos_academicos`
+ALTER TABLE `momentos`
   ADD PRIMARY KEY (`id_momento`),
   ADD UNIQUE KEY `id_anio_escolar` (`fk_anio_escolar`);
 
@@ -1522,8 +1311,8 @@ ALTER TABLE `planificaciones`
   ADD PRIMARY KEY (`id_planificacion`),
   ADD KEY `fk_momento` (`fk_momento`),
   ADD KEY `fk_personal` (`fk_personal`),
-  ADD KEY `fk_area` (`fk_area`),
-  ADD KEY `fk_aula` (`fk_aula`);
+  ADD KEY `fk_aula` (`fk_aula`),
+  ADD KEY `fk_componente` (`fk_componente`);
 
 --
 -- Indices de la tabla `planificaciones_individuales`
@@ -1531,7 +1320,15 @@ ALTER TABLE `planificaciones`
 ALTER TABLE `planificaciones_individuales`
   ADD PRIMARY KEY (`id_planificaciones_individuales`),
   ADD KEY `fk_planificacion` (`fk_planificacion`),
-  ADD KEY `fk_inscripcion` (`fk_inscripcion`);
+  ADD KEY `fk_estudiante` (`fk_estudiante`);
+
+--
+-- Indices de la tabla `plan_competencias`
+--
+ALTER TABLE `plan_competencias`
+  ADD PRIMARY KEY (`id_plan_com`),
+  ADD KEY `fk_competencias` (`fk_competencias`),
+  ADD KEY `fk_planificacion` (`fk_planificacion`);
 
 --
 -- Indices de la tabla `preguntas`
@@ -1539,15 +1336,6 @@ ALTER TABLE `planificaciones_individuales`
 ALTER TABLE `preguntas`
   ADD PRIMARY KEY (`id_preguntas`),
   ADD KEY `preguntas_ibfk_1` (`fk_usuario`);
-
---
--- Indices de la tabla `prosecucion`
---
-ALTER TABLE `prosecucion`
-  ADD PRIMARY KEY (`id_prosecucion`),
-  ADD KEY `fk_estudiante` (`fk_estudiante`),
-  ADD KEY `fk_momento` (`fk_momento`),
-  ADD KEY `fk_literal` (`fk_literal`);
 
 --
 -- Indices de la tabla `representantes`
@@ -1564,28 +1352,11 @@ ALTER TABLE `respaldos`
   ADD KEY `fk_usuario` (`fk_usuario`);
 
 --
--- Indices de la tabla `resultado_evaluacion`
---
-ALTER TABLE `resultado_evaluacion`
-  ADD PRIMARY KEY (`resultado_evaluacion`),
-  ADD KEY `fk_literal` (`fk_literal`),
-  ADD KEY `fk_ind_eva_con` (`fk_ind_eva_con`),
-  ADD KEY `fk_inscripcion` (`fk_inscripcion`);
-
---
 -- Indices de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_usuario` (`fk_usuario`);
-
---
--- Indices de la tabla `socioeconomico`
---
-ALTER TABLE `socioeconomico`
-  ADD PRIMARY KEY (`id_socio`),
-  ADD KEY `fk_inscripcion` (`fk_inscripcion`),
-  ADD KEY `fk_representante` (`fk_representante`);
 
 --
 -- Indices de la tabla `temas`
@@ -1633,6 +1404,12 @@ ALTER TABLE `anios_escolares`
   MODIFY `id_anio_escolar` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `aprobo`
+--
+ALTER TABLE `aprobo`
+  MODIFY `id_aprobo` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `areas_aprendizaje`
 --
 ALTER TABLE `areas_aprendizaje`
@@ -1657,9 +1434,9 @@ ALTER TABLE `aula`
   MODIFY `id_aula` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `bloqueos_seguridad`
+-- AUTO_INCREMENT de la tabla `bloqueos`
 --
-ALTER TABLE `bloqueos_seguridad`
+ALTER TABLE `bloqueos`
   MODIFY `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1699,6 +1476,12 @@ ALTER TABLE `contenidos`
   MODIFY `id_contenido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=706;
 
 --
+-- AUTO_INCREMENT de la tabla `contenido_indicador`
+--
+ALTER TABLE `contenido_indicador`
+  MODIFY `id_contenido_indicador` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `documentos_academicos`
 --
 ALTER TABLE `documentos_academicos`
@@ -1711,10 +1494,10 @@ ALTER TABLE `estudiantes`
   MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
--- AUTO_INCREMENT de la tabla `evaluaciones`
+-- AUTO_INCREMENT de la tabla `evaluar`
 --
-ALTER TABLE `evaluaciones`
-  MODIFY `id_evaluacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+ALTER TABLE `evaluar`
+  MODIFY `id_evaluar` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `funcion_personal`
@@ -1747,28 +1530,16 @@ ALTER TABLE `horarios`
   MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `imparticion_clases`
+-- AUTO_INCREMENT de la tabla `imparte`
 --
-ALTER TABLE `imparticion_clases`
-  MODIFY `id_imparticion_clases` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `imparte`
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
 --
 ALTER TABLE `indicadores`
   MODIFY `id_indicador` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `indicadores_descriptores`
---
-ALTER TABLE `indicadores_descriptores`
-  MODIFY `id_descriptor` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `indicador_evaluacion_contenido`
---
-ALTER TABLE `indicador_evaluacion_contenido`
-  MODIFY `id_ind_eva_con` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `inscripciones`
@@ -1789,9 +1560,9 @@ ALTER TABLE `literal`
   MODIFY `id_literal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT de la tabla `momentos_academicos`
+-- AUTO_INCREMENT de la tabla `momentos`
 --
-ALTER TABLE `momentos_academicos`
+ALTER TABLE `momentos`
   MODIFY `id_momento` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1825,16 +1596,16 @@ ALTER TABLE `planificaciones_individuales`
   MODIFY `id_planificaciones_individuales` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `plan_competencias`
+--
+ALTER TABLE `plan_competencias`
+  MODIFY `id_plan_com` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `preguntas`
 --
 ALTER TABLE `preguntas`
   MODIFY `id_preguntas` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `prosecucion`
---
-ALTER TABLE `prosecucion`
-  MODIFY `id_prosecucion` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `representantes`
@@ -1849,22 +1620,10 @@ ALTER TABLE `respaldos`
   MODIFY `id_respaldos` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `resultado_evaluacion`
---
-ALTER TABLE `resultado_evaluacion`
-  MODIFY `resultado_evaluacion` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
-
---
--- AUTO_INCREMENT de la tabla `socioeconomico`
---
-ALTER TABLE `socioeconomico`
-  MODIFY `id_socio` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -1895,18 +1654,19 @@ ALTER TABLE `vacunas_estudiante`
 --
 
 --
--- Filtros para la tabla `areas_aprendizaje`
+-- Filtros para la tabla `aprobo`
 --
-ALTER TABLE `areas_aprendizaje`
-  ADD CONSTRAINT `areas_aprendizaje_ibfk_1` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `areas_aprendizaje_ibfk_2` FOREIGN KEY (`fk_funcion`) REFERENCES `funcion_personal` (`id_funcion_personal`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `aprobo`
+  ADD CONSTRAINT `aprobo_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `aprobo_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `aprobo_ibfk_3` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  ADD CONSTRAINT `asistencia_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_asistencia_inscripcion` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `asistencia_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `asistencia_ibfk_2` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `auditoria`
@@ -1922,16 +1682,16 @@ ALTER TABLE `aula`
   ADD CONSTRAINT `fk_aula_grado_seccion` FOREIGN KEY (`fk_grado_seccion`) REFERENCES `grado_seccion` (`id_grado_seccion`) ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `bloqueos_seguridad`
+-- Filtros para la tabla `bloqueos`
 --
-ALTER TABLE `bloqueos_seguridad`
-  ADD CONSTRAINT `bloqueos_seguridad_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `bloqueos`
+  ADD CONSTRAINT `bloqueos_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `competencias`
+-- Filtros para la tabla `componentes_aprendizaje`
 --
-ALTER TABLE `competencias`
-  ADD CONSTRAINT `competencias_ibfk_1` FOREIGN KEY (`fk_planificacion`) REFERENCES `planificaciones` (`id_planificacion`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `componentes_aprendizaje`
+  ADD CONSTRAINT `componentes_aprendizaje_ibfk_1` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `condiciones_salud`
@@ -1950,7 +1710,14 @@ ALTER TABLE `consultas_medicas`
 -- Filtros para la tabla `contenidos`
 --
 ALTER TABLE `contenidos`
-  ADD CONSTRAINT `contenidos_ibfk_1` FOREIGN KEY (`fk_area_aprendizaje`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `contenidos_ibfk_1` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `contenido_indicador`
+--
+ALTER TABLE `contenido_indicador`
+  ADD CONSTRAINT `contenido_indicador_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `contenido_indicador_ibfk_2` FOREIGN KEY (`fk_contenido`) REFERENCES `contenidos` (`id_contenido`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `documentos_academicos`
@@ -1963,6 +1730,14 @@ ALTER TABLE `documentos_academicos`
 --
 ALTER TABLE `estudiantes`
   ADD CONSTRAINT `fk_estudiantes_persona` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`) ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `evaluar`
+--
+ALTER TABLE `evaluar`
+  ADD CONSTRAINT `evaluar_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `evaluar_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `evaluar_ibfk_3` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `grupos_estudiantiles`
@@ -1982,18 +1757,18 @@ ALTER TABLE `habilidades`
 --
 ALTER TABLE `horarios`
   ADD CONSTRAINT `horarios_ibfk_1` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `horarios_ibfk_2` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `horarios_ibfk_3` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `horarios_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `horarios_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `horarios_ibfk_5` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `imparticion_clases`
+-- Filtros para la tabla `imparte`
 --
-ALTER TABLE `imparticion_clases`
-  ADD CONSTRAINT `fk_imparticion_aula` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_imparticion_docente` FOREIGN KEY (`fk_docente`) REFERENCES `personal` (`id_personal`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `imparticion_clases_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `imparticion_clases_ibfk_2` FOREIGN KEY (`fk_area_aprendizaje`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `imparte`
+  ADD CONSTRAINT `imparte_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `imparte_ibfk_2` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `imparte_ibfk_3` FOREIGN KEY (`fk_personal`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `imparte_ibfk_4` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `indicadores`
@@ -2002,27 +1777,13 @@ ALTER TABLE `indicadores`
   ADD CONSTRAINT `indicadores_ibfk_1` FOREIGN KEY (`fk_competencia`) REFERENCES `competencias` (`id_competencia`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `indicadores_descriptores`
---
-ALTER TABLE `indicadores_descriptores`
-  ADD CONSTRAINT `indicadores_descriptores_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `indicadores_descriptores_ibfk_2` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `indicador_evaluacion_contenido`
---
-ALTER TABLE `indicador_evaluacion_contenido`
-  ADD CONSTRAINT `indicador_evaluacion_contenido_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `indicador_evaluacion_contenido_ibfk_2` FOREIGN KEY (`fk_contenido`) REFERENCES `contenidos` (`id_contenido`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `indicador_evaluacion_contenido_ibfk_3` FOREIGN KEY (`fk_evaluacion`) REFERENCES `evaluaciones` (`id_evaluacion`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `inscripciones`
 --
 ALTER TABLE `inscripciones`
   ADD CONSTRAINT `inscripciones_ibfk_1` FOREIGN KEY (`fk_representante`) REFERENCES `representantes` (`id_representante`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `inscripciones_ibfk_2` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `inscripciones_ibfk_3` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `inscripciones_ibfk_3` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `inscripciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `lista_alergias`
@@ -2032,10 +1793,10 @@ ALTER TABLE `lista_alergias`
   ADD CONSTRAINT `lista_alergias_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `momentos_academicos`
+-- Filtros para la tabla `momentos`
 --
-ALTER TABLE `momentos_academicos`
-  ADD CONSTRAINT `momentos_academicos_ibfk_1` FOREIGN KEY (`fk_anio_escolar`) REFERENCES `anios_escolares` (`id_anio_escolar`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `momentos`
+  ADD CONSTRAINT `momentos_ibfk_1` FOREIGN KEY (`fk_anio_escolar`) REFERENCES `anios_escolares` (`id_anio_escolar`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `parentesco`
@@ -2056,31 +1817,30 @@ ALTER TABLE `personal`
 -- Filtros para la tabla `planificaciones`
 --
 ALTER TABLE `planificaciones`
-  ADD CONSTRAINT `planificaciones_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `planificaciones_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `planificaciones_ibfk_2` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `planificaciones_ibfk_3` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `planificaciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `planificaciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `planificaciones_ibfk_5` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `planificaciones_individuales`
 --
 ALTER TABLE `planificaciones_individuales`
   ADD CONSTRAINT `planificaciones_individuales_ibfk_1` FOREIGN KEY (`fk_planificacion`) REFERENCES `planificaciones` (`id_planificacion`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `planificaciones_individuales_ibfk_2` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `planificaciones_individuales_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `plan_competencias`
+--
+ALTER TABLE `plan_competencias`
+  ADD CONSTRAINT `plan_competencias_ibfk_1` FOREIGN KEY (`fk_competencias`) REFERENCES `competencias` (`id_competencia`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `plan_competencias_ibfk_2` FOREIGN KEY (`fk_planificacion`) REFERENCES `planificaciones` (`id_planificacion`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `preguntas`
 --
 ALTER TABLE `preguntas`
   ADD CONSTRAINT `preguntas_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `prosecucion`
---
-ALTER TABLE `prosecucion`
-  ADD CONSTRAINT `prosecucion_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `prosecucion_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos_academicos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `prosecucion_ibfk_5` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `representantes`
@@ -2095,25 +1855,10 @@ ALTER TABLE `respaldos`
   ADD CONSTRAINT `respaldos_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `resultado_evaluacion`
---
-ALTER TABLE `resultado_evaluacion`
-  ADD CONSTRAINT `resultado_evaluacion_ibfk_2` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `resultado_evaluacion_ibfk_4` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `resultado_evaluacion_ibfk_5` FOREIGN KEY (`fk_ind_eva_con`) REFERENCES `indicador_evaluacion_contenido` (`id_ind_eva_con`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
   ADD CONSTRAINT `sesiones_usuario_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `socioeconomico`
---
-ALTER TABLE `socioeconomico`
-  ADD CONSTRAINT `socioeconomico_ibfk_1` FOREIGN KEY (`fk_inscripcion`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `socioeconomico_ibfk_2` FOREIGN KEY (`fk_representante`) REFERENCES `representantes` (`id_representante`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `temas`

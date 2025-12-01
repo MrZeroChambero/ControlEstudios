@@ -1,13 +1,16 @@
 import React from "react";
+import DataTable from "react-data-table-component";
 import { AreasAprendizajeForm } from "./AreasAprendizajeForm";
+import {
+  areasModalClasses,
+  areasComponentTableClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const AreasAprendizajeModal = ({
   isOpen,
   onClose,
   onSubmit,
   currentArea,
-  componentes,
-  funciones,
   formData,
   datosFormulario,
   modo,
@@ -21,30 +24,82 @@ export const AreasAprendizajeModal = ({
       ? "Editar Área de Aprendizaje"
       : "Crear Área de Aprendizaje";
 
+  const columnasComponentes = [
+    {
+      name: "ID",
+      selector: (row) =>
+        row.id_componente_aprendizaje ?? row.id_componente ?? "-",
+      sortable: true,
+      width: "80px",
+    },
+    {
+      name: "Nombre",
+      selector: (row) => row.nombre_componente ?? "Sin nombre",
+      sortable: true,
+      wrap: true,
+    },
+    {
+      name: "Descripción",
+      selector: (row) => row.descripcion ?? "Sin descripción",
+      wrap: true,
+    },
+    {
+      name: "Estado",
+      selector: (row) => row.estado ?? row.estado_componente ?? "Desconocido",
+      sortable: true,
+      width: "120px",
+    },
+  ];
+
+  const componentes = currentArea?.componentes ?? [];
+
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6">{titulo}</h2>
+    <div className={areasModalClasses.overlay}>
+      <div
+        className={
+          modo === "ver"
+            ? areasModalClasses.contentWide
+            : areasModalClasses.content
+        }
+      >
+        <h2 className={areasModalClasses.title}>{titulo}</h2>
         <AreasAprendizajeForm
           onSubmit={onSubmit}
           onCancel={onClose}
           currentArea={currentArea}
           formData={formData}
-          componentes={componentes}
-          funciones={funciones}
           datosFormulario={datosFormulario}
           modoVer={modo === "ver"}
         />
         {modo === "ver" && (
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
-            >
-              Cerrar
-            </button>
-          </div>
+          <>
+            <div className={areasComponentTableClasses.wrapper}>
+              <h3 className={areasComponentTableClasses.title}>
+                Componentes de aprendizaje asociados
+              </h3>
+              <DataTable
+                columns={columnasComponentes}
+                data={componentes}
+                noDataComponent={
+                  <p className={areasComponentTableClasses.emptyState}>
+                    No hay componentes asociados para este registro.
+                  </p>
+                }
+                striped
+                highlightOnHover
+                dense
+              />
+            </div>
+            <div className={areasModalClasses.footer}>
+              <button
+                type="button"
+                onClick={onClose}
+                className={areasModalClasses.closeButton}
+              >
+                Cerrar
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

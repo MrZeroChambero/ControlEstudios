@@ -7,6 +7,11 @@ import {
   FaToggleOn,
   FaToggleOff,
 } from "react-icons/fa";
+import {
+  tableClasses,
+  statusClasses,
+  iconClasses,
+} from "./componentesAprendizajeStyles";
 
 export const ComponentesAprendizajeTable = ({
   componentes,
@@ -18,11 +23,22 @@ export const ComponentesAprendizajeTable = ({
 }) => {
   const [filterText, setFilterText] = useState("");
 
-  const filteredItems = componentes.filter(
-    (item) =>
-      item.nombre_componente &&
-      item.nombre_componente.toLowerCase().includes(filterText.toLowerCase())
-  );
+  const filtro = filterText.trim().toLowerCase();
+  const filteredItems = componentes.filter((item) => {
+    if (filtro === "") {
+      return true;
+    }
+
+    const campos = [
+      item.nombre_componente,
+      item.nombre_area,
+      item.especialista,
+    ];
+
+    return campos.some(
+      (campo) => campo && campo.toLowerCase().includes(filtro)
+    );
+  });
 
   const columns = [
     {
@@ -32,63 +48,98 @@ export const ComponentesAprendizajeTable = ({
       width: "150px",
     },
     {
+      name: "Área",
+      selector: (row) => row.nombre_area || "Sin área",
+      sortable: true,
+      grow: 1.5,
+      wrap: true,
+    },
+    {
       name: "Nombre del Componente",
       selector: (row) => row.nombre_componente,
       sortable: true,
       grow: 2,
     },
     {
-      name: "Estado",
+      name: "Especialista",
+      selector: (row) => row.especialista || "N/A",
+      sortable: true,
+      grow: 1.5,
+      wrap: true,
+    },
+    {
+      name: "Evalúa",
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.estado == "activo"
-              ? "bg-green-200 text-green-800"
-              : "bg-red-200 text-red-800"
+          className={`${statusClasses.base} ${
+            row.evalua === "si" ? statusClasses.evalYes : statusClasses.evalNo
           }`}
         >
-          {row.estado == 1 ? "Activo" : "Inactivo"}
+          {row.evalua === "si" ? "Sí evalúa" : "No evalúa"}
         </span>
       ),
       sortable: true,
-      selector: (row) => row.estado,
+      selector: (row) => row.evalua,
+      width: "150px",
+    },
+    {
+      name: "Estado",
+      cell: (row) => (
+        <span
+          className={`${statusClasses.base} ${
+            row.estado_componente === "activo"
+              ? statusClasses.active
+              : statusClasses.inactive
+          }`}
+        >
+          {row.estado_componente === "activo" ? "Activo" : "Inactivo"}
+        </span>
+      ),
+      sortable: true,
+      selector: (row) => row.estado_componente,
       width: "120px",
     },
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="flex items-center space-x-2">
+        <div className={tableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className="text-blue-500 hover:text-blue-700"
+            className={`${tableClasses.actionButton} ${tableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye />
+            <FaEye className={iconClasses.base} />
           </button>
           <button
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700"
+            className={`${tableClasses.actionButton} ${tableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={iconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_componente)}
-            className="text-red-500 hover:text-red-700"
+            className={`${tableClasses.actionButton} ${tableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash />
+            <FaTrash className={iconClasses.base} />
           </button>
           <button
             onClick={() => onStatusChange(row.id_componente)}
-            className={`text-2xl ${
-              row.estado == "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+            className={`${tableClasses.actionButton} ${
+              row.estado_componente === "activo"
+                ? tableClasses.toggleOn
+                : tableClasses.toggleOff
             }`}
-            title={row.estado == "activo" ? "Desactivar" : "Activar"}
+            title={
+              row.estado_componente === "activo" ? "Desactivar" : "Activar"
+            }
           >
-            {row.estado == "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado_componente === "activo" ? (
+              <FaToggleOn className={iconClasses.base} />
+            ) : (
+              <FaToggleOff className={iconClasses.base} />
+            )}
           </button>
         </div>
       ),
@@ -97,13 +148,15 @@ export const ComponentesAprendizajeTable = ({
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre..."
-      className="w-full md:w-1/3 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={tableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, área o especialista"
+        className={tableClasses.filterInput}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
   return (
@@ -112,12 +165,10 @@ export const ComponentesAprendizajeTable = ({
       data={filteredItems}
       progressPending={isLoading}
       progressComponent={
-        <p className="text-center text-gray-500 py-4">
-          Cargando componentes...
-        </p>
+        <p className={tableClasses.helperText}>Cargando componentes...</p>
       }
       noDataComponent={
-        <p className="text-center text-gray-500 py-4">
+        <p className={tableClasses.helperText}>
           No hay componentes para mostrar.
         </p>
       }

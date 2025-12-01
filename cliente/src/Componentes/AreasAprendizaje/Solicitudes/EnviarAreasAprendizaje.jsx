@@ -23,50 +23,52 @@ export const EnviarAreasAprendizaje = async (props) => {
   try {
     let response;
     if (currentArea) {
-      // Actualizar área
       response = await axios.put(
         `${API_URL}/${currentArea.id_area_aprendizaje}`,
         dataToSend,
         { withCredentials: true }
       );
     } else {
-      // Crear área
       response = await axios.post(API_URL, dataToSend, {
         withCredentials: true,
       });
     }
 
-    // Verificar si el backend respondió
-    if (response.data && response.data.back === true) {
-      const successMessage = currentArea ? "¡Actualizado!" : "¡Creado!";
-      Swal.fire(successMessage, response.data.message, "success");
-      solicitudAreasAprendizaje({ setIsLoading, setAreas });
-      closeModal();
-    } else {
-      console.error(response);
+    if (!response.data || response.data.exito !== true) {
+      throw {
+        response: {
+          data: response.data ?? {
+            exito: false,
+            mensaje: "No se pudo completar la operación.",
+          },
+        },
+      };
     }
+
+    const successMessage = currentArea ? "¡Actualizado!" : "¡Creado!";
+    Swal.fire(successMessage, response.data.mensaje, "success");
+    solicitudAreasAprendizaje({ setIsLoading, setAreas });
+    closeModal();
   } catch (error) {
     console.error("Error al guardar área de aprendizaje:", error);
     const errorData = error.response?.data;
     console.log(error);
 
     if (errorData) {
-      console.error(
-        "Error del backend:",
-        errorData.message,
-        errorData.error_details
-      );
+      console.error("Error del backend:", errorData.mensaje, errorData.errores);
 
-      if (errorData.back === false) {
-        if (errorData.errors) {
-          const errors = Object.entries(errorData.errors).map(
-            ([key, value]) =>
-              `${key}: ${Array.isArray(value) ? value.join(", ") : value}`
+      if (errorData.exito === false) {
+        if (errorData.errores) {
+          const erroresFormateados = Object.entries(errorData.errores).map(
+            ([campo, mensajes]) =>
+              `${campo}: ${
+                Array.isArray(mensajes) ? mensajes.join(", ") : mensajes
+              }`
           );
-          const errorMsg = errors.join("\n");
+          const errorMsg = erroresFormateados.join("\n");
           Swal.fire("Error de validación", errorMsg, "error");
         } else {
-          Swal.fire("Error", errorData.message || "Ocurrió un error.", "error");
+          Swal.fire("Error", errorData.mensaje || "Ocurrió un error.", "error");
         }
       } else {
         Swal.fire("Error", "Error de comunicación con el servidor.", "error");

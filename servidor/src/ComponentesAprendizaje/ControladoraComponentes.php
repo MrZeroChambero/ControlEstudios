@@ -3,176 +3,153 @@
 namespace Micodigo\ComponentesAprendizaje;
 
 use Micodigo\Config\Conexion;
-use Valitron\Validator;
 use Exception;
+use PDOException;
 
 class ControladoraComponentes
 {
-
-    public function __construct()
-    {
-        Validator::lang('es');
-    }
-
-    private function addUniqueRule(Validator $v, string $field, string $table, string $column, ?int $ignoreId = null)
-    {
-        $v->addRule('unique', function ($field, $value, array $params) use ($table, $column, $ignoreId) {
-            $pdo = Conexion::obtener();
-            $sql = "SELECT COUNT(*) FROM {$table} WHERE {$column} = ?";
-            $bindings = [$value];
-
-            if ($ignoreId !== null) {
-                $sql .= " AND id_componente != ?";
-                $bindings[] = $ignoreId;
-            }
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($bindings);
-            return $stmt->fetchColumn() == 0;
-        }, 'ya está en uso.');
-    }
-
-    public function listar()
+    public function listar(): void
     {
         try {
-            $pdo = Conexion::obtener();
-            $componentes = ComponentesAprendizaje::consultarTodos($pdo);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => true, 'data' => $componentes, 'message' => 'Componentes de aprendizaje obtenidos exitosamente.']);
-        } catch (Exception $e) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'message' => 'Error al obtener los componentes de aprendizaje.']);
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje();
+            $componentes = $modelo->consultarComponentesCompletos($conexion);
+            $this->enviarRespuestaJson(200, 'exito', 'Componentes de aprendizaje consultados correctamente.', $componentes);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al listar los componentes.', null, ['detalle' => [$excepcion->getMessage()]]);
         }
     }
-    public function listar_select()
+
+    public function listarSelect(): void
     {
         try {
-            $pdo = Conexion::obtener();
-            $componentes = ComponentesAprendizaje::consultarSelect($pdo);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => true, 'data' => $componentes, 'message' => 'Componentes de aprendizaje obtenidos exitosamente.']);
-        } catch (Exception $e) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'message' => 'Error al obtener los componentes de aprendizaje.']);
-        }
-    }
-    
-
-    public function crear()
-    {
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $v = new Validator($data);
-        $this->addUniqueRule($v, 'nombre_componente', 'componentes_aprendizaje', 'nombre_componente');
-        $v->rule('required', 'nombre_componente')->message('El nombre del componente es requerido');
-        $v->rule('lengthMax', 'nombre_componente', 100)->message('El nombre del componente no debe exceder los 100 caracteres');
-
-        if ($v->validate()) {
-            try {
-                $pdo = Conexion::obtener();
-                $componente = new ComponentesAprendizaje($data['nombre_componente']);
-                $id = $componente->crear($pdo);
-
-                if ($id) {
-                    http_response_code(201);
-                    $componente->id_componente = $id;
-                    header('Content-Type: application/json');
-                    echo json_encode(['back' => true, 'data' => $componente, 'message' => 'Componente de aprendizaje creado exitosamente.']);
-                } else {
-                    http_response_code(500);
-                    header('Content-Type: application/json');
-                    echo json_encode(['back' => false, 'message' => 'Error al crear el componente de aprendizaje.']);
-                }
-            } catch (Exception $e) {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode(['back' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()]);
-            }
-        } else {
-            http_response_code(400);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'errors' => $v->errors(), 'message' => 'Datos inválidos.']);
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje();
+            $componentes = $modelo->consultarParaSelect($conexion);
+            $this->enviarRespuestaJson(200, 'exito', 'Componentes activos obtenidos correctamente.', $componentes);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al obtener los componentes para selección.', null, ['detalle' => [$excepcion->getMessage()]]);
         }
     }
 
-    public function actualizar($id)
-    {
-        $data = json_decode(file_get_contents('php://input'), true);
-
-        $v = new Validator($data);
-        $this->addUniqueRule($v, 'nombre_componente', 'componentes_aprendizaje', 'nombre_componente', $id);
-        $v->rule('required', 'nombre_componente')->message('El nombre del componente es requerido');
-        $v->rule('lengthMax', 'nombre_componente', 100)->message('El nombre del componente no debe exceder los 100 caracteres');
-
-        if ($v->validate()) {
-            try {
-                $pdo = Conexion::obtener();
-                $componente = ComponentesAprendizaje::consultarActualizar($pdo, $id);
-
-                if ($componente) {
-                    $componente->nombre_componente = $data['nombre_componente'];
-                    if ($componente->actualizar($pdo)) {
-                        header('Content-Type: application/json');
-                        echo json_encode(['back' => true, 'data' => $componente, 'message' => 'Componente de aprendizaje actualizado exitosamente.']);
-                    } else {
-                        http_response_code(500);
-                        header('Content-Type: application/json');
-                        echo json_encode(['back' => false, 'message' => 'Error al actualizar el componente de aprendizaje.']);
-                    }
-                } else {
-                    http_response_code(404);
-                    header('Content-Type: application/json');
-                    echo json_encode(['back' => false, 'message' => 'Componente de aprendizaje no encontrado.']);
-                }
-            } catch (Exception $e) {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode(['back' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()]);
-            }
-        } else {
-            http_response_code(400);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'errors' => $v->errors(), 'message' => 'Datos inválidos.']);
-        }
-    }
-
-    public function eliminar($id)
+    public function crear(): void
     {
         try {
-            $pdo = Conexion::obtener();
-            if (ComponentesAprendizaje::eliminar($pdo, $id)) {
-                header('Content-Type: application/json');
-                echo json_encode(['back' => true, 'message' => 'Componente de aprendizaje eliminado exitosamente.']);
-            } else {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode(['back' => false, 'message' => 'Error al eliminar el componente de aprendizaje.']);
+            $entrada = $this->obtenerEntradaJson();
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje($entrada);
+            $resultado = $modelo->crear($conexion, $entrada);
+
+            if (isset($resultado['errores'])) {
+                $this->enviarRespuestaJson(422, 'error', 'La información enviada no es válida.', null, $resultado['errores']);
+                return;
             }
-        } catch (Exception $e) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()]);
+
+            $this->enviarRespuestaJson(201, 'exito', 'Componente de aprendizaje creado correctamente.', $resultado['datos']);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al registrar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
         }
     }
 
-    public function cambiarEstado($id)
+    public function actualizar(int $idComponente): void
     {
         try {
-            $pdo = Conexion::obtener();
-            if (ComponentesAprendizaje::cambiarEstado($pdo, $id)) {
-                header('Content-Type: application/json');
-                echo json_encode(['back' => true, 'message' => 'Estado del componente de aprendizaje cambiado exitosamente.']);
-            } else {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode(['back' => false, 'message' => 'Error al cambiar el estado del componente de aprendizaje.']);
+            $entrada = $this->obtenerEntradaJson();
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje();
+            $resultado = $modelo->actualizar($conexion, $idComponente, $entrada);
+
+            if (isset($resultado['errores'])) {
+                $codigo = isset($resultado['errores']['id_componente']) ? 404 : 422;
+                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el componente.', null, $resultado['errores']);
+                return;
             }
-        } catch (Exception $e) {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['back' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()]);
+
+            $this->enviarRespuestaJson(200, 'exito', 'Componente de aprendizaje actualizado correctamente.', $resultado['datos']);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al actualizar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
         }
+    }
+
+    public function eliminar(int $idComponente): void
+    {
+        try {
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje();
+            $resultado = $modelo->eliminar($conexion, $idComponente);
+
+            if (isset($resultado['errores'])) {
+                $codigo = isset($resultado['errores']['relaciones']) ? 409 : 404;
+                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible eliminar el componente.', null, $resultado['errores']);
+                return;
+            }
+
+            $this->enviarRespuestaJson(200, 'exito', 'Componente de aprendizaje eliminado correctamente.', $resultado['datos']);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al eliminar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+        }
+    }
+
+    public function cambiarEstado(int $idComponente): void
+    {
+        try {
+            $entrada = $this->obtenerEntradaJson();
+            $estadoSolicitado = $entrada['estado_componente'] ?? null;
+
+            $conexion = Conexion::obtener();
+            $modelo = new ComponentesAprendizaje();
+            $resultado = $modelo->cambiarEstado($conexion, $idComponente, $estadoSolicitado);
+
+            if (isset($resultado['errores'])) {
+                $codigo = isset($resultado['errores']['id_componente']) ? 404 : 422;
+                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible cambiar el estado del componente.', null, $resultado['errores']);
+                return;
+            }
+
+            $mensaje = $resultado['datos']['estado_componente'] === 'activo'
+                ? 'El componente se activó correctamente.'
+                : 'El componente se desactivó correctamente.';
+
+            $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
+        } catch (Exception | PDOException $excepcion) {
+            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+        }
+    }
+
+    private function obtenerEntradaJson(): array
+    {
+        $cuerpo = file_get_contents('php://input');
+        if ($cuerpo === false || $cuerpo === '') {
+            return [];
+        }
+
+        $datos = json_decode($cuerpo, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('El cuerpo de la solicitud contiene JSON inválido: ' . json_last_error_msg());
+        }
+
+        return is_array($datos) ? $datos : [];
+    }
+
+    private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
+    {
+        http_response_code($codigoHttp);
+        header('Content-Type: application/json; charset=utf-8');
+
+        $respuesta = [
+            'estado' => $estado,
+            'exito' => $estado === 'exito',
+            'mensaje' => $mensaje,
+        ];
+
+        if ($datos !== null) {
+            $respuesta['datos'] = $datos;
+        }
+
+        if ($errores !== null) {
+            $respuesta['errores'] = $errores;
+        }
+
+        echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
     }
 }

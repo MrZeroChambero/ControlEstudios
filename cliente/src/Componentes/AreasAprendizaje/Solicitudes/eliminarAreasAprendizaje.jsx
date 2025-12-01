@@ -21,26 +21,36 @@ export const eliminarAreasAprendizaje = async (props) => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/${id}`, { withCredentials: true });
-        Swal.fire(
-          "¡Borrado!",
-          "El área de aprendizaje ha sido eliminada.",
-          "success"
-        );
+        const response = await axios.delete(`${API_URL}/${id}`, {
+          withCredentials: true,
+        });
+
+        if (!response.data || response.data.exito !== true) {
+          throw {
+            response: {
+              data: response.data ?? {
+                exito: false,
+                mensaje: "No se pudo eliminar el área de aprendizaje.",
+              },
+            },
+          };
+        }
+
+        Swal.fire("¡Borrado!", response.data.mensaje, "success");
         solicitudAreasAprendizaje({ setIsLoading, setAreas });
       } catch (error) {
         console.error("Error al eliminar área de aprendizaje:", error);
         const errorData = error.response?.data;
 
-        if (errorData && errorData.back === false) {
+        if (errorData && errorData.exito === false) {
           console.error(
             "Error del backend:",
-            errorData.message,
-            errorData.error_details
+            errorData.mensaje,
+            errorData.errores
           );
           Swal.fire(
             "Error",
-            errorData.message || "No se pudo eliminar el área de aprendizaje.",
+            errorData.mensaje || "No se pudo eliminar el área de aprendizaje.",
             "error"
           );
         } else {

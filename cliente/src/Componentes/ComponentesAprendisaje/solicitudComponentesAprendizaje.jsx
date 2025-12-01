@@ -1,20 +1,36 @@
 import axios from "axios";
-import Swal from "sweetalert2";
 
-export const solicitudComponentesAprendizaje = async ({ setIsLoading, setComponentes }) => {
-  const API_URL = "http://localhost:8080/controlestudios/servidor/componentes_aprendizaje";
+const API_URL =
+  "http://localhost:8080/controlestudios/servidor/componentes_aprendizaje";
+
+export const solicitudComponentesAprendizaje = async ({
+  setIsLoading,
+  setComponentes,
+  Swal,
+}) => {
   try {
     setIsLoading(true);
     const response = await axios.get(API_URL, { withCredentials: true });
-    if (response.data.back) {
-      setComponentes(response.data.data);
+
+    if (response.data?.exito === true) {
+      const datos = Array.isArray(response.data.datos)
+        ? response.data.datos
+        : [];
+      setComponentes(datos);
     } else {
-      Swal.fire("Error", "No se pudieron cargar los componentes de aprendizaje.", "error");
+      const mensaje =
+        response.data?.mensaje ||
+        "No se pudieron cargar los componentes de aprendizaje.";
+      Swal.fire("Error", mensaje, "error");
       setComponentes([]);
     }
   } catch (error) {
     console.error("Error al obtener componentes de aprendizaje:", error);
-    Swal.fire("Error", "No se pudieron cargar los componentes de aprendizaje.", "error");
+    const mensajeError =
+      error.response?.data?.mensaje ||
+      "No se pudieron cargar los componentes de aprendizaje.";
+    Swal.fire("Error", mensajeError, "error");
+    setComponentes([]);
   } finally {
     setIsLoading(false);
   }

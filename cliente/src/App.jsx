@@ -14,7 +14,6 @@ import { Estudiantes } from "./Componentes/Estudiantes/Estudiantes.jsx";
 import { ComponentesAprendizajes } from "./Componentes/ComponentesAprendisaje/ComponentesAprendizajes.jsx";
 import { AreasAprendizajes } from "./Componentes/AreasAprendizaje/AreasAprendizajes.jsx";
 import { Contenidos } from "./Componentes/Contenidos/Contenidos.jsx";
-import { Evaluaciones } from "./Componentes/Evaluaciones/MenuEvaluaciones.jsx";
 import { Personal } from "./Componentes/Personal/Personal.jsx";
 import Representante from "./Componentes/Representantes/Representante.jsx";
 import Parentesco from "./Componentes/Parentesco/Parentesco.jsx";
@@ -39,7 +38,7 @@ function App() {
       <Route path="Asistencia de estudiantes" element={<Dashboard />} />
       <Route path="Competencias" element={<Dashboard />} />
       <Route path="Indicadores" element={<Dashboard />} />
-      <Route path="Evaluaciones" element={<Evaluaciones />} />
+
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
       <Route path="/server-error" element={<ServerErrorPage />} />

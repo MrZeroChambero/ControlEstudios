@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Swal from "sweetalert2";
 import { FaPlus } from "react-icons/fa";
 import { ContenidosTable } from "./ContenidosTable";
@@ -7,52 +7,86 @@ import { TemasModal } from "./TemasModal";
 import { TemaFormModal } from "./TemaFormModal";
 import {
   solicitarContenidos,
-  solicitarAreas,
+  solicitarComponentesSelect,
   solicitarTemasPorContenido,
   eliminarContenido,
   enviarContenido,
   cambioEstadoContenido,
 } from "./contenidosService";
-
-// Importar servicios de temas
 import {
   crearTema,
   actualizarTema,
   eliminarTema,
   cambioEstadoTema,
 } from "./temasService";
+import { solicitudAreasComponentes } from "../ComponentesAprendisaje/solicitudAreasComponentes";
+import { contenidosLayout } from "../EstilosCliente/EstilosClientes";
+
+const opcionesGrado = [
+  { valor: "general", etiqueta: "General" },
+  { valor: "1", etiqueta: "1°" },
+  { valor: "2", etiqueta: "2°" },
+  { valor: "3", etiqueta: "3°" },
+  { valor: "4", etiqueta: "4°" },
+  { valor: "5", etiqueta: "5°" },
+  { valor: "6", etiqueta: "6°" },
+];
+
+const formatearGrado = (grado) => {
+  const encontrado = opcionesGrado.find((item) => item.valor === grado);
+  return encontrado ? encontrado.etiqueta : grado;
+};
 
 export const Contenidos = () => {
   const [contenidos, setContenidos] = useState([]);
+  const [componentes, setComponentes] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [temasContenido, setTemasContenido] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTemasModalOpen, setIsTemasModalOpen] = useState(false);
   const [isTemaFormModalOpen, setIsTemaFormModalOpen] = useState(false);
   const [currentContenido, setCurrentContenido] = useState(null);
   const [currentTema, setCurrentTema] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [modoModal, setModoModal] = useState("crear");
   const [modoTemaModal, setModoTemaModal] = useState("crear");
   const [formData, setFormData] = useState({
-    nombre: "",
-    fk_area_aprendizaje: "",
+    nombre_contenido: "",
+    fk_componente: "",
     grado: "",
     descripcion: "",
   });
-  const [temaFormData, setTemaFormData] = useState({
-    nombre_tema: "",
-  });
-  const [areas, setAreas] = useState([]);
-  const [temasContenido, setTemasContenido] = useState([]);
+  const [temaFormData, setTemaFormData] = useState({ nombre_tema: "" });
 
-  // Cargar contenidos y áreas al montar el componente
   useEffect(() => {
-    cargarDatos();
+    const cargar = async () => {
+      await solicitarContenidos({ setContenidos, setIsLoading, Swal });
+      await solicitarComponentesSelect({ setComponentes, Swal });
+      await solicitudAreasComponentes({ setAreas, Swal });
+    };
+
+    cargar();
   }, []);
 
-  const cargarDatos = async () => {
-    await solicitarContenidos(setContenidos, setIsLoading, Swal);
-    await solicitarAreas(setAreas, Swal);
-  };
+  const componentesFormateados = useMemo(() => {
+    if (componentes.length === 0) {
+      return [];
+    }
+
+    return componentes.map((componente) => {
+      const area = areas.find(
+        (item) => item.id_area_aprendizaje === componente.fk_area
+      );
+
+      return {
+        ...componente,
+        etiqueta: area
+          ? `${componente.nombre} — ${area.nombre_area}`
+          : componente.nombre,
+        nombre_area: area?.nombre_area ?? null,
+      };
+    });
+  }, [componentes, areas]);
 
   const cargarTemas = async (idContenido) => {
     try {
@@ -62,13 +96,13 @@ export const Contenidos = () => {
       console.error("Error al cargar temas:", error);
       Swal.fire(
         "Error",
-        "No se pudieron cargar los temas del contenido.",
+        error?.message || "No se pudieron cargar los temas del contenido.",
         "error"
       );
     }
   };
 
-  const cambioEstados = async (contenido) => {
+  const manejarCambioEstadoContenido = (contenido) => {
     const nuevoEstado = contenido.estado === "activo" ? "inactivo" : "activo";
     const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
 
@@ -82,56 +116,61 @@ export const Contenidos = () => {
       confirmButtonText: `Sí, ${accion}`,
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await cambioEstadoContenido(
-            contenido.id_contenido,
-            cargarDatos,
-            Swal
-          );
-        } catch (error) {
-          console.error(`Error al ${accion} el contenido:`, error);
-          Swal.fire("Error", `No se pudo ${accion} el contenido.`, "error");
-        }
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      try {
+        await cambioEstadoContenido({
+          idContenido: contenido.id_contenido,
+          Swal,
+        });
+        await solicitarContenidos({ setContenidos, setIsLoading, Swal });
+      } catch (error) {
+        console.error(`Error al ${accion} el contenido:`, error);
+        Swal.fire("Error", `No se pudo ${accion} el contenido.`, "error");
       }
     });
   };
 
-  const openModal = (contenido = null, modo = "crear") => {
+  const abrirModalContenido = (contenido = null, modo = "crear") => {
     setCurrentContenido(contenido);
     setModoModal(modo);
+
     if (contenido) {
       setFormData({
-        nombre: contenido.nombre,
-        fk_area_aprendizaje: contenido.fk_area_aprendizaje,
-        grado: contenido.grado,
-        descripcion: contenido.descripcion || "",
+        nombre_contenido: contenido.nombre_contenido ?? "",
+        fk_componente: contenido.fk_componente?.toString() ?? "",
+        grado: contenido.grado ?? "",
+        descripcion: contenido.descripcion ?? "",
       });
-      // Si es modo "ver", cargar los temas del contenido
+
       if (modo === "ver") {
         cargarTemas(contenido.id_contenido);
       }
     } else {
       setFormData({
-        nombre: "",
-        fk_area_aprendizaje: "",
+        nombre_contenido: "",
+        fk_componente: "",
         grado: "",
         descripcion: "",
       });
     }
+
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const cerrarModalContenido = () => {
     setIsModalOpen(false);
     setCurrentContenido(null);
     setModoModal("crear");
     setTemasContenido([]);
   };
 
-  const openTemasModal = async (contenido) => {
+  const abrirModalTemas = async (contenido) => {
+    setCurrentContenido(contenido);
+
     try {
-      setCurrentContenido(contenido);
       const temas = await solicitarTemasPorContenido(
         contenido.id_contenido,
         Swal
@@ -142,82 +181,78 @@ export const Contenidos = () => {
       console.error("Error al cargar temas:", error);
       Swal.fire(
         "Error",
-        error.message || "No se pudieron cargar los temas.",
+        error?.message || "No se pudieron cargar los temas asociados.",
         "error"
       );
     }
   };
 
-  const closeTemasModal = () => {
+  const cerrarModalTemas = () => {
     setIsTemasModalOpen(false);
     setCurrentContenido(null);
     setTemasContenido([]);
   };
 
-  const openTemaFormModal = (tema = null, modo = "crear") => {
+  const abrirModalTema = (tema = null, modo = "crear") => {
     setCurrentTema(tema);
     setModoTemaModal(modo);
-    if (tema) {
-      setTemaFormData({
-        nombre_tema: tema.nombre_tema,
-      });
-    } else {
-      setTemaFormData({
-        nombre_tema: "",
-      });
-    }
+    setTemaFormData({ nombre_tema: tema?.nombre_tema ?? "" });
     setIsTemaFormModalOpen(true);
   };
-  const closeTemaFormModal = () => {
+
+  const cerrarModalTema = () => {
     setIsTemaFormModalOpen(false);
     setCurrentTema(null);
     setModoTemaModal("crear");
   };
 
-  const datosFormulario = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const manejarCambioFormulario = (evento) => {
+    const { name, value } = evento.target;
+    setFormData((previo) => ({ ...previo, [name]: value }));
   };
 
-  const handleTemaFormChange = (e) => {
-    const { name, value } = e.target;
-    setTemaFormData({ ...temaFormData, [name]: value });
+  const manejarCambioTema = (evento) => {
+    const { name, value } = evento.target;
+    setTemaFormData((previo) => ({ ...previo, [name]: value }));
   };
 
-  const handleView = (contenido) => {
-    openModal(contenido, "ver");
+  const manejarVerContenido = (contenido) =>
+    abrirModalContenido(contenido, "ver");
+  const manejarEditarContenido = (contenido) =>
+    abrirModalContenido(contenido, "editar");
+  const manejarEliminarContenido = (id) =>
+    eliminarContenido({
+      idContenido: id,
+      recargar: () =>
+        solicitarContenidos({ setContenidos, setIsLoading, Swal }),
+      Swal,
+    });
+
+  const manejarSubmitContenido = async (evento) => {
+    evento.preventDefault();
+
+    console.log("[Contenidos] Datos del formulario antes de enviar:", formData);
+
+    await enviarContenido({
+      datos: formData,
+      contenidoActual: currentContenido,
+      cerrarModal: cerrarModalContenido,
+      recargar: () =>
+        solicitarContenidos({ setContenidos, setIsLoading, Swal }),
+      Swal,
+    });
   };
 
-  const handleEdit = (contenido) => {
-    openModal(contenido, "editar");
+  const manejarAgregarTema = () => {
+    if (!currentContenido) {
+      return;
+    }
+    abrirModalTema(null, "crear");
   };
 
-  const handleDelete = (id) => {
-    eliminarContenido(id, cargarDatos, Swal);
-  };
+  const manejarEditarTema = (tema) => abrirModalTema(tema, "editar");
 
-  const handleSubmit = (e) => {
-    enviarContenido(
-      e,
-      formData,
-      currentContenido,
-      closeModal,
-      cargarDatos,
-      Swal
-    );
-  };
-
-  // Funciones para gestión de temas
-  const handleAgregarTema = () => {
-    if (!currentContenido) return;
-    openTemaFormModal(null, "crear");
-  };
-
-  const handleEditarTema = (tema) => {
-    openTemaFormModal(tema, "editar");
-  };
-
-  const handleEliminarTema = async (tema) => {
+  const manejarEliminarTema = (tema) => {
     Swal.fire({
       title: "¿Estás seguro?",
       text: "¡No podrás revertir esto!",
@@ -225,24 +260,25 @@ export const Contenidos = () => {
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, ¡bórralo!",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await eliminarTema(tema.id_tema, Swal);
-          // Recargar la lista de temas
-          await cargarTemas(currentContenido.id_contenido);
-          Swal.fire("¡Borrado!", "El tema ha sido eliminado.", "success");
-        } catch (error) {
-          console.error("Error al eliminar tema:", error);
-          Swal.fire("Error", "No se pudo eliminar el tema.", "error");
-        }
+    }).then(async (resultado) => {
+      if (!resultado.isConfirmed) {
+        return;
+      }
+
+      try {
+        await eliminarTema(tema.id_tema, Swal);
+        await cargarTemas(currentContenido.id_contenido);
+        Swal.fire("Hecho", "El tema se eliminó correctamente.", "success");
+      } catch (error) {
+        console.error("Error al eliminar tema:", error);
+        Swal.fire("Error", "No se pudo eliminar el tema.", "error");
       }
     });
   };
 
-  const handleCambiarEstadoTema = async (tema) => {
+  const manejarCambioEstadoTema = (tema) => {
     const nuevoEstado = tema.estado === "activo" ? "inactivo" : "activo";
     const accion = nuevoEstado === "activo" ? "activar" : "desactivar";
 
@@ -255,105 +291,118 @@ export const Contenidos = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${accion}`,
       cancelButtonText: "Cancelar",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await cambioEstadoTema(tema.id_tema, Swal);
-          // Recargar la lista de temas
-          await cargarTemas(currentContenido.id_contenido);
-          Swal.fire("¡Éxito!", `Tema ${accion}do correctamente.`, "success");
-        } catch (error) {
-          console.error(`Error al ${accion} el tema:`, error);
-          Swal.fire("Error", `No se pudo ${accion} el tema.`, "error");
-        }
+    }).then(async (resultado) => {
+      if (!resultado.isConfirmed) {
+        return;
+      }
+
+      try {
+        await cambioEstadoTema(tema.id_tema, Swal);
+        await cargarTemas(currentContenido.id_contenido);
+        Swal.fire("Hecho", `Tema ${accion}do correctamente.`, "success");
+      } catch (error) {
+        console.error(`Error al ${accion} el tema:`, error);
+        Swal.fire("Error", `No se pudo ${accion} el tema.`, "error");
       }
     });
   };
 
-  const handleSubmitTema = async (e) => {
-    e.preventDefault();
-    try {
-      const dataToSend = {
-        ...temaFormData,
-        fk_contenido: currentContenido.id_contenido,
-      };
+  const manejarSubmitTema = async (evento) => {
+    evento.preventDefault();
 
+    if (!currentContenido) {
+      Swal.fire(
+        "Aviso",
+        "Debe seleccionar un contenido antes de registrar temas.",
+        "warning"
+      );
+      return;
+    }
+
+    const datos = {
+      ...temaFormData,
+      fk_contenido: currentContenido.id_contenido,
+    };
+
+    try {
       if (modoTemaModal === "editar") {
-        await actualizarTema(currentTema.id_tema, dataToSend, Swal);
+        await actualizarTema(currentTema.id_tema, datos, Swal);
       } else {
-        await crearTema(dataToSend, Swal);
+        await crearTema(datos, Swal);
       }
 
-      // Recargar la lista de temas
       await cargarTemas(currentContenido.id_contenido);
-      closeTemaFormModal();
+      cerrarModalTema();
     } catch (error) {
       console.error("Error al guardar tema:", error);
-      // El manejo de errores se hace en el servicio
     }
   };
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Gestión de Contenidos</h2>
+      <div className={contenidosLayout.container}>
+        <div className={contenidosLayout.header}>
+          <h2 className={contenidosLayout.title}>Gestión de Contenidos</h2>
           <button
-            onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            type="button"
+            onClick={() => abrirModalContenido()}
+            className={contenidosLayout.addButton}
           >
-            <FaPlus className="mr-2" /> Agregar Contenido
+            <FaPlus className="h-4 w-4" />
+            <span>Agregar Contenido</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
-          Aquí puedes crear, ver, actualizar y eliminar los contenidos del
-          sistema. Cada contenido puede tener múltiples temas asociados.
+        <p className={contenidosLayout.description}>
+          Administra los contenidos curriculares vinculados a los componentes de
+          aprendizaje. Cada contenido puede tener múltiples temas asociados para
+          detallar la planificación.
         </p>
 
         <ContenidosTable
           contenidos={contenidos}
           isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          cambioEstados={cambioEstados}
-          onView={handleView}
-          onViewTemas={openTemasModal}
+          onEdit={manejarEditarContenido}
+          onDelete={manejarEliminarContenido}
+          cambioEstados={manejarCambioEstadoContenido}
+          onView={manejarVerContenido}
+          onViewTemas={abrirModalTemas}
+          formatearGrado={formatearGrado}
         />
       </div>
 
-      {/* Modal para crear/editar contenido */}
       <ContenidosModal
         isOpen={isModalOpen}
-        onClose={closeModal}
-        onSubmit={handleSubmit}
+        onClose={cerrarModalContenido}
+        onSubmit={manejarSubmitContenido}
         currentContenido={currentContenido}
         formData={formData}
-        areas={areas}
-        datosFormulario={datosFormulario}
+        componentes={componentesFormateados}
+        grados={opcionesGrado}
+        datosFormulario={manejarCambioFormulario}
         modo={modoModal}
+        formatearGrado={formatearGrado}
       />
 
-      {/* Modal para ver todos los temas (vista general) */}
       <TemasModal
         isOpen={isTemasModalOpen}
-        onClose={closeTemasModal}
+        onClose={cerrarModalTemas}
         contenido={currentContenido}
         temas={temasContenido}
-        onAgregarTema={handleAgregarTema}
-        onEditarTema={handleEditarTema}
-        onEliminarTema={handleEliminarTema}
-        onCambiarEstadoTema={handleCambiarEstadoTema}
+        onAgregarTema={manejarAgregarTema}
+        onEditarTema={manejarEditarTema}
+        onEliminarTema={manejarEliminarTema}
+        onCambiarEstadoTema={manejarCambioEstadoTema}
+        formatearGrado={formatearGrado}
       />
 
-      {/* Modal para crear/editar temas */}
       <TemaFormModal
         isOpen={isTemaFormModalOpen}
-        onClose={closeTemaFormModal}
-        onSubmit={handleSubmitTema}
+        onClose={cerrarModalTema}
+        onSubmit={manejarSubmitTema}
         currentTema={currentTema}
         formData={temaFormData}
-        onChange={handleTemaFormChange}
-        modo={modoTemaModal}
+        onChange={manejarCambioTema}
+        contenido={currentContenido}
       />
     </>
   );
