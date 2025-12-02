@@ -1,5 +1,7 @@
 import React from "react";
 
+import { estudiantesFormClasses } from "../EstilosCliente/EstilosClientes";
+
 export const DynamicForm = ({
   schema,
   formData,
@@ -17,15 +19,22 @@ export const DynamicForm = ({
     onChange?.(name, value);
   };
 
-  const fieldBaseClass = "w-full p-2 border border-gray-300 rounded-md";
-  const labelClass = "block text-gray-700 text-sm font-bold mb-1";
-  const errorClass = "text-red-600 text-xs mt-1";
+  const {
+    grid,
+    fieldWrapper,
+    label,
+    input,
+    select,
+    textArea,
+    textAreaAuto,
+    error,
+  } = estudiantesFormClasses;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={grid}>
       {schema.fields.map((f) => (
-        <div key={f.name} className="flex flex-col">
-          <label className={labelClass} htmlFor={f.name}>
+        <div key={f.name} className={fieldWrapper}>
+          <label className={label} htmlFor={f.name}>
             {f.label}
             {f.required ? " *" : ""}
           </label>
@@ -33,7 +42,7 @@ export const DynamicForm = ({
             <textarea
               id={f.name}
               name={f.name}
-              className={`${fieldBaseClass} min-h-[88px]`}
+              className={`${textArea} ${textAreaAuto}`}
               value={formData[f.name] ?? ""}
               onChange={(e) => handleChange(e, f.type, f.name)}
               disabled={disabled || disabledFields.includes(f.name)}
@@ -42,7 +51,7 @@ export const DynamicForm = ({
             <select
               id={f.name}
               name={f.name}
-              className={fieldBaseClass}
+              className={select}
               value={formData[f.name] ?? ""}
               onChange={(e) => handleChange(e, f.type, f.name)}
               disabled={disabled || disabledFields.includes(f.name)}
@@ -65,7 +74,7 @@ export const DynamicForm = ({
               id={f.name}
               name={f.name}
               type={f.type || "text"}
-              className={fieldBaseClass}
+              className={input}
               value={f.type === "checkbox" ? undefined : formData[f.name] ?? ""}
               checked={
                 f.type === "checkbox" ? Boolean(formData[f.name]) : undefined
@@ -74,9 +83,7 @@ export const DynamicForm = ({
               disabled={disabled || disabledFields.includes(f.name)}
             />
           )}
-          {errors[f.name] && (
-            <span className={errorClass}>{errors[f.name]}</span>
-          )}
+          {errors[f.name] && <span className={error}>{errors[f.name]}</span>}
         </div>
       ))}
     </div>

@@ -8,10 +8,10 @@ import {
   FaToggleOff,
 } from "react-icons/fa";
 import {
-  tableClasses,
-  statusClasses,
-  iconClasses,
-} from "./componentesAprendizajeStyles";
+  componentesTableClasses,
+  componentesStatusClasses,
+  componentesIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const ComponentesAprendizajeTable = ({
   componentes,
@@ -71,8 +71,10 @@ export const ComponentesAprendizajeTable = ({
       name: "Evalúa",
       cell: (row) => (
         <span
-          className={`${statusClasses.base} ${
-            row.evalua === "si" ? statusClasses.evalYes : statusClasses.evalNo
+          className={`${componentesStatusClasses.base} ${
+            row.evalua === "si"
+              ? componentesStatusClasses.evalYes
+              : componentesStatusClasses.evalNo
           }`}
         >
           {row.evalua === "si" ? "Sí evalúa" : "No evalúa"}
@@ -86,10 +88,10 @@ export const ComponentesAprendizajeTable = ({
       name: "Estado",
       cell: (row) => (
         <span
-          className={`${statusClasses.base} ${
+          className={`${componentesStatusClasses.base} ${
             row.estado_componente === "activo"
-              ? statusClasses.active
-              : statusClasses.inactive
+              ? componentesStatusClasses.active
+              : componentesStatusClasses.inactive
           }`}
         >
           {row.estado_componente === "activo" ? "Activo" : "Inactivo"}
@@ -102,43 +104,43 @@ export const ComponentesAprendizajeTable = ({
     {
       name: "Acciones",
       cell: (row) => (
-        <div className={tableClasses.actionGroup}>
+        <div className={componentesTableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className={`${tableClasses.actionButton} ${tableClasses.viewButton}`}
+            className={`${componentesTableClasses.actionButton} ${componentesTableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye className={iconClasses.base} />
+            <FaEye className={componentesIconClasses.base} />
           </button>
           <button
             onClick={() => onEdit(row)}
-            className={`${tableClasses.actionButton} ${tableClasses.editButton}`}
+            className={`${componentesTableClasses.actionButton} ${componentesTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit className={iconClasses.base} />
+            <FaEdit className={componentesIconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_componente)}
-            className={`${tableClasses.actionButton} ${tableClasses.deleteButton}`}
+            className={`${componentesTableClasses.actionButton} ${componentesTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash className={iconClasses.base} />
+            <FaTrash className={componentesIconClasses.base} />
           </button>
           <button
             onClick={() => onStatusChange(row.id_componente)}
-            className={`${tableClasses.actionButton} ${
+            className={`${componentesTableClasses.actionButton} ${
               row.estado_componente === "activo"
-                ? tableClasses.toggleOn
-                : tableClasses.toggleOff
+                ? componentesTableClasses.toggleOn
+                : componentesTableClasses.toggleOff
             }`}
             title={
               row.estado_componente === "activo" ? "Desactivar" : "Activar"
             }
           >
             {row.estado_componente === "activo" ? (
-              <FaToggleOn className={iconClasses.base} />
+              <FaToggleOn className={componentesIconClasses.base} />
             ) : (
-              <FaToggleOff className={iconClasses.base} />
+              <FaToggleOff className={componentesIconClasses.base} />
             )}
           </button>
         </div>
@@ -148,11 +150,11 @@ export const ComponentesAprendizajeTable = ({
   ];
 
   const subHeaderComponent = (
-    <div className={tableClasses.filterContainer}>
+    <div className={componentesTableClasses.filterContainer}>
       <input
         type="text"
         placeholder="Buscar por nombre, área o especialista"
-        className={tableClasses.filterInput}
+        className={componentesTableClasses.filterInput}
         onChange={(e) => setFilterText(e.target.value)}
         value={filterText}
       />
@@ -165,10 +167,12 @@ export const ComponentesAprendizajeTable = ({
       data={filteredItems}
       progressPending={isLoading}
       progressComponent={
-        <p className={tableClasses.helperText}>Cargando componentes...</p>
+        <p className={componentesTableClasses.helperText}>
+          Cargando componentes...
+        </p>
       }
       noDataComponent={
-        <p className={tableClasses.helperText}>
+        <p className={componentesTableClasses.helperText}>
           No hay componentes para mostrar.
         </p>
       }

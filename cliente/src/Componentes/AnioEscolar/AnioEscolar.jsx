@@ -1,103 +1,71 @@
-import React, { useEffect, useState } from "react";
-import Swal from "sweetalert2";
-import {
-  solicitarAnios,
-  crearAnio,
-  aperturarAnio,
-} from "../../api/anioEscolarService";
-import AnioEscolarForm from "./AnioEscolarForm";
-import AnioEscolarTable from "./AnioEscolarTable";
-import MomentsEditor from "./MomentsEditor";
-import GestionApertura from "./GestionApertura";
+import React from "react";
+import { FaPlus } from "react-icons/fa";
+import { anioEscolarLayout } from "../EstilosCliente/EstilosClientes";
+import { ModalAnioEscolar } from "./ModalAnioEscolar";
+import { TablaAniosEscolares } from "./TablaAniosEscolares";
+import { useGestionAniosEscolares } from "./useGestionAniosEscolares";
 
 export default function AnioEscolar() {
-  const [anios, setAnios] = useState([]);
-  const [createdMomentosIds, setCreatedMomentosIds] = useState([]);
-  const [createdAnioId, setCreatedAnioId] = useState(null);
-  const [gestionId, setGestionId] = useState(null);
-
-  useEffect(() => {
-    cargar();
-  }, []);
-
-  const cargar = async () => {
-    await solicitarAnios(setAnios, Swal);
-  };
-
-  const handleCrear = async (payload) => {
-    const res = await crearAnio(payload, Swal);
-    if (res && res.back === true) {
-      Swal.fire("OK", res.message || "Año creado", "success");
-      await cargar();
-      // si el backend devolvió IDs de momentos los almacenamos para edición
-      const data = res.data || res;
-      if (data && data.momentos) {
-        setCreatedMomentosIds(data.momentos);
-        if (data.id_anio) setCreatedAnioId(data.id_anio);
-        if (data.id_anio === undefined && data.id) setCreatedAnioId(data.id);
-      }
-      return data;
-    }
-    Swal.fire("Error", res.message || "No se creó el año", "error");
-    return null;
-  };
-
-  const handleAperturar = async (id) => {
-    const res = await aperturarAnio(id, Swal);
-    if (res && res.back === true) {
-      Swal.fire("OK", res.message || "Año aperturado", "success");
-      cargar();
-    } else {
-      Swal.fire("Error", res.message || "No se pudo aperturar", "error");
-    }
-  };
-
-  const abrirGestion = (id) => {
-    setGestionId(id);
-  };
-
-  const cerrarGestion = () => {
-    setGestionId(null);
-  };
+  const {
+    anios,
+    cargando,
+    filtro,
+    actualizarFiltro,
+    modal,
+    formulario,
+    errores,
+    abrirCrear,
+    abrirEditar,
+    cerrarModal,
+    cambiarCampo,
+    cambiarMomento,
+    guardarFormulario,
+    eliminarRegistro,
+    cambiarEstadoRegistro,
+    mostrarDetalle,
+  } = useGestionAniosEscolares();
 
   return (
-    <div className="p-6 bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Gestión de Años Escolares</h2>
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <AnioEscolarForm onCrear={handleCrear} />
+    <>
+      <section className={anioEscolarLayout.container}>
+        <div className={anioEscolarLayout.header}>
+          <h2 className={anioEscolarLayout.title}>Gestión de Años Escolares</h2>
+          <button
+            type="button"
+            className={anioEscolarLayout.addButton}
+            onClick={abrirCrear}
+          >
+            <FaPlus className="h-4 w-4" />
+            <span>Registrar año escolar</span>
+          </button>
         </div>
-        <div>
-          <AnioEscolarTable
-            anios={anios}
-            onAperturar={handleAperturar}
-            onGestion={abrirGestion}
-            onRefresh={cargar}
-          />
-          {createdMomentosIds && createdMomentosIds.length > 0 && (
-            <div className="mt-4">
-              <MomentsEditor
-                idAnio={createdAnioId}
-                initialMomentosIds={createdMomentosIds}
-                onSaved={() => {
-                  setCreatedMomentosIds([]);
-                  setCreatedAnioId(null);
-                  cargar();
-                }}
-              />
-            </div>
-          )}
-          {gestionId && (
-            <div className="mt-4">
-              <GestionApertura
-                idAnio={gestionId}
-                onClose={cerrarGestion}
-                onRefrescar={cargar}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+        <p className={anioEscolarLayout.description}>
+          Administra los periodos académicos, controla sus fechas clave y ajusta
+          los momentos sugeridos según tu calendario institucional.
+        </p>
+
+        <TablaAniosEscolares
+          registros={anios}
+          cargando={cargando}
+          filtro={filtro}
+          onFiltrar={actualizarFiltro}
+          onVer={mostrarDetalle}
+          onEditar={abrirEditar}
+          onEliminar={eliminarRegistro}
+          onCambiarEstado={cambiarEstadoRegistro}
+        />
+      </section>
+
+      <ModalAnioEscolar
+        abierto={modal.abierto}
+        modo={modal.modo}
+        datos={formulario}
+        errores={errores}
+        onCerrar={cerrarModal}
+        onCambiarCampo={cambiarCampo}
+        onCambiarMomento={cambiarMomento}
+        onSubmit={guardarFormulario}
+      />
+    </>
   );
 }

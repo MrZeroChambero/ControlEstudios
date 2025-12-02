@@ -9,6 +9,10 @@ import {
   obtenerEstudianteCompleto,
   cambioEstadoEstudiante,
 } from "./estudianteService";
+import {
+  estudiantesLayout,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const Estudiantes = () => {
   const [estudiantes, setEstudiantes] = useState([]);
@@ -89,17 +93,18 @@ export const Estudiantes = () => {
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Gestión de Estudiantes</h2>
+      <div className={estudiantesLayout.container}>
+        <div className={estudiantesLayout.header}>
+          <h2 className={estudiantesLayout.title}>Gestión de Estudiantes</h2>
           <button
             onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            className={estudiantesLayout.addButton}
           >
-            <FaPlus className="mr-2" /> Agregar Estudiante
+            <FaPlus className={contenidosIconClasses.base} />
+            <span>Agregar Estudiante</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className={estudiantesLayout.description}>
           Crea, visualiza, actualiza y gestiona documentos y salud del
           estudiante.
         </p>

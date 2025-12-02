@@ -95,9 +95,9 @@ export const AreasAprendizajeTable = ({
             title={row.estado_area === "activo" ? "Desactivar" : "Activar"}
           >
             {row.estado_area === "activo" ? (
-              <FaToggleOn className="h-5 w-5" />
+              <FaToggleOn className={contenidosIconClasses.base} />
             ) : (
-              <FaToggleOff className="h-5 w-5" />
+              <FaToggleOff className={contenidosIconClasses.base} />
             )}
           </button>
           <button

@@ -8,7 +8,10 @@ import { solicitudComponentesAprendizaje } from "./solicitudComponentesAprendiza
 import { solicitudAreasComponentes } from "./solicitudAreasComponentes";
 import { enviarComponenteAprendizaje } from "./EnviarComponentesAprendizaje";
 import { eliminarComponenteAprendizaje } from "./eliminarComponentesAprendizaje";
-import { layoutClasses, iconClasses } from "./componentesAprendizajeStyles";
+import {
+  componentesLayout,
+  componentesIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 const defaultFormulario = {
   fk_area: "",
@@ -144,20 +147,20 @@ export const ComponentesAprendizajes = () => {
 
   return (
     <>
-      <div className={layoutClasses.container}>
-        <div className={layoutClasses.header}>
-          <h2 className={layoutClasses.title}>
+      <div className={componentesLayout.container}>
+        <div className={componentesLayout.header}>
+          <h2 className={componentesLayout.title}>
             Gestión de Componentes de Aprendizaje
           </h2>
           <button
             onClick={() => openModal()}
-            className={layoutClasses.addButton}
+            className={componentesLayout.addButton}
           >
-            <FaPlus className={iconClasses.base} />
+            <FaPlus className={componentesIconClasses.base} />
             <span>Crear componente</span>
           </button>
         </div>
-        <p className={layoutClasses.description}>
+        <p className={componentesLayout.description}>
           Aquí puedes gestionar los componentes de aprendizaje del sistema.
         </p>
 

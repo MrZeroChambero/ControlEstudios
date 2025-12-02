@@ -30,6 +30,7 @@ import formPersona from "./forms/form_persona.json";
 import formEstudiante from "./forms/form_estudiante.json";
 import formDocs from "./forms/form_documentos.json";
 import formSalud from "./forms/form_salud.json";
+import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
 
 export const EstudianteModal = ({
   isOpen,
@@ -360,51 +361,51 @@ export const EstudianteModal = ({
   );
 
   const renderPasoCrear = () => (
-    <div>
+    <div className={estudiantesModalClasses.body}>
       {paso === 1 && (
         <div>
-          <h3 className="text-lg font-bold mb-2">
+          <h3 className={estudiantesModalClasses.candidates.title}>
             1) Selecciona candidata o crea nueva persona
           </h3>
-          <div className="flex gap-4 mb-4">
+          <div className={estudiantesModalClasses.candidates.controls}>
             <input
               type="text"
               placeholder="Buscar por nombre o cédula..."
-              className="w-1/3 p-2 border border-gray-300 rounded-md"
+              className={estudiantesModalClasses.candidates.input}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
             <button
               onClick={() => setPaso(1.5)}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
+              className={estudiantesModalClasses.candidates.button}
             >
               Crear nueva persona
             </button>
           </div>
-          <div className="max-h-64 overflow-y-auto border rounded">
+          <div className={estudiantesModalClasses.candidates.list}>
             {personasFiltradas.map((p) => (
               <div
                 key={p.id_persona}
-                className="p-2 border-b flex justify-between items-center hover:bg-gray-50"
+                className={estudiantesModalClasses.candidates.item}
               >
                 <div>
-                  <div className="font-semibold">
+                  <div className={estudiantesModalClasses.candidates.name}>
                     {p.primer_nombre} {p.primer_apellido}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className={estudiantesModalClasses.candidates.meta}>
                     C.I.: {p.cedula || "N/A"}
                   </div>
                 </div>
                 <button
                   onClick={() => handleSeleccionarCandidata(p)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                  className={estudiantesModalClasses.candidates.selectButton}
                 >
                   Seleccionar
                 </button>
               </div>
             ))}
             {personasFiltradas.length === 0 && (
-              <div className="p-4 text-center text-gray-500">
+              <div className={estudiantesModalClasses.candidates.empty}>
                 No hay personas candidatas o no coinciden con la búsqueda.
               </div>
             )}
@@ -413,25 +414,30 @@ export const EstudianteModal = ({
       )}
 
       {paso === 1.5 && (
-        <form onSubmit={handleCrearPersona} className="space-y-4">
-          <h3 className="text-lg font-bold mb-2">Crear nueva persona</h3>
+        <form
+          onSubmit={handleCrearPersona}
+          className={estudiantesModalClasses.form.wrapper}
+        >
+          <h3 className={estudiantesModalClasses.form.title}>
+            Crear nueva persona
+          </h3>
           <DynamicForm
             schema={formPersona}
             formData={formPersonaData}
             onChange={onChangePersona}
             errors={errorsPersona}
           />
-          <div className="flex justify-end gap-2">
+          <div className={estudiantesModalClasses.form.actions}>
             <button
               type="button"
               onClick={() => setPaso(1)}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+              className={estudiantesModalClasses.form.secondaryButton}
             >
               Volver
             </button>
             <button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
+              className={estudiantesModalClasses.form.primaryButton}
             >
               Guardar y continuar
             </button>
@@ -440,8 +446,11 @@ export const EstudianteModal = ({
       )}
 
       {paso === 2 && (
-        <form onSubmit={handleCompletarRegistro} className="space-y-4">
-          <h3 className="text-lg font-bold mb-2">
+        <form
+          onSubmit={handleCompletarRegistro}
+          className={estudiantesModalClasses.form.wrapper}
+        >
+          <h3 className={estudiantesModalClasses.form.title}>
             2) Completar datos académicos
           </h3>
           <DynamicForm
@@ -450,17 +459,17 @@ export const EstudianteModal = ({
             onChange={onChangeEstudiante}
             errors={errorsEstudiante}
           />
-          <div className="flex justify-end gap-2">
+          <div className={estudiantesModalClasses.form.actions}>
             <button
               type="button"
               onClick={() => setPaso(1)}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+              className={estudiantesModalClasses.form.secondaryButton}
             >
               Volver
             </button>
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+              className={estudiantesModalClasses.form.primaryButton}
             >
               Registrar estudiante
             </button>
@@ -471,11 +480,13 @@ export const EstudianteModal = ({
   );
 
   const renderEdicion = () => (
-    <div>
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="border rounded p-4">
-          <h3 className="text-lg font-bold mb-2">Datos de Persona</h3>
-          <div className="space-y-4">
+    <div className={estudiantesModalClasses.body}>
+      <div className={estudiantesModalClasses.sections.grid}>
+        <div className={estudiantesModalClasses.sections.card}>
+          <h3 className={estudiantesModalClasses.sections.title}>
+            Datos de Persona
+          </h3>
+          <div className={estudiantesModalClasses.sections.body}>
             <DynamicForm
               schema={formPersona}
               formData={formPersonaData}
@@ -485,9 +496,14 @@ export const EstudianteModal = ({
             />
           </div>
         </div>
-        <div className="border rounded p-4">
-          <h3 className="text-lg font-bold mb-2">Datos del Estudiante</h3>
-          <form onSubmit={handleActualizarEstudiante} className="space-y-4">
+        <div className={estudiantesModalClasses.sections.card}>
+          <h3 className={estudiantesModalClasses.sections.title}>
+            Datos del Estudiante
+          </h3>
+          <form
+            onSubmit={handleActualizarEstudiante}
+            className={estudiantesModalClasses.form.wrapper}
+          >
             <DynamicForm
               schema={formEstudiante}
               formData={formEstudianteData}
@@ -495,10 +511,10 @@ export const EstudianteModal = ({
               errors={errorsEstudiante}
               disabledFields={["estado"]}
             />
-            <div className="flex justify-end">
+            <div className={estudiantesModalClasses.form.actions}>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                className={estudiantesModalClasses.form.primaryButton}
               >
                 Guardar cambios
               </button>
@@ -507,13 +523,15 @@ export const EstudianteModal = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={estudiantesModalClasses.sections.grid}>
         {/* Documentos Académicos */}
-        <div className="border rounded p-4 md:col-span-2">
-          <h4 className="font-bold mb-2">Documentos académicos</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+        <div className={estudiantesModalClasses.documents.container}>
+          <h4 className={estudiantesModalClasses.documents.title}>
+            Documentos académicos
+          </h4>
+          <div className={estudiantesModalClasses.documents.formGrid}>
             <select
-              className="p-2 border rounded"
+              className={estudiantesModalClasses.documents.select}
               value={nuevoDocumento.tipo_documento}
               onChange={(e) =>
                 onChangeNuevoDocumento("tipo_documento", e.target.value)
@@ -526,7 +544,7 @@ export const EstudianteModal = ({
                 </option>
               ))}
             </select>
-            <label className="inline-flex items-center gap-2 p-2 border rounded">
+            <label className={estudiantesModalClasses.documents.checkbox}>
               <input
                 type="checkbox"
                 checked={Boolean(nuevoDocumento.entregado)}
@@ -538,7 +556,7 @@ export const EstudianteModal = ({
             </label>
             <input
               type="text"
-              className="p-2 border rounded"
+              className={estudiantesModalClasses.documents.input}
               placeholder="Observaciones"
               value={nuevoDocumento.observaciones}
               onChange={(e) =>
@@ -547,31 +565,45 @@ export const EstudianteModal = ({
             />
           </div>
           <button
-            className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded"
+            className={estudiantesModalClasses.documents.addButton}
             onClick={agregarDocumento}
           >
             Agregar documento
           </button>
 
-          <div className="space-y-2 max-h-56 overflow-y-auto mt-3">
+          <div className={estudiantesModalClasses.documents.list}>
             {documentosEst.map((d) => (
               <div
                 key={d.id_documento || d.id}
-                className="flex items-center justify-between border rounded px-3 py-2"
+                className={estudiantesModalClasses.documents.item}
               >
                 <div>
-                  <div className="font-semibold">{d.tipo_documento}</div>
-                  <div className="text-sm text-gray-600">
-                    Entregado: {d.entregado ? "Sí" : "No"}
+                  <div className={estudiantesModalClasses.documents.name}>
+                    {d.tipo_documento}
+                  </div>
+                  <div className={estudiantesModalClasses.documents.meta}>
+                    {d.entregado ? (
+                      <span
+                        className={estudiantesModalClasses.documents.delivered}
+                      >
+                        Entregado
+                      </span>
+                    ) : (
+                      <span
+                        className={estudiantesModalClasses.documents.pending}
+                      >
+                        Pendiente
+                      </span>
+                    )}
                   </div>
                   {d.observaciones && (
-                    <div className="text-sm text-gray-600">
+                    <div className={estudiantesModalClasses.documents.meta}>
                       Obs.: {d.observaciones}
                     </div>
                   )}
                 </div>
                 <button
-                  className="text-red-600"
+                  className={estudiantesModalClasses.documents.deleteButton}
                   onClick={() => removerDocumento(d.id_documento || d.id)}
                 >
                   Quitar
@@ -579,7 +611,9 @@ export const EstudianteModal = ({
               </div>
             ))}
             {documentosEst.length === 0 && (
-              <div className="text-gray-500">Sin documentos.</div>
+              <div className={estudiantesModalClasses.documents.empty}>
+                Sin documentos.
+              </div>
             )}
           </div>
         </div>
@@ -686,11 +720,16 @@ export const EstudianteModal = ({
             else if (isConsultas) eliminarConsulta(item.id_consulta || item.id);
           };
           return (
-            <div key={section.name} className="border rounded p-4">
-              <h4 className="font-bold mb-2">{section.label}</h4>
+            <div
+              key={section.name}
+              className={estudiantesModalClasses.salud.card}
+            >
+              <h4 className={estudiantesModalClasses.salud.title}>
+                {section.label}
+              </h4>
               {/* Formulario nuevo item */}
               <div
-                className="grid gap-2 mb-2"
+                className={estudiantesModalClasses.salud.formGrid}
                 style={{
                   gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))",
                 }}
@@ -701,7 +740,7 @@ export const EstudianteModal = ({
                     return (
                       <textarea
                         key={f.name}
-                        className="p-2 border rounded min-h-[60px]"
+                        className={estudiantesModalClasses.salud.textarea}
                         placeholder={f.label}
                         value={val}
                         onChange={(e) => setNewItem(f.name, e.target.value)}
@@ -712,7 +751,7 @@ export const EstudianteModal = ({
                     return (
                       <select
                         key={f.name}
-                        className="p-2 border rounded"
+                        className={estudiantesModalClasses.salud.select}
                         value={val}
                         onChange={(e) => setNewItem(f.name, e.target.value)}
                       >
@@ -729,7 +768,7 @@ export const EstudianteModal = ({
                     return (
                       <select
                         key={f.name}
-                        className="p-2 border rounded"
+                        className={estudiantesModalClasses.salud.select}
                         value={val}
                         onChange={(e) => setNewItem(f.name, e.target.value)}
                       >
@@ -746,7 +785,7 @@ export const EstudianteModal = ({
                     <input
                       key={f.name}
                       type={f.type || "text"}
-                      className="p-2 border rounded"
+                      className={estudiantesModalClasses.salud.input}
                       placeholder={f.label}
                       value={val}
                       onChange={(e) => setNewItem(f.name, e.target.value)}
@@ -755,13 +794,13 @@ export const EstudianteModal = ({
                 })}
               </div>
               <button
-                className="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded mb-3"
+                className={estudiantesModalClasses.salud.addButton}
                 onClick={handleAdd}
               >
                 Agregar
               </button>
               {/* Lista */}
-              <div className="space-y-2 max-h-56 overflow-y-auto">
+              <div className={estudiantesModalClasses.salud.list}>
                 {items.map((item) => (
                   <div
                     key={
@@ -771,36 +810,40 @@ export const EstudianteModal = ({
                       item.id_consulta ||
                       item.id
                     }
-                    className="flex items-center justify-between border rounded px-3 py-2"
+                    className={estudiantesModalClasses.salud.item}
                   >
-                    <div className="text-sm">
-                      {isAlergias && (item.nombre_alergia || item.nombre)}
-                      {isPatologias &&
-                        (item.nombre_patologia || item.patologia)}
-                      {isVacunas && (item.nombre_vacuna || item.nombre)}
-                      {isConsultas && `${item.tipo_consulta} • ${item.fecha}`}
+                    <div className={estudiantesModalClasses.salud.details}>
+                      <span className={estudiantesModalClasses.salud.headline}>
+                        {isAlergias && (item.nombre_alergia || item.nombre)}
+                        {isPatologias &&
+                          (item.nombre_patologia || item.patologia)}
+                        {isVacunas && (item.nombre_vacuna || item.nombre)}
+                        {isConsultas && `${item.tipo_consulta} • ${item.fecha}`}
+                      </span>
                       {isVacunas && item.fecha_aplicacion && (
-                        <div className="text-gray-600">
+                        <span className={estudiantesModalClasses.salud.meta}>
                           {item.fecha_aplicacion} • Ref.: {item.refuerzos ?? 0}
-                        </div>
+                        </span>
                       )}
                       {isPatologias && (
-                        <div className="text-gray-600">
+                        <span className={estudiantesModalClasses.salud.meta}>
                           {item.tratamiento || "Sin tratamiento"} •{" "}
                           {item.estado || ""}
-                        </div>
+                        </span>
                       )}
                       {isConsultas && item.descripcion && (
-                        <div className="text-gray-600">{item.descripcion}</div>
+                        <span className={estudiantesModalClasses.salud.meta}>
+                          {item.descripcion}
+                        </span>
                       )}
                       {item.observaciones && (
-                        <div className="text-gray-600">
+                        <span className={estudiantesModalClasses.salud.meta}>
                           Obs.: {item.observaciones}
-                        </div>
+                        </span>
                       )}
                     </div>
                     <button
-                      className="text-red-600"
+                      className={estudiantesModalClasses.salud.deleteButton}
                       onClick={() => handleRemove(item)}
                     >
                       Quitar
@@ -808,7 +851,9 @@ export const EstudianteModal = ({
                   </div>
                 ))}
                 {items.length === 0 && (
-                  <div className="text-gray-500">{`Sin ${section.label.toLowerCase()}.`}</div>
+                  <div
+                    className={estudiantesModalClasses.salud.empty}
+                  >{`Sin ${section.label.toLowerCase()}.`}</div>
                 )}
               </div>
             </div>
@@ -819,15 +864,17 @@ export const EstudianteModal = ({
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto p-6 border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">
+    <div className={estudiantesModalClasses.overlay}>
+      <div className={estudiantesModalClasses.content}>
+        <div className={estudiantesModalClasses.header}>
+          <h2 className={estudiantesModalClasses.title}>
             {modoEdicion ? "Editar Estudiante" : "Crear Estudiante"}
           </h2>
           <button
             onClick={resetAndClose}
-            className="text-gray-600 hover:text-gray-800"
+            className={estudiantesModalClasses.closeButton}
+            type="button"
+            aria-label="Cerrar"
           >
             ✕
           </button>
@@ -835,10 +882,11 @@ export const EstudianteModal = ({
 
         {!modoEdicion ? renderPasoCrear() : renderEdicion()}
 
-        <div className="flex justify-end mt-4">
+        <div className={estudiantesModalClasses.footer}>
           <button
             onClick={resetAndClose}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+            type="button"
+            className={estudiantesModalClasses.footerButton}
           >
             Cerrar
           </button>

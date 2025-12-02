@@ -1,5 +1,5 @@
 import React from "react";
-import { formClasses } from "./componentesAprendizajeStyles";
+import { componentesFormClasses } from "../EstilosCliente/EstilosClientes";
 
 const obtenerNombreArea = (areas, fkArea, nombreAreaFallback) => {
   if (!fkArea) {
@@ -27,17 +27,17 @@ export const ComponentesAprendizajeForm = ({
 
   return (
     <form onSubmit={onSubmit}>
-      <div className={formClasses.group}>
-        <label className={formClasses.label} htmlFor="fk_area">
+      <div className={componentesFormClasses.group}>
+        <label className={componentesFormClasses.label} htmlFor="fk_area">
           Área de aprendizaje
         </label>
         {isViewMode ? (
-          <p className={formClasses.readOnly}>{nombreArea}</p>
+          <p className={componentesFormClasses.readOnly}>{nombreArea}</p>
         ) : (
           <select
             id="fk_area"
             name="fk_area"
-            className={formClasses.select}
+            className={componentesFormClasses.select}
             value={formData.fk_area}
             onChange={handleInputChange}
             required
@@ -52,8 +52,11 @@ export const ComponentesAprendizajeForm = ({
         )}
       </div>
 
-      <div className={formClasses.group}>
-        <label className={formClasses.label} htmlFor="nombre_componente">
+      <div className={componentesFormClasses.group}>
+        <label
+          className={componentesFormClasses.label}
+          htmlFor="nombre_componente"
+        >
           Nombre del componente
         </label>
         <input
@@ -62,7 +65,7 @@ export const ComponentesAprendizajeForm = ({
           name="nombre_componente"
           value={formData.nombre_componente}
           onChange={handleInputChange}
-          className={formClasses.input}
+          className={componentesFormClasses.input}
           autoComplete="off"
           maxLength={100}
           required
@@ -70,8 +73,8 @@ export const ComponentesAprendizajeForm = ({
         />
       </div>
 
-      <div className={formClasses.group}>
-        <label className={formClasses.label} htmlFor="especialista">
+      <div className={componentesFormClasses.group}>
+        <label className={componentesFormClasses.label} htmlFor="especialista">
           Especialista responsable
         </label>
         <input
@@ -80,7 +83,7 @@ export const ComponentesAprendizajeForm = ({
           name="especialista"
           value={formData.especialista}
           onChange={handleInputChange}
-          className={formClasses.input}
+          className={componentesFormClasses.input}
           autoComplete="off"
           maxLength={50}
           required
@@ -88,19 +91,19 @@ export const ComponentesAprendizajeForm = ({
         />
       </div>
 
-      <div className={formClasses.group}>
-        <label className={formClasses.label} htmlFor="evalua">
+      <div className={componentesFormClasses.group}>
+        <label className={componentesFormClasses.label} htmlFor="evalua">
           ¿Evalúa?
         </label>
         {isViewMode ? (
-          <p className={formClasses.readOnly}>
+          <p className={componentesFormClasses.readOnly}>
             {formData.evalua === "si" ? "Sí evalúa" : "No evalúa"}
           </p>
         ) : (
           <select
             id="evalua"
             name="evalua"
-            className={formClasses.select}
+            className={componentesFormClasses.select}
             value={formData.evalua}
             onChange={handleInputChange}
             required
@@ -111,9 +114,11 @@ export const ComponentesAprendizajeForm = ({
         )}
       </div>
 
-      <div className={formClasses.group}>
-        <span className={formClasses.label}>Estado del componente</span>
-        <p className={formClasses.readOnly}>
+      <div className={componentesFormClasses.group}>
+        <span className={componentesFormClasses.label}>
+          Estado del componente
+        </span>
+        <p className={componentesFormClasses.readOnly}>
           {currentComponente?.estado_componente === "inactivo"
             ? "Inactivo"
             : "Activo"}
@@ -121,15 +126,18 @@ export const ComponentesAprendizajeForm = ({
       </div>
 
       {!isViewMode && (
-        <div className={formClasses.actions}>
+        <div className={componentesFormClasses.actions}>
           <button
             type="button"
             onClick={onCancel}
-            className={formClasses.secondaryButton}
+            className={componentesFormClasses.secondaryButton}
           >
             Cancelar
           </button>
-          <button type="submit" className={formClasses.primaryButton}>
+          <button
+            type="submit"
+            className={componentesFormClasses.primaryButton}
+          >
             Guardar
           </button>
         </div>

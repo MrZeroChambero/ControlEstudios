@@ -7,6 +7,10 @@ import {
   FaToggleOff,
   FaEye,
 } from "react-icons/fa";
+import {
+  estudiantesTableClasses,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const EstudiantesTable = ({
   estudiantes,
@@ -66,39 +70,45 @@ export const EstudiantesTable = ({
     },
     {
       name: "Estado Persona",
-      cell: (row) => (
-        <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            row.estado_persona === "activo"
-              ? "bg-green-200 text-green-800"
-              : row.estado_persona === "incompleto"
-              ? "bg-yellow-200 text-yellow-800"
-              : "bg-red-200 text-red-800"
-          }`}
-        >
-          {row.estado_persona || "-"}
-        </span>
-      ),
+      cell: (row) => {
+        const estado = (row.estado_persona || "").toLowerCase();
+        const estadoClase =
+          estado === "activo"
+            ? estudiantesTableClasses.status.activo
+            : estado === "incompleto"
+            ? estudiantesTableClasses.status.incompleto
+            : estado === "inactivo"
+            ? estudiantesTableClasses.status.inactivo
+            : estudiantesTableClasses.status.desconocido;
+
+        return (
+          <span
+            className={`${estudiantesTableClasses.status.base} ${estadoClase}`}
+          >
+            {row.estado_persona || "-"}
+          </span>
+        );
+      },
       sortable: true,
       width: "140px",
     },
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="flex space-x-2 justify-center">
+        <div className={estudiantesTableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className="text-blue-500 hover:text-blue-700 text-lg"
+            className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye />
+            <FaEye className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => cambioEstados(row)}
-            className={`text-2xl ${
+            className={`${estudiantesTableClasses.actionButton} ${
               row.estado_persona === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? estudiantesTableClasses.toggleOn
+                : estudiantesTableClasses.toggleOff
             }`}
             title={
               row.estado_persona === "activo"
@@ -106,22 +116,26 @@ export const EstudiantesTable = ({
                 : "Activar (persona)"
             }
           >
-            {row.estado_persona === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado_persona === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700 text-lg"
+            className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           {onDelete && (
             <button
               onClick={() => onDelete(row.id_estudiante ?? row.id)}
-              className="text-red-500 hover:text-red-700 text-lg"
+              className={`${estudiantesTableClasses.actionButton} ${estudiantesTableClasses.deleteButton}`}
               title="Eliminar"
             >
-              <FaTrash />
+              <FaTrash className={contenidosIconClasses.base} />
             </button>
           )}
         </div>
@@ -131,26 +145,30 @@ export const EstudiantesTable = ({
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre, cédula o grado/sección..."
-      className="w-1/3 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={estudiantesTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, cédula o grado/sección..."
+        className={estudiantesTableClasses.filterInputWide}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div className={estudiantesTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filteredItems}
         progressPending={isLoading}
         progressComponent={
-          <p className="text-center text-gray-500">Cargando estudiantes...</p>
+          <p className={estudiantesTableClasses.helperText}>
+            Cargando estudiantes...
+          </p>
         }
         noDataComponent={
-          <p className="text-center text-gray-500">
+          <p className={estudiantesTableClasses.helperText}>
             No hay estudiantes para mostrar.
           </p>
         }

@@ -1,21 +1,22 @@
 import React from "react";
+import { estudiantesViewModalClasses } from "../EstilosCliente/EstilosClientes";
 
 export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
   if (!isOpen || !estudiante) return null;
 
   const Section = ({ title, children }) => (
-    <div className="mb-6">
-      <h3 className="text-xl font-bold mb-2 text-blue-600 border-b pb-1">
-        {title}
-      </h3>
-      {children}
+    <div className={estudiantesViewModalClasses.section.wrapper}>
+      <h3 className={estudiantesViewModalClasses.section.title}>{title}</h3>
+      <div className={estudiantesViewModalClasses.section.body}>{children}</div>
     </div>
   );
 
   const Row = ({ label, value }) => (
-    <div className="grid grid-cols-3 gap-2 mb-2">
-      <div className="text-gray-700 font-semibold">{label}</div>
-      <div className="col-span-2 text-gray-900">{value ?? "-"}</div>
+    <div className={estudiantesViewModalClasses.row.container}>
+      <div className={estudiantesViewModalClasses.row.label}>{label}</div>
+      <div className={estudiantesViewModalClasses.row.value}>
+        {value ?? "-"}
+      </div>
     </div>
   );
 
@@ -27,13 +28,17 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
   const consultas = estudiante?.consultas_medicas || [];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 border border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Detalle del Estudiante</h2>
+    <div className={estudiantesViewModalClasses.overlay}>
+      <div className={estudiantesViewModalClasses.content}>
+        <div className={estudiantesViewModalClasses.header}>
+          <h2 className={estudiantesViewModalClasses.title}>
+            Detalle del Estudiante
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-800"
+            type="button"
+            className={estudiantesViewModalClasses.closeButton}
+            aria-label="Cerrar"
           >
             ✕
           </button>
@@ -73,21 +78,27 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
 
         <Section title="Documentos Académicos">
           {docs.length === 0 && (
-            <div className="text-gray-500">Sin documentos.</div>
+            <div className={estudiantesViewModalClasses.empty}>
+              Sin documentos.
+            </div>
           )}
           {docs.map((d) => (
             <div
               key={
                 d.id_documento || `${d.tipo_documento}-${d.id || Math.random()}`
               }
-              className="border rounded p-3 mb-2"
+              className={estudiantesViewModalClasses.card.container}
             >
-              <div className="font-semibold">{d.tipo_documento}</div>
-              <div className="text-sm">
+              <div className={estudiantesViewModalClasses.card.title}>
+                {d.tipo_documento}
+              </div>
+              <div className={estudiantesViewModalClasses.card.text}>
                 Entregado: {d.entregado ? "Sí" : "No"}
               </div>
               {d.observaciones && (
-                <div className="text-sm">Obs.: {d.observaciones}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Obs.: {d.observaciones}
+                </div>
               )}
             </div>
           ))}
@@ -95,18 +106,22 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
 
         <Section title="Alergias">
           {alergias.length === 0 && (
-            <div className="text-gray-500">Sin alergias registradas.</div>
+            <div className={estudiantesViewModalClasses.empty}>
+              Sin alergias registradas.
+            </div>
           )}
           {alergias.map((a) => (
             <div
               key={a.id_lista_alergia || a.id}
-              className="border rounded p-3 mb-2"
+              className={estudiantesViewModalClasses.card.container}
             >
-              <div className="font-semibold">
+              <div className={estudiantesViewModalClasses.card.title}>
                 {a.nombre_alergia || a.nombre}
               </div>
               {a.observaciones && (
-                <div className="text-sm">Obs.: {a.observaciones}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Obs.: {a.observaciones}
+                </div>
               )}
             </div>
           ))}
@@ -114,22 +129,32 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
 
         <Section title="Condiciones de Salud / Patologías">
           {condiciones.length === 0 && (
-            <div className="text-gray-500">Sin condiciones registradas.</div>
+            <div className={estudiantesViewModalClasses.empty}>
+              Sin condiciones registradas.
+            </div>
           )}
           {condiciones.map((c) => (
             <div
               key={c.id_condicion || c.id}
-              className="border rounded p-3 mb-2"
+              className={estudiantesViewModalClasses.card.container}
             >
-              <div className="font-semibold">
+              <div className={estudiantesViewModalClasses.card.title}>
                 {c.nombre_patologia || c.patologia}
               </div>
               {c.tratamiento && (
-                <div className="text-sm">Tratamiento: {c.tratamiento}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Tratamiento: {c.tratamiento}
+                </div>
               )}
-              {c.estado && <div className="text-sm">Estado: {c.estado}</div>}
+              {c.estado && (
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Estado: {c.estado}
+                </div>
+              )}
               {c.observaciones && (
-                <div className="text-sm">Obs.: {c.observaciones}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Obs.: {c.observaciones}
+                </div>
               )}
             </div>
           ))}
@@ -137,19 +162,27 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
 
         <Section title="Vacunas">
           {vacunas.length === 0 && (
-            <div className="text-gray-500">Sin vacunas registradas.</div>
+            <div className={estudiantesViewModalClasses.empty}>
+              Sin vacunas registradas.
+            </div>
           )}
           {vacunas.map((v) => (
             <div
               key={v.id_vacuna_estudiante || v.id}
-              className="border rounded p-3 mb-2"
+              className={estudiantesViewModalClasses.card.container}
             >
-              <div className="font-semibold">{v.nombre_vacuna || v.nombre}</div>
+              <div className={estudiantesViewModalClasses.card.title}>
+                {v.nombre_vacuna || v.nombre}
+              </div>
               {v.fecha_aplicacion && (
-                <div className="text-sm">Fecha: {v.fecha_aplicacion}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Fecha: {v.fecha_aplicacion}
+                </div>
               )}
               {typeof v.refuerzos !== "undefined" && (
-                <div className="text-sm">Refuerzos: {v.refuerzos}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Refuerzos: {v.refuerzos}
+                </div>
               )}
             </div>
           ))}
@@ -157,29 +190,42 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
 
         <Section title="Consultas Médicas">
           {consultas.length === 0 && (
-            <div className="text-gray-500">Sin consultas registradas.</div>
+            <div className={estudiantesViewModalClasses.empty}>
+              Sin consultas registradas.
+            </div>
           )}
           {consultas.map((cm) => (
             <div
               key={cm.id_consulta || cm.id}
-              className="border rounded p-3 mb-2"
+              className={estudiantesViewModalClasses.card.container}
             >
-              <div className="font-semibold">{cm.tipo_consulta}</div>
-              {cm.fecha && <div className="text-sm">Fecha: {cm.fecha}</div>}
+              <div className={estudiantesViewModalClasses.card.title}>
+                {cm.tipo_consulta}
+              </div>
+              {cm.fecha && (
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Fecha: {cm.fecha}
+                </div>
+              )}
               {cm.descripcion && (
-                <div className="text-sm">Descripción: {cm.descripcion}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Descripción: {cm.descripcion}
+                </div>
               )}
               {cm.tratamiento && (
-                <div className="text-sm">Tratamiento: {cm.tratamiento}</div>
+                <div className={estudiantesViewModalClasses.card.text}>
+                  Tratamiento: {cm.tratamiento}
+                </div>
               )}
             </div>
           ))}
         </Section>
 
-        <div className="flex justify-end">
+        <div className={estudiantesViewModalClasses.footer}>
           <button
             onClick={onClose}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+            type="button"
+            className={estudiantesViewModalClasses.footerButton}
           >
             Cerrar
           </button>

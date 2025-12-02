@@ -63,6 +63,9 @@ const createFormTokens = (accentKey) => ({
   actions: "mt-6 flex items-center justify-end gap-3",
   primaryButton: `${primaryButtonBase} ${accentTokens[accentKey]}`,
   secondaryButton,
+  grid: "grid grid-cols-1 gap-4 md:grid-cols-2",
+  fieldWrapper: "flex flex-col gap-1.5",
+  textAreaAuto: "min-h-[88px]",
   ghostButton: `${neutralButtonBase} bg-transparent text-slate-600 hover:bg-slate-100 focus:ring-slate-200/60`,
 });
 
@@ -113,7 +116,10 @@ export const contenidosLayout = createLayoutTokens("blue");
 export const contenidosModalClasses = {
   overlay: modalOverlayBase,
   content: "w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl",
-  title: "mb-6 text-center text-2xl font-semibold text-slate-900",
+  header: "mb-6 flex items-center justify-between gap-4",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton:
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
 };
 
 export const contenidosFormClasses = createFormTokens("blue");
@@ -150,8 +156,65 @@ export const temasTableClasses = temasTableBase;
 export const temaFormClasses = {
   overlay: modalOverlayBase,
   content: "w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl",
-  title: "mb-6 text-center text-2xl font-semibold text-slate-900",
+  header: "mb-6 flex items-center justify-between gap-4",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton:
+    "inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
   ...createFormTokens("blue"),
+};
+
+// Años escolares
+export const anioEscolarLayout = createLayoutTokens("indigo");
+
+export const anioEscolarFormClasses = {
+  ...createFormTokens("indigo"),
+  momentosGrid: "mt-4 grid grid-cols-1 gap-4 md:grid-cols-3",
+  momentoCard:
+    "flex flex-col gap-3 rounded-3xl border border-indigo-100 bg-indigo-50/60 p-4 shadow-sm",
+  momentoTitle: "text-sm font-semibold text-indigo-700",
+};
+
+export const anioEscolarModalClasses = {
+  overlay: modalOverlayBase,
+  content:
+    "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
+  header: "mb-6 flex flex-wrap items-center justify-between gap-4",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton:
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+  errorBox: "mb-6 rounded-3xl border border-rose-200 bg-rose-50/70 p-4",
+  errorList: "space-y-2 text-sm text-rose-600",
+  errorItem: "leading-snug",
+  section: "mt-6",
+  sectionHeader: "mb-4 flex flex-col gap-1",
+  sectionTitle: "text-lg font-semibold text-slate-800",
+  warning: "mt-3 text-sm font-semibold text-amber-600",
+};
+
+export const anioEscolarTableClasses = {
+  ...tableBase,
+  filterContainer: "w-full max-w-md",
+  filterInput: filterInputBase,
+  actionGroup: actionGroupBase,
+  actionButton: actionButtonBase,
+  viewButton: "text-indigo-600 hover:text-indigo-700",
+  editButton: "text-amber-500 hover:text-amber-600",
+  deleteButton: "text-rose-500 hover:text-rose-600",
+  toggleOn: "text-emerald-600 hover:text-emerald-700",
+  toggleOff: "text-slate-400 hover:text-slate-500",
+};
+
+export const anioEscolarStatusClasses = {
+  base: baseStatusPills.base,
+  activo: baseStatusPills.active,
+  incompleto: baseStatusPills.warning,
+  inactivo: baseStatusPills.inactive,
+  planificado: "bg-indigo-100 text-indigo-700",
+  desconocido: "bg-slate-200 text-slate-600",
+};
+
+export const anioEscolarIconClasses = {
+  base: "h-5 w-5",
 };
 
 // Áreas de aprendizaje
@@ -188,6 +251,36 @@ export const areasComponentTableClasses = {
   emptyState: "text-sm text-slate-500",
 };
 
+// Componentes de aprendizaje
+export const componentesLayout = createLayoutTokens("blue");
+
+export const componentesFormClasses = {
+  ...createFormTokens("blue"),
+};
+
+export const componentesModalClasses = {
+  overlay: modalOverlayBase,
+  content: "w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl",
+  header: "mb-6 flex items-center justify-between gap-4",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton:
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
+};
+
+export const componentesTableClasses = {
+  ...tableBase,
+};
+
+export const componentesStatusClasses = {
+  ...baseStatusPills,
+  evalYes: "bg-blue-100 text-blue-700",
+  evalNo: "bg-amber-100 text-amber-700",
+};
+
+export const componentesIconClasses = {
+  base: "h-5 w-5",
+};
+
 // Estudiantes
 export const estudiantesLayout = createLayoutTokens("indigo");
 
@@ -199,10 +292,19 @@ export const estudiantesFormClasses = {
 
 export const estudiantesTableClasses = {
   ...tableBase,
+  filterInputWide: `${filterInputBase} md:max-w-sm`,
   viewButton: "text-indigo-600 hover:text-indigo-700",
-  badgeAlta: "bg-indigo-100 text-indigo-700",
-  badgeMedia: "bg-amber-100 text-amber-700",
-  badgeBaja: "bg-rose-100 text-rose-700",
+  editButton: "text-indigo-500 hover:text-indigo-600",
+  deleteButton: "text-rose-500 hover:text-rose-600",
+  status: {
+    base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+    activo: "bg-indigo-100 text-indigo-700",
+    incompleto: "bg-amber-100 text-amber-700",
+    inactivo: "bg-rose-100 text-rose-700",
+    desconocido: "bg-slate-200 text-slate-600",
+  },
+  toggleOn: "text-indigo-600 hover:text-indigo-700",
+  toggleOff: "text-slate-400 hover:text-slate-500",
 };
 
 export const estudiantesFichaClasses = {
@@ -217,11 +319,119 @@ export const estudiantesFichaClasses = {
 
 export const estudiantesModalClasses = {
   overlay: modalOverlayBase,
-  content: "w-full max-w-3xl rounded-3xl bg-white p-8 shadow-2xl",
+  content:
+    "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
   header: "mb-6 flex items-center justify-between gap-3",
   title: "text-2xl font-semibold text-slate-900",
-  closeButton: `${buttonBase} bg-slate-100 text-slate-600 hover:bg-slate-200 focus:ring-slate-300/60`,
-  subtitle: "mb-6 text-sm text-slate-500",
+  subtitle: "text-sm text-slate-500",
+  closeButton:
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+  body: "space-y-6",
+  footer: "mt-6 flex justify-end",
+  footerButton: secondaryButton,
+  stepper: {
+    container: "flex flex-wrap items-center gap-3",
+    item: "flex min-w-[160px] flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500",
+    active: "border-indigo-300 bg-indigo-50 text-indigo-600",
+    bullet:
+      "flex h-8 w-8 items-center justify-center rounded-full border border-current text-base font-bold",
+    label: "flex-1 text-left",
+    helper: "text-xs font-normal text-slate-400",
+  },
+  candidates: {
+    title: "text-lg font-semibold text-slate-800",
+    controls: "flex flex-col gap-3 md:flex-row md:items-center",
+    input: filterInputBase,
+    button: `${primaryButtonBase} ${accentTokens.indigo}`,
+    list: "max-h-64 overflow-y-auto rounded-3xl border border-slate-200",
+    item: "flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50",
+    name: "text-sm font-semibold text-slate-800",
+    meta: "text-xs text-slate-500",
+    selectButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+    empty: helperMessageBase,
+  },
+  form: {
+    wrapper: "space-y-4",
+    actions: "flex justify-end gap-3",
+    title: "text-lg font-semibold text-slate-800",
+    secondaryButton: secondaryButton,
+    primaryButton: `${primaryButtonBase} ${accentTokens.indigo}`,
+  },
+  sections: {
+    grid: "grid grid-cols-1 gap-6 md:grid-cols-2",
+    card: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm",
+    title: "text-lg font-semibold text-slate-800",
+    body: "mt-4 space-y-4",
+  },
+  documents: {
+    container:
+      "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2",
+    title: "text-lg font-semibold text-slate-800",
+    formGrid: "mb-3 grid grid-cols-1 gap-2 md:grid-cols-3",
+    select:
+      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200",
+    checkbox:
+      "inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200",
+    input:
+      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200",
+    addButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+    list: "mt-3 space-y-2 max-h-56 overflow-y-auto",
+    item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
+    name: "text-sm font-semibold text-slate-800",
+    meta: "text-xs text-slate-500",
+    delivered:
+      "inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700",
+    pending:
+      "inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700",
+    deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
+    empty: helperMessageBase,
+  },
+  salud: {
+    grid: "grid grid-cols-1 gap-6 md:grid-cols-2",
+    card: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm",
+    title: "text-lg font-semibold text-slate-800",
+    formGrid: "mb-3 grid gap-2",
+    input: estudiantesFormClasses.input,
+    select: estudiantesFormClasses.select,
+    textarea: `${estudiantesFormClasses.textArea} min-h-[60px]`,
+    list: "space-y-2 max-h-56 overflow-y-auto",
+    item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
+    details: "flex flex-col gap-1 text-xs text-slate-600",
+    headline: "text-sm font-semibold text-slate-800",
+    meta: "text-xs text-slate-500",
+    deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
+    addButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+    empty: helperMessageBase,
+  },
+};
+
+export const estudiantesViewModalClasses = {
+  overlay: modalOverlayBase,
+  content:
+    "w-full max-w-4xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
+  header: "mb-6 flex items-center justify-between gap-3",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton:
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+  section: {
+    wrapper: "mb-6",
+    title:
+      "mb-2 border-b border-slate-200 pb-2 text-xl font-semibold text-indigo-600",
+    body: "space-y-2",
+  },
+  row: {
+    container: "mb-2 grid grid-cols-3 gap-2",
+    label: "text-sm font-semibold text-slate-600",
+    value: "col-span-2 text-sm text-slate-900",
+  },
+  card: {
+    container: "mb-2 rounded-2xl border border-slate-200 bg-white p-3",
+    title: "text-sm font-semibold text-slate-800",
+    text: "text-xs text-slate-600",
+  },
+  empty: helperMessageBase,
+  footer: "mt-4 flex justify-end",
+  footerButton: secondaryButton,
 };
 
 // Personal

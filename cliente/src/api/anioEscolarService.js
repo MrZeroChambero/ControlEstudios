@@ -2,89 +2,82 @@ import axios from "axios";
 
 const BASE = "http://localhost:8080/controlestudios/servidor";
 
-export const solicitarAnios = async (setAnios, Swal) => {
+const ENDPOINTS = {
+  list: `${BASE}/anios-escolares-listar.php`,
+  create: `${BASE}/anio-escolar-crear.php`,
+  update: (id) => `${BASE}/anio-escolar-editar.php?id=${id}`,
+  remove: (id) => `${BASE}/anio-escolar-eliminar.php?id=${id}`,
+  state: (id) => `${BASE}/anio-escolar-activar.php?id=${id}`,
+};
+
+const withCredentials = { withCredentials: true };
+
+const fallbackError = (message) => ({
+  success: false,
+  message,
+  data: [],
+  errors: {},
+});
+
+const extractError = (error, message) => {
+  if (error?.response?.data) return error.response.data;
+  return fallbackError(message);
+};
+
+export const listarAniosEscolares = async () => {
   try {
-    const res = await axios.get(`${BASE}/anios_escolares`, {
-      withCredentials: true,
-    });
-    if (res.data && res.data.back === true) setAnios(res.data.data);
-    else
-      Swal.fire("Error", "No se pudieron obtener los años escolares.", "error");
-  } catch (e) {
-    console.error(e);
-    Swal.fire("Error", "No se pudieron obtener los años escolares.", "error");
+    const { data } = await axios.get(ENDPOINTS.list, withCredentials);
+    return data;
+  } catch (error) {
+    return extractError(error, "No se pudieron obtener los años escolares.");
   }
 };
 
-export const crearAnio = async (payload, Swal) => {
+export const crearAnioEscolar = async (payload) => {
   try {
-    const res = await axios.post(`${BASE}/anios_escolares`, payload, {
-      withCredentials: true,
+    const { data } = await axios.post(ENDPOINTS.create, payload, {
+      ...withCredentials,
+      headers: { "Content-Type": "application/json" },
     });
-    return res.data;
-  } catch (e) {
-    console.error(e);
-    const err = e.response?.data;
-    if (err) return err;
-    return { back: false, message: "Error al crear año escolar." };
+    return data;
+  } catch (error) {
+    return extractError(error, "Error al crear el año escolar.");
   }
 };
 
-export const aperturarAnio = async (id, Swal) => {
+export const actualizarAnioEscolar = async (id, payload) => {
   try {
-    const res = await axios.patch(
-      `${BASE}/anios_escolares/${id}/aperturar`,
-      {},
-      { withCredentials: true }
+    const { data } = await axios.put(ENDPOINTS.update(id), payload, {
+      ...withCredentials,
+      headers: { "Content-Type": "application/json" },
+    });
+    return data;
+  } catch (error) {
+    return extractError(error, "Error al actualizar el año escolar.");
+  }
+};
+
+export const eliminarAnioEscolar = async (id) => {
+  try {
+    const { data } = await axios.delete(ENDPOINTS.remove(id), withCredentials);
+    return data;
+  } catch (error) {
+    return extractError(error, "Error al eliminar el año escolar.");
+  }
+};
+
+export const cambiarEstadoAnioEscolar = async (id, accion) => {
+  try {
+    const { data } = await axios.patch(
+      ENDPOINTS.state(id),
+      { accion },
+      {
+        ...withCredentials,
+        headers: { "Content-Type": "application/json" },
+      }
     );
-    return res.data;
-  } catch (e) {
-    console.error(e);
-    const err = e.response?.data;
-    if (err) return err;
-    return { back: false, message: "Error al aperturar año escolar." };
-  }
-};
-
-export const solicitarMomentos = async (setMomentos, Swal) => {
-  try {
-    const res = await axios.get(`${BASE}/momentos_academicos`, {
-      withCredentials: true,
-    });
-    if (res.data && res.data.back === true) setMomentos(res.data.data);
-    else Swal.fire("Error", "No se pudieron cargar los momentos.", "error");
-  } catch (e) {
-    console.error(e);
-    Swal.fire("Error", "No se pudieron cargar los momentos.", "error");
-  }
-};
-
-export const solicitarMomentosPorAnio = async (idAnio, setMomentos, Swal) => {
-  try {
-    const res = await axios.get(`${BASE}/anios_escolares/${idAnio}/momentos`, {
-      withCredentials: true,
-    });
-    if (res.data && res.data.back === true) setMomentos(res.data.data);
-    else
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar los momentos del año.",
-        "error"
-      );
-  } catch (e) {
-    console.error(e);
-    Swal.fire("Error", "No se pudieron cargar los momentos del año.", "error");
-  }
-};
-
-export const actualizarMomento = async (id, payload, Swal) => {
-  try {
-    const res = await axios.put(`${BASE}/momentos_academicos/${id}`, payload, {
-      withCredentials: true,
-    });
-    return res.data;
-  } catch (e) {
-    console.error(e);
-    return { back: false, message: "Error al actualizar momento." };
+    return data;
+  } catch (error) {
+    return extractError(error, "Error al cambiar el estado del año escolar.");
   }
 };

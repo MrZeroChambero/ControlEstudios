@@ -34,7 +34,17 @@ export const ContenidosModal = ({
   return (
     <div className={contenidosModalClasses.overlay}>
       <div className={contenidosModalClasses.content}>
-        <h2 className={contenidosModalClasses.title}>{titulo}</h2>
+        <div className={contenidosModalClasses.header}>
+          <h2 className={contenidosModalClasses.title}>{titulo}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className={contenidosModalClasses.closeButton}
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
         <form onSubmit={onSubmit}>
           <div className={contenidosFormClasses.group}>
             <label

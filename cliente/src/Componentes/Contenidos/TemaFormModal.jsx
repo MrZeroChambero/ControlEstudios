@@ -41,7 +41,17 @@ export const TemaFormModal = ({
   return (
     <div className={temaFormClasses.overlay}>
       <div className={temaFormClasses.content}>
-        <h2 className={temaFormClasses.title}>{titulo}</h2>
+        <div className={temaFormClasses.header}>
+          <h2 className={temaFormClasses.title}>{titulo}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className={temaFormClasses.closeButton}
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
         <form onSubmit={manejarSubmit}>
           <div className={temaFormClasses.group}>
             <label className={temaFormClasses.label}>Contenido asociado</label>

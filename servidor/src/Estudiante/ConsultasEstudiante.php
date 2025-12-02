@@ -22,16 +22,14 @@ trait ConsultasEstudiante
           e.control_esfinteres,
           e.control_embarazo,
           e.estado AS estado_estudiante,
-          COALESCE((SELECT gs.grado FROM inscripciones i2 
-              JOIN imparticion_clases ic2 ON i2.fk_imparticion_clases = ic2.id_imparticion_clases
-              JOIN aula a2 ON ic2.fk_aula = a2.id_aula
+            COALESCE((SELECT gs.grado FROM inscripciones i2 
+              JOIN aula a2 ON i2.fk_aula = a2.id_aula
               JOIN anios_escolares ae2 ON a2.fk_anio_escolar = ae2.id_anio_escolar AND ae2.estado='activo'
               JOIN grado_seccion gs ON a2.fk_grado_seccion = gs.id_grado_seccion
               WHERE i2.fk_estudiante = e.id_estudiante
               ORDER BY i2.fecha_inscripcion DESC LIMIT 1), 'sin asignar') AS grado,
-          COALESCE((SELECT gs.seccion FROM inscripciones i3 
-              JOIN imparticion_clases ic3 ON i3.fk_imparticion_clases = ic3.id_imparticion_clases
-              JOIN aula a3 ON ic3.fk_aula = a3.id_aula
+            COALESCE((SELECT gs.seccion FROM inscripciones i3 
+              JOIN aula a3 ON i3.fk_aula = a3.id_aula
               JOIN anios_escolares ae3 ON a3.fk_anio_escolar = ae3.id_anio_escolar AND ae3.estado='activo'
               JOIN grado_seccion gs ON a3.fk_grado_seccion = gs.id_grado_seccion
               WHERE i3.fk_estudiante = e.id_estudiante
@@ -74,16 +72,14 @@ trait ConsultasEstudiante
           e.control_esfinteres,
           e.control_embarazo,
           e.estado AS estado_estudiante,
-          COALESCE((SELECT gs.grado FROM inscripciones i2 
-              JOIN imparticion_clases ic2 ON i2.fk_imparticion_clases = ic2.id_imparticion_clases
-              JOIN aula a2 ON ic2.fk_aula = a2.id_aula
+            COALESCE((SELECT gs.grado FROM inscripciones i2 
+              JOIN aula a2 ON i2.fk_aula = a2.id_aula
               JOIN anios_escolares ae2 ON a2.fk_anio_escolar = ae2.id_anio_escolar AND ae2.estado='activo'
               JOIN grado_seccion gs ON a2.fk_grado_seccion = gs.id_grado_seccion
               WHERE i2.fk_estudiante = e.id_estudiante
               ORDER BY i2.fecha_inscripcion DESC LIMIT 1), 'sin asignar') AS grado,
-          COALESCE((SELECT gs.seccion FROM inscripciones i3 
-              JOIN imparticion_clases ic3 ON i3.fk_imparticion_clases = ic3.id_imparticion_clases
-              JOIN aula a3 ON ic3.fk_aula = a3.id_aula
+            COALESCE((SELECT gs.seccion FROM inscripciones i3 
+              JOIN aula a3 ON i3.fk_aula = a3.id_aula
               JOIN anios_escolares ae3 ON a3.fk_anio_escolar = ae3.id_anio_escolar AND ae3.estado='activo'
               JOIN grado_seccion gs ON a3.fk_grado_seccion = gs.id_grado_seccion
               WHERE i3.fk_estudiante = e.id_estudiante
