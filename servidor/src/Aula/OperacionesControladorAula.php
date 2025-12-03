@@ -4,9 +4,105 @@ namespace Micodigo\Aula;
 
 use Micodigo\Config\Conexion;
 use Exception;
+use RuntimeException;
 
 trait OperacionesControladorAula
 {
+  public function obtenerResumenAulas()
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $anio = $this->obtenerAnioActivoOIncompleto($conexion);
+      $catalogo = $this->obtenerCatalogoGrados($conexion);
+
+      $anioId = $anio['id_anio_escolar'] ?? null;
+      $resumen = $this->construirResumenAulas($conexion, $anioId ? (int) $anioId : null, $catalogo);
+
+      $mensaje = $resumen['anio'] !== null
+        ? 'Resumen de aulas obtenido correctamente.'
+        : 'No hay un anio escolar activo o incompleto. Configure uno antes de aperturar las secciones.';
+
+      $this->enviarRespuestaJson(200, true, $mensaje, $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(409, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No se pudo obtener la informacion de las aulas.', null);
+    }
+  }
+
+  public function aperturarAulas()
+  {
+    try {
+      $entrada = $this->leerEntradaJson();
+      $this->validarEntradaGeneral($entrada);
+
+      $conexion = Conexion::obtener();
+      $catalogo = $this->obtenerCatalogoGrados($conexion);
+
+      $anioSolicitado = isset($entrada['anio_id']) ? (int) $entrada['anio_id'] : null;
+      $anio = $anioSolicitado
+        ? $this->obtenerAnioPorId($conexion, $anioSolicitado)
+        : $this->obtenerAnioActivoOIncompleto($conexion);
+
+      $this->asegurarAnioDisponible($anio);
+      $anioId = (int) $anio['id_anio_escolar'];
+
+      $validacion = $this->validarConfiguracionSecciones($entrada['configuracion'] ?? [], $catalogo);
+
+      if (!$validacion['valido']) {
+        $this->enviarRespuestaJson(
+          422,
+          false,
+          'La configuracion proporcionada contiene errores.',
+          null,
+          $validacion['errores'] ?? []
+        );
+        return;
+      }
+
+      $this->sincronizarAulasConConfiguracion($conexion, $anioId, $validacion['datos'], $catalogo);
+
+      $resumen = $this->construirResumenAulas($conexion, $anioId, $catalogo);
+      $this->enviarRespuestaJson(200, true, 'Secciones habilitadas correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(422, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible aperturar las aulas solicitadas.', null);
+    }
+  }
+
+  public function actualizarCuposAula($id)
+  {
+    try {
+      $entrada = $this->leerEntradaJson();
+      $validacion = $this->validarCuposAula($entrada['cupos'] ?? null);
+
+      if (!$validacion['valido']) {
+        $this->enviarRespuestaJson(422, false, 'El valor de cupos no es valido.', null, $validacion['errores'] ?? []);
+        return;
+      }
+
+      $conexion = Conexion::obtener();
+      $aula = $this->obtenerAulaPorId($conexion, (int) $id);
+
+      if ($aula === null) {
+        $this->enviarRespuestaJson(404, false, 'El aula especificada no existe.', null);
+        return;
+      }
+
+      $this->aplicarActualizacionCupos($conexion, (int) $id, $validacion['valor']);
+
+      $catalogo = $this->obtenerCatalogoGrados($conexion);
+      $resumen = $this->construirResumenAulas($conexion, $aula['fk_anio_escolar'], $catalogo);
+
+      $this->enviarRespuestaJson(200, true, 'Cupos actualizados correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(422, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible actualizar los cupos del aula.', null);
+    }
+  }
+
   public function listarAulas()
   {
     try {
@@ -40,7 +136,7 @@ trait OperacionesControladorAula
     try {
       $input = file_get_contents('php://input');
       $data = json_decode($input, true);
-      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON invalido: ' . json_last_error_msg());
 
       $data['nombre'] = $this->limpiarTexto($data['nombre'] ?? null);
       $v = $this->crearValidadorAula($data);
@@ -82,7 +178,7 @@ trait OperacionesControladorAula
     try {
       $input = file_get_contents('php://input');
       $data = json_decode($input, true);
-      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON invalido: ' . json_last_error_msg());
 
       $data['nombre'] = $this->limpiarTexto($data['nombre'] ?? null);
       $v = $this->crearValidadorAula($data);
@@ -108,17 +204,31 @@ trait OperacionesControladorAula
   public function cambiarEstadoAula($id)
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
-      $estado = $data['estado'] ?? null;
-      $pdo = Conexion::obtener();
-      $ok = self::cambiarEstadoAulaBD($pdo, $id, $estado);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => (bool)$ok, 'message' => 'Estado actualizado.']);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al cambiar estado del aula.', 'error_details' => $e->getMessage()]);
+      $entrada = $this->leerEntradaJson();
+      $validacion = $this->validarEstadoDeseado($entrada['estado'] ?? null);
+
+      if (!$validacion['valido']) {
+        $this->enviarRespuestaJson(422, false, 'El estado solicitado no es valido.', null, $validacion['errores'] ?? []);
+        return;
+      }
+
+      $conexion = Conexion::obtener();
+      $aula = $this->verificarReglasCambioEstado($conexion, (int) $id, $validacion['valor']);
+
+      $this->aplicarCambioEstado($conexion, (int) $id, $validacion['valor']);
+
+      $catalogo = $this->obtenerCatalogoGrados($conexion);
+      $resumen = $this->construirResumenAulas($conexion, $aula['fk_anio_escolar'], $catalogo);
+
+      $mensaje = $validacion['valor'] === 'activo'
+        ? 'Aula activada correctamente.'
+        : 'Aula desactivada correctamente.';
+
+      $this->enviarRespuestaJson(200, true, $mensaje, $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(422, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No se pudo actualizar el estado del aula.', null);
     }
   }
 

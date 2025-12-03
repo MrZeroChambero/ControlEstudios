@@ -217,6 +217,35 @@ export const anioEscolarIconClasses = {
   base: "h-5 w-5",
 };
 
+// Aulas
+export const aulasLayout = createLayoutTokens("emerald");
+
+export const aulasFormClasses = {
+  ...createFormTokens("emerald"),
+  grid: "grid grid-cols-1 gap-4 md:grid-cols-3",
+  section: "mt-6",
+  sectionTitle: "text-base font-semibold text-slate-800",
+  note: "text-xs text-slate-500",
+};
+
+export const aulasTableClasses = {
+  ...tableBase,
+  helperText: helperMessageBase,
+  editButton: "text-amber-500 hover:text-amber-600",
+  toggleOn: "text-emerald-600 hover:text-emerald-700",
+  toggleOff: "text-slate-400 hover:text-slate-500",
+};
+
+export const aulasStatusClasses = {
+  base: baseStatusPills.base,
+  activo: baseStatusPills.active,
+  inactivo: baseStatusPills.inactive,
+};
+
+export const aulasIconClasses = {
+  base: "h-5 w-5",
+};
+
 // Áreas de aprendizaje
 export const areasLayout = createLayoutTokens("emerald");
 

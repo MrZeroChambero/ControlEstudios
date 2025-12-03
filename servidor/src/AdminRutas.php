@@ -176,9 +176,12 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Aula/RutasAula.php';
   registrarRutasAula($router);
 
-  // Incluye y registra las rutas de impartición de clases
-  require_once __DIR__ . '/ImparticionClases/RutasImparticionClases.php';
-  registrarRutasImparticionClases($router);
+  // Incluye y registra las rutas de imparticion de clases si el archivo existe
+  $rutaImparticion = __DIR__ . '/ImparticionClases/RutasImparticionClases.php';
+  if (file_exists($rutaImparticion)) {
+    require_once $rutaImparticion;
+    registrarRutasImparticionClases($router);
+  }
 
   // Incluye y registra las rutas de grados y secciones
   require_once __DIR__ . '/GradosSecciones/RutasGradosSecciones.php';

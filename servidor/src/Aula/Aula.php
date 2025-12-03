@@ -9,10 +9,20 @@ require_once __DIR__ . '/GestionAula.php';
 require_once __DIR__ . '/ValidacionesAula.php';
 require_once __DIR__ . '/OperacionesControladorAula.php';
 require_once __DIR__ . '/UtilidadesAula.php';
+require_once __DIR__ . '/AulaRespuestaTrait.php';
+require_once __DIR__ . '/AulaAperturaHelpersTrait.php';
+require_once __DIR__ . '/AulaAperturaValidacionesTrait.php';
+require_once __DIR__ . '/AulaAperturaConsultasTrait.php';
+require_once __DIR__ . '/AulaAperturaGestionTrait.php';
 
 class Aula
 {
-  use ConsultasAula,
+  use AulaRespuestaTrait,
+    AulaAperturaHelpersTrait,
+    AulaAperturaValidacionesTrait,
+    AulaAperturaConsultasTrait,
+    AulaAperturaGestionTrait,
+    ConsultasAula,
     GestionAula,
     ValidacionesAula,
     OperacionesControladorAula,

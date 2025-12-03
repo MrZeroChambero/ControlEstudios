@@ -30,6 +30,10 @@ function registrarRutasAula(AltoRouter $router)
     });
   };
 
+  $mapAuthenticated('GET', '/aulas/apertura', [$controlador, 'obtenerResumenAulas']);
+  $mapAuthenticated('POST', '/aulas/apertura', [$controlador, 'aperturarAulas']);
+  $mapAuthenticated('PATCH', '/aulas/[i:id]/cupos', [$controlador, 'actualizarCuposAula']);
+
   $mapAuthenticated('GET', '/aulas', [$controlador, 'listarAulas']);
   $mapAuthenticated('GET', '/aulas/listar-select', [$controlador, 'listarAulasSelect']);
   $mapAuthenticated('GET', '/aulas/[i:id]', [$controlador, 'obtenerAula']);

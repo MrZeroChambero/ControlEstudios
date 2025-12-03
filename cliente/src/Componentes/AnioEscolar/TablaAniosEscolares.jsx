@@ -12,7 +12,10 @@ import {
   anioEscolarStatusClasses,
   anioEscolarTableClasses,
 } from "../EstilosCliente/EstilosClientes";
-import { formatearFecha } from "./utilidadesAnioEscolar";
+import {
+  construirNombrePeriodo,
+  formatearFecha,
+} from "./utilidadesAnioEscolar";
 
 const obtenerClaseEstado = (estado) => {
   const clave = (estado || "").toLowerCase();
@@ -48,16 +51,19 @@ export const TablaAniosEscolares = ({
     }
 
     return (registros || []).filter((item) => {
-      const nombre = (item.nombre || "").toLowerCase();
+      const etiqueta = construirNombrePeriodo(
+        item.fecha_inicio,
+        item.fecha_fin
+      ).toLowerCase();
       const estado = (item.estado || "").toLowerCase();
       const periodo = `${formatearFecha(item.fecha_inicio)} ${formatearFecha(
-        item.fecha_final
+        item.fecha_fin
       )}`.toLowerCase();
       const limite = formatearFecha(
         item.fecha_limite_inscripcion
       ).toLowerCase();
       return (
-        nombre.includes(termino) ||
+        etiqueta.includes(termino) ||
         estado.includes(termino) ||
         periodo.includes(termino) ||
         limite.includes(termino)
@@ -69,10 +75,16 @@ export const TablaAniosEscolares = ({
     () => [
       {
         name: "Nombre",
-        selector: (row) => row.nombre || "(Sin nombre)",
+        selector: (row) =>
+          construirNombrePeriodo(row.fecha_inicio, row.fecha_fin),
         sortable: true,
         grow: 2,
         wrap: true,
+        cell: (row) => (
+          <span className="font-semibold text-slate-700">
+            {construirNombrePeriodo(row.fecha_inicio, row.fecha_fin)}
+          </span>
+        ),
       },
       {
         name: "Período",
@@ -84,7 +96,7 @@ export const TablaAniosEscolares = ({
               {formatearFecha(row.fecha_inicio)}
             </span>
             <span className="text-xs text-slate-500">
-              al {formatearFecha(row.fecha_final)}
+              al {formatearFecha(row.fecha_fin)}
             </span>
           </div>
         ),

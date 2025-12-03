@@ -1,13 +1,15 @@
 import axios from "axios";
 
-const BASE = "http://localhost:8080/controlestudios/servidor";
+const API_BASE = "http://localhost:8080/controlestudios/servidor";
+const RESOURCE = `${API_BASE}/anios_escolares`;
 
 const ENDPOINTS = {
-  list: `${BASE}/anios-escolares-listar.php`,
-  create: `${BASE}/anio-escolar-crear.php`,
-  update: (id) => `${BASE}/anio-escolar-editar.php?id=${id}`,
-  remove: (id) => `${BASE}/anio-escolar-eliminar.php?id=${id}`,
-  state: (id) => `${BASE}/anio-escolar-activar.php?id=${id}`,
+  list: RESOURCE,
+  detail: (id) => `${RESOURCE}/${id}`,
+  create: RESOURCE,
+  update: (id) => `${RESOURCE}/${id}`,
+  remove: (id) => `${RESOURCE}/${id}`,
+  state: (id) => `${RESOURCE}/${id}/estado`,
 };
 
 const withCredentials = { withCredentials: true };
@@ -19,15 +21,35 @@ const fallbackError = (message) => ({
   errors: {},
 });
 
+const adaptResponse = (payload, fallbackMessage) => {
+  if (!payload || typeof payload !== "object") {
+    return fallbackError(fallbackMessage);
+  }
+
+  const success =
+    payload.success === true ||
+    payload.exito === true ||
+    payload.estado === "exito";
+
+  return {
+    success,
+    message: payload.mensaje ?? payload.message ?? fallbackMessage,
+    data: payload.datos ?? payload.data ?? null,
+    errors: payload.errores ?? payload.errors ?? {},
+  };
+};
+
 const extractError = (error, message) => {
-  if (error?.response?.data) return error.response.data;
+  if (error?.response?.data) {
+    return adaptResponse(error.response.data, message);
+  }
   return fallbackError(message);
 };
 
 export const listarAniosEscolares = async () => {
   try {
     const { data } = await axios.get(ENDPOINTS.list, withCredentials);
-    return data;
+    return adaptResponse(data, "No se pudieron obtener los años escolares.");
   } catch (error) {
     return extractError(error, "No se pudieron obtener los años escolares.");
   }
@@ -35,12 +57,16 @@ export const listarAniosEscolares = async () => {
 
 export const crearAnioEscolar = async (payload) => {
   try {
+    console.log("crear año escolar:", payload);
     const { data } = await axios.post(ENDPOINTS.create, payload, {
       ...withCredentials,
       headers: { "Content-Type": "application/json" },
     });
-    return data;
+    console.log("respuesta crear año escolar:", data);
+    return adaptResponse(data, "Error al crear el año escolar.");
   } catch (error) {
+    console.log("respuesta crear año escolar:", error);
+
     return extractError(error, "Error al crear el año escolar.");
   }
 };
@@ -51,7 +77,7 @@ export const actualizarAnioEscolar = async (id, payload) => {
       ...withCredentials,
       headers: { "Content-Type": "application/json" },
     });
-    return data;
+    return adaptResponse(data, "Error al actualizar el año escolar.");
   } catch (error) {
     return extractError(error, "Error al actualizar el año escolar.");
   }
@@ -60,7 +86,7 @@ export const actualizarAnioEscolar = async (id, payload) => {
 export const eliminarAnioEscolar = async (id) => {
   try {
     const { data } = await axios.delete(ENDPOINTS.remove(id), withCredentials);
-    return data;
+    return adaptResponse(data, "Error al eliminar el año escolar.");
   } catch (error) {
     return extractError(error, "Error al eliminar el año escolar.");
   }
@@ -76,7 +102,7 @@ export const cambiarEstadoAnioEscolar = async (id, accion) => {
         headers: { "Content-Type": "application/json" },
       }
     );
-    return data;
+    return adaptResponse(data, "Error al cambiar el estado del año escolar.");
   } catch (error) {
     return extractError(error, "Error al cambiar el estado del año escolar.");
   }

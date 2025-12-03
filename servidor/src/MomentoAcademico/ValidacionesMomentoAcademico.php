@@ -19,10 +19,18 @@ trait ValidacionesMomentoAcademico
   {
     Validator::lang('es');
     $v = new Validator($data);
-    $v->rule('required', ['nombre', 'orden', 'fecha_inicio', 'fecha_fin']);
+    $v->rule('required', ['orden', 'fecha_inicio', 'fecha_fin']);
     $v->rule('integer', 'orden');
+    $v->rule('min', 'orden', 1);
+    $v->rule('max', 'orden', 3);
     $v->rule('date', ['fecha_inicio', 'fecha_fin']);
     $v->rule('lengthMax', 'nombre', 100);
+    if (array_key_exists('fk_anio_escolar', $data)) {
+      $v->rule('integer', 'fk_anio_escolar');
+    }
+    if (array_key_exists('estado', $data)) {
+      $v->rule('in', 'estado', ['activo', 'finalizado']);
+    }
     return $v;
   }
 
@@ -40,7 +48,7 @@ trait ValidacionesMomentoAcademico
   public static function verificarSolapamientoMomento(PDO $pdo, int $fk_anio_escolar, string $fecha_inicio, string $fecha_fin, ?int $ignorar_id = null): bool
   {
     try {
-      $sql = "SELECT COUNT(*) FROM momentos_academicos WHERE fk_anio_escolar = ? AND NOT (fecha_fin < ? OR fecha_inicio > ?)";
+      $sql = "SELECT COUNT(*) FROM momentos WHERE fk_anio_escolar = ? AND NOT (fecha_fin < ? OR fecha_inicio > ?)";
       $params = [$fk_anio_escolar, $fecha_inicio, $fecha_fin];
       if ($ignorar_id !== null) {
         $sql .= " AND id_momento != ?";

@@ -1,38 +1,23 @@
 <?php
 
-use Micodigo\AnioEscolar\AnioEscolar;
+use Micodigo\AnioEscolar\ControladoraAnioEscolar;
 
-function registrarRutasAnioEscolar(AltoRouter $router)
+function registrarRutasAnioEscolar(AltoRouter $router): void
 {
-  $controlador = new AnioEscolar();
+  $controladora = new ControladoraAnioEscolar();
 
-  $authMiddleware = function () {
-    header('Content-Type: text/html; charset=utf-8');
-    if (!isset($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado. Por favor, inicie sesión.', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-    $pdo = Micodigo\Config\Conexion::obtener();
-    $login = new Micodigo\Login\Login($pdo);
-    if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada.', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-  };
-
-  $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware) {
-    $router->map($method, $route, function (...$params) use ($authMiddleware, $target) {
-      $authMiddleware();
-      call_user_func_array($target, $params);
-    });
-  };
-
-  $mapAuthenticated('GET', '/anios_escolares', [$controlador, 'listarAnios']);
-  $mapAuthenticated('GET', '/anios_escolares/[i:id]', [$controlador, 'obtenerAnio']);
-  $mapAuthenticated('POST', '/anios_escolares', [$controlador, 'crearAnio']);
-  $mapAuthenticated('PUT', '/anios_escolares/[i:id]', [$controlador, 'actualizarAnio']);
-  $mapAuthenticated('PATCH', '/anios_escolares/[i:id]/aperturar', [$controlador, 'aperturarAnio']);
-  $mapAuthenticated('DELETE', '/anios_escolares/[i:id]', [$controlador, 'eliminarAnio']);
+  $router->map('GET', '/anios_escolares', [$controladora, 'listar']);
+  $router->map('GET', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+    $controladora->obtener($id);
+  });
+  $router->map('POST', '/anios_escolares', [$controladora, 'crear']);
+  $router->map('PUT', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+    $controladora->actualizar($id);
+  });
+  $router->map('DELETE', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+    $controladora->eliminar($id);
+  });
+  $router->map('PATCH', '/anios_escolares/[i:id]/estado', function (int $id) use ($controladora) {
+    $controladora->cambiarEstado($id);
+  });
 }

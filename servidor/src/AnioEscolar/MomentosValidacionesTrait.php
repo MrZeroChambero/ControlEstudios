@@ -1,21 +1,12 @@
 <?php
 
-namespace Micodigo\SistemaAnioEscolar\Traits;
+namespace Micodigo\AnioEscolar;
 
 use DateInterval;
 use DateTime;
-use Exception;
 
-trait ValidacionesMomentos
+trait MomentosValidacionesTrait
 {
-  protected function calcularSemanaSanta(int $anio): DateTime
-  {
-    $timestamp = easter_date($anio);
-    $fecha = new DateTime('@' . $timestamp);
-    $fecha->setTimezone(new \DateTimeZone(date_default_timezone_get() ?: 'UTC'));
-    return $fecha;
-  }
-
   protected function obtenerMomentosPredeterminados(int $anioBase): array
   {
     $anioSiguiente = $anioBase + 1;
@@ -39,11 +30,11 @@ trait ValidacionesMomentos
     ];
   }
 
-  protected function generarMomentosAutomaticos(array $anioDatos): array
+  protected function generarMomentosAutomaticos(array $datosAnio): array
   {
-    $predeterminados = $this->obtenerMomentosPredeterminados($anioDatos['anio_base']);
-    $inicioAnio = new DateTime($anioDatos['fecha_inicio']);
-    $finAnio = new DateTime($anioDatos['fecha_final']);
+    $predeterminados = $this->obtenerMomentosPredeterminados($datosAnio['anio_base']);
+    $inicioAnio = new DateTime($datosAnio['fecha_inicio']);
+    $finAnio = new DateTime($datosAnio['fecha_fin']);
 
     $momentos = [];
 
@@ -67,6 +58,7 @@ trait ValidacionesMomentos
         'orden' => $orden,
         'nombre' => 'Momento ' . $orden,
         'fecha_inicio' => $inicio->format('Y-m-d'),
+        'fecha_fin' => $fin->format('Y-m-d'),
         'fecha_final' => $fin->format('Y-m-d'),
         'estado' => 'activo',
       ];
@@ -75,17 +67,17 @@ trait ValidacionesMomentos
     return $momentos;
   }
 
-  protected function validarMomentos(array $momentos, array $anioDatos): array
+  protected function validarMomentos(array $momentos, array $datosAnio): array
   {
     $errores = [];
     $resultados = [];
-    $maxDesviacion = 7;
-    $anioInicio = new DateTime($anioDatos['fecha_inicio']);
-    $anioFin = new DateTime($anioDatos['fecha_final']);
-    $predeterminados = $this->obtenerMomentosPredeterminados($anioDatos['anio_base']);
+    $maximoDesviacion = 7;
+    $inicioAnio = new DateTime($datosAnio['fecha_inicio']);
+    $finAnio = new DateTime($datosAnio['fecha_fin']);
+    $predeterminados = $this->obtenerMomentosPredeterminados($datosAnio['anio_base']);
 
     if (count($momentos) !== 3) {
-      $errores['momentos'][] = 'Se requieren exactamente 3 momentos académicos.';
+      $errores['momentos'][] = 'Se requieren exactamente tres momentos académicos.';
       return ['valido' => false, 'errores' => $errores, 'momentos' => []];
     }
 
@@ -97,7 +89,7 @@ trait ValidacionesMomentos
       }
 
       $inicioNormalizado = $this->normalizarFecha($momento['fecha_inicio'] ?? null);
-      $finNormalizado = $this->normalizarFecha($momento['fecha_final'] ?? null);
+      $finNormalizado = $this->normalizarFecha($momento['fecha_fin'] ?? $momento['fecha_final'] ?? null);
 
       if ($inicioNormalizado === null || $finNormalizado === null) {
         $errores['momento_' . $orden][] = 'Las fechas del momento ' . $orden . ' son obligatorias.';
@@ -111,24 +103,25 @@ trait ValidacionesMomentos
         $errores['momento_' . $orden][] = 'La fecha de inicio debe ser anterior a la fecha final.';
       }
 
-      if ($inicio < $anioInicio || $fin > $anioFin) {
+      if ($inicio < $inicioAnio || $fin > $finAnio) {
         $errores['momento_' . $orden][] = 'Las fechas de cada momento deben estar dentro del rango del año escolar.';
       }
 
       $predeterminado = $predeterminados[$orden];
-      if ($this->diferenciaDias($inicio, $predeterminado['inicio']) > $maxDesviacion) {
+      if ($this->diferenciaDias($inicio, $predeterminado['inicio']) > $maximoDesviacion) {
         $errores['momento_' . $orden][] = 'El inicio del momento ' . $orden . ' debe mantenerse dentro de ±7 días del valor sugerido.';
       }
 
-      if ($this->diferenciaDias($fin, $predeterminado['fin']) > $maxDesviacion) {
-        $errores['momento_' . $orden][] = 'El final del momento ' . $orden . ' debe mantenerse dentro de ±7 días del valor sugerido.';
+      if ($this->diferenciaDias($fin, $predeterminado['fin']) > $maximoDesviacion) {
+        $errores['momento_' . $orden][] = 'El cierre del momento ' . $orden . ' debe mantenerse dentro de ±7 días del valor sugerido.';
       }
 
       $resultados[$orden] = [
-        'id' => $momento['id'] ?? null,
+        'id' => isset($momento['id']) && is_numeric($momento['id']) ? (int) $momento['id'] : null,
         'orden' => $orden,
         'nombre' => $momento['nombre'] ?? ('Momento ' . $orden),
         'fecha_inicio' => $inicio->format('Y-m-d'),
+        'fecha_fin' => $fin->format('Y-m-d'),
         'fecha_final' => $fin->format('Y-m-d'),
         'estado' => $momento['estado'] ?? 'activo',
       ];
@@ -141,11 +134,11 @@ trait ValidacionesMomentos
     ksort($resultados);
     $momentosOrdenados = array_values($resultados);
 
-    for ($i = 1; $i < count($momentosOrdenados); $i++) {
-      $prevFin = new DateTime($momentosOrdenados[$i - 1]['fecha_final']);
-      $actualInicio = new DateTime($momentosOrdenados[$i]['fecha_inicio']);
-      if ($prevFin >= $actualInicio) {
-        $errores['momentos'][] = 'Los momentos no deben superponerse.';
+    for ($indice = 1; $indice < count($momentosOrdenados); $indice++) {
+      $finAnterior = new DateTime($momentosOrdenados[$indice - 1]['fecha_fin']);
+      $inicioActual = new DateTime($momentosOrdenados[$indice]['fecha_inicio']);
+      if ($finAnterior >= $inicioActual) {
+        $errores['momentos'][] = 'Los momentos académicos no deben solaparse.';
         break;
       }
     }

@@ -4,6 +4,7 @@ namespace Micodigo\MomentoAcademico;
 
 use Micodigo\Config\Conexion;
 use Exception;
+use RuntimeException;
 
 trait OperacionesControladorMomentoAcademico
 {
@@ -70,6 +71,8 @@ trait OperacionesControladorMomentoAcademico
         return;
       }
 
+      $data['fk_anio_escolar'] = $fk_anio;
+
       if (ValidacionesMomentoAcademico::verificarSolapamientoMomento($pdo, $fk_anio, $data['fecha_inicio'], $data['fecha_fin'], null)) {
         http_response_code(422);
         header('Content-Type: application/json');
@@ -81,6 +84,10 @@ trait OperacionesControladorMomentoAcademico
       $nuevo = self::consultarMomentoPorId($pdo, $id);
       header('Content-Type: application/json');
       echo json_encode(['back' => true, 'data' => $nuevo, 'message' => 'Momento creado exitosamente.']);
+    } catch (RuntimeException $e) {
+      http_response_code(422);
+      header('Content-Type: application/json');
+      echo json_encode(['back' => false, 'message' => $e->getMessage()]);
     } catch (Exception $e) {
       http_response_code(500);
       header('Content-Type: application/json');
@@ -142,6 +149,8 @@ trait OperacionesControladorMomentoAcademico
         return;
       }
 
+      $data['fk_anio_escolar'] = $fk_anio;
+
       if (ValidacionesMomentoAcademico::verificarSolapamientoMomento($pdo, $fk_anio, $data['fecha_inicio'], $data['fecha_fin'], $id)) {
         http_response_code(422);
         header('Content-Type: application/json');
@@ -153,6 +162,10 @@ trait OperacionesControladorMomentoAcademico
       $actualizado = self::consultarMomentoPorId($pdo, $id);
       header('Content-Type: application/json');
       echo json_encode(['back' => true, 'data' => $actualizado, 'message' => 'Momento académico actualizado.']);
+    } catch (RuntimeException $e) {
+      http_response_code(422);
+      header('Content-Type: application/json');
+      echo json_encode(['back' => false, 'message' => $e->getMessage()]);
     } catch (Exception $e) {
       http_response_code(500);
       header('Content-Type: application/json');

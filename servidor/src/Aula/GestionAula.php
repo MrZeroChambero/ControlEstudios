@@ -10,13 +10,12 @@ trait GestionAula
   public static function crearAulaBD($pdo, $datos)
   {
     try {
-      $sql = "INSERT INTO aula (fk_anio_escolar, fk_grado_seccion, fk_guia, cupos_disponibles, estado) VALUES (?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO aula (fk_anio_escolar, fk_grado_seccion, cupos, estado) VALUES (?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $datos['fk_anio_escolar'] ?? null,
         $datos['fk_grado_seccion'] ?? null,
-        $datos['fk_guia'] ?? null,
-        $datos['cupos_disponibles'] ?? null,
+        $datos['cupos'] ?? null,
         $datos['estado'] ?? 'activo'
       ]);
       return $pdo->lastInsertId();
@@ -28,13 +27,12 @@ trait GestionAula
   public static function actualizarAulaBD($pdo, $id, $datos)
   {
     try {
-      $sql = "UPDATE aula SET fk_anio_escolar = ?, fk_grado_seccion = ?, fk_guia = ?, cupos_disponibles = ?, estado = ? WHERE id_aula = ?";
+      $sql = "UPDATE aula SET fk_anio_escolar = ?, fk_grado_seccion = ?, cupos = ?, estado = ? WHERE id_aula = ?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
         $datos['fk_anio_escolar'] ?? null,
         $datos['fk_grado_seccion'] ?? null,
-        $datos['fk_guia'] ?? null,
-        $datos['cupos_disponibles'] ?? null,
+        $datos['cupos'] ?? null,
         $datos['estado'] ?? 'activo',
         $id
       ]);

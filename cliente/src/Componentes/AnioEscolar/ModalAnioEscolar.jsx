@@ -76,26 +76,6 @@ export const ModalAnioEscolar = ({
             onSubmit();
           }}
         >
-          <div className={anioEscolarFormClasses.group}>
-            <label
-              className={anioEscolarFormClasses.label}
-              htmlFor="nombre_anio"
-            >
-              Nombre del año escolar
-            </label>
-            <input
-              id="nombre_anio"
-              type="text"
-              className={anioEscolarFormClasses.input}
-              value={datos.nombre}
-              onChange={(evento) =>
-                onCambiarCampo("nombre", evento.target.value)
-              }
-              placeholder="Ej. Año Escolar 2025-2026"
-              autoComplete="off"
-            />
-          </div>
-
           <div className={anioEscolarFormClasses.grid}>
             <div className={anioEscolarFormClasses.fieldWrapper}>
               <label
@@ -123,22 +103,22 @@ export const ModalAnioEscolar = ({
             <div className={anioEscolarFormClasses.fieldWrapper}>
               <label
                 className={anioEscolarFormClasses.label}
-                htmlFor="fecha_final"
+                htmlFor="fecha_fin"
               >
                 Fecha de culminación
               </label>
               <input
-                id="fecha_final"
+                id="fecha_fin"
                 type="date"
-                className={obtenerClaseCampo(errores, "fecha_final")}
-                value={datos.fecha_final}
+                className={obtenerClaseCampo(errores, "fecha_fin")}
+                value={datos.fecha_fin}
                 onChange={(evento) =>
-                  onCambiarCampo("fecha_final", evento.target.value)
+                  onCambiarCampo("fecha_fin", evento.target.value)
                 }
               />
-              {errores?.fecha_final && (
+              {errores?.fecha_fin && (
                 <p className={anioEscolarFormClasses.error}>
-                  {errores.fecha_final}
+                  {errores.fecha_fin}
                 </p>
               )}
             </div>
@@ -223,11 +203,11 @@ export const ModalAnioEscolar = ({
                       <input
                         type="date"
                         className={obtenerClaseCampo(errores, claveMomento)}
-                        value={momento.fecha_final}
+                        value={momento.fecha_fin}
                         onChange={(evento) =>
                           onCambiarMomento(
                             momento.orden,
-                            "fecha_final",
+                            "fecha_fin",
                             evento.target.value
                           )
                         }

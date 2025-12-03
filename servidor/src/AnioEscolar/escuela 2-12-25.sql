@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 01-12-2025 a las 03:11:35
+-- Tiempo de generación: 03-12-2025 a las 02:03:52
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -145,6 +145,13 @@ CREATE TABLE `anios_escolares` (
   `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `anios_escolares`
+--
+
+INSERT INTO `anios_escolares` (`id_anio_escolar`, `fecha_inicio`, `fecha_fin`, `limite_inscripcion`, `estado`) VALUES
+(1, '2025-09-01', '2026-07-20', '2025-09-01', 'incompleto');
+
 -- --------------------------------------------------------
 
 --
@@ -173,6 +180,13 @@ CREATE TABLE `areas_aprendizaje` (
   `nombre_area` varchar(100) NOT NULL,
   `estado_area` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `areas_aprendizaje`
+--
+
+INSERT INTO `areas_aprendizaje` (`id_area_aprendizaje`, `nombre_area`, `estado_area`) VALUES
+(124, 'sociales', 'activo');
 
 -- --------------------------------------------------------
 
@@ -296,6 +310,13 @@ CREATE TABLE `componentes_aprendizaje` (
   `estado_componente` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `componentes_aprendizaje`
+--
+
+INSERT INTO `componentes_aprendizaje` (`id_componente`, `fk_area`, `nombre_componente`, `especialista`, `evalua`, `estado_componente`) VALUES
+(106, 124, 'pepe', 'dsad', 'no', 'activo');
+
 -- --------------------------------------------------------
 
 --
@@ -345,6 +366,13 @@ CREATE TABLE `contenidos` (
   `descripcion` varchar(255) DEFAULT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `contenidos`
+--
+
+INSERT INTO `contenidos` (`id_contenido`, `nombre_contenido`, `fk_componente`, `grado`, `descripcion`, `estado`) VALUES
+(706, 'dasd', 106, '2', 'sadsadas', 'activo');
 
 -- --------------------------------------------------------
 
@@ -602,7 +630,7 @@ CREATE TABLE `indicadores` (
   `id_indicador` int(11) NOT NULL,
   `fk_competencia` int(11) NOT NULL,
   `nombre_indicador` varchar(255) NOT NULL,
-  `tipo` enum('ser','hacer','conocer') NOT NULL,
+  `aspecto` enum('ser','hacer','conocer','convivir') NOT NULL,
   `orden` int(3) NOT NULL,
   `ocultar` enum('si','no') NOT NULL DEFAULT 'no'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -681,6 +709,15 @@ CREATE TABLE `momentos` (
   `fecha_fin` date NOT NULL,
   `estado_momento` enum('activo','finalizado') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `momentos`
+--
+
+INSERT INTO `momentos` (`id_momento`, `fk_anio_escolar`, `nombre_momento`, `fecha_inicio`, `fecha_fin`, `estado_momento`) VALUES
+(11, 1, '1', '2025-09-01', '2025-12-20', 'activo'),
+(12, 1, '2', '2026-01-10', '2026-03-29', 'activo'),
+(13, 1, '3', '2026-04-12', '2026-07-20', 'activo');
 
 -- --------------------------------------------------------
 
@@ -967,7 +1004,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(32, 1, 'b9bad93cc5d5c53a6738a3525f111d361b971ffbc6b15ba4927fe5c786583352', '2025-11-30', '2025-12-01');
+(34, 1, 'ae85243558db1ca7044e58495fc0c1771d1436bb1395f95ddeb1e7faddc77dea', '2025-12-02', '2025-12-03');
 
 -- --------------------------------------------------------
 
@@ -981,6 +1018,13 @@ CREATE TABLE `temas` (
   `nombre_tema` varchar(255) NOT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `temas`
+--
+
+INSERT INTO `temas` (`id_tema`, `fk_contenido`, `nombre_tema`, `estado`) VALUES
+(58, 706, 'sdasd', 'activo');
 
 -- --------------------------------------------------------
 
@@ -1269,7 +1313,7 @@ ALTER TABLE `literal`
 --
 ALTER TABLE `momentos`
   ADD PRIMARY KEY (`id_momento`),
-  ADD UNIQUE KEY `id_anio_escolar` (`fk_anio_escolar`);
+  ADD KEY `fk_anio_escolar` (`fk_anio_escolar`);
 
 --
 -- Indices de la tabla `parentesco`
@@ -1401,7 +1445,7 @@ ALTER TABLE `alergias`
 -- AUTO_INCREMENT de la tabla `anios_escolares`
 --
 ALTER TABLE `anios_escolares`
-  MODIFY `id_anio_escolar` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_anio_escolar` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `aprobo`
@@ -1413,7 +1457,7 @@ ALTER TABLE `aprobo`
 -- AUTO_INCREMENT de la tabla `areas_aprendizaje`
 --
 ALTER TABLE `areas_aprendizaje`
-  MODIFY `id_area_aprendizaje` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
+  MODIFY `id_area_aprendizaje` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
 
 --
 -- AUTO_INCREMENT de la tabla `asistencia`
@@ -1455,7 +1499,7 @@ ALTER TABLE `competencias`
 -- AUTO_INCREMENT de la tabla `componentes_aprendizaje`
 --
 ALTER TABLE `componentes_aprendizaje`
-  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 
 --
 -- AUTO_INCREMENT de la tabla `condiciones_salud`
@@ -1473,7 +1517,7 @@ ALTER TABLE `consultas_medicas`
 -- AUTO_INCREMENT de la tabla `contenidos`
 --
 ALTER TABLE `contenidos`
-  MODIFY `id_contenido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=706;
+  MODIFY `id_contenido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=707;
 
 --
 -- AUTO_INCREMENT de la tabla `contenido_indicador`
@@ -1563,7 +1607,7 @@ ALTER TABLE `literal`
 -- AUTO_INCREMENT de la tabla `momentos`
 --
 ALTER TABLE `momentos`
-  MODIFY `id_momento` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_momento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `parentesco`
@@ -1623,13 +1667,13 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
 --
 ALTER TABLE `temas`
-  MODIFY `id_tema` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id_tema` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
@@ -1791,12 +1835,6 @@ ALTER TABLE `inscripciones`
 ALTER TABLE `lista_alergias`
   ADD CONSTRAINT `lista_alergias_ibfk_1` FOREIGN KEY (`fk_alergia`) REFERENCES `alergias` (`id_alergia`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `lista_alergias_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `momentos`
---
-ALTER TABLE `momentos`
-  ADD CONSTRAINT `momentos_ibfk_1` FOREIGN KEY (`fk_anio_escolar`) REFERENCES `anios_escolares` (`id_anio_escolar`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `parentesco`

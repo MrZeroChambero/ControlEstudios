@@ -13,10 +13,25 @@ import {
   formatearFecha,
   generarMomentosAutomaticos,
   normalizarMomento,
+  normalizarRegistroAnio,
   validarFormulario,
 } from "./utilidadesAnioEscolar";
 
 const MENSAJE_ERROR_CARGA = "No se pudo cargar la lista de años escolares.";
+
+const mapearErroresServidor = (errores = {}) => {
+  if (!errores || typeof errores !== "object") {
+    return {};
+  }
+
+  const adaptados = { ...errores };
+
+  if (adaptados.limite_inscripcion && !adaptados.fecha_limite_inscripcion) {
+    adaptados.fecha_limite_inscripcion = adaptados.limite_inscripcion;
+  }
+
+  return adaptados;
+};
 
 export const useGestionAniosEscolares = () => {
   const [anios, setAnios] = useState([]);
@@ -30,7 +45,11 @@ export const useGestionAniosEscolares = () => {
     setCargando(true);
     const respuesta = await listarAniosEscolares();
     if (respuesta.success) {
-      setAnios(Array.isArray(respuesta.data) ? respuesta.data : []);
+      const coleccion = Array.isArray(respuesta.data) ? respuesta.data : [];
+      const normalizados = coleccion
+        .map((item) => normalizarRegistroAnio(item))
+        .filter(Boolean);
+      setAnios(normalizados);
     } else {
       Swal.fire("Error", respuesta.message || MENSAJE_ERROR_CARGA, "error");
     }
@@ -54,7 +73,8 @@ export const useGestionAniosEscolares = () => {
 
   const abrirCrear = useCallback(() => {
     setModal({ abierto: true, modo: "crear" });
-    setFormulario(construirFormularioBase());
+    const base = construirFormularioBase();
+    setFormulario(normalizarRegistroAnio(base));
   }, []);
 
   const abrirEditar = useCallback((registro) => {
@@ -65,13 +85,15 @@ export const useGestionAniosEscolares = () => {
     const momentosNormalizados = (registro.momentos || []).map(
       normalizarMomento
     );
+    const limiteNormalizado =
+      registro.fecha_limite_inscripcion ||
+      registro.limite_inscripcion ||
+      registro.fecha_inicio;
     const base = {
-      id: registro.id,
-      nombre: registro.nombre || "",
+      id: registro.id ?? registro.id_anio_escolar,
       fecha_inicio: registro.fecha_inicio,
-      fecha_final: registro.fecha_final,
-      fecha_limite_inscripcion:
-        registro.fecha_limite_inscripcion || registro.fecha_inicio,
+      fecha_fin: registro.fecha_fin,
+      fecha_limite_inscripcion: limiteNormalizado,
       estado: registro.estado || "incompleto",
     };
 
@@ -95,7 +117,7 @@ export const useGestionAniosEscolares = () => {
       }
       const siguiente = { ...previo, [campo]: valor };
 
-      if (campo === "fecha_inicio" || campo === "fecha_final") {
+      if (campo === "fecha_inicio" || campo === "fecha_fin") {
         const recalculados = generarMomentosAutomaticos(siguiente);
         siguiente.momentos = combinarMomentos(
           previo.momentos || [],
@@ -140,16 +162,16 @@ export const useGestionAniosEscolares = () => {
     }
 
     const payload = {
-      nombre: formulario.nombre?.trim() || undefined,
       fecha_inicio: formulario.fecha_inicio,
-      fecha_final: formulario.fecha_final,
+      fecha_fin: formulario.fecha_fin,
       fecha_limite_inscripcion: formulario.fecha_limite_inscripcion,
+      limite_inscripcion: formulario.fecha_limite_inscripcion,
       momentos: (formulario.momentos || []).map((momento) => ({
         id: momento.id,
         orden: momento.orden,
         nombre: momento.nombre,
         fecha_inicio: momento.fecha_inicio,
-        fecha_final: momento.fecha_final,
+        fecha_fin: momento.fecha_fin,
         estado: momento.estado,
       })),
     };
@@ -168,7 +190,7 @@ export const useGestionAniosEscolares = () => {
       cerrarModal();
       cargarAnios();
     } else {
-      setErrores(respuesta.errors || {});
+      setErrores(mapearErroresServidor(respuesta.errors));
       Swal.fire(
         "Error",
         respuesta.message || "No se pudo completar la operación.",
@@ -257,19 +279,19 @@ export const useGestionAniosEscolares = () => {
         (momento) =>
           `<li><strong>${momento.nombre}</strong>: ${formatearFecha(
             momento.fecha_inicio
-          )} al ${formatearFecha(momento.fecha_final)} · Estado: ${(
+          )} al ${formatearFecha(momento.fecha_fin)} · Estado: ${(
             momento.estado || "activo"
           ).toUpperCase()}</li>`
       )
       .join("");
 
     Swal.fire({
-      title: registro.nombre || "Detalle del año escolar",
+      title: "Detalle del año escolar",
       html: `
         <div class="text-left space-y-2">
           <p><strong>Período:</strong> ${formatearFecha(
             registro.fecha_inicio
-          )} al ${formatearFecha(registro.fecha_final)}</p>
+          )} al ${formatearFecha(registro.fecha_fin)}</p>
           <p><strong>Límite inscripción:</strong> ${formatearFecha(
             registro.fecha_limite_inscripcion
           )}</p>

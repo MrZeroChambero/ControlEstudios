@@ -60,8 +60,8 @@ export const formatearFecha = (iso) => {
   }
   return fecha.toLocaleDateString("es-VE", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    month: "long",
+    day: "numeric",
   });
 };
 
@@ -120,14 +120,14 @@ export const inferirAnioBase = (fechaInicioIso) => {
 };
 
 export const generarMomentosAutomaticos = (datosAnio) => {
-  if (!datosAnio?.fecha_inicio || !datosAnio?.fecha_final) {
+  if (!datosAnio?.fecha_inicio || !datosAnio?.fecha_fin) {
     return [];
   }
 
   const anioBase = inferirAnioBase(datosAnio.fecha_inicio);
   const predeterminados = obtenerPredeterminados(anioBase);
   const inicioAnio = parsearISO(datosAnio.fecha_inicio);
-  const finAnio = parsearISO(datosAnio.fecha_final);
+  const finAnio = parsearISO(datosAnio.fecha_fin);
 
   return [1, 2, 3].map((orden) => {
     const pred = predeterminados.momentos[orden];
@@ -150,7 +150,7 @@ export const generarMomentosAutomaticos = (datosAnio) => {
       orden,
       nombre: `Momento ${orden}`,
       fecha_inicio: convertirAISO(inicio),
-      fecha_final: convertirAISO(fin),
+      fecha_fin: convertirAISO(fin),
       estado: "activo",
     };
   });
@@ -162,7 +162,7 @@ export const validarRangos = (datos) => {
   const pred = obtenerPredeterminados(anioBase);
 
   const inicio = parsearISO(datos.fecha_inicio);
-  const fin = parsearISO(datos.fecha_final);
+  const fin = parsearISO(datos.fecha_fin);
   const limite = parsearISO(datos.fecha_limite_inscripcion);
 
   if (!inicio || !fin || !limite) {
@@ -171,7 +171,7 @@ export const validarRangos = (datos) => {
   }
 
   if (inicio > fin) {
-    errores.fecha_final =
+    errores.fecha_fin =
       "La fecha final debe ser posterior a la fecha de inicio.";
   }
 
@@ -180,7 +180,7 @@ export const validarRangos = (datos) => {
   }
 
   if (diferenciaDias(fin, pred.fin) > 7) {
-    errores.fecha_final = "Solo se permite ajustar ±7 días respecto al 20/07.";
+    errores.fecha_fin = "Solo se permite ajustar ±7 días respecto al 20/07.";
   }
 
   const limiteMinimo = sumarDias(pred.inicio, -7);
@@ -200,13 +200,13 @@ export const validarMomentos = (momentos, datosAnio) => {
   const anioBase = inferirAnioBase(datosAnio.fecha_inicio);
   const pred = obtenerPredeterminados(anioBase);
   const inicioAnio = parsearISO(datosAnio.fecha_inicio);
-  const finAnio = parsearISO(datosAnio.fecha_final);
+  const finAnio = parsearISO(datosAnio.fecha_fin);
 
   const ordenados = [...(momentos || [])].sort((a, b) => a.orden - b.orden);
 
   ordenados.forEach((momento) => {
     const inicio = parsearISO(momento.fecha_inicio);
-    const fin = parsearISO(momento.fecha_final);
+    const fin = parsearISO(momento.fecha_fin);
     const clave = `momento_${momento.orden}`;
 
     if (!inicio || !fin) {
@@ -236,7 +236,7 @@ export const validarMomentos = (momentos, datosAnio) => {
   });
 
   for (let indice = 1; indice < ordenados.length; indice += 1) {
-    const anterior = parsearISO(ordenados[indice - 1].fecha_final);
+    const anterior = parsearISO(ordenados[indice - 1].fecha_fin);
     const actual = parsearISO(ordenados[indice].fecha_inicio);
     if (anterior && actual && anterior >= actual) {
       errores.superposicion = "Los momentos no deben superponerse.";
@@ -271,6 +271,12 @@ export const combinarMomentos = (anteriores = [], recalculados = []) => {
       id: existente.id ?? existente.id_momento ?? null,
       nombre: existente.nombre ?? existente.momento_nombre ?? momento.nombre,
       estado: existente.estado ?? existente.momento_estado ?? momento.estado,
+      fecha_inicio:
+        existente.fecha_inicio ??
+        existente.momento_inicio ??
+        momento.fecha_inicio,
+      fecha_fin:
+        existente.fecha_fin ?? existente.momento_fin ?? momento.fecha_fin,
     };
   });
 };
@@ -281,7 +287,7 @@ export const normalizarMomento = (momento) => ({
   nombre:
     momento.nombre ?? momento.momento_nombre ?? `Momento ${momento.orden}`,
   fecha_inicio: momento.fecha_inicio ?? momento.momento_inicio ?? "",
-  fecha_final: momento.fecha_final ?? momento.momento_fin ?? "",
+  fecha_fin: momento.fecha_fin ?? momento.momento_fin ?? "",
   estado: momento.estado ?? momento.momento_estado ?? "activo",
 });
 
@@ -290,11 +296,13 @@ export const construirFormularioBase = () => {
   const anioBase =
     hoy.getUTCMonth() >= 6 ? hoy.getUTCFullYear() : hoy.getUTCFullYear() - 1;
   const predeterminados = obtenerPredeterminados(anioBase);
+  const fechaInicioIso = convertirAISO(predeterminados.inicio);
+  const fechaFinIso = convertirAISO(predeterminados.fin);
+  const fechaLimiteIso = convertirAISO(predeterminados.limite);
   const datosBase = {
-    nombre: "",
-    fecha_inicio: convertirAISO(predeterminados.inicio),
-    fecha_final: convertirAISO(predeterminados.fin),
-    fecha_limite_inscripcion: convertirAISO(predeterminados.limite),
+    fecha_inicio: fechaInicioIso,
+    fecha_fin: fechaFinIso,
+    fecha_limite_inscripcion: fechaLimiteIso,
     estado: "incompleto",
   };
 
@@ -309,3 +317,34 @@ export const transformarErrores = (errores) =>
     clave,
     mensaje: Array.isArray(mensaje) ? mensaje.join(" ") : mensaje,
   }));
+
+export const construirNombrePeriodo = (
+  fechaInicio,
+  fechaFin,
+  valorPorDefecto = ""
+) => {
+  const inicio = parsearISO(fechaInicio);
+  const fin = parsearISO(fechaFin);
+
+  if (inicio && fin) {
+    return `${inicio.getUTCFullYear()}-${fin.getUTCFullYear()}`;
+  }
+
+  return valorPorDefecto || "Sin nombre";
+};
+
+export const normalizarRegistroAnio = (registro = {}) => {
+  const { nombre: _nombreIgnorado, ...resto } = registro;
+  const fechaInicio = resto.fecha_inicio ?? null;
+  const limite =
+    resto.fecha_limite_inscripcion ??
+    resto.limite_inscripcion ??
+    fechaInicio ??
+    null;
+
+  return {
+    ...resto,
+    fecha_limite_inscripcion: limite,
+    limite_inscripcion: limite,
+  };
+};

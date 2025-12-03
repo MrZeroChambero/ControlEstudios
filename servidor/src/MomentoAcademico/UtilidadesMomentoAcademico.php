@@ -8,7 +8,8 @@ trait UtilidadesMomentoAcademico
   {
     $map = [
       'activo' => 'Momento Activo',
-      'inactivo' => 'Momento Inactivo'
+      'inactivo' => 'Momento Inactivo',
+      'finalizado' => 'Momento Finalizado'
     ];
     return $estado !== null && isset($map[$estado]) ? $map[$estado] : null;
   }
