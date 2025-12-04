@@ -15,6 +15,11 @@ import {
 import SeleccionEntidad from "./SeleccionEntidad";
 import TablaParentescosEstudiante from "./TablaParentescosEstudiante";
 import TablaParentescosRepresentante from "./TablaParentescosRepresentante";
+import {
+  contenidosLayout,
+  contenidosFormClasses,
+  primaryButtonBase,
+} from "../EstilosCliente/EstilosClientes";
 
 // Componente principal de gestión de Parentescos
 export const Parentesco = () => {
@@ -320,24 +325,40 @@ export const Parentesco = () => {
 
   // Se sustituyen tablas tradicionales por componentes DataTable
 
+  const tabButtonBase = `${primaryButtonBase} bg-blue-500 text-white focus:ring-blue-200/60`;
+  const tabButtonInactive = "hover:bg-blue-600";
+  const tabActiveVariants = {
+    estudiante:
+      "bg-blue-700 hover:bg-blue-700 focus:ring-blue-400/60 shadow-lg",
+    representante:
+      "bg-blue-700 hover:bg-blue-700 focus:ring-blue-400/60 shadow-lg",
+  };
+
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <h2 className="text-2xl font-bold">Gestión de Parentescos</h2>
-        <div className="flex gap-2">
+    <div className={contenidosLayout.container}>
+      <div className={`${contenidosLayout.header} items-start`}>
+        <div className="flex flex-col gap-1">
+          <h2 className={contenidosLayout.title}>Gestión de Parentescos</h2>
+          <p className="text-sm text-slate-500">
+            Relaciona estudiantes con sus representantes y mantén control de los
+            vínculos familiares registrados.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
               setTab("estudiante");
               setEditando(null);
               setTipoManual("");
             }}
-            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${
+            className={`${tabButtonBase} ${
               tab === "estudiante"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? tabActiveVariants.estudiante
+                : tabButtonInactive
             }`}
           >
-            <FaExchangeAlt /> Por Estudiante
+            <FaExchangeAlt className="h-4 w-4" />
+            <span>Por Estudiante</span>
           </button>
           <button
             onClick={() => {
@@ -345,44 +366,55 @@ export const Parentesco = () => {
               setEditando(null);
               setTipoManual("");
             }}
-            className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${
+            className={`${tabButtonBase} ${
               tab === "representante"
-                ? "bg-purple-600 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? tabActiveVariants.representante
+                : tabButtonInactive
             }`}
           >
-            <FaExchangeAlt /> Por Representante
+            <FaExchangeAlt className="h-4 w-4" />
+            <span>Por Representante</span>
           </button>
         </div>
       </div>
-      <p className="text-gray-600 mb-6">
-        Administra las relaciones de parentesco entre estudiantes y
-        representantes. Un estudiante solo puede tener un padre y una madre; los
-        demás tipos son opcionales.
+
+      <p className={contenidosLayout.description}>
+        Un estudiante solo puede registrar un padre y una madre. Los demás tipos
+        de parentesco no tienen restricciones adicionales.
       </p>
 
       {tab === "estudiante" && (
-        <div className="grid md:grid-cols-2 gap-6">
-          <SeleccionEntidad
-            tipo="estudiante"
-            items={estudiantes}
-            seleccionado={estudianteSel}
-            onSelect={(i) => setEstudianteSel(i)}
-          />
-          <SeleccionEntidad
-            tipo="representante"
-            items={representantes}
-            seleccionado={representanteSel}
-            onSelect={(i) => setRepresentanteSel(i)}
-          />
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex flex-col md:flex-row gap-2">
-              <div className="flex-1">
+        <div className="space-y-6">
+          <div className="space-y-6">
+            <SeleccionEntidad
+              tipo="estudiante"
+              items={estudiantes}
+              seleccionado={estudianteSel}
+              onSelect={(i) => setEstudianteSel(i)}
+            />
+            <SeleccionEntidad
+              tipo="representante"
+              items={representantes}
+              seleccionado={representanteSel}
+              onSelect={(i) => setRepresentanteSel(i)}
+            />
+          </div>
+          <div className="space-y-4 rounded-3xl border border-slate-100 bg-white/60 p-4 shadow-sm">
+            <div className="space-y-3">
+              <div className={contenidosFormClasses.fieldWrapper}>
+                <label
+                  className={contenidosFormClasses.label}
+                  htmlFor="tipo-estudiante"
+                >
+                  Tipo de parentesco
+                </label>
                 <select
+                  id="tipo-estudiante"
                   value={tipoManual}
                   onChange={(e) => setTipoManual(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`${contenidosFormClasses.select} capitalize`}
                 >
+                  <option value="">Seleccionar tipo</option>
                   {(estudianteSel && representanteSel
                     ? tiposPorGenero(representanteSel?.genero)
                     : tiposPermitidos
@@ -392,16 +424,20 @@ export const Parentesco = () => {
                     </option>
                   ))}
                 </select>
+                <p className={contenidosFormClasses.helper}>
+                  Si no eliges un tipo, se inferirá automáticamente según el
+                  género del representante.
+                </p>
               </div>
-              <div className="flex-1">
-                <button
-                  disabled={!representanteSel || !estudianteSel}
-                  onClick={agregarParentescoEstudiante}
-                  className="w-full bg-green-600 disabled:bg-gray-400 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <FaPlus /> Agregar Parentesco
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={!representanteSel || !estudianteSel}
+                onClick={agregarParentescoEstudiante}
+                className={`${contenidosFormClasses.primaryButton} flex w-full items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-60`}
+              >
+                <FaPlus className="h-4 w-4" />
+                <span>Agregar parentesco</span>
+              </button>
             </div>
             <TablaParentescosEstudiante
               data={parentescosEstudiante}
@@ -418,28 +454,39 @@ export const Parentesco = () => {
           </div>
         </div>
       )}
+
       {tab === "representante" && (
-        <div className="grid md:grid-cols-2 gap-6">
-          <SeleccionEntidad
-            tipo="representante"
-            items={representantes}
-            seleccionado={representanteSel}
-            onSelect={(i) => setRepresentanteSel(i)}
-          />
-          <SeleccionEntidad
-            tipo="estudiante"
-            items={estudiantes}
-            seleccionado={estudianteSel}
-            onSelect={(i) => setEstudianteSel(i)}
-          />
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex flex-col md:flex-row gap-2">
-              <div className="flex-1">
+        <div className="space-y-6">
+          <div className="space-y-6">
+            <SeleccionEntidad
+              tipo="representante"
+              items={representantes}
+              seleccionado={representanteSel}
+              onSelect={(i) => setRepresentanteSel(i)}
+            />
+            <SeleccionEntidad
+              tipo="estudiante"
+              items={estudiantes}
+              seleccionado={estudianteSel}
+              onSelect={(i) => setEstudianteSel(i)}
+            />
+          </div>
+          <div className="space-y-4 rounded-3xl border border-slate-100 bg-white/60 p-4 shadow-sm">
+            <div className="space-y-3">
+              <div className={contenidosFormClasses.fieldWrapper}>
+                <label
+                  className={contenidosFormClasses.label}
+                  htmlFor="tipo-representante"
+                >
+                  Tipo de parentesco
+                </label>
                 <select
+                  id="tipo-representante"
                   value={tipoManual}
                   onChange={(e) => setTipoManual(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className={`${contenidosFormClasses.select} capitalize`}
                 >
+                  <option value="">Seleccionar tipo</option>
                   {(representanteSel && estudianteSel
                     ? tiposPorGenero(representanteSel?.genero)
                     : tiposPermitidos
@@ -449,16 +496,20 @@ export const Parentesco = () => {
                     </option>
                   ))}
                 </select>
+                <p className={contenidosFormClasses.helper}>
+                  La relación padre/madre sigue limitada a una única
+                  coincidencia por estudiante.
+                </p>
               </div>
-              <div className="flex-1">
-                <button
-                  disabled={!representanteSel || !estudianteSel}
-                  onClick={agregarParentescoRepresentante}
-                  className="w-full bg-green-600 disabled:bg-gray-400 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center justify-center gap-2"
-                >
-                  <FaPlus /> Agregar Parentesco
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={!representanteSel || !estudianteSel}
+                onClick={agregarParentescoRepresentante}
+                className={`${contenidosFormClasses.primaryButton} flex w-full items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-60`}
+              >
+                <FaPlus className="h-4 w-4" />
+                <span>Agregar parentesco</span>
+              </button>
             </div>
             <TablaParentescosRepresentante
               data={parentescosRepresentante}

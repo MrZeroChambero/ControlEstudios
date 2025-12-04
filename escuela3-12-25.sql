@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-12-2025 a las 02:43:58
+-- Tiempo de generación: 04-12-2025 a las 03:26:17
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -198,6 +198,7 @@ CREATE TABLE `asistencia` (
   `id_asistencia` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
+  `grado` enum('1','2','3','4','5','6') NOT NULL,
   `asistencias` int(11) NOT NULL,
   `inasistencias` int(11) NOT NULL,
   `justificadas` int(11) NOT NULL
