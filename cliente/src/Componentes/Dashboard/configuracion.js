@@ -9,7 +9,9 @@ export const menuSections = {
       path: "componentes-de-aprendizaje",
     },
     { name: "Estudiantes", path: "estudiantes" },
-    { name: "Evaluaciones", path: "evaluaciones" },
+    { name: "Competencias", path: "competencias" },
+    { name: "Indicadores", path: "indicadores" },
+
     { name: "Representantes", path: "representantes" },
     { name: "Personal", path: "personal" },
     { name: "Personas", path: "personas" },

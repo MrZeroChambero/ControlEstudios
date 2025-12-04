@@ -33,6 +33,11 @@ function registrarRutasAula(AltoRouter $router)
   $mapAuthenticated('GET', '/aulas/apertura', [$controlador, 'obtenerResumenAulas']);
   $mapAuthenticated('POST', '/aulas/apertura', [$controlador, 'aperturarAulas']);
   $mapAuthenticated('PATCH', '/aulas/[i:id]/cupos', [$controlador, 'actualizarCuposAula']);
+  $mapAuthenticated('GET', '/aulas/gestion-docentes', [$controlador, 'obtenerGestionDocentes']);
+  $mapAuthenticated('POST', '/aulas/[i:id]/docente', [$controlador, 'asignarDocenteTitular']);
+  $mapAuthenticated('DELETE', '/aulas/[i:id]/docente', [$controlador, 'eliminarDocenteTitular']);
+  $mapAuthenticated('POST', '/aulas/[i:id]/especialistas', [$controlador, 'asignarEspecialista']);
+  $mapAuthenticated('DELETE', '/aulas/[i:id]/especialistas/[i:componenteId]', [$controlador, 'eliminarEspecialista']);
 
   $mapAuthenticated('GET', '/aulas', [$controlador, 'listarAulas']);
   $mapAuthenticated('GET', '/aulas/listar-select', [$controlador, 'listarAulasSelect']);

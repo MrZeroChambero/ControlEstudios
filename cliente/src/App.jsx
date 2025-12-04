@@ -19,6 +19,9 @@ import Representante from "./Componentes/Representantes/Representante.jsx";
 import Parentesco from "./Componentes/Parentesco/Parentesco.jsx";
 import AnioEscolar from "./Componentes/AnioEscolar/AnioEscolar.jsx";
 import { Aulas } from "./Componentes/Aulas/Aulas.jsx";
+import { Competencias } from "./Componentes/Competencias/Competencias.jsx";
+import { Indicadores } from "./Componentes/Indicadores/Indicadores.jsx";
+import { GestionGradosSecciones } from "./Componentes/GestionGradosSecciones/GestionGradosSecciones.jsx";
 
 function App() {
   return (
@@ -34,13 +37,14 @@ function App() {
         path="componentes-de-aprendizaje"
         element={<ComponentesAprendizajes />}
       />
+      <Route path="GradosYSecciones" element={<GestionGradosSecciones />} />
       <Route path="Aperturar Aulas" element={<Aulas />} />
       <Route path="AnioEscolar" element={<AnioEscolar />} />
       <Route path="Aulas" element={<Aulas />} />
       <Route path="Parentesco" element={<Parentesco />} />
       <Route path="Asistencia de estudiantes" element={<Dashboard />} />
-      <Route path="Competencias" element={<Dashboard />} />
-      <Route path="Indicadores" element={<Dashboard />} />
+      <Route path="Competencias" element={<Competencias />} />
+      <Route path="Indicadores" element={<Indicadores />} />
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-12-2025 a las 02:03:52
+-- Tiempo de generación: 04-12-2025 a las 02:43:58
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -142,7 +142,7 @@ CREATE TABLE `anios_escolares` (
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date NOT NULL,
   `limite_inscripcion` date NOT NULL,
-  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
+  `estado` enum('activo','inactivo','incompleto','finalizado') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -230,6 +230,20 @@ CREATE TABLE `aula` (
   `cupos` int(11) DEFAULT NULL,
   `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `aula`
+--
+
+INSERT INTO `aula` (`id_aula`, `fk_anio_escolar`, `fk_grado_seccion`, `cupos`, `estado`) VALUES
+(1, 1, 1, 37, 'activo'),
+(2, 1, 4, 37, 'activo'),
+(3, 1, 7, 37, 'activo'),
+(4, 1, 10, 37, 'activo'),
+(5, 1, 13, 37, 'activo'),
+(6, 1, 16, 37, 'activo'),
+(7, 1, 2, 37, 'activo'),
+(8, 1, 3, 37, 'inactivo');
 
 -- --------------------------------------------------------
 
@@ -550,6 +564,30 @@ CREATE TABLE `grado_seccion` (
   `grado` enum('1','2','3','4','5','6') NOT NULL,
   `seccion` enum('A','B','C') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `grado_seccion`
+--
+
+INSERT INTO `grado_seccion` (`id_grado_seccion`, `grado`, `seccion`) VALUES
+(1, '1', 'A'),
+(2, '1', 'B'),
+(3, '1', 'C'),
+(4, '2', 'A'),
+(5, '2', 'B'),
+(6, '2', 'C'),
+(7, '3', 'A'),
+(8, '3', 'B'),
+(9, '3', 'C'),
+(10, '4', 'A'),
+(11, '4', 'B'),
+(12, '4', 'C'),
+(13, '5', 'A'),
+(14, '5', 'B'),
+(15, '5', 'C'),
+(16, '6', 'A'),
+(17, '6', 'B'),
+(18, '6', 'C');
 
 -- --------------------------------------------------------
 
@@ -1004,7 +1042,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(34, 1, 'ae85243558db1ca7044e58495fc0c1771d1436bb1395f95ddeb1e7faddc77dea', '2025-12-02', '2025-12-03');
+(35, 1, '76279eedf947e95ed8fe9451a8b01f8937334e61db33075bee0fd9086085e717', '2025-12-03', '2025-12-04');
 
 -- --------------------------------------------------------
 
@@ -1475,7 +1513,7 @@ ALTER TABLE `auditoria`
 -- AUTO_INCREMENT de la tabla `aula`
 --
 ALTER TABLE `aula`
-  MODIFY `id_aula` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_aula` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `bloqueos`
@@ -1553,7 +1591,7 @@ ALTER TABLE `funcion_personal`
 -- AUTO_INCREMENT de la tabla `grado_seccion`
 --
 ALTER TABLE `grado_seccion`
-  MODIFY `id_grado_seccion` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_grado_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `grupos_estudiantiles`
@@ -1667,7 +1705,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

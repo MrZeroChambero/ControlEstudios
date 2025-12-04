@@ -245,4 +245,105 @@ trait OperacionesControladorAula
       echo json_encode(['back' => false, 'message' => 'Error al eliminar aula.', 'error_details' => $e->getMessage()]);
     }
   }
+
+  public function obtenerGestionDocentes()
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $resumen = $this->obtenerResumenGestionGeneral($conexion);
+      $mensaje = $resumen['anio'] !== null
+        ? 'Resumen de asignaciones obtenido correctamente.'
+        : 'No existe un año escolar activo o incompleto. Configure uno para gestionar las asignaciones.';
+
+      $this->enviarRespuestaJson(200, true, $mensaje, $resumen);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible obtener la gestion de aulas.', null);
+    }
+  }
+
+  public function asignarDocenteTitular($id)
+  {
+    try {
+      $entrada = $this->leerEntradaJson();
+      $conexion = Conexion::obtener();
+
+      $this->registrarDocenteTitular($conexion, (int) $id, $entrada);
+      $resumen = $this->obtenerResumenGestionGeneral($conexion);
+
+      $this->enviarRespuestaJson(200, true, 'Docente titular asignado correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $errores = $this->decodificarErrores($excepcion->getMessage());
+      if ($errores !== null) {
+        $this->enviarRespuestaJson(422, false, 'La informacion enviada no es valida.', null, $errores);
+        return;
+      }
+
+      $this->enviarRespuestaJson(409, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible asignar el docente titular.', null);
+    }
+  }
+
+  public function eliminarDocenteTitular($id)
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $this->eliminarDocenteTitularAsignacion($conexion, (int) $id);
+      $resumen = $this->obtenerResumenGestionGeneral($conexion);
+
+      $this->enviarRespuestaJson(200, true, 'Docente titular removido correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(404, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible remover el docente titular.', null);
+    }
+  }
+
+  public function asignarEspecialista($id)
+  {
+    try {
+      $entrada = $this->leerEntradaJson();
+      $conexion = Conexion::obtener();
+
+      $this->registrarEspecialista($conexion, (int) $id, $entrada);
+      $resumen = $this->obtenerResumenGestionGeneral($conexion);
+
+      $this->enviarRespuestaJson(200, true, 'Especialista asignado correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $errores = $this->decodificarErrores($excepcion->getMessage());
+      if ($errores !== null) {
+        $this->enviarRespuestaJson(422, false, 'La informacion enviada no es valida.', null, $errores);
+        return;
+      }
+
+      $this->enviarRespuestaJson(409, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible asignar el especialista.', null);
+    }
+  }
+
+  public function eliminarEspecialista($id, $componenteId)
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $this->eliminarEspecialistaAsignacion($conexion, (int) $id, (int) $componenteId);
+      $resumen = $this->obtenerResumenGestionGeneral($conexion);
+
+      $this->enviarRespuestaJson(200, true, 'Especialista removido correctamente.', $resumen);
+    } catch (RuntimeException $excepcion) {
+      $this->enviarRespuestaJson(404, false, $excepcion->getMessage(), null);
+    } catch (Exception $excepcion) {
+      $this->enviarRespuestaJson(500, false, 'No fue posible remover el especialista asignado.', null);
+    }
+  }
+
+  private function decodificarErrores(string $mensaje): ?array
+  {
+    $decodificado = json_decode($mensaje, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($decodificado)) {
+      return null;
+    }
+
+    return $decodificado;
+  }
 }
