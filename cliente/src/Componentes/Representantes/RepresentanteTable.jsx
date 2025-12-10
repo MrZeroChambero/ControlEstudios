@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import DataTable from "react-data-table-component";
 import {
   FaEdit,
@@ -7,6 +7,10 @@ import {
   FaToggleOn,
   FaToggleOff,
 } from "react-icons/fa";
+import {
+  representantesTableClasses,
+  contenidosIconClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const RepresentanteTable = ({
   representantes,
@@ -18,118 +22,148 @@ export const RepresentanteTable = ({
 }) => {
   const [filterText, setFilterText] = useState("");
 
-  const filtered = representantes.filter((r) => {
-    const nombre = `${r.primer_nombre || ""} ${r.segundo_nombre || ""} ${
-      r.primer_apellido || ""
-    } ${r.segundo_apellido || ""}`.toLowerCase();
-    return (
-      nombre.includes(filterText.toLowerCase()) ||
-      (r.cedula || "").toLowerCase().includes(filterText.toLowerCase()) ||
-      (r.profesion || "").toLowerCase().includes(filterText.toLowerCase())
-    );
-  });
+  const filtered = useMemo(() => {
+    const criterio = filterText.toLowerCase();
+    return representantes.filter((r) => {
+      const nombre = `${r.primer_nombre || ""} ${r.segundo_nombre || ""} ${
+        r.primer_apellido || ""
+      } ${r.segundo_apellido || ""}`
+        .trim()
+        .toLowerCase();
+      return (
+        nombre.includes(criterio) ||
+        (r.cedula || "").toLowerCase().includes(criterio) ||
+        (r.profesion || "").toLowerCase().includes(criterio)
+      );
+    });
+  }, [representantes, filterText]);
 
-  const columns = [
-    {
-      name: "ID",
-      selector: (row) => row.id_representante,
-      sortable: true,
-      width: "80px",
-    },
-    {
-      name: "Nombre Completo",
-      selector: (row) =>
-        `${row.primer_nombre || ""} ${row.segundo_nombre || ""} ${
-          row.primer_apellido || ""
-        } ${row.segundo_apellido || ""}`.trim(),
-      sortable: true,
-      wrap: true,
-    },
-    {
-      name: "Cédula",
-      selector: (row) => row.cedula,
-      sortable: true,
-      width: "140px",
-    },
-    {
-      name: "Profesión",
-      selector: (row) => row.profesion || "-",
-      sortable: true,
-      wrap: true,
-    },
-    {
-      name: "Estado Persona",
-      cell: (row) => (
-        <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
-            (row.estado || row.estado_persona) === "activo"
-              ? "bg-green-200 text-green-800"
-              : (row.estado || row.estado_persona) === "incompleto"
-              ? "bg-yellow-200 text-yellow-800"
-              : "bg-red-200 text-red-800"
-          }`}
-        >
-          {row.estado_persona_nombre || row.estado || row.estado_persona || "-"}
-        </span>
-      ),
-      sortable: true,
-      width: "160px",
-    },
-    {
-      name: "Acciones",
-      cell: (row) => {
-        const estado =
-          row.estado || row.estado_persona || row.estado_persona_nombre;
-        const activo = estado === "activo";
-        return (
-          <div className="flex space-x-2 justify-center items-center">
-            <button
-              onClick={() => onView(row)}
-              className="text-blue-500 hover:text-blue-700 text-lg"
-              title="Ver"
-            >
-              <FaEye />
-            </button>
-            <button
-              onClick={() => onToggleEstado?.(row)}
-              className={`text-2xl ${
-                activo
-                  ? "text-green-500 hover:text-green-600"
-                  : "text-gray-400 hover:text-gray-500"
-              }`}
-              title={activo ? "Desactivar (persona)" : "Activar (persona)"}
-            >
-              {activo ? <FaToggleOn /> : <FaToggleOff />}
-            </button>
-            <button
-              onClick={() => onEdit(row)}
-              className="text-yellow-500 hover:text-yellow-700 text-lg"
-              title="Editar"
-            >
-              <FaEdit />
-            </button>
-            <button
-              onClick={() => onDelete?.(row)}
-              className="text-red-500 hover:text-red-700 text-lg"
-              title="Eliminar"
-            >
-              <FaTrash />
-            </button>
-          </div>
-        );
+  const resolveEstadoBadge = (estado) => {
+    const base =
+      "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide";
+    switch (estado) {
+      case "activo":
+        return `${base} bg-emerald-100 text-emerald-700`;
+      case "incompleto":
+        return `${base} bg-amber-100 text-amber-700`;
+      default:
+        return `${base} bg-rose-100 text-rose-700`;
+    }
+  };
+
+  const columns = useMemo(
+    () => [
+      {
+        name: "ID",
+        selector: (row) => row.id_representante,
+        sortable: true,
+        width: "80px",
       },
-      width: "230px",
-    },
-  ];
+      {
+        name: "Nombre Completo",
+        selector: (row) =>
+          `${row.primer_nombre || ""} ${row.segundo_nombre || ""} ${
+            row.primer_apellido || ""
+          } ${row.segundo_apellido || ""}`.trim(),
+        sortable: true,
+        wrap: true,
+      },
+      {
+        name: "Cédula",
+        selector: (row) => row.cedula,
+        sortable: true,
+        width: "140px",
+      },
+      {
+        name: "Profesión",
+        selector: (row) => row.profesion || "-",
+        sortable: true,
+        wrap: true,
+      },
+      {
+        name: "Estado Persona",
+        cell: (row) => (
+          <span
+            className={resolveEstadoBadge(row.estado || row.estado_persona)}
+          >
+            {row.estado_persona_nombre ||
+              row.estado ||
+              row.estado_persona ||
+              "-"}
+          </span>
+        ),
+        sortable: true,
+        width: "170px",
+      },
+      {
+        name: "Acciones",
+        cell: (row) => {
+          const estado =
+            row.estado || row.estado_persona || row.estado_persona_nombre;
+          const activo = estado === "activo";
+          return (
+            <div className={representantesTableClasses.actionGroup}>
+              <button
+                type="button"
+                onClick={() => onView(row)}
+                className={`${representantesTableClasses.actionButton} ${representantesTableClasses.viewButton}`}
+                title="Ver representante"
+              >
+                <FaEye className={contenidosIconClasses.base} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onToggleEstado?.(row)}
+                className={`${representantesTableClasses.actionButton} ${
+                  activo
+                    ? representantesTableClasses.toggleOn
+                    : representantesTableClasses.toggleOff
+                }`}
+                title={activo ? "Desactivar persona" : "Activar persona"}
+              >
+                {activo ? (
+                  <FaToggleOn className={contenidosIconClasses.base} />
+                ) : (
+                  <FaToggleOff className={contenidosIconClasses.base} />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => onEdit(row)}
+                className={`${representantesTableClasses.actionButton} ${representantesTableClasses.editButton}`}
+                title="Editar representante"
+              >
+                <FaEdit className={contenidosIconClasses.base} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete?.(row)}
+                className={`${representantesTableClasses.actionButton} ${representantesTableClasses.deleteButton}`}
+                title="Eliminar representante"
+              >
+                <FaTrash className={contenidosIconClasses.base} />
+              </button>
+            </div>
+          );
+        },
+        width: "220px",
+        allowOverflow: true,
+        button: true,
+      },
+    ],
+    [onView, onToggleEstado, onEdit, onDelete]
+  );
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar por nombre, cédula o profesión..."
-      className="w-1/4 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      value={filterText}
-      onChange={(e) => setFilterText(e.target.value)}
-    />
+    <div className={representantesTableClasses.filterContainer}>
+      <input
+        type="search"
+        placeholder="Buscar por nombre, cédula o profesión..."
+        className={representantesTableClasses.filterInput}
+        value={filterText}
+        onChange={(e) => setFilterText(e.target.value)}
+      />
+    </div>
   );
 
   return (
@@ -139,13 +173,13 @@ export const RepresentanteTable = ({
         data={filtered}
         progressPending={isLoading}
         progressComponent={
-          <p className="text-center text-gray-500">
+          <p className={representantesTableClasses.helperText}>
             Cargando representantes...
           </p>
         }
         noDataComponent={
-          <p className="text-center text-gray-500">
-            No hay representantes para mostrar.
+          <p className={representantesTableClasses.helperText}>
+            No hay representantes que coincidan con la búsqueda actual.
           </p>
         }
         pagination
@@ -158,6 +192,7 @@ export const RepresentanteTable = ({
         striped
         highlightOnHover
         responsive
+        persistTableHead
       />
     </div>
   );

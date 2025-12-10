@@ -536,24 +536,51 @@ export const personalModalClasses = {
 };
 
 // Representantes
-export const representantesLayout = createLayoutTokens("purple");
+export const representantesLayout = createLayoutTokens("blue");
 
-export const representantesFormClasses = createFormTokens("purple");
+export const representantesFormClasses = createFormTokens("blue");
 
 export const representantesTableClasses = {
   ...tableBase,
-  viewButton: "text-purple-600 hover:text-purple-700",
+  viewButton: "text-blue-600 hover:text-blue-700",
   relationshipPill:
-    "inline-flex items-center justify-center rounded-full bg-purple-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-purple-700",
+    "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
 };
 
 export const representantesModalClasses = {
   overlay: modalOverlayBase,
-  content: "w-full max-w-3xl rounded-3xl bg-white p-8 shadow-2xl",
-  title: "mb-6 text-2xl font-semibold text-slate-900",
-  sectionTitle:
-    "mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400",
+  content: "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl",
+  header: "mb-6 flex flex-wrap items-center justify-between gap-4",
+  title: "text-2xl font-semibold text-slate-900",
+  subtitle: "text-sm text-slate-500",
+  meta: "flex items-center gap-3 text-sm text-slate-500",
+  stepBadge:
+    "inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
+  stepDots: "flex items-center gap-2",
+  stepDot: "h-2.5 w-2.5 rounded-full bg-slate-200",
+  stepDotActive: "bg-blue-500",
+  closeButton:
+    "inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200",
+  body: "space-y-6",
+  listWrapper: "rounded-3xl border border-slate-200",
+  listHeader:
+    "flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600",
+  listItem:
+    "flex cursor-pointer items-start justify-between gap-3 px-4 py-3 transition hover:bg-blue-50",
+  listPerson: "flex flex-col gap-0.5",
+  listName: "text-sm font-semibold text-slate-900",
+  listMeta: "text-xs text-slate-500",
+  listTag:
+    "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
+  listEmpty: helperMessageBase,
+  searchWrapper: "relative",
+  searchIcon:
+    "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400",
+  searchInput: `${filterInputBase} pl-10`,
+  actionBar: "mt-6 flex flex-wrap items-center justify-between gap-3",
+  sectionTitle: "text-sm font-semibold uppercase tracking-wide text-slate-400",
   sectionBody: "mt-2 grid gap-4 md:grid-cols-2",
+  footer: "mt-6 flex justify-end",
 };
 
 // Utilitarios compartidos

@@ -92,16 +92,15 @@ export const eliminarAnioEscolar = async (id) => {
   }
 };
 
-export const cambiarEstadoAnioEscolar = async (id, accion) => {
+export const cambiarEstadoAnioEscolar = async (id, payload) => {
+  const cuerpo =
+    typeof payload === "string" ? { accion: payload } : { ...(payload || {}) };
+
   try {
-    const { data } = await axios.patch(
-      ENDPOINTS.state(id),
-      { accion },
-      {
-        ...withCredentials,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    const { data } = await axios.patch(ENDPOINTS.state(id), cuerpo, {
+      ...withCredentials,
+      headers: { "Content-Type": "application/json" },
+    });
     return adaptResponse(data, "Error al cambiar el estado del año escolar.");
   } catch (error) {
     return extractError(error, "Error al cambiar el estado del año escolar.");

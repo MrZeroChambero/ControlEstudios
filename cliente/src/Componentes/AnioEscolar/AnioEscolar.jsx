@@ -41,7 +41,9 @@ export default function AnioEscolar() {
         </div>
         <p className={anioEscolarLayout.description}>
           Administra los periodos académicos, controla sus fechas clave y ajusta
-          los momentos sugeridos según tu calendario institucional.
+          los momentos sugeridos según tu calendario institucional. Recuerda que
+          un año escolar solo puede activarse si cada aula tiene un docente
+          titular y, para desactivarlo, deberás confirmar tu contraseña.
         </p>
 
         <TablaAniosEscolares

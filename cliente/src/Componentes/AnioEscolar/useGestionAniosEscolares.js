@@ -10,6 +10,7 @@ import {
 import {
   construirFormularioBase,
   combinarMomentos,
+  construirNombrePeriodo,
   formatearFecha,
   generarMomentosAutomaticos,
   normalizarMomento,
@@ -31,6 +32,123 @@ const mapearErroresServidor = (errores = {}) => {
   }
 
   return adaptados;
+};
+
+const construirHtmlErroresDocentes = (errores = {}) => {
+  const mensajes = [];
+  const detalleDocentes = errores.docentes;
+  if (Array.isArray(detalleDocentes)) {
+    detalleDocentes
+      .filter(Boolean)
+      .forEach((texto) => mensajes.push(String(texto)));
+  } else if (detalleDocentes) {
+    mensajes.push(String(detalleDocentes));
+  }
+
+  const aulas = Array.isArray(errores.aulas_sin_docente)
+    ? errores.aulas_sin_docente
+    : [];
+
+  const bloques = [];
+  if (mensajes.length > 0) {
+    bloques.push(
+      mensajes
+        .map(
+          (texto) =>
+            `<p style="margin:4px 0; text-align:left; line-height:1.4;">${texto}</p>`
+        )
+        .join("")
+    );
+  }
+
+  if (aulas.length > 0) {
+    const items = aulas
+      .map((aula) => {
+        const etiqueta = aula?.descripcion
+          ? String(aula.descripcion)
+          : `Aula #${aula?.id_aula ?? ""}`;
+        return `<li style="margin:2px 0;">${etiqueta}</li>`;
+      })
+      .join("");
+
+    bloques.push(
+      `<div style="margin-top:8px; text-align:left;">` +
+        `<p style="margin:0 0 4px; font-weight:600;">Aulas pendientes:</p>` +
+        `<ul style="padding-left:18px; margin:0;">${items}</ul>` +
+        `</div>`
+    );
+  }
+
+  return bloques.join("");
+};
+
+const construirHtmlResumenDocentes = (resumen) => {
+  if (!resumen) {
+    return "";
+  }
+
+  const total = resumen.total_aulas ?? 0;
+  const asignadas = resumen.aulas_con_docente ?? 0;
+  const pendientes = Array.isArray(resumen.aulas_sin_docente)
+    ? resumen.aulas_sin_docente.length
+    : 0;
+
+  const partes = [
+    `<p style="margin:0; text-align:left;">Docentes asignados: <strong>${asignadas}</strong> de <strong>${total}</strong> aulas.</p>`,
+  ];
+
+  if (pendientes > 0) {
+    const items = resumen.aulas_sin_docente
+      .map((aula) => {
+        const etiqueta = aula?.descripcion
+          ? String(aula.descripcion)
+          : `Aula #${aula?.id_aula ?? ""}`;
+        return `<li style="margin:2px 0;">${etiqueta}</li>`;
+      })
+      .join("");
+
+    partes.push(
+      `<div style="margin-top:8px; text-align:left;">` +
+        `<p style="margin:0 0 4px; font-weight:600;">Pendientes:</p>` +
+        `<ul style="padding-left:18px; margin:0;">${items}</ul>` +
+        `</div>`
+    );
+  }
+
+  return partes.join("");
+};
+
+const construirHtmlRelaciones = (relaciones) => {
+  if (!Array.isArray(relaciones) || relaciones.length === 0) {
+    return "";
+  }
+
+  const items = relaciones
+    .map((texto) => `<li style="margin:2px 0;">${String(texto)}</li>`)
+    .join("");
+
+  return (
+    `<p style="margin:0 0 4px; text-align:left;">Existen dependencias que impiden eliminar el registro:</p>` +
+    `<ul style="padding-left:18px; margin:0;">${items}</ul>`
+  );
+};
+
+const construirHtmlMensajes = (entrada) => {
+  if (!entrada) {
+    return "";
+  }
+
+  const mensajes = Array.isArray(entrada) ? entrada : [entrada];
+
+  return mensajes
+    .filter(Boolean)
+    .map(
+      (texto) =>
+        `<p style="margin:4px 0; text-align:left; line-height:1.4;">${String(
+          texto
+        )}</p>`
+    )
+    .join("");
 };
 
 export const useGestionAniosEscolares = () => {
@@ -221,18 +339,28 @@ export const useGestionAniosEscolares = () => {
 
       const respuesta = await eliminarAnioEscolar(registro.id);
       if (respuesta.success) {
-        await Swal.fire(
-          "Éxito",
-          respuesta.message || "Año escolar eliminado.",
-          "success"
-        );
-        cargarAnios();
+        await Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: respuesta.message || "Año escolar eliminado.",
+          confirmButtonText: "Aceptar",
+        });
+        await cargarAnios();
       } else {
-        Swal.fire(
-          "Error",
-          respuesta.message || "No se pudo eliminar el año escolar.",
-          "error"
+        const detalleRelaciones = construirHtmlRelaciones(
+          respuesta.errors?.relaciones
         );
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo eliminar",
+          ...(detalleRelaciones
+            ? { html: detalleRelaciones }
+            : {
+                text:
+                  respuesta.message || "No se pudo eliminar el año escolar.",
+              }),
+          confirmButtonText: "Entendido",
+        });
       }
     },
     [cargarAnios]
@@ -245,24 +373,81 @@ export const useGestionAniosEscolares = () => {
       }
 
       const activar = registro.estado !== "activo";
-      const respuesta = await cambiarEstadoAnioEscolar(
-        registro.id,
-        activar ? "activar" : "desactivar"
+      const periodo = construirNombrePeriodo(
+        registro.fecha_inicio,
+        registro.fecha_fin,
+        "Año escolar"
       );
 
+      const payload = {
+        accion: activar ? "activar" : "desactivar",
+      };
+
+      if (!activar) {
+        const solicitud = await Swal.fire({
+          title: `Confirmar desactivación`,
+          html: `<p style="margin-bottom:12px;">Confirma tu contraseña para desactivar <strong>${periodo}</strong>.</p>`,
+          input: "password",
+          inputPlaceholder: "Contraseña",
+          inputAttributes: { autofocus: true },
+          showCancelButton: true,
+          confirmButtonText: "Desactivar",
+          cancelButtonText: "Cancelar",
+          preConfirm: (valor) => {
+            if (!valor) {
+              Swal.showValidationMessage("Debes ingresar tu contraseña.");
+            }
+            return valor;
+          },
+        });
+
+        if (!solicitud.isConfirmed) {
+          return;
+        }
+
+        payload.contrasena = solicitud.value;
+      }
+
+      const respuesta = await cambiarEstadoAnioEscolar(registro.id, payload);
+
       if (respuesta.success) {
-        await Swal.fire(
-          "Éxito",
-          respuesta.message || "Estado actualizado.",
-          "success"
+        const resumenHtml = construirHtmlResumenDocentes(
+          respuesta.data?.resumen_docentes
         );
-        cargarAnios();
+
+        await Swal.fire({
+          icon: "success",
+          title: respuesta.message || "Estado actualizado.",
+          ...(resumenHtml
+            ? { html: resumenHtml }
+            : { text: respuesta.message || "Estado actualizado." }),
+          confirmButtonText: "Aceptar",
+        });
+        await cargarAnios();
       } else {
-        Swal.fire(
-          "Error",
-          respuesta.message || "No se pudo cambiar el estado.",
-          "error"
-        );
+        const { errors = {} } = respuesta;
+        let contenidoHtml = "";
+
+        if (errors.docentes || errors.aulas_sin_docente) {
+          contenidoHtml = construirHtmlErroresDocentes(errors);
+        } else if (errors.contrasena) {
+          contenidoHtml = construirHtmlMensajes(errors.contrasena);
+        } else if (errors.autenticacion) {
+          contenidoHtml = construirHtmlMensajes(errors.autenticacion);
+        } else if (errors.accion) {
+          contenidoHtml = construirHtmlMensajes(errors.accion);
+        }
+
+        await Swal.fire({
+          icon: "error",
+          title: respuesta.message || "No se pudo cambiar el estado.",
+          ...(contenidoHtml
+            ? { html: contenidoHtml }
+            : {
+                text: respuesta.message || "No se pudo cambiar el estado.",
+              }),
+          confirmButtonText: "Entendido",
+        });
       }
     },
     [cargarAnios]
@@ -285,6 +470,8 @@ export const useGestionAniosEscolares = () => {
       )
       .join("");
 
+    const resumenHtml = construirHtmlResumenDocentes(registro.resumen_docentes);
+
     Swal.fire({
       title: "Detalle del año escolar",
       html: `
@@ -299,9 +486,16 @@ export const useGestionAniosEscolares = () => {
             registro.estado || ""
           ).toUpperCase()}</p>
           <p><strong>Aulas asociadas:</strong> ${
-            registro.aulas_asignadas ?? 0
+            registro.aulas_asignadas ??
+            registro.resumen_docentes?.total_aulas ??
+            0
           }</p>
         </div>
+        ${
+          resumenHtml
+            ? `<div style="margin-top:12px; text-align:left;">${resumenHtml}</div>`
+            : ""
+        }
         <h4 class="mt-4 text-sm font-semibold text-slate-600">Momentos</h4>
         <ul class="mt-2 space-y-2 text-sm text-slate-600">
           ${listado || "<li>Sin momentos registrados.</li>"}

@@ -10,6 +10,7 @@ import {
 import RepresentanteTable from "./RepresentanteTable";
 import { RepresentanteModal } from "./RepresentanteModal";
 import RepresentanteViewModal from "./RepresentanteViewModal";
+import { representantesLayout } from "../EstilosCliente/EstilosClientes";
 
 export const Representante = () => {
   const [representantes, setRepresentantes] = useState([]);
@@ -101,30 +102,45 @@ export const Representante = () => {
     }
   };
 
-  return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Gestión de Representantes</h2>
-        <button
-          onClick={handleCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
-        >
-          <FaPlus className="mr-2" /> Nuevo Representante
-        </button>
-      </div>
-      <p className="text-gray-600 mb-6">
-        Crea, visualiza, actualiza y elimina representantes. Puedes asociar
-        habilidades después de crear.
-      </p>
+  const layout = representantesLayout;
 
-      <RepresentanteTable
-        representantes={representantes}
-        isLoading={loading}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onToggleEstado={handleToggleEstado}
-      />
+  return (
+    <section className="p-6">
+      <div className={layout.container}>
+        <header className={layout.header}>
+          <div>
+            <h2 className={layout.title}>Gestión de Representantes</h2>
+            <p className={layout.description}>
+              Administra los representantes registrados, visualiza su
+              información y gestiona habilidades asociadas.
+            </p>
+          </div>
+          <button
+            onClick={handleCreate}
+            className={layout.addButton}
+            type="button"
+          >
+            <FaPlus className="h-4 w-4" />
+            <span>Nuevo representante</span>
+          </button>
+        </header>
+
+        <div className="mb-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-4">
+          <p className="text-sm text-slate-600">
+            Puedes agregar habilidades una vez creado el representante. Usa los
+            controles de la tabla para ver, editar o ajustar el estado.
+          </p>
+        </div>
+
+        <RepresentanteTable
+          representantes={representantes}
+          isLoading={loading}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onToggleEstado={handleToggleEstado}
+        />
+      </div>
 
       <RepresentanteModal
         isOpen={modalOpen}
@@ -147,7 +163,7 @@ export const Representante = () => {
         }}
         representante={viewOpen ? current : null}
       />
-    </div>
+    </section>
   );
 };
 

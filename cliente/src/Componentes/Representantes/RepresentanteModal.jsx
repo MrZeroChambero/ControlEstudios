@@ -11,9 +11,14 @@ import {
   solicitarPersonasCandidatas,
   crearRepresentante,
   actualizarRepresentante,
+  actualizarPersona,
+  actualizarPersonal,
 } from "./representanteService";
 import { HabilidadesForm } from "./HabilidadesForm";
-import { actualizarPersona, actualizarPersonal } from "./representanteService";
+import {
+  contenidosFormClasses,
+  representantesModalClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
   const [step, setStep] = useState(1); // 1 select/create person, 2 representante form, 3 habilidades
@@ -61,6 +66,19 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     cantidad_hijos_varones: "",
     cod_dependencia: "",
   });
+
+  const formClasses = contenidosFormClasses;
+  const modalClasses = representantesModalClasses;
+
+  const isFieldInvalid = (campo) => Boolean(touched[campo] && errors[campo]);
+  const getInputClass = (campo) =>
+    isFieldInvalid(campo) ? formClasses.inputInvalid : formClasses.input;
+  const getSelectClass = (campo) =>
+    isFieldInvalid(campo) ? formClasses.selectInvalid : formClasses.select;
+  const renderFieldError = (campo) =>
+    isFieldInvalid(campo) ? (
+      <p className={formClasses.error}>{errors[campo]}</p>
+    ) : null;
 
   async function cargarCandidatas() {
     setLoadingPersonas(true);
@@ -334,697 +352,760 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
+  const isEditMode = Boolean(current);
 
-  return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white/90 backdrop-blur-lg p-8 rounded-lg shadow-2xl w-full max-w-4xl">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold pr-4">
-            {current
-              ? step === 1
-                ? "Editar Persona"
-                : step === 2
-                ? "Editar Representante"
-                : current.personal && step === 3
-                ? "Editar Personal"
-                : "Habilidades"
-              : step === 1
-              ? creatingNewPersona
-                ? "Datos de la Persona"
-                : "Seleccionar o Crear Persona"
-              : step === 2
-              ? "Datos de Representante"
-              : "Habilidades"}
-          </h2>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">
-              Paso {step} de {totalSteps}
-            </span>
-            <div className="flex space-x-1">
-              {Array.from({ length: totalSteps }, (_, i) => i + 1).map((st) => (
-                <div
-                  key={st}
-                  className={`w-3 h-3 rounded-full ${
-                    st === step ? "bg-blue-600" : "bg-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
+  const modalTitle = isEditMode
+    ? "Editar representante"
+    : step === 1
+    ? creatingNewPersona
+      ? "Datos de la persona"
+      : "Seleccionar o crear persona"
+    : step === 2
+    ? "Datos de representante"
+    : "Habilidades";
+
+  const modalSubtitle = isEditMode
+    ? "Actualiza los datos asociados a este representante."
+    : step === 1
+    ? "Vincula una persona existente o registra una nueva para continuar."
+    : step === 2
+    ? "Completa la información del representante antes de agregar habilidades."
+    : "Registra las habilidades que se asociarán al representante.";
+
+  const renderStepMeta = () => {
+    if (isEditMode) {
+      return (
+        <div className={modalClasses.meta}>
+          <span className={modalClasses.stepBadge}>Modo edición</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className={modalClasses.meta}>
+        <span className={modalClasses.stepBadge}>
+          Paso {step} de {totalSteps}
+        </span>
+        <div className={modalClasses.stepDots}>
+          {Array.from({ length: totalSteps }, (_, index) => {
+            const dotClass =
+              index + 1 === step
+                ? `${modalClasses.stepDot} ${modalClasses.stepDotActive}`
+                : modalClasses.stepDot;
+            return <span key={index} className={dotClass} />;
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPersonaSelection = () => {
+    if (isEditMode || step !== 1 || creatingNewPersona) {
+      return null;
+    }
+
+    const filteredPersonas = personas.filter((p) =>
+      `${p.primer_nombre} ${p.primer_apellido} ${p.cedula}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={crearDesdeCero}
+            className={formClasses.primaryButton}
+          >
+            <FaUserPlus className="h-4 w-4" />
+            <span>Crear nueva persona</span>
+          </button>
+        </div>
+
+        <div className={modalClasses.searchWrapper}>
+          <FaSearch className={modalClasses.searchIcon} />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar persona (nombre, apellido, cédula)..."
+            className={modalClasses.searchInput}
+          />
+        </div>
+
+        <div className={`${modalClasses.listWrapper} overflow-hidden`}>
+          <div className={modalClasses.listHeader}>
+            <span>Personas disponibles</span>
             <button
               type="button"
-              onClick={onClose}
-              className="flex items-center bg-gray-500 hover:bg-gray-600 text-white font-bold px-3 py-2 rounded-lg text-sm"
+              onClick={cargarCandidatas}
+              className={formClasses.ghostButton}
             >
-              <FaTimes className="mr-1" /> Cerrar
+              Recargar
             </button>
+          </div>
+          <div>
+            {loadingPersonas ? (
+              <p className={modalClasses.listEmpty}>Cargando personas...</p>
+            ) : errorPersonas ? (
+              <div className="px-4 py-3 text-sm text-rose-600">
+                {errorPersonas}
+                <button
+                  type="button"
+                  onClick={cargarCandidatas}
+                  className="ml-2 text-blue-600 underline"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : filteredPersonas.length === 0 ? (
+              <p className={modalClasses.listEmpty}>
+                No hay personas disponibles.
+              </p>
+            ) : (
+              filteredPersonas.map((p) => {
+                const isSelected = selectedPersona?.id_persona === p.id_persona;
+                const itemClass = isSelected
+                  ? `${modalClasses.listItem} bg-blue-50`
+                  : modalClasses.listItem;
+                return (
+                  <button
+                    type="button"
+                    key={p.id_persona}
+                    onClick={() => seleccionarPersona(p)}
+                    className={`${itemClass} w-full text-left`}
+                  >
+                    <div className={modalClasses.listPerson}>
+                      <span className={modalClasses.listName}>
+                        {`${p.primer_nombre} ${p.segundo_nombre || ""} ${
+                          p.primer_apellido
+                        } ${p.segundo_apellido || ""}`.trim()}
+                      </span>
+                      <span className={modalClasses.listMeta}>
+                        Cédula: {p.cedula}
+                      </span>
+                      <span className={modalClasses.listMeta}>
+                        Estado: {p.estado || "-"}
+                        {p.edad ? ` • Edad: ${p.edad} años` : ""}
+                      </span>
+                      {isSelected && (
+                        <span className="text-xs font-semibold text-blue-600">
+                          Persona seleccionada
+                        </span>
+                      )}
+                    </div>
+                    <span className={modalClasses.listTag}>
+                      {p.tipo_persona || "Persona"}
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 
-        {!current && step === 1 && !creatingNewPersona && (
-          <div>
-            <div className="mb-6">
-              <button
-                onClick={crearDesdeCero}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg flex items-center transition duration-200"
-              >
-                <FaUserPlus className="mr-2" /> Crear Nueva Persona
-              </button>
-            </div>
-            <div className="mb-4">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar persona (nombre, apellido, cédula)..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3 p-4 bg-gray-50 border-b">
-                Personas Disponibles
-              </h3>
-              {loadingPersonas && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-sm">
-                  Cargando personas...
-                </div>
-              )}
-              {!loadingPersonas && errorPersonas && (
-                <div className="p-4 text-red-600 text-sm">
-                  {errorPersonas}
-                  <button
-                    onClick={cargarCandidatas}
-                    className="ml-2 text-blue-600 underline"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              )}
-              {!loadingPersonas && !errorPersonas && (
-                <div className="divide-y">
-                  {personas
-                    .filter((p) =>
-                      `${p.primer_nombre} ${p.primer_apellido} ${p.cedula}`
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase())
-                    )
-                    .map((p) => {
-                      const isSelected =
-                        selectedPersona?.id_persona === p.id_persona;
-                      return (
-                        <div
-                          key={p.id_persona}
-                          onClick={() => seleccionarPersona(p)}
-                          className={`p-4 cursor-pointer transition-colors flex justify-between items-start ${
-                            isSelected ? "bg-blue-50" : "hover:bg-gray-50"
-                          }`}
-                        >
-                          <div>
-                            <h4 className="font-semibold text-lg flex items-center">
-                              {p.primer_nombre} {p.segundo_nombre || ""}{" "}
-                              {p.primer_apellido} {p.segundo_apellido || ""}
-                              {isSelected && (
-                                <span className="ml-2 text-xs font-bold text-blue-600">
-                                  (Seleccionada)
-                                </span>
-                              )}
-                            </h4>
-                            <p className="text-gray-600">Cédula: {p.cedula}</p>
-                            <p className="text-gray-600 text-sm">
-                              Estado: {p.estado || "-"}{" "}
-                              {p.edad && `| Edad: ${p.edad} años`}
-                            </p>
-                          </div>
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full h-fit">
-                            {p.tipo_persona || "Persona"}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  {personas.length === 0 && (
-                    <p className="text-gray-500 text-center py-8">
-                      No hay personas disponibles.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex justify-between mt-6">
-              <button
-                type="button"
-                onClick={() => onClose()}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"
-              >
-                <FaArrowLeft className="mr-2" /> Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  selectedPersona ? setStep(2) : crearDesdeCero()
-                }
-                disabled={!selectedPersona && personas.length === 0}
-                className={`bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center disabled:bg-gray-400 disabled:cursor-not-allowed`}
-              >
-                {selectedPersona ? "Continuar" : "Crear Nueva Persona"}{" "}
-                <FaArrowRight className="ml-2" />
-              </button>
-            </div>
-          </div>
-        )}
+        <div className={modalClasses.actionBar}>
+          <button
+            type="button"
+            onClick={onClose}
+            className={formClasses.ghostButton}
+          >
+            <FaArrowLeft className="h-4 w-4" /> Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => (selectedPersona ? setStep(2) : crearDesdeCero())}
+            className={formClasses.primaryButton}
+            disabled={!selectedPersona && filteredPersonas.length === 0}
+          >
+            {selectedPersona ? "Continuar" : "Crear nueva persona"}
+            <FaArrowRight className="ml-2 h-4 w-4" />
+          </button>
+        </div>
+      </section>
+    );
+  };
 
-        {/* Formulario de persona (datos personales) shown when creating from cero */}
-        {!current && step === 1 && creatingNewPersona && (
-          <div className="mt-2">
-            <h3 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
-              Crear Nueva Persona
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {[
-                { key: "primer_nombre", label: "Primer Nombre *" },
-                { key: "segundo_nombre", label: "Segundo Nombre" },
-                { key: "primer_apellido", label: "Primer Apellido *" },
-                { key: "segundo_apellido", label: "Segundo Apellido" },
-              ].map(({ key, label }) => (
-                <div key={key}>
-                  <label className="block text-sm font-bold mb-2">
-                    {label}
-                  </label>
-                  <input
-                    type="text"
-                    name={key}
-                    placeholder={label}
-                    value={personaData[key]}
-                    onChange={(e) =>
-                      setPersonaData({ ...personaData, [key]: e.target.value })
-                    }
-                    onBlur={() => setTouched({ ...touched, [key]: true })}
-                    className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                      errors[key]
-                        ? "border-red-500 focus:ring-red-500 bg-red-50"
-                        : "border-gray-300 focus:ring-blue-500"
-                    }`}
-                  />
-                  {touched[key] && errors[key] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[key]}</p>
-                  )}
-                </div>
-              ))}
-              <div>
-                <label className="block text-sm font-bold mb-2">
-                  Fecha de Nacimiento *
-                </label>
-                <input
-                  type="text"
-                  name="fecha_nacimiento"
-                  placeholder="YYYY-MM-DD"
-                  value={personaData.fecha_nacimiento}
-                  onChange={(e) =>
-                    setPersonaData({
-                      ...personaData,
-                      fecha_nacimiento: e.target.value,
-                    })
-                  }
-                  onBlur={() =>
-                    setTouched({ ...touched, fecha_nacimiento: true })
-                  }
-                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                    errors.fecha_nacimiento
-                      ? "border-red-500 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                />
-                {touched.fecha_nacimiento && errors.fecha_nacimiento && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.fecha_nacimiento}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-2">Cédula *</label>
-                <input
-                  type="text"
-                  name="cedula"
-                  placeholder="Cédula"
-                  value={personaData.cedula}
-                  onChange={(e) =>
-                    setPersonaData({ ...personaData, cedula: e.target.value })
-                  }
-                  onBlur={() => setTouched({ ...touched, cedula: true })}
-                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                    errors.cedula
-                      ? "border-red-500 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                />
-                {touched.cedula && errors.cedula && (
-                  <p className="text-red-500 text-xs mt-1">{errors.cedula}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-2">Género *</label>
-                <select
-                  name="genero"
-                  value={personaData.genero}
-                  onChange={(e) =>
-                    setPersonaData({ ...personaData, genero: e.target.value })
-                  }
-                  onBlur={() => setTouched({ ...touched, genero: true })}
-                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                    errors.genero
-                      ? "border-red-500 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Femenino</option>
-                </select>
-                {touched.genero && errors.genero && (
-                  <p className="text-red-500 text-xs mt-1">{errors.genero}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={personaData.email}
-                  onChange={(e) =>
-                    setPersonaData({ ...personaData, email: e.target.value })
-                  }
-                  onBlur={() => setTouched({ ...touched, email: true })}
-                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                    errors.email
-                      ? "border-red-500 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                />
-                {touched.email && errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-2">
-                  Teléfono Principal
-                </label>
-                <input
-                  type="text"
-                  name="telefono_principal"
-                  value={personaData.telefono_principal}
-                  onChange={(e) =>
-                    setPersonaData({
-                      ...personaData,
-                      telefono_principal: e.target.value,
-                    })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-bold mb-2">
-                  Dirección
-                </label>
-                <input
-                  type="text"
-                  name="direccion"
-                  value={personaData.direccion}
-                  onChange={(e) =>
-                    setPersonaData({
-                      ...personaData,
-                      direccion: e.target.value,
-                    })
-                  }
-                  className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                />
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <button
-                onClick={() => {
-                  if (validatePersona()) {
-                    setStep(2);
-                    console.log("[Modal Representante] Avanza a paso 2");
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg flex items-center"
-              >
-                Siguiente <FaArrowRight className="ml-2" />
-              </button>
-              <button
-                onClick={() => {
-                  setCreatingNewPersona(false);
-                  console.log(
-                    "[Modal Representante] Cancelar creación persona"
-                  );
-                }}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg flex items-center"
-              >
-                <FaArrowLeft className="mr-2" /> Atrás
-              </button>
-            </div>
-          </div>
-        )}
+  const renderPersonaCreation = () => {
+    if (isEditMode || step !== 1 || !creatingNewPersona) {
+      return null;
+    }
 
-        {/* Representante form */}
-        {step === 2 && (
-          <div className="mt-2">
-            <h3 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
-              Datos de Representante
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+    return (
+      <section className="space-y-6">
+        <div>
+          <h3 className={modalClasses.sectionTitle}>Datos de la persona</h3>
+          <p className="text-sm text-slate-500">
+            Completa la información básica para registrar a la persona.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {[
+            { key: "primer_nombre", label: "Primer Nombre *" },
+            { key: "segundo_nombre", label: "Segundo Nombre" },
+            { key: "primer_apellido", label: "Primer Apellido *" },
+            { key: "segundo_apellido", label: "Segundo Apellido" },
+          ].map(({ key, label }) => (
+            <div key={key} className={formClasses.fieldWrapper}>
+              <label className={formClasses.label} htmlFor={key}>
+                {label}
+              </label>
               <input
-                placeholder="Oficio"
-                value={repData.oficio}
+                id={key}
+                name={key}
+                type="text"
+                value={personaData[key]}
                 onChange={(e) =>
-                  setRepData({ ...repData, oficio: e.target.value })
+                  setPersonaData({ ...personaData, [key]: e.target.value })
                 }
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onBlur={() => setTouched((prev) => ({ ...prev, [key]: true }))}
+                className={getInputClass(key)}
+                placeholder={label.replace(" *", "")}
               />
-              <select
-                value={repData.nivel_educativo}
-                onChange={(e) =>
-                  setRepData({ ...repData, nivel_educativo: e.target.value })
-                }
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Seleccione nivel educativo</option>
-                <option value="Sin estudios">Sin estudios</option>
-                <option value="Primaria incompleta">Primaria incompleta</option>
-                <option value="Primaria completa">Primaria completa</option>
-                <option value="Secundaria incompleta">
-                  Secundaria incompleta
-                </option>
-                <option value="Secundaria completa">Secundaria completa</option>
-                <option value="Bachiller">Bachiller</option>
-                <option value="Técnico medio">Técnico medio</option>
-                <option value="TSU">TSU</option>
-                <option value="Universitario">Universitario</option>
-                <option value="Postgrado">Postgrado</option>
-                <option value="Doctorado">Doctorado</option>
-              </select>
-              <div>
-                <input
-                  placeholder="Profesión"
-                  value={repData.profesion}
-                  onChange={(e) =>
-                    setRepData({ ...repData, profesion: e.target.value })
-                  }
-                  className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 transition duration-200 ${
-                    errors.profesion
-                      ? "border-red-500 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                  onBlur={() => setTouched({ ...touched, profesion: true })}
-                />
-                {touched.profesion && errors.profesion && (
-                  <div className="text-xs text-red-600">{errors.profesion}</div>
-                )}
-              </div>
-              <input
-                placeholder="Lugar de trabajo"
-                value={repData.lugar_trabajo}
-                onChange={(e) =>
-                  setRepData({ ...repData, lugar_trabajo: e.target.value })
-                }
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              {renderFieldError(key)}
             </div>
-            <div className="flex justify-between items-center mt-2 flex-wrap gap-2">
-              {current ? (
-                <>
-                  <button
-                    onClick={handleGuardarEdicionRepresentante}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg"
-                  >
-                    Guardar Cambios Representante
-                  </button>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setStep(1)}
-                      className="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg"
-                    >
-                      Persona
-                    </button>
-                    <button
-                      onClick={() => setStep(3)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg"
-                    >
-                      Habilidades
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={
-                      selectedPersona
-                        ? handleCrearParaPersonaExistente
-                        : handleCrearPersonaYRepresentante
-                    }
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg"
-                  >
-                    Crear representante
-                  </button>
-                  <button
-                    onClick={() => setStep(1)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg"
-                  >
-                    Atrás
-                  </button>
-                  {selectedPersona && (
-                    <span className="text-xs text-gray-500">
-                      Persona existente: {selectedPersona.primer_nombre}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+          ))}
 
-        {/* Habilidades step */}
-        {step === totalSteps && (createdRep || current) && (
-          <div className="mt-2">
-            <h3 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
-              Habilidades
-            </h3>
-            <HabilidadesForm
-              fk_representante={
-                createdRep?.id_representante ?? current?.id_representante
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label} htmlFor="fecha_nacimiento">
+              Fecha de nacimiento *
+            </label>
+            <input
+              id="fecha_nacimiento"
+              name="fecha_nacimiento"
+              type="date"
+              value={personaData.fecha_nacimiento}
+              onChange={(e) =>
+                setPersonaData({
+                  ...personaData,
+                  fecha_nacimiento: e.target.value,
+                })
               }
-              Swal={Swal}
-              onChange={() => {}}
+              onBlur={() =>
+                setTouched((prev) => ({ ...prev, fecha_nacimiento: true }))
+              }
+              className={getInputClass("fecha_nacimiento")}
             />
-            <div className="flex justify-end mt-4">
+            {renderFieldError("fecha_nacimiento")}
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label} htmlFor="cedula">
+              Cédula *
+            </label>
+            <input
+              id="cedula"
+              name="cedula"
+              type="text"
+              value={personaData.cedula}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, cedula: e.target.value })
+              }
+              onBlur={() => setTouched((prev) => ({ ...prev, cedula: true }))}
+              className={getInputClass("cedula")}
+              placeholder="V-12345678"
+            />
+            {renderFieldError("cedula")}
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label} htmlFor="genero">
+              Género *
+            </label>
+            <select
+              id="genero"
+              name="genero"
+              value={personaData.genero}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, genero: e.target.value })
+              }
+              onBlur={() => setTouched((prev) => ({ ...prev, genero: true }))}
+              className={getSelectClass("genero")}
+            >
+              <option value="">Seleccione...</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+            {renderFieldError("genero")}
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label} htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={personaData.email}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, email: e.target.value })
+              }
+              onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+              className={getInputClass("email")}
+              placeholder="correo@dominio.com"
+            />
+            {renderFieldError("email")}
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label} htmlFor="telefono_principal">
+              Teléfono principal
+            </label>
+            <input
+              id="telefono_principal"
+              name="telefono_principal"
+              type="text"
+              value={personaData.telefono_principal}
+              onChange={(e) =>
+                setPersonaData({
+                  ...personaData,
+                  telefono_principal: e.target.value,
+                })
+              }
+              className={formClasses.input}
+            />
+          </div>
+
+          <div className={`${formClasses.fieldWrapper} md:col-span-2`}>
+            <label className={formClasses.label} htmlFor="direccion">
+              Dirección
+            </label>
+            <input
+              id="direccion"
+              name="direccion"
+              type="text"
+              value={personaData.direccion}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, direccion: e.target.value })
+              }
+              className={formClasses.input}
+            />
+          </div>
+        </div>
+
+        <div className={modalClasses.actionBar}>
+          <button
+            type="button"
+            onClick={() => {
+              if (validatePersona()) {
+                setStep(2);
+              }
+            }}
+            className={formClasses.primaryButton}
+          >
+            Siguiente
+            <FaArrowRight className="ml-2 h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreatingNewPersona(false)}
+            className={formClasses.ghostButton}
+          >
+            <FaArrowLeft className="h-4 w-4" /> Atrás
+          </button>
+        </div>
+      </section>
+    );
+  };
+
+  const renderPersonaEdit = () => {
+    if (!isEditMode) {
+      return null;
+    }
+
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className={modalClasses.sectionTitle}>Datos personales</h3>
+          <button
+            type="button"
+            onClick={handleGuardarEdicionPersona}
+            className={formClasses.primaryButton}
+          >
+            Guardar datos personales
+          </button>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {[
+            { key: "primer_nombre", label: "Primer nombre" },
+            { key: "segundo_nombre", label: "Segundo nombre" },
+            { key: "primer_apellido", label: "Primer apellido" },
+            { key: "segundo_apellido", label: "Segundo apellido" },
+            { key: "cedula", label: "Cédula" },
+            { key: "fecha_nacimiento", label: "Fecha de nacimiento" },
+            { key: "email", label: "Email" },
+            { key: "telefono_principal", label: "Teléfono principal" },
+            { key: "telefono_secundario", label: "Teléfono secundario" },
+          ].map(({ key, label }) => (
+            <div key={key} className={formClasses.fieldWrapper}>
+              <label className={formClasses.label}>{label}</label>
+              <input
+                type="text"
+                value={personaData[key] || ""}
+                onChange={(e) =>
+                  setPersonaData({ ...personaData, [key]: e.target.value })
+                }
+                className={formClasses.input}
+              />
+            </div>
+          ))}
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label}>Género</label>
+            <select
+              value={personaData.genero || ""}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, genero: e.target.value })
+              }
+              className={formClasses.select}
+            >
+              <option value="">Seleccione...</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+          </div>
+
+          <div className={`${formClasses.fieldWrapper} md:col-span-2`}>
+            <label className={formClasses.label}>Dirección</label>
+            <input
+              type="text"
+              value={personaData.direccion || ""}
+              onChange={(e) =>
+                setPersonaData({ ...personaData, direccion: e.target.value })
+              }
+              className={formClasses.input}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderRepresentanteStep = () => {
+    if (!isEditMode && step !== 2) {
+      return null;
+    }
+
+    const sectionTitle = isEditMode
+      ? "Datos laborales"
+      : "Datos del representante";
+
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className={modalClasses.sectionTitle}>{sectionTitle}</h3>
+          {isEditMode && (
+            <button
+              type="button"
+              onClick={handleGuardarEdicionRepresentante}
+              className={formClasses.primaryButton}
+            >
+              Guardar datos laborales
+            </button>
+          )}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label}>Oficio</label>
+            <input
+              type="text"
+              value={repData.oficio}
+              onChange={(e) =>
+                setRepData({ ...repData, oficio: e.target.value })
+              }
+              className={formClasses.input}
+            />
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label}>Nivel educativo</label>
+            <select
+              value={repData.nivel_educativo}
+              onChange={(e) =>
+                setRepData({ ...repData, nivel_educativo: e.target.value })
+              }
+              className={formClasses.select}
+            >
+              <option value="">Seleccione nivel educativo</option>
+              <option value="Sin estudios">Sin estudios</option>
+              <option value="Primaria incompleta">Primaria incompleta</option>
+              <option value="Primaria completa">Primaria completa</option>
+              <option value="Secundaria incompleta">
+                Secundaria incompleta
+              </option>
+              <option value="Secundaria completa">Secundaria completa</option>
+              <option value="Bachiller">Bachiller</option>
+              <option value="Técnico medio">Técnico medio</option>
+              <option value="TSU">TSU</option>
+              <option value="Universitario">Universitario</option>
+              <option value="Postgrado">Postgrado</option>
+              <option value="Doctorado">Doctorado</option>
+            </select>
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label}>Profesión *</label>
+            <input
+              type="text"
+              value={repData.profesion}
+              onChange={(e) =>
+                setRepData({ ...repData, profesion: e.target.value })
+              }
+              onBlur={() =>
+                setTouched((prev) => ({ ...prev, profesion: true }))
+              }
+              className={getInputClass("profesion")}
+              placeholder="Profesión principal"
+            />
+            {renderFieldError("profesion")}
+          </div>
+
+          <div className={formClasses.fieldWrapper}>
+            <label className={formClasses.label}>Lugar de trabajo</label>
+            <input
+              type="text"
+              value={repData.lugar_trabajo}
+              onChange={(e) =>
+                setRepData({ ...repData, lugar_trabajo: e.target.value })
+              }
+              className={formClasses.input}
+            />
+          </div>
+        </div>
+
+        {!isEditMode && (
+          <div className={modalClasses.actionBar}>
+            <>
               <button
-                onClick={() => {
-                  if (current) finalizarEdicion();
-                  else {
-                    onClose();
-                    onSaved?.();
+                type="button"
+                onClick={
+                  selectedPersona
+                    ? handleCrearParaPersonaExistente
+                    : handleCrearPersonaYRepresentante
+                }
+                className={formClasses.primaryButton}
+              >
+                Crear representante
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className={formClasses.ghostButton}
+              >
+                <FaArrowLeft className="h-4 w-4" /> Atrás
+              </button>
+              {selectedPersona && (
+                <span className="text-xs text-slate-500">
+                  Persona existente: {selectedPersona.primer_nombre}
+                </span>
+              )}
+            </>
+          </div>
+        )}
+      </section>
+    );
+  };
+
+  const renderPersonalStep = () => {
+    if (!current?.personal) {
+      return null;
+    }
+
+    if (!isEditMode && step !== 3) {
+      return null;
+    }
+
+    const sectionTitle = isEditMode ? "Datos de su cargo" : "Datos de personal";
+
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className={modalClasses.sectionTitle}>{sectionTitle}</h3>
+          {isEditMode && (
+            <button
+              type="button"
+              onClick={handleGuardarEdicionPersonal}
+              className={formClasses.primaryButton}
+            >
+              Guardar datos de su cargo
+            </button>
+          )}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {[
+            { key: "fecha_contratacion", label: "Fecha de contratación" },
+            { key: "nivel_academico", label: "Nivel académico" },
+            { key: "horas_trabajo", label: "Horas de trabajo" },
+            { key: "rif", label: "RIF" },
+            { key: "etnia_religion", label: "Etnia / Religión" },
+            { key: "cantidad_hijas", label: "Cantidad hijas" },
+            { key: "cantidad_hijos_varones", label: "Cantidad hijos varones" },
+            { key: "cod_dependencia", label: "Código dependencia" },
+          ].map(({ key, label }) => (
+            <div key={key} className={formClasses.fieldWrapper}>
+              <label className={formClasses.label}>{label}</label>
+              {key === "nivel_academico" ? (
+                <select
+                  value={personalData.nivel_academico || ""}
+                  onChange={(e) =>
+                    setPersonalData({
+                      ...personalData,
+                      nivel_academico: e.target.value,
+                    })
                   }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg"
-              >
-                Finalizar
-              </button>
-            </div>
-          </div>
-        )}
-        {current && step === 1 && (
-          <div className="mt-2">
-            <h3 className="text-xl font-bold mb-4 text-blue-600 border-b pb-2">
-              Editar Persona
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {[
-                { key: "primer_nombre", label: "Primer Nombre" },
-                { key: "segundo_nombre", label: "Segundo Nombre" },
-                { key: "primer_apellido", label: "Primer Apellido" },
-                { key: "segundo_apellido", label: "Segundo Apellido" },
-                { key: "cedula", label: "Cédula" },
-                { key: "fecha_nacimiento", label: "Fecha Nacimiento" },
-                { key: "genero", label: "Género" },
-                { key: "email", label: "Email" },
-                { key: "telefono_principal", label: "Teléfono Principal" },
-                { key: "telefono_secundario", label: "Teléfono Secundario" },
-                { key: "direccion", label: "Dirección", full: true },
-                // Estado removido de edición directa en el modal
-              ].map(({ key, label, full }) => (
-                <div key={key} className={full ? "col-span-2" : ""}>
-                  <label className="block text-sm font-bold mb-1">
-                    {label}
-                  </label>
-                  {key === "genero" ? (
-                    <select
-                      value={personaData.genero}
-                      onChange={(e) =>
-                        setPersonaData({
-                          ...personaData,
-                          genero: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Seleccione...</option>
-                      <option value="M">Masculino</option>
-                      <option value="F">Femenino</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={personaData[key]}
-                      onChange={(e) =>
-                        setPersonaData({
-                          ...personaData,
-                          [key]: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between items-center flex-wrap gap-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={handleGuardarEdicionPersona}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg"
+                  className={formClasses.select}
                 >
-                  Guardar Persona
-                </button>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setStep(2)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  Representante
-                </button>
-                {current.personal && (
-                  <button
-                    onClick={() => setStep(3)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg"
-                  >
-                    Personal
-                  </button>
-                )}
-                <button
-                  onClick={() => setStep(totalSteps)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  Habilidades
-                </button>
-              </div>
+                  <option value="">Seleccione nivel académico</option>
+                  <option value="Sin estudios">Sin estudios</option>
+                  <option value="Primaria incompleta">
+                    Primaria incompleta
+                  </option>
+                  <option value="Primaria completa">Primaria completa</option>
+                  <option value="Secundaria incompleta">
+                    Secundaria incompleta
+                  </option>
+                  <option value="Secundaria completa">
+                    Secundaria completa
+                  </option>
+                  <option value="Bachiller">Bachiller</option>
+                  <option value="Técnico medio">Técnico medio</option>
+                  <option value="TSU">TSU</option>
+                  <option value="Universitario">Universitario</option>
+                  <option value="Postgrado">Postgrado</option>
+                  <option value="Doctorado">Doctorado</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={personalData[key] || ""}
+                  onChange={(e) =>
+                    setPersonalData({
+                      ...personalData,
+                      [key]: e.target.value,
+                    })
+                  }
+                  className={formClasses.input}
+                />
+              )}
             </div>
-          </div>
-        )}
-        {current && current.personal && step === 3 && (
-          <div className="mt-2">
-            <h3 className="text-xl font-bold mb-4 text-purple-600 border-b pb-2">
-              Datos de Personal
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {[
-                { key: "fecha_contratacion", label: "Fecha Contratación" },
-                { key: "nivel_academico", label: "Nivel Académico" },
-                { key: "horas_trabajo", label: "Horas de Trabajo" },
-                { key: "rif", label: "RIF" },
-                { key: "etnia_religion", label: "Etnia / Religión" },
-                { key: "cantidad_hijas", label: "Cantidad Hijas" },
-                {
-                  key: "cantidad_hijos_varones",
-                  label: "Cantidad Hijos Varones",
-                },
-                { key: "cod_dependencia", label: "Código Dependencia" },
-              ].map(({ key, label }) => (
-                <div key={key}>
-                  <label className="block text-sm font-bold mb-1">
-                    {label}
-                  </label>
-                  {key === "nivel_academico" ? (
-                    <select
-                      value={personalData.nivel_academico}
-                      onChange={(e) =>
-                        setPersonalData({
-                          ...personalData,
-                          nivel_academico: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="">Seleccione nivel académico</option>
-                      <option value="Sin estudios">Sin estudios</option>
-                      <option value="Primaria incompleta">
-                        Primaria incompleta
-                      </option>
-                      <option value="Primaria completa">
-                        Primaria completa
-                      </option>
-                      <option value="Secundaria incompleta">
-                        Secundaria incompleta
-                      </option>
-                      <option value="Secundaria completa">
-                        Secundaria completa
-                      </option>
-                      <option value="Bachiller">Bachiller</option>
-                      <option value="Técnico medio">Técnico medio</option>
-                      <option value="TSU">TSU</option>
-                      <option value="Universitario">Universitario</option>
-                      <option value="Postgrado">Postgrado</option>
-                      <option value="Doctorado">Doctorado</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={personalData[key]}
-                      onChange={(e) =>
-                        setPersonalData({
-                          ...personalData,
-                          [key]: e.target.value,
-                        })
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between flex-wrap gap-2">
+          ))}
+        </div>
+
+        {!isEditMode && (
+          <div className={modalClasses.actionBar}>
+            <button
+              type="button"
+              onClick={handleGuardarEdicionPersonal}
+              className={formClasses.primaryButton}
+            >
+              Guardar cambios
+            </button>
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                onClick={handleGuardarEdicionPersonal}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-lg"
+                type="button"
+                onClick={() => setStep(1)}
+                className={formClasses.ghostButton}
               >
-                Guardar Cambios Personal
+                Persona
               </button>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setStep(1)}
-                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  Persona
-                </button>
-                <button
-                  onClick={() => setStep(2)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  Representante
-                </button>
-                <button
-                  onClick={() => setStep(totalSteps)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg"
-                >
-                  Habilidades
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className={formClasses.ghostButton}
+              >
+                Representante
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(totalSteps)}
+                className={formClasses.ghostButton}
+              >
+                Habilidades
+              </button>
             </div>
           </div>
         )}
+      </section>
+    );
+  };
+
+  const renderHabilidadesStep = () => {
+    const hasRepresentante = createdRep || current;
+    const isCreateFlowStep = !isEditMode && step === totalSteps;
+    const isEditSection = isEditMode && Boolean(current);
+
+    if (!hasRepresentante || (!isCreateFlowStep && !isEditSection)) {
+      return null;
+    }
+
+    return (
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className={modalClasses.sectionTitle}>Habilidades</h3>
+        </div>
+        <HabilidadesForm
+          fk_representante={
+            createdRep?.id_representante ?? current?.id_representante
+          }
+          Swal={Swal}
+          onChange={() => {}}
+        />
+        <div className={modalClasses.footer}>
+          <button
+            type="button"
+            onClick={() => {
+              if (current) {
+                finalizarEdicion();
+              } else {
+                onClose();
+                onSaved?.();
+              }
+            }}
+            className={formClasses.primaryButton}
+          >
+            {isEditMode ? "Cerrar" : "Finalizar"}
+          </button>
+        </div>
+      </section>
+    );
+  };
+
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <div className={modalClasses.overlay} role="dialog" aria-modal="true">
+      <div className={modalClasses.content}>
+        <header className={modalClasses.header}>
+          <div>
+            <h2 className={modalClasses.title}>{modalTitle}</h2>
+            <p className={modalClasses.subtitle}>{modalSubtitle}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {renderStepMeta()}
+            <button
+              type="button"
+              onClick={onClose}
+              className={modalClasses.closeButton}
+            >
+              <FaTimes className="h-4 w-4" />
+              <span>Cerrar</span>
+            </button>
+          </div>
+        </header>
+
+        <div className={modalClasses.body}>
+          {renderPersonaSelection()}
+          {renderPersonaCreation()}
+          {renderPersonaEdit()}
+          {renderRepresentanteStep()}
+          {renderPersonalStep()}
+          {renderHabilidadesStep()}
+        </div>
       </div>
     </div>
   );

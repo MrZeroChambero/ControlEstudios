@@ -95,6 +95,11 @@ trait ContenidosGestionTrait
 
   public function eliminar(PDO $conexion, int $idContenido): array
   {
+    $idContenido = (int) $idContenido;
+    if ($idContenido <= 0) {
+      return ['errores' => ['id_contenido' => ['El identificador del contenido es inválido.']]];
+    }
+
     if (!$this->existePorId($conexion, $idContenido)) {
       return ['errores' => ['id_contenido' => ['El contenido solicitado no existe.']]];
     }

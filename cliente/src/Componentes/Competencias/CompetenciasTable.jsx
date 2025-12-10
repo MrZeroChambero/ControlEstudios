@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
+import { FaList, FaEdit, FaTrash } from "react-icons/fa";
 import {
-  neutralButtonBase,
-  secondaryButton,
   contenidosTableClasses,
+  contenidosIconClasses,
 } from "../EstilosCliente/EstilosClientes";
 
 const columnasBase = (onEdit, onDelete, onViewIndicators) => [
@@ -44,23 +44,26 @@ const columnasBase = (onEdit, onDelete, onViewIndicators) => [
         <button
           type="button"
           onClick={() => onViewIndicators(row)}
-          className={`${secondaryButton} px-3 py-1 text-xs`}
+          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.temasButton}`}
+          title="Gestionar indicadores"
         >
-          Indicadores
+          <FaList className={contenidosIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onEdit(row)}
-          className={`${neutralButtonBase} border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:bg-slate-50`}
+          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.editButton}`}
+          title="Editar competencia"
         >
-          Editar
+          <FaEdit className={contenidosIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onDelete(row)}
-          className={`${neutralButtonBase} border border-red-200 bg-red-50 px-3 py-1 text-xs text-red-600 hover:bg-red-100`}
+          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.deleteButton}`}
+          title="Eliminar competencia"
         >
-          Eliminar
+          <FaTrash className={contenidosIconClasses.base} />
         </button>
       </div>
     ),

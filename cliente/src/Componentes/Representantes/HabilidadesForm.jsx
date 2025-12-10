@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SwalDefault from "sweetalert2";
 import {
   listarHabilidades,
@@ -7,6 +7,12 @@ import {
   actualizarHabilidad,
 } from "./representanteService";
 import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from "react-icons/fa";
+import {
+  contenidosFormClasses,
+  contenidosTableClasses,
+  contenidosIconClasses,
+  primaryButtonBase,
+} from "../EstilosCliente/EstilosClientes";
 
 export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
   const SwalUsed = Swal ?? SwalDefault;
@@ -84,82 +90,111 @@ export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
     }
   };
 
+  const total = useMemo(() => habilidades.length, [habilidades]);
+  const formClasses = contenidosFormClasses;
+  const tableClasses = contenidosTableClasses;
+  const inlinePrimary = `${primaryButtonBase} bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300/60`;
+  const inlineGhost = `${formClasses.ghostButton} px-3 py-1 text-xs`;
+
   return (
-    <div className="bg-white/80 backdrop-blur rounded-lg border border-gray-200 p-4 shadow-sm">
-      <h3 className="text-lg font-bold mb-4 text-blue-600 flex items-center justify-between">
-        <span>Habilidades</span>
-        <span className="text-xs text-gray-500 font-normal">
-          {habilidades.length} registradas
+    <div className="rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-sm">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Habilidades</h3>
+          <p className="text-xs text-slate-500">
+            Registre y edite las habilidades asociadas al representante.
+          </p>
+        </div>
+        <span className="text-xs font-semibold text-slate-500">
+          {total} {total === 1 ? "registrada" : "registradas"}
         </span>
-      </h3>
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+      </header>
+
+      <div className="mb-5 flex flex-col gap-3 md:flex-row">
         <input
           value={nuevo}
           onChange={(e) => setNuevo(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={formClasses.input}
           placeholder="Nueva habilidad"
         />
         <button
+          type="button"
           onClick={agregar}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+          className={`${formClasses.primaryButton} md:w-auto`}
         >
-          <FaPlus /> Agregar
+          <FaPlus className="h-4 w-4" />
+          <span>Agregar</span>
         </button>
       </div>
-      <div className="space-y-2">
-        {habilidades.map((h) => (
-          <div
-            key={h.id_habilidad}
-            className="flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition border border-gray-200 rounded-md px-3 py-2"
-          >
-            {editandoId === h.id_habilidad ? (
-              <input
-                value={editNombre}
-                onChange={(e) => setEditNombre(e.target.value)}
-                className="border border-blue-300 rounded px-2 py-1 flex-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            ) : (
-              <span className="text-sm font-medium text-gray-700 flex-1">
-                {h.nombre_habilidad}
-              </span>
-            )}
-            {editandoId === h.id_habilidad ? (
-              <div className="flex gap-2">
-                <button
-                  onClick={guardarEdicion}
-                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded flex items-center gap-1"
-                >
-                  <FaSave /> Guardar
-                </button>
-                <button
-                  onClick={cancelarEdicion}
-                  className="text-xs bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded flex items-center gap-1"
-                >
-                  <FaTimes /> Cancelar
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => iniciarEdicion(h)}
-                  className="text-blue-600 text-xs hover:underline flex items-center gap-1"
-                >
-                  <FaEdit /> Editar
-                </button>
-                <button
-                  onClick={() => quitar(h.id_habilidad)}
-                  className="text-red-600 text-xs hover:underline flex items-center gap-1"
-                >
-                  <FaTrash /> Eliminar
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
+
+      <div className="space-y-3">
+        {habilidades.map((h) => {
+          const enEdicion = editandoId === h.id_habilidad;
+          return (
+            <div
+              key={h.id_habilidad}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-blue-200 hover:bg-blue-50/50"
+            >
+              {enEdicion ? (
+                <input
+                  value={editNombre}
+                  onChange={(e) => setEditNombre(e.target.value)}
+                  className={`${formClasses.input} md:flex-1`}
+                  autoFocus
+                />
+              ) : (
+                <span className="flex-1 text-sm font-medium text-slate-700">
+                  {h.nombre_habilidad}
+                </span>
+              )}
+
+              {enEdicion ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={guardarEdicion}
+                    className={inlinePrimary}
+                  >
+                    <FaSave className="h-3.5 w-3.5" />
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelarEdicion}
+                    className={inlineGhost}
+                  >
+                    <FaTimes className="h-3.5 w-3.5" />
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <div className={tableClasses.actionGroup}>
+                  <button
+                    type="button"
+                    onClick={() => iniciarEdicion(h)}
+                    className={`${tableClasses.actionButton} ${tableClasses.editButton}`}
+                    title="Editar habilidad"
+                  >
+                    <FaEdit className={contenidosIconClasses.base} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => quitar(h.id_habilidad)}
+                    className={`${tableClasses.actionButton} ${tableClasses.deleteButton}`}
+                    title="Eliminar habilidad"
+                  >
+                    <FaTrash className={contenidosIconClasses.base} />
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
         {habilidades.length === 0 && (
-          <div className="text-sm text-gray-500 italic">
+          <p className={tableClasses.helperText}>
             Sin habilidades registradas aún.
-          </div>
+          </p>
         )}
       </div>
     </div>

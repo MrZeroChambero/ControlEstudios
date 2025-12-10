@@ -2,6 +2,7 @@
 
 namespace Micodigo\AnioEscolar;
 
+use Exception;
 use PDO;
 use PDOException;
 
@@ -116,8 +117,22 @@ trait AnioEscolarGestionTrait
 
   public function eliminar(PDO $conexion, int $idAnio): array
   {
-    if (!$this->existePorId($conexion, $idAnio)) {
+    $anio = $this->consultarPorId($conexion, $idAnio);
+    if ($anio === null) {
       return ['errores' => ['id_anio_escolar' => ['El año escolar solicitado no existe.']]];
+    }
+
+    $estadoActual = strtolower($anio['estado'] ?? '');
+    if ($estadoActual !== 'inactivo') {
+      return ['errores' => ['estado' => ['Solo se pueden eliminar años escolares desactivados.']]];
+    }
+
+    if ($this->tieneGradosSeccionAsociados($conexion, $idAnio)) {
+      return ['errores' => ['relaciones' => ['No se puede eliminar el año escolar porque tiene grados y secciones asociados.']]];
+    }
+
+    if ($this->tieneImparticionesAsociadas($conexion, $idAnio)) {
+      return ['errores' => ['relaciones' => ['No se puede eliminar el año escolar porque existen clases impartidas asociadas a este año escolar.']]];
     }
 
     if ($this->tieneAulasAsociadas($conexion, $idAnio)) {
@@ -154,24 +169,101 @@ trait AnioEscolarGestionTrait
       return ['errores' => ['accion' => ['La acción solicitada es inválida.']]];
     }
 
+    $resumenDocentes = null;
+    if ($accionNormalizada === 'activar') {
+      $estadoActual = strtolower($anio['estado'] ?? '');
+      if ($estadoActual === 'inactivo') {
+        $fechaInicio = $anio['fecha_inicio'] ?? null;
+        if ($this->existeAnioPosteriorConEstado($conexion, $fechaInicio, ['activo', 'incompleto'], $idAnio)) {
+          return ['errores' => ['estado' => ['No se puede activar este año escolar mientras exista uno posterior con estado activo o incompleto.']]];
+        }
+      }
+
+      $resumenDocentes = $this->obtenerResumenAsignacionesDocentes($conexion, $idAnio);
+      $totalAulas = $resumenDocentes['total_aulas'];
+      $aulasConDocente = $resumenDocentes['aulas_con_docente'];
+
+      if ($totalAulas > 0 && $aulasConDocente < $totalAulas) {
+        $faltantes = $resumenDocentes['aulas_sin_docente'];
+        $errores = [
+          'docentes' => [
+            'Debes asignar un docente titular de aula a cada grado y sección antes de activar el año escolar.',
+          ],
+        ];
+
+        if (!empty($faltantes)) {
+          $listado = array_map(function (array $aula): string {
+            return $aula['descripcion'] ?? sprintf('Aula #%d', $aula['id_aula'] ?? 0);
+          }, $faltantes);
+
+          $errores['docentes'][] = 'Aulas pendientes: ' . implode(', ', $listado);
+          $errores['aulas_sin_docente'] = $faltantes;
+        }
+
+        return ['errores' => $errores];
+      }
+    }
+
     try {
       $conexion->beginTransaction();
 
       if ($accionNormalizada === 'activar') {
+        if ($resumenDocentes === null) {
+          $resumenDocentes = $this->obtenerResumenAsignacionesDocentes($conexion, $idAnio);
+        }
+
         $this->desactivarOtrosAnios($conexion, $idAnio);
-        $tieneAulas = $this->tieneAulasAsociadas($conexion, $idAnio);
-        $estadoFinal = $tieneAulas ? 'activo' : 'incompleto';
-        $this->actualizarEstado($conexion, $idAnio, $estadoFinal);
+        $this->actualizarEstado($conexion, $idAnio, 'activo');
+        $this->activarPrimerMomento($conexion, $idAnio);
       } elseif ($accionNormalizada === 'desactivar') {
         $this->actualizarEstado($conexion, $idAnio, 'inactivo');
       }
 
       $conexion->commit();
+      $datos = $this->consultarPorId($conexion, $idAnio);
+      if ($resumenDocentes !== null) {
+        $datos['resumen_docentes'] = $resumenDocentes;
+      }
 
-      return ['datos' => $this->consultarPorId($conexion, $idAnio)];
+      return ['datos' => $datos];
     } catch (PDOException $excepcion) {
       if ($conexion->inTransaction()) {
         $conexion->rollBack();
+      }
+      throw $excepcion;
+    }
+  }
+
+  private function activarPrimerMomento(PDO $conexion, int $idAnio): void
+  {
+    if (!$this->momentosTablaDisponible($conexion)) {
+      return;
+    }
+
+    try {
+      $idMomento = $this->ejecutarValor(
+        $conexion,
+        'SELECT id_momento FROM momentos WHERE fk_anio_escolar = ? ORDER BY nombre_momento ASC, fecha_inicio ASC, id_momento ASC LIMIT 1',
+        [$idAnio]
+      );
+
+      if ($idMomento === null || $idMomento === false) {
+        return;
+      }
+
+      $idMomento = (int) $idMomento;
+      if ($idMomento <= 0) {
+        return;
+      }
+
+      $this->ejecutarAccion(
+        $conexion,
+        'UPDATE momentos SET estado_momento = "activo" WHERE id_momento = ?',
+        [$idMomento]
+      );
+    } catch (Exception $excepcion) {
+      if ($this->esErrorTablaMomentosInexistente($excepcion)) {
+        return;
       }
       throw $excepcion;
     }

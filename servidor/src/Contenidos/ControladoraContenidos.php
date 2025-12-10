@@ -74,8 +74,9 @@ class ControladoraContenidos
   public function eliminar(int $idContenido): void
   {
     try {
+      $idContenido = (int) $idContenido;
       $conexion = Conexion::obtener();
-      $modelo = new Contenidos();
+      $modelo = new Contenidos(['id_contenido' => $idContenido]);
       $resultado = $modelo->eliminar($conexion, $idContenido);
 
       if (isset($resultado['errores'])) {

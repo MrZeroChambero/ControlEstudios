@@ -3,6 +3,7 @@
 namespace Micodigo\AnioEscolar;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Login\Login;
 use Exception;
 use PDOException;
 use RuntimeException;
@@ -118,7 +119,40 @@ class ControladoraAnioEscolar
 
       $conexion = Conexion::obtener();
       $modelo = new AnioEscolar();
-      $resultado = $modelo->cambiarEstado($conexion, $idAnio, $accionSolicitada);
+      $anioActual = $modelo->consultarPorId($conexion, $idAnio);
+      if ($anioActual === null) {
+        $this->enviarRespuestaJson(404, 'error', 'El año escolar solicitado no existe.', null, ['id_anio_escolar' => ['Registro no encontrado.']]);
+        return;
+      }
+
+      $accionEfectiva = $accionSolicitada;
+      if ($accionEfectiva === null || $accionEfectiva === '') {
+        $estadoActual = strtolower($anioActual['estado'] ?? 'incompleto');
+        $accionEfectiva = $estadoActual === 'activo' ? 'desactivar' : 'activar';
+      }
+
+      $accionEfectiva = is_string($accionEfectiva) ? strtolower(trim($accionEfectiva)) : null;
+      if ($accionEfectiva !== 'activar' && $accionEfectiva !== 'desactivar') {
+        $this->enviarRespuestaJson(422, 'error', 'La acción solicitada es inválida.', null, ['accion' => ['Acción no soportada.']]);
+        return;
+      }
+
+      if ($accionEfectiva === 'desactivar') {
+        $errorContrasena = $this->validarContrasenaDesactivacion($conexion, $entrada);
+        if ($errorContrasena !== null) {
+          $this->enviarRespuestaJson(
+            $errorContrasena['codigo'],
+            'error',
+            $errorContrasena['mensaje'],
+            null,
+            $errorContrasena['errores'] ?? null
+          );
+          return;
+        }
+      }
+
+      $accionParaModelo = $accionSolicitada ?? $accionEfectiva;
+      $resultado = $modelo->cambiarEstado($conexion, $idAnio, $accionParaModelo);
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['id_anio_escolar']) ? 404 : 422;
@@ -136,6 +170,119 @@ class ControladoraAnioEscolar
       $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
     } catch (Exception | PDOException $excepcion) {
       $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+    }
+  }
+
+  private function validarContrasenaDesactivacion(\PDO $conexion, array $entrada): ?array
+  {
+    $contrasena = $entrada['contrasena'] ?? ($entrada['password'] ?? ($entrada['clave'] ?? null));
+    if (!is_string($contrasena) || $contrasena === '') {
+      return [
+        'codigo' => 422,
+        'mensaje' => 'Debes confirmar tu contraseña para desactivar el año escolar.',
+        'errores' => ['contrasena' => ['La contraseña es requerida.']],
+      ];
+    }
+
+    $credenciales = $this->obtenerHashUsuarioAutenticado($conexion, $entrada);
+    if ($credenciales === null) {
+      return [
+        'codigo' => 401,
+        'mensaje' => 'No fue posible verificar la identidad del usuario.',
+        'errores' => ['autenticacion' => ['Sesión no válida o usuario desconocido.']],
+      ];
+    }
+
+    if (!password_verify($contrasena, $credenciales['hash'])) {
+      return [
+        'codigo' => 401,
+        'mensaje' => 'La contraseña proporcionada no es correcta.',
+        'errores' => ['contrasena' => ['Contraseña incorrecta.']],
+      ];
+    }
+
+    return null;
+  }
+
+  private function obtenerHashUsuarioAutenticado(\PDO $conexion, array $entrada): ?array
+  {
+    $token = $_COOKIE['session_token'] ?? null;
+
+    if (is_string($token) && $token !== '') {
+      try {
+        $login = new Login($conexion);
+        $usuarioSesion = $login->obtenerUsuarioPorHash($token);
+        if (is_array($usuarioSesion) && isset($usuarioSesion['id_usuario'])) {
+          $hash = $this->obtenerHashUsuarioPorId($conexion, (int) $usuarioSesion['id_usuario']);
+          if ($hash !== null) {
+            return [
+              'id_usuario' => (int) $usuarioSesion['id_usuario'],
+              'hash' => $hash,
+            ];
+          }
+        }
+      } catch (Exception $excepcion) {
+        error_log('[AnioEscolar] Error al validar sesión: ' . $excepcion->getMessage());
+      }
+    }
+
+    if (isset($entrada['id_usuario']) && is_numeric($entrada['id_usuario'])) {
+      $hash = $this->obtenerHashUsuarioPorId($conexion, (int) $entrada['id_usuario']);
+      if ($hash !== null) {
+        return [
+          'id_usuario' => (int) $entrada['id_usuario'],
+          'hash' => $hash,
+        ];
+      }
+    }
+
+    $nombreUsuario = $entrada['usuario'] ?? ($entrada['nombre_usuario'] ?? null);
+    if (is_string($nombreUsuario) && trim($nombreUsuario) !== '') {
+      $datos = $this->obtenerHashUsuarioPorNombre($conexion, trim($nombreUsuario));
+      if ($datos !== null) {
+        return $datos;
+      }
+    }
+
+    return null;
+  }
+
+  private function obtenerHashUsuarioPorId(\PDO $conexion, int $idUsuario): ?string
+  {
+    try {
+      $sentencia = $conexion->prepare('SELECT contrasena_hash FROM usuarios WHERE id_usuario = ? LIMIT 1');
+      $sentencia->execute([$idUsuario]);
+      $hash = $sentencia->fetchColumn();
+      return is_string($hash) && $hash !== '' ? $hash : null;
+    } catch (PDOException $excepcion) {
+      error_log('[AnioEscolar] Error consultando hash por id: ' . $excepcion->getMessage());
+      return null;
+    }
+  }
+
+  private function obtenerHashUsuarioPorNombre(\PDO $conexion, string $nombreUsuario): ?array
+  {
+    try {
+      $sentencia = $conexion->prepare('SELECT id_usuario, contrasena_hash FROM usuarios WHERE nombre_usuario = ? AND estado = "activo" LIMIT 1');
+      $sentencia->execute([$nombreUsuario]);
+      $fila = $sentencia->fetch(\PDO::FETCH_ASSOC);
+
+      if (!$fila) {
+        return null;
+      }
+
+      $hash = $fila['contrasena_hash'] ?? null;
+      if (!is_string($hash) || $hash === '') {
+        return null;
+      }
+
+      return [
+        'id_usuario' => (int) ($fila['id_usuario'] ?? 0),
+        'hash' => $hash,
+      ];
+    } catch (PDOException $excepcion) {
+      error_log('[AnioEscolar] Error consultando hash por nombre: ' . $excepcion->getMessage());
+      return null;
     }
   }
 

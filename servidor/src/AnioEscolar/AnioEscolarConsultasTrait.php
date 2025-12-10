@@ -54,10 +54,24 @@ trait AnioEscolarConsultasTrait
         }
       }
 
+      foreach ($resultado as $id => &$registro) {
+        $registro['resumen_docentes'] = $this->obtenerResumenAsignacionesDocentes($conexion, $id);
+      }
+      unset($registro);
+
       return array_values($resultado);
     }
 
-    return $this->consultarAniosSinMomentos($conexion, $conteoAulas);
+    $sinMomentos = $this->consultarAniosSinMomentos($conexion, $conteoAulas);
+    foreach ($sinMomentos as &$registro) {
+      $registro['resumen_docentes'] = $this->obtenerResumenAsignacionesDocentes(
+        $conexion,
+        $registro['id'] ?? $registro['id_anio_escolar'] ?? 0
+      );
+    }
+    unset($registro);
+
+    return $sinMomentos;
   }
 
   public function consultarPorId(PDO $conexion, int $idAnio): ?array
@@ -81,6 +95,7 @@ trait AnioEscolarConsultasTrait
     $conteo = $this->obtenerConteoAulas($conexion);
     $anio['aulas_asignadas'] = $conteo[$idAnio] ?? 0;
     $anio['tiene_aulas'] = $anio['aulas_asignadas'] > 0;
+    $anio['resumen_docentes'] = $this->obtenerResumenAsignacionesDocentes($conexion, $idAnio);
 
     return $anio;
   }
@@ -183,6 +198,138 @@ trait AnioEscolarConsultasTrait
     return $total > 0;
   }
 
+  protected function obtenerResumenAsignacionesDocentes(PDO $conexion, int $idAnio): array
+  {
+    $totalAulas = (int) $this->ejecutarValor(
+      $conexion,
+      "SELECT COUNT(*) FROM aula WHERE fk_anio_escolar = ? AND (estado IS NULL OR estado = 'activo')",
+      [$idAnio]
+    );
+
+    $aulasConDocente = (int) $this->ejecutarValor(
+      $conexion,
+      "SELECT COUNT(DISTINCT i.fk_aula)
+         FROM imparte i
+         INNER JOIN aula a ON a.id_aula = i.fk_aula
+        WHERE a.fk_anio_escolar = ?
+          AND i.tipo_docente = 'aula'
+          AND (a.estado IS NULL OR a.estado = 'activo')",
+      [$idAnio]
+    );
+
+    $aulasSinDocente = [];
+    if ($totalAulas > $aulasConDocente) {
+      $aulasSinDocente = $this->obtenerAulasSinDocenteTitular($conexion, $idAnio);
+    }
+
+    return [
+      'total_aulas' => $totalAulas,
+      'aulas_con_docente' => $aulasConDocente,
+      'aulas_sin_docente' => $aulasSinDocente,
+    ];
+  }
+
+  protected function obtenerAulasSinDocenteTitular(PDO $conexion, int $idAnio): array
+  {
+    $sql = "SELECT a.id_aula,
+                   gs.grado,
+                   gs.seccion
+              FROM aula a
+         LEFT JOIN (
+                SELECT DISTINCT fk_aula
+                  FROM imparte
+                 WHERE tipo_docente = 'aula'
+               ) asignaciones ON asignaciones.fk_aula = a.id_aula
+         LEFT JOIN grado_seccion gs ON a.fk_grado_seccion = gs.id_grado_seccion
+             WHERE a.fk_anio_escolar = ?
+               AND (a.estado IS NULL OR a.estado = 'activo')
+               AND asignaciones.fk_aula IS NULL
+          ORDER BY gs.grado, gs.seccion";
+
+    $filas = $this->ejecutarConsulta($conexion, $sql, [$idAnio]);
+
+    return array_map(function (array $fila): array {
+      $grado = $fila['grado'] ?? null;
+      $seccion = $fila['seccion'] ?? null;
+      $descripcion = trim(sprintf(
+        'Gr %s - Secc %s',
+        $grado !== null ? $grado : 'N/D',
+        $seccion !== null ? $seccion : 'N/D'
+      ));
+
+      return [
+        'id_aula' => isset($fila['id_aula']) ? (int) $fila['id_aula'] : 0,
+        'grado' => $grado,
+        'seccion' => $seccion,
+        'descripcion' => $descripcion,
+      ];
+    }, $filas);
+  }
+
+  protected function tieneGradosSeccionAsociados(PDO $conexion, int $idAnio): bool
+  {
+    $tablas = [
+      ['tabla' => 'grado_seccion', 'columna' => 'fk_anio_escolar'],
+      ['tabla' => 'grados_secciones', 'columna' => 'fk_anio_escolar'],
+    ];
+
+    foreach ($tablas as $tabla) {
+      try {
+        $sql = sprintf('SELECT COUNT(*) FROM %s WHERE %s = ?', $tabla['tabla'], $tabla['columna']);
+        $total = $this->ejecutarValor($conexion, $sql, [$idAnio]);
+        if ((int) $total > 0) {
+          return true;
+        }
+      } catch (Exception $excepcion) {
+        if ($this->esErrorTablaMomentosInexistente($excepcion)) {
+          continue;
+        }
+        throw $excepcion;
+      }
+    }
+
+    return false;
+  }
+
+  protected function tieneImparticionesAsociadas(PDO $conexion, int $idAnio): bool
+  {
+    try {
+      $sql = 'SELECT COUNT(*) FROM imparte i
+              INNER JOIN aula a ON a.id_aula = i.fk_aula
+             WHERE a.fk_anio_escolar = ?';
+      $total = $this->ejecutarValor($conexion, $sql, [$idAnio]);
+      return (int) $total > 0;
+    } catch (Exception $excepcion) {
+      if ($this->esErrorTablaMomentosInexistente($excepcion)) {
+        return false;
+      }
+      throw $excepcion;
+    }
+  }
+
+  protected function existeAnioPosteriorConEstado(PDO $conexion, ?string $fechaInicioReferencia, array $estados, int $ignorarId): bool
+  {
+    if ($fechaInicioReferencia === null || $fechaInicioReferencia === '') {
+      return false;
+    }
+
+    if (empty($estados)) {
+      return false;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($estados), '?'));
+    $sql = 'SELECT COUNT(*)
+              FROM anios_escolares
+             WHERE fecha_inicio > ?
+               AND estado IN (' . $placeholders . ')
+               AND id_anio_escolar <> ?';
+
+    $parametros = array_merge([$fechaInicioReferencia], array_values($estados), [$ignorarId]);
+
+    $total = (int) $this->ejecutarValor($conexion, $sql, $parametros);
+    return $total > 0;
+  }
+
   protected function existeConEstado(PDO $conexion, array $estados, ?int $ignorarId = null): bool
   {
     if (empty($estados)) {
@@ -227,9 +374,19 @@ trait AnioEscolarConsultasTrait
 
     $filas = $this->ejecutarConsulta($conexion, $sql);
 
-    return array_map(function (array $fila) use ($conteoAulas) {
+    $registros = array_map(function (array $fila) use ($conteoAulas) {
       return $this->construirRegistroAnio($fila, $conteoAulas);
     }, $filas);
+
+    foreach ($registros as &$registro) {
+      $registro['resumen_docentes'] = $this->obtenerResumenAsignacionesDocentes(
+        $conexion,
+        $registro['id'] ?? $registro['id_anio_escolar'] ?? 0
+      );
+    }
+    unset($registro);
+
+    return $registros;
   }
 
   protected function esErrorTablaMomentosInexistente(Exception $excepcion): bool
