@@ -22,6 +22,7 @@ import { Aulas } from "./Componentes/Aulas/Aulas.jsx";
 import { Competencias } from "./Componentes/Competencias/Competencias.jsx";
 import { Indicadores } from "./Componentes/Indicadores/Indicadores.jsx";
 import { GestionGradosSecciones } from "./Componentes/GestionGradosSecciones/GestionGradosSecciones.jsx";
+import Inscripcion from "./Componentes/Inscripcion/inscripcion.jsx";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
       <Route path="Asistencia de estudiantes" element={<Dashboard />} />
       <Route path="Competencias" element={<Competencias />} />
       <Route path="Indicadores" element={<Indicadores />} />
+      <Route path="Inscripcion" element={<Inscripcion />} />
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />

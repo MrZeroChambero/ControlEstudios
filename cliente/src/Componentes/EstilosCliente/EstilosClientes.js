@@ -435,6 +435,58 @@ export const estudiantesModalClasses = {
   },
 };
 
+// Inscripción estudiantil
+export const inscripcionLayout = createLayoutTokens("blue");
+
+export const inscripcionStepClasses = {
+  container:
+    "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  card: "flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition shadow-sm",
+  cardActivo:
+    "border-blue-400 bg-blue-50/80 text-blue-700 shadow-md ring-2 ring-blue-100",
+  cardCompletado:
+    "border-emerald-300 bg-emerald-50/80 text-emerald-700 shadow-md",
+  cardPendiente: "border-slate-200 bg-white text-slate-500",
+  bullet:
+    "flex h-10 w-10 items-center justify-center rounded-full border border-current text-sm font-semibold text-current",
+  bulletActivo: "border-blue-500 bg-blue-500 text-white",
+  bulletCompletado: "border-emerald-500 bg-emerald-500 text-white",
+  bulletPendiente: "border-slate-300 bg-slate-100 text-slate-500",
+  title: "text-sm font-semibold leading-tight text-slate-800",
+  description: "text-xs leading-relaxed text-slate-600",
+  icon: "text-lg text-slate-500",
+};
+
+export const inscripcionControlClasses = {
+  nav: "flex flex-col gap-3 md:flex-row md:items-center md:justify-between",
+  info: "text-sm text-slate-500",
+  buttons: "flex flex-col gap-2 md:flex-row md:gap-3",
+  primary: `${primaryButtonBase} ${accentTokens.blue}`,
+  secondary: `${neutralButtonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-200/60`,
+  tertiary: `${neutralButtonBase} bg-transparent text-slate-500 hover:bg-slate-100 focus:ring-slate-200/60`,
+};
+
+export const inscripcionFormClasses = {
+  ...createFormTokens("blue"),
+  section: "space-y-4",
+  sectionTitle: "text-base font-semibold text-slate-800",
+  inline: "grid grid-cols-1 gap-4 md:grid-cols-2",
+};
+
+export const inscripcionTableClasses = {
+  ...tableBase,
+  wrapper: "overflow-x-auto rounded-3xl border border-slate-100",
+  helperText: "py-4 text-center text-sm text-slate-500",
+};
+
+export const inscripcionSummaryClasses = {
+  grid: "grid grid-cols-1 gap-4 md:grid-cols-2",
+  card: "rounded-3xl border border-slate-100 bg-slate-50 p-4 shadow-sm",
+  title: "mb-2 text-sm font-semibold text-slate-700",
+  itemLabel: "text-xs font-semibold uppercase tracking-wide text-slate-400",
+  itemValue: "text-sm font-medium text-slate-700",
+};
+
 export const estudiantesViewModalClasses = {
   overlay: modalOverlayBase,
   content:

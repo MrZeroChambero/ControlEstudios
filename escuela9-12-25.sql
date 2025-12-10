@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-12-2025 a las 23:41:31
+-- Tiempo de generación: 10-12-2025 a las 23:03:51
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -150,7 +150,7 @@ CREATE TABLE `anios_escolares` (
 --
 
 INSERT INTO `anios_escolares` (`id_anio_escolar`, `fecha_inicio`, `fecha_fin`, `limite_inscripcion`, `estado`) VALUES
-(1, '2025-09-01', '2026-07-20', '2025-09-01', 'incompleto');
+(1, '2025-09-01', '2026-07-20', '2025-09-01', 'activo');
 
 -- --------------------------------------------------------
 
@@ -186,7 +186,12 @@ CREATE TABLE `areas_aprendizaje` (
 --
 
 INSERT INTO `areas_aprendizaje` (`id_area_aprendizaje`, `nombre_area`, `estado_area`) VALUES
-(124, 'sociales', 'activo');
+(1, 'Lenguaje, Comunicación y Cultura', 'activo'),
+(2, 'Matemática', 'activo'),
+(3, 'Ciencias Naturales y Sociedad', 'activo'),
+(4, 'Ciencias Sociales, Ciudadanía e Identidad', 'activo'),
+(5, 'Educación Física, Deporte y Recreación', 'activo'),
+(6, 'Arte y Patrimonio', 'activo');
 
 -- --------------------------------------------------------
 
@@ -311,6 +316,25 @@ CREATE TABLE `competencias` (
   `reutilizable` enum('si','no') NOT NULL DEFAULT 'si'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `competencias`
+--
+
+INSERT INTO `competencias` (`id_competencia`, `fk_componente`, `nombre_competencia`, `descripcion_competencia`, `reutilizable`) VALUES
+(1, 1, 1, 'Desarrolla habilidades comunicativas para expresarse oralmente y por escrito de manera efectiva en diferentes contextos.', 'si'),
+(2, 2, 1, 'Desarrolla habilidades básicas de comunicación en inglés para interactuar en situaciones cotidianas.', 'si'),
+(3, 3, 1, 'Aplica conceptos y procedimientos matemáticos para resolver problemas de la vida cotidiana.', 'si'),
+(4, 4, 1, 'Comprende los fenómenos naturales y desarrolla actitudes científicas para cuidar el medio ambiente.', 'si'),
+(5, 5, 1, 'Analiza la realidad social y geográfica para comprender la organización de la sociedad.', 'si'),
+(6, 6, 1, 'Desarrolla valores y actitudes para la convivencia democrática y el ejercicio ciudadano.', 'si'),
+(7, 7, 1, 'Desarrolla habilidades motrices y hábitos para una vida saludable a través de la actividad física.', 'si'),
+(8, 8, 1, 'Expresa ideas y emociones mediante diferentes técnicas y materiales artísticos.', 'si'),
+(9, 9, 1, 'Desarrolla la sensibilidad artística y la expresión a través del lenguaje musical.', 'si'),
+(10, 10, 1, 'Expresa sentimientos e ideas a través del movimiento corporal y la danza.', 'si'),
+(11, 11, 1, 'Desarrolla la creatividad y la expresión a través de la dramatización y el teatro.', 'si'),
+(12, 12, 1, 'Utiliza herramientas tecnológicas de manera responsable para el aprendizaje y la comunicación.', 'si'),
+(13, 106, 1, 'Analiza procesos históricos y geográficos para comprender la realidad social actual.', 'si');
+
 -- --------------------------------------------------------
 
 --
@@ -331,7 +355,19 @@ CREATE TABLE `componentes_aprendizaje` (
 --
 
 INSERT INTO `componentes_aprendizaje` (`id_componente`, `fk_area`, `nombre_componente`, `especialista`, `evalua`, `estado_componente`) VALUES
-(106, 124, 'pepe', 'dsad', 'no', 'activo');
+(1, 1, 'Lengua y Literatura', 'Docente de aula', 'si', 'activo'),
+(2, 1, 'Inglés y otros Idiomas', 'Especialista en idiomas', 'si', 'activo'),
+(3, 2, 'Matemática', 'Docente de aula', 'si', 'activo'),
+(4, 3, 'Ciencias Naturales', 'Docente de aula', 'si', 'activo'),
+(5, 4, 'Ciencias Sociales', 'Docente de aula', 'si', 'activo'),
+(6, 4, 'Formación Ciudadana', 'Docente de aula', 'si', 'activo'),
+(7, 5, 'Educación Física', 'Especialista en educación física', 'si', 'activo'),
+(8, 6, 'Artes Plásticas', 'Especialista en artes', 'si', 'activo'),
+(9, 6, 'Música', 'Especialista en música', 'si', 'activo'),
+(10, 6, 'Danza y Expresión Corporal', 'Especialista en danza', 'si', 'activo'),
+(11, 6, 'Teatro y Dramatización', 'Especialista en teatro', 'si', 'activo'),
+(12, 3, 'Tecnología y Computación', 'Especialista CBIT/Informática', 'si', 'activo'),
+(106, 4, 'Ciencias Sociales', 'Docente de aula', 'si', 'activo');
 
 -- --------------------------------------------------------
 
@@ -352,6 +388,13 @@ CREATE TABLE `condiciones_salud` (
   `observaciones` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `condiciones_salud`
+--
+
+INSERT INTO `condiciones_salud` (`id_condicion`, `fk_estudiante`, `fk_patologia`, `afectado`, `presente_en`, `tipo_familiar`, `fecha_deteccion`, `cronica`, `impedimento_fisico`, `observaciones`) VALUES
+(3, 50, 1, 'estudiante', 'estudiante', NULL, '2020-05-10', 'si', 'no', 'Asma controlado con inhalador');
+
 -- --------------------------------------------------------
 
 --
@@ -367,6 +410,13 @@ CREATE TABLE `consultas_medicas` (
   `fecha_consulta` date DEFAULT NULL,
   `observaciones` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `consultas_medicas`
+--
+
+INSERT INTO `consultas_medicas` (`id_consulta`, `fk_estudiante`, `tipo_consulta`, `motivo`, `tiene_informe_medico`, `fecha_consulta`, `observaciones`) VALUES
+(3, 48, 'psicologo', 'Evaluación inicial', 'si', '2025-09-10', 'Seguimiento mensual recomendado');
 
 -- --------------------------------------------------------
 
@@ -388,7 +438,29 @@ CREATE TABLE `contenidos` (
 --
 
 INSERT INTO `contenidos` (`id_contenido`, `nombre_contenido`, `fk_componente`, `grado`, `descripcion`, `estado`) VALUES
-(706, 'dasd', 106, '2', 'sadsadas', 'activo');
+(707, 'Comprensión Lectora', 1, 'general', 'Desarrollo de habilidades para comprender y analizar textos escritos', 'activo'),
+(708, 'Expresión Escrita', 1, 'general', 'Desarrollo de habilidades para redactar textos coherentes y cohesionados', 'activo'),
+(709, 'Vocabulario Básico en Inglés', 2, '1', 'Aprendizaje de vocabulario básico para comunicación inicial', 'activo'),
+(710, 'Gramática Inglesa Básica', 2, 'general', 'Estructuras gramaticales fundamentales del inglés', 'activo'),
+(711, 'Operaciones Aritméticas Básicas', 3, 'general', 'Fundamentos de las operaciones matemáticas básicas', 'activo'),
+(712, 'Geometría Básica', 3, 'general', 'Conceptos fundamentales de formas y espacios', 'activo'),
+(713, 'Los Seres Vivos', 4, 'general', 'Características y clasificación de los seres vivos', 'activo'),
+(714, 'El Cuerpo Humano', 4, 'general', 'Estructura y funcionamiento del cuerpo humano', 'activo'),
+(715, 'Historia y Geografía Local', 5, 'general', 'Conocimiento del entorno histórico y geográfico local', 'activo'),
+(716, 'Valores y Convivencia Ciudadana', 6, 'general', 'Desarrollo de valores para la convivencia social', 'activo'),
+(717, 'Desarrollo de Habilidades Motoras', 7, 'general', 'Desarrollo de capacidades físicas básicas', 'activo'),
+(718, 'Expresión y Creación Plástica', 8, 'general', 'Desarrollo de la creatividad a través de las artes plásticas', 'activo'),
+(719, 'Educación Musical Básica', 9, 'general', 'Introducción a los elementos fundamentales de la música', 'activo'),
+(720, 'Expresión Corporal y Danza', 10, 'general', 'Desarrollo de la expresión a través del movimiento', 'activo'),
+(721, 'Expresión Dramática y Teatro', 11, 'general', 'Desarrollo de habilidades de expresión a través del teatro', 'activo'),
+(722, 'Alfabetización Digital Básica', 12, 'general', 'Introducción al uso de la tecnología y computadoras', 'activo'),
+(723, 'Herramientas Ofimáticas Básicas', 12, 'general', 'Introducción a programas de oficina básicos', 'activo'),
+(724, 'Lectura de Sílabas y Palabras Cortas', 1, '1', 'Iniciación a la lectura de sílabas y palabras simples', 'activo'),
+(725, 'Números del 1 al 100', 3, '1', 'Reconocimiento y escritura de números del 1 al 100', 'activo'),
+(726, 'El Entorno Natural Inmediato', 4, '1', 'Observación y descripción del entorno natural cercano', 'activo'),
+(727, 'Análisis de Textos Literarios', 1, '6', 'Análisis y comprensión de textos literarios complejos', 'activo'),
+(728, 'Álgebra Básica', 3, '6', 'Introducción a conceptos algebraicos elementales', 'activo'),
+(729, 'Sistema Solar y Universo', 4, '6', 'Estudio del sistema solar y elementos del universo', 'activo');
 
 -- --------------------------------------------------------
 
@@ -417,6 +489,13 @@ CREATE TABLE `documentos_academicos` (
   `observaciones` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `documentos_academicos`
+--
+
+INSERT INTO `documentos_academicos` (`id_documento`, `fk_estudiante`, `tipo_documento`, `grado`, `entregado`, `observaciones`) VALUES
+(3, 48, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado');
+
 -- --------------------------------------------------------
 
 --
@@ -443,46 +522,9 @@ CREATE TABLE `estudiantes` (
 --
 
 INSERT INTO `estudiantes` (`id_estudiante`, `id_persona`, `cedula_escolar`, `fecha_ingreso_escuela`, `vive_con_padres`, `orden_nacimiento`, `tiempo_gestacion`, `embarazo_deseado`, `tipo_parto`, `control_esfinteres`, `control_embarazo`, `estado`) VALUES
-(1, 1, 'E-0001', '2010-09-01', 'si', 1, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(2, 2, 'E-0002', '2011-09-01', 'no', 2, 40, 'si', 'cesaria', 'si', 'si', 'activo'),
-(3, 3, 'E-0003', '2012-09-01', 'si', 1, 37, 'si', 'normal', 'si', 'si', 'activo'),
-(4, 4, 'E-0004', '2013-09-01', 'si', 3, 39, 'no', 'normal', 'no', 'si', 'activo'),
-(5, 5, 'E-0005', '2014-09-01', 'no', 1, 40, 'si', 'normal', 'si', 'si', 'activo'),
-(6, 6, 'E-0006', '2010-09-01', 'si', 2, 36, 'si', 'cesaria', 'si', 'si', 'activo'),
-(7, 7, 'E-0007', '2011-09-01', 'si', 1, 39, 'si', 'normal', 'si', 'si', 'activo'),
-(8, 8, 'E-0008', '2012-09-01', 'no', 4, 40, 'no', 'normal', 'no', 'si', 'activo'),
-(9, 9, 'E-0009', '2013-09-01', 'si', 1, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(10, 10, 'E-0010', '2014-09-01', 'si', 3, 37, 'si', 'cesaria', 'si', 'si', 'activo'),
-(11, 11, 'E-0011', '2010-09-01', 'no', 1, 40, 'no', 'normal', 'si', 'si', 'activo'),
-(12, 12, 'E-0012', '2011-09-01', 'si', 2, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(13, 13, 'E-0013', '2012-09-01', 'si', 1, 39, 'si', 'cesaria', 'si', 'si', 'activo'),
-(14, 14, 'E-0014', '2013-09-01', 'no', 3, 37, 'no', 'normal', 'no', 'si', 'activo'),
-(15, 15, 'E-0015', '2014-09-01', 'si', 2, 40, 'si', 'normal', 'si', 'si', 'activo'),
-(16, 16, 'E-0016', '2010-09-01', 'si', 1, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(17, 17, 'E-0017', '2011-09-01', 'no', 3, 39, 'si', 'cesaria', 'si', 'si', 'activo'),
-(18, 18, 'E-0018', '2012-09-01', 'si', 1, 40, 'no', 'normal', 'si', 'si', 'activo'),
-(19, 19, 'E-0019', '2013-09-01', 'si', 2, 36, 'si', 'normal', 'no', 'si', 'activo'),
-(20, 20, 'E-0020', '2014-09-01', 'no', 1, 37, 'si', 'cesaria', 'si', 'si', 'activo'),
-(21, 21, 'E-0021', '2010-09-01', 'si', 4, 39, 'no', 'normal', 'si', 'si', 'activo'),
-(22, 22, 'E-0022', '2011-09-01', 'si', 1, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(23, 23, 'E-0023', '2012-09-01', 'no', 2, 40, 'si', 'cesaria', 'si', 'si', 'activo'),
-(24, 24, 'E-0024', '2013-09-01', 'si', 1, 37, 'no', 'normal', 'si', 'si', 'activo'),
-(25, 25, 'E-0025', '2014-09-01', 'si', 3, 39, 'si', 'normal', 'no', 'si', 'activo'),
-(26, 26, 'E-0026', '2010-09-01', 'no', 1, 38, 'si', 'cesaria', 'si', 'si', 'activo'),
-(27, 27, 'E-0027', '2011-09-01', 'si', 2, 40, 'no', 'normal', 'si', 'si', 'activo'),
-(28, 28, 'E-0028', '2012-09-01', 'si', 1, 36, 'si', 'normal', 'si', 'si', 'activo'),
-(29, 29, 'E-0029', '2013-09-01', 'no', 3, 37, 'si', 'cesaria', 'no', 'si', 'activo'),
-(30, 30, 'E-0030', '2014-09-01', 'si', 1, 39, 'no', 'normal', 'si', 'si', 'activo'),
-(31, 31, 'E-0031', '2010-09-01', 'si', 2, 38, 'si', 'normal', 'si', 'si', 'activo'),
-(32, 32, 'E-0032', '2011-09-01', 'no', 4, 40, 'si', 'cesaria', 'si', 'si', 'activo'),
-(33, 33, 'E-0033', '2012-09-01', 'si', 1, 37, 'no', 'normal', 'si', 'si', 'activo'),
-(34, 34, 'E-0034', '2013-09-01', 'si', 3, 39, 'si', 'normal', 'no', 'si', 'activo'),
-(35, 35, 'E-0035', '2014-09-01', 'no', 1, 38, 'si', 'cesaria', 'si', 'si', 'activo'),
-(36, 36, 'E-0036', '2010-09-01', 'si', 2, 40, 'no', 'normal', 'si', 'si', 'activo'),
-(37, 37, 'E-0037', '2011-09-01', 'si', 1, 36, 'si', 'normal', 'si', 'si', 'activo'),
-(38, 38, 'E-0038', '2012-09-01', 'no', 3, 37, 'si', 'cesaria', 'no', 'si', 'activo'),
-(39, 39, 'E-0039', '2013-09-01', 'si', 1, 39, 'no', 'normal', 'si', 'si', 'activo'),
-(40, 40, 'E-0040', '2014-09-01', 'si', 4, 38, 'si', 'normal', 'si', 'si', 'activo');
+(48, 86, '2025-30123456', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(49, 87, '2025-31234567', '2025-09-01', 'si', 2, 8, 'si', 'cesaria', 'si', 'si', 'activo'),
+(50, 88, '2025-32345678', '2025-09-01', 'no', 3, 9, 'no', 'normal', 'si', 'si', 'activo');
 
 -- --------------------------------------------------------
 
@@ -620,11 +662,8 @@ CREATE TABLE `habilidades` (
 --
 
 INSERT INTO `habilidades` (`id_habilidad`, `fk_representante`, `nombre_habilidad`) VALUES
-(2, 2, 'hablar paja'),
-(3, 2, 'lamer botas'),
-(4, 2, 'resarle a chavez'),
-(5, 1, 'hablar paja'),
-(6, 1, 'votar por el psuv');
+(11, 10, 'Manejo de herramientas tecnológicas'),
+(12, 10, 'Primeros auxilios');
 
 -- --------------------------------------------------------
 
@@ -660,15 +699,6 @@ CREATE TABLE `imparte` (
   `clases_totales` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `imparte`
---
-
-INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk_componente`, `tipo_docente`, `clases_totales`) VALUES
-(4, 1, 1, 11, 106, 'Especialista', NULL),
-(5, 1, 1, 12, 106, 'Especialista', NULL),
-(6, 1, 1, 13, 106, 'Especialista', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -683,6 +713,64 @@ CREATE TABLE `indicadores` (
   `orden` int(3) NOT NULL,
   `ocultar` enum('si','no') NOT NULL DEFAULT 'no'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `indicadores`
+--
+
+INSERT INTO `indicadores` (`id_indicador`, `fk_competencia`, `nombre_indicador`, `aspecto`, `orden`, `ocultar`) VALUES
+(1, 1, 'Muestra respeto por las ideas de los demás durante intercambios comunicativos.', 'ser', 1, 'no'),
+(2, 1, 'Redacta textos cortos aplicando normas gramaticales básicas.', 'hacer', 2, 'no'),
+(3, 1, 'Identifica la estructura básica de diferentes tipos de textos.', 'conocer', 3, 'no'),
+(4, 1, 'Participa en discusiones grupales escuchando activamente a sus compañeros.', 'convivir', 4, 'no'),
+(5, 2, 'Muestra interés por conocer otras culturas a través del idioma.', 'ser', 1, 'no'),
+(6, 2, 'Utiliza vocabulario básico para saludar y presentarse en inglés.', 'hacer', 2, 'no'),
+(7, 2, 'Reconoce palabras y frases comunes en inglés relacionadas con su entorno.', 'conocer', 3, 'no'),
+(8, 2, 'Colabora en actividades grupales para practicar el idioma.', 'convivir', 4, 'no'),
+(9, 3, 'Muestra perseverancia al resolver problemas matemáticos.', 'ser', 1, 'no'),
+(10, 3, 'Aplica operaciones aritméticas básicas en situaciones cotidianas.', 'hacer', 2, 'no'),
+(11, 3, 'Identifica formas geométricas en su entorno inmediato.', 'conocer', 3, 'no'),
+(12, 3, 'Trabaja en equipo para resolver problemas matemáticos.', 'convivir', 4, 'no'),
+(13, 4, 'Muestra curiosidad por explorar fenómenos naturales.', 'ser', 1, 'no'),
+(14, 4, 'Realiza observaciones sencillas de seres vivos de su entorno.', 'hacer', 2, 'no'),
+(15, 4, 'Describe las partes básicas del cuerpo humano y su función.', 'conocer', 3, 'no'),
+(16, 4, 'Participa en actividades grupales de cuidado del medio ambiente.', 'convivir', 4, 'no'),
+(17, 5, 'Valora el patrimonio cultural y natural de su localidad.', 'ser', 1, 'no'),
+(18, 5, 'Elabora representaciones sencillas del espacio geográfico.', 'hacer', 2, 'no'),
+(19, 5, 'Identifica características principales de su comunidad.', 'conocer', 3, 'no'),
+(20, 5, 'Respeta las normas de convivencia en su entorno escolar y familiar.', 'convivir', 4, 'no'),
+(21, 6, 'Demuestra honestidad en sus acciones cotidianas.', 'ser', 1, 'no'),
+(22, 6, 'Cumple con sus responsabilidades escolares y familiares.', 'hacer', 2, 'no'),
+(23, 6, 'Reconoce sus derechos y deberes como niño/a.', 'conocer', 3, 'no'),
+(24, 6, 'Participa en actividades de grupo respetando las diferencias.', 'convivir', 4, 'no'),
+(25, 7, 'Muestra entusiasmo por participar en actividades físicas.', 'ser', 1, 'no'),
+(26, 7, 'Realiza ejercicios de coordinación y equilibrio básicos.', 'hacer', 2, 'no'),
+(27, 7, 'Identifica los beneficios de la actividad física para la salud.', 'conocer', 3, 'no'),
+(28, 7, 'Trabaja en equipo durante juegos y actividades deportivas.', 'convivir', 4, 'no'),
+(29, 8, 'Expresa sus emociones a través del uso del color y la forma.', 'ser', 1, 'no'),
+(30, 8, 'Utiliza diferentes materiales para crear composiciones artísticas.', 'hacer', 2, 'no'),
+(31, 8, 'Reconoce elementos básicos del lenguaje visual.', 'conocer', 3, 'no'),
+(32, 8, 'Comparte sus producciones artísticas con sus compañeros.', 'convivir', 4, 'no'),
+(33, 9, 'Muestra sensibilidad al escuchar diferentes tipos de música.', 'ser', 1, 'no'),
+(34, 9, 'Reproduce ritmos sencillos con percusión corporal o instrumentos.', 'hacer', 2, 'no'),
+(35, 9, 'Identifica elementos básicos de la música (ritmo, melodía).', 'conocer', 3, 'no'),
+(36, 9, 'Participa en actividades musicales grupales.', 'convivir', 4, 'no'),
+(37, 10, 'Se expresa con confianza a través del movimiento corporal.', 'ser', 1, 'no'),
+(38, 10, 'Realiza movimientos corporales coordinados siguiendo ritmos.', 'hacer', 2, 'no'),
+(39, 10, 'Reconoce las posibilidades expresivas de su cuerpo.', 'conocer', 3, 'no'),
+(40, 10, 'Colabora en la creación de coreografías grupales.', 'convivir', 4, 'no'),
+(41, 11, 'Se desinhibe al representar personajes y situaciones.', 'ser', 1, 'no'),
+(42, 11, 'Improvisa escenas cortas a partir de consignas dadas.', 'hacer', 2, 'no'),
+(43, 11, 'Reconoce elementos básicos de una obra teatral.', 'conocer', 3, 'no'),
+(44, 11, 'Trabaja en equipo para la preparación de una dramatización.', 'convivir', 4, 'no'),
+(45, 12, 'Muestra responsabilidad en el uso de equipos tecnológicos.', 'ser', 1, 'no'),
+(46, 12, 'Utiliza programas básicos para crear documentos digitales.', 'hacer', 2, 'no'),
+(47, 12, 'Identifica las partes principales de una computadora.', 'conocer', 3, 'no'),
+(48, 12, 'Comparte información digital de manera respetuosa.', 'convivir', 4, 'no'),
+(49, 13, 'Valora la diversidad cultural de su país.', 'ser', 1, 'no'),
+(50, 13, 'Elabora líneas de tiempo sencillas con hechos históricos.', 'hacer', 2, 'no'),
+(51, 13, 'Describe características geográficas de su región.', 'conocer', 3, 'no'),
+(52, 13, 'Participa en actividades que promueven la identidad nacional.', 'convivir', 4, 'no');
 
 -- --------------------------------------------------------
 
@@ -717,7 +805,8 @@ CREATE TABLE `inscripciones` (
   `miembros_familia` int(2) NOT NULL,
   `tareas_comunitarias` enum('si','no') NOT NULL,
   `participar_comite` enum('si','no') NOT NULL,
-  `detalles_participacion` varchar(60) NOT NULL
+  `detalles_participacion` varchar(60) NOT NULL,
+  `tipo_inscripcion` enum('regular','nuevo_ingreso','traslado','educado_en_casa') NOT NULL DEFAULT 'regular'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -731,6 +820,14 @@ CREATE TABLE `lista_alergias` (
   `fk_alergia` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `lista_alergias`
+--
+
+INSERT INTO `lista_alergias` (`id_lista_alergia`, `fk_alergia`, `fk_estudiante`) VALUES
+(5, 1, 48),
+(6, 5, 48);
 
 -- --------------------------------------------------------
 
@@ -786,10 +883,11 @@ CREATE TABLE `parentesco` (
 --
 
 INSERT INTO `parentesco` (`id_parentesco`, `fk_representante`, `fk_estudiante`, `tipo_parentesco`) VALUES
-(7, 2, 24, 'madre'),
-(12, 2, 14, 'padre'),
-(14, 2, 35, 'padre'),
-(15, 1, 5, 'padre');
+(26, 10, 48, 'padre'),
+(27, 11, 48, 'madre'),
+(28, 10, 49, 'padre'),
+(29, 11, 49, 'madre'),
+(30, 12, 50, 'abuelo');
 
 -- --------------------------------------------------------
 
@@ -847,9 +945,9 @@ CREATE TABLE `personal` (
 
 INSERT INTO `personal` (`id_personal`, `fk_persona`, `fk_funcion`, `fecha_contratacion`, `nivel_academico`, `horas_trabajo`, `rif`, `etnia_religion`, `cantidad_hijas`, `cantidad_hijos_varones`, `estado`, `fk_cargo`, `cod_dependencia`) VALUES
 (1, 35, 8, '2025-11-11', 'dsadsadas', NULL, NULL, 'sdsadsa', 4, 2, 'activo', 2, ''),
-(2, 45, 6, '2025-10-30', 'sdasdasd', 35, 'J-12345678-9', 'sdqsadsad', 4, 5, 'activo', 3, 'ddas'),
-(5, 62, 25, '2025-08-21', 'sdasdasd', 0, 'J-43166123-7', '', 42, 12, 'activo', 6, '2255525252'),
-(6, 14, 4, '2025-04-06', 'adsdsadsa', 40, 'J-23166183-6', '', 3, 0, 'activo', 3, '66666666');
+(14, 89, 1, '2020-09-01', 'Licenciatura en Educación', 44, NULL, 'Católica', 2, 0, 'activo', 1, 'DOC-001'),
+(15, 90, 4, '2015-09-01', 'Maestría en Matemáticas', 40, NULL, 'Sin preferencia', 1, 1, 'activo', 2, 'DOC-002'),
+(16, 91, 5, '2018-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Cristiana', 0, 0, 'activo', 15, 'ESP-001');
 
 -- --------------------------------------------------------
 
@@ -881,68 +979,16 @@ CREATE TABLE `personas` (
 --
 
 INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `fecha_nacimiento`, `genero`, `cedula`, `nacionalidad`, `direccion`, `telefono_principal`, `telefono_secundario`, `email`, `tipo_persona`, `tipo_sangre`, `estado`) VALUES
-(1, 'José', NULL, 'Pérez', NULL, '1998-12-05', 'M', '31987654', 'Venezolano', 'Av. Libertador, Edif. A', '04161234567', NULL, 'jose.perez@email.com', NULL, 'No sabe', 'activo'),
-(2, 'asdsad', 'sadsa', 'dasd', 'dsasdsad', '2025-10-21', 'F', '2822725272', 'Venezolana', 'sdsadwsadsadsadsaa', '04115444444444444', '6546465465465', 'amiascanio26@gmail.com', NULL, 'No sabe', 'activo'),
-(3, 'persona 3', 'sdas', 'dasd', 'dsasdsad', '2025-10-10', 'F', '2822722132', 'Venezolana', 'ew4r324r12ras', '04115444444444444', '085885875488585', 'sdasd@adas.com', NULL, 'No sabe', 'activo'),
-(4, 'Carlos', 'José', 'Gómez', 'Díaz', '2003-05-25', 'M', '45678901-3', 'Peruana', 'Res. Los Pinos, Apt 1A', '04164567890', '02716543210', 'carlos.gomez@email.com', 'estudiante', 'AB-', 'activo'),
-(5, 'Andrea', 'Carolina', 'Fernández', 'Ruiz', '2005-01-10', 'F', '56789012-4', 'Venezolana', 'Sector La Luna, Lote 6', '04245678901', '02815432109', 'andrea.fernandez@email.com', 'estudiante', 'O+', 'activo'),
-(6, 'Diego', 'Andrés', 'Hernández', 'Sánchez', '2004-07-03', 'M', '67890123-5', 'Ecuatoriana', 'Calle del Río, Edif. B', '04126789012', '02914321098', 'diego.hernandez@email.com', 'estudiante', 'A-', 'activo'),
-(7, 'Valentina', 'Isabel', 'Pérez', 'Torres', '2006-02-18', 'F', '78901234-6', 'Venezolana', 'Av. Los Samanes, PH', '04147890123', '02123210987', 'valentina.perez@email.com', 'estudiante', 'AB+', 'activo'),
-(8, 'Gabriel', 'Antonio', 'Sánchez', 'Vargas', '2003-10-29', 'M', '89012345-7', 'Chilena', 'Carrera 10, Casa 12', '04268901234', '02412109876', 'gabriel.sanchez@email.com', 'estudiante', 'B-', 'activo'),
-(9, 'Emilia', 'Victoria', 'Ramírez', 'Castro', '2005-04-05', 'F', '90123456-8', 'Venezolana', 'Conj. Res. Las Flores', '04169012345', '02511098765', 'emilia.ramirez@email.com', 'estudiante', 'O+', 'activo'),
-(10, 'Javier', 'Eduardo', 'Castro', 'Méndez', '2004-09-12', 'M', '01234567-9', 'Venezolana', 'Barrio Obrero, Calle P', '04240123456', '02719876543', 'javier.castro@email.com', 'estudiante', 'A+', 'activo'),
-(11, 'Paula', 'Camila', 'Morales', 'Rojas', '2006-06-30', 'F', '11223344-0', 'Argentina', 'Av. 2, Edif. Z, Piso 3', '04121122334', '02818765432', 'paula.morales@email.com', 'estudiante', 'A-', 'activo'),
-(12, 'Ricardo', 'Jesús', 'Vargas', 'Leal', '2003-12-08', 'M', '22334455-1', 'Venezolana', 'Centro, Calle del Comercio', '04142233445', '02917654321', 'ricardo.vargas@email.com', 'estudiante', 'O-', 'activo'),
-(13, 'Luciana', 'Paz', 'Herrera', 'Gil', '2005-02-28', 'F', '33445566-2', 'Venezolana', 'Urbanización Vista Alegre', '04263344556', '02126543210', 'luciana.herrera@email.com', 'estudiante', 'B+', 'activo'),
-(14, 'Adrián', 'Sebastián', 'Silva', 'Guzmán', '2004-08-07', 'M', '44556677-3', 'Uruguaya', 'Transversal 7, Casa A', '04164455667', '02415432109', 'adrian.silva@email.com', 'representante', 'AB+', 'activo'),
-(15, 'Gabriela', 'Fernanda', 'Quintero', 'Ríos', '2006-01-19', 'F', '55667788-4', 'Venezolana', 'Calle Ciega, Manzana 3', '04245566778', '02514321098', 'gabriela.quintero@email.com', 'estudiante', 'O+', 'activo'),
-(16, 'Mateo', 'Miguel', 'Arias', 'Zambrano', '2003-09-02', 'M', '66778899-5', 'Venezolana', 'Sector 9, Av. Bolivar', '04126677889', '02713210987', 'mateo.arias@email.com', 'estudiante', 'A+', 'activo'),
-(17, 'Elena', 'Victoria', 'Bravo', 'Mendoza', '2005-03-14', 'F', '77889900-6', 'Española', 'Edif. Central, Piso 7', '04147788990', '02812109876', 'elena.bravo@email.com', 'estudiante', 'A-', 'activo'),
-(18, 'Felipe', 'Alejandro', 'Fuentes', 'Reyes', '2004-10-22', 'M', '88990011-7', 'Venezolana', 'Urbanización Los Mangos', '04268899001', '02911098765', 'felipe.fuentes@email.com', 'estudiante', 'B-', 'activo'),
-(19, 'Camila', 'Antonia', 'Guerrero', 'Luna', '2006-04-16', 'F', '99001122-8', 'Mexicana', 'Calle 3, Casa M', '04169900112', '02129876540', 'camila.guerrero@email.com', 'estudiante', 'O-', 'activo'),
-(20, 'Nicolás', 'Daniel', 'Ibarra', 'Mora', '2003-06-01', 'M', '00112233-9', 'Venezolana', 'Av. Norte, Res. 5', '04240011223', '02418765400', 'nicolas.ibarra@email.com', 'estudiante', 'AB-', 'activo'),
-(21, 'Laura', 'Sofía', 'Jiménez', 'Nava', '2005-09-29', 'F', '10203040-0', 'Colombiana', 'Los Girasoles, Apt 2C', '04121020304', '02517654301', 'laura.jimenez@email.com', 'estudiante', 'O+', 'activo'),
-(22, 'Sebastián', 'Enrique', 'Kardona', 'Ortiz', '2004-01-11', 'M', '20304050-1', 'Venezolana', 'Callejón Perdido, Casa 8', '04142030405', '02716543202', 'sebastian.kardona@email.com', 'estudiante', 'A+', 'activo'),
-(23, 'Mariana', 'José', 'Linares', 'Parra', '2006-07-27', 'F', '30405060-2', 'Peruana', 'Vía Pública, Local 1', '04263040506', '02815432103', 'mariana.linares@email.com', 'estudiante', 'B+', 'activo'),
-(24, 'Alejandro', 'David', 'Méndez', 'Quijada', '2003-04-09', 'M', '40506070-3', 'Venezolana', 'El Bosque, Manzana K', '04164050607', '02914321094', 'alejandro.mendez@email.com', 'estudiante', 'O-', 'activo'),
-(25, 'Daniela', 'Elizabeth', 'Nieves', 'Rangel', '2005-11-05', 'F', '50607080-4', 'Ecuatoriana', 'Av. 4, Edif. Blanco', '04245060708', '02123210985', 'daniela.nieves@email.com', 'estudiante', 'AB+', 'activo'),
-(26, 'Joaquín', 'Ramón', 'Ochoa', 'Salas', '2004-02-17', 'M', '60708090-5', 'Venezolana', 'Carrera 3, C.C. Mall', '04126070809', '02412109876', 'joaquin.ochoa@email.com', 'estudiante', 'A-', 'activo'),
-(27, 'Valeria', 'Guadalupe', 'Padilla', 'Tovar', '2006-09-03', 'F', '70809000-6', 'Chilena', 'Zona Industrial, Galpón 9', '04147080900', '02511098767', 'valeria.padilla@email.com', 'estudiante', 'O+', 'activo'),
-(28, 'Miguel', 'Ángel', 'Quintero', 'Urbina', '2003-07-13', 'M', '80900010-7', 'Venezolana', 'Prolongación 10, Casa 1', '04268090001', '02719876548', 'miguel.quintero@email.com', 'estudiante', 'B-', 'activo'),
-(29, 'Natalia', 'Pilar', 'Reyes', 'Valdez', '2005-12-24', 'F', '90001020-8', 'Argentina', 'El Paraíso, Quinta Sol', '04169000102', '02818765439', 'natalia.reyes@email.com', 'estudiante', 'AB-', 'activo'),
-(30, 'Pedro', 'Pablo', 'Soto', 'Weber', '2004-05-18', 'M', '00010203-9', 'Venezolana', 'Avenida Intercomunal, Km 5', '04240001020', '02917654320', 'pedro.soto@email.com', 'estudiante', 'A+', 'activo'),
-(31, 'Verónica', 'Teresa', 'Torres', 'Yépez', '2006-03-06', 'F', '10010203-0', 'Uruguaya', 'Calle 1, Res. Los Álamos', '04121001020', '02126543211', 'veronica.torres@email.com', 'estudiante', 'O+', 'activo'),
-(32, 'Manuel', 'Arturo', 'Urbina', 'Zárate', '2003-11-21', 'M', '20020304-1', 'Venezolana', 'Altos de Miranda, Torre 3', '04142002030', '02415432102', 'manuel.urbina@email.com', 'estudiante', 'B+', 'activo'),
-(33, 'Elisa', 'Beatriz', 'Vargas', 'Alonso', '2005-01-08', 'F', '30030405-2', 'Venezolana', 'Sector La Esperanza, Casa G', '04263003040', '02514321093', 'elisa.vargas@email.com', 'estudiante', 'A-', 'activo'),
-(34, 'Francisco', 'Javier', 'Weber', 'Brito', '2004-06-26', 'M', '40040506-3', 'Española', 'Zona Centro, Av. Libertador', '04164004050', '02713210984', 'francisco.weber@email.com', 'estudiante', 'AB+', 'activo'),
-(35, 'Adriana', 'Lucía', 'Yépez', 'Chacón', '2006-10-17', 'F', '50050607-4', 'Venezolana', 'Carrera 5, Edif. Amarillo', '04245005060', '02812109875', 'adriana.yepez@email.com', 'estudiante', 'O-', 'activo'),
-(36, 'Héctor', 'Raúl', 'Zárate', 'Delgado', '2003-08-04', 'M', '60060708-5', 'Mexicana', 'Calle 12, Nro. 34', '04126006070', '02911098766', 'hector.zarate@email.com', 'estudiante', 'A+', 'activo'),
-(37, 'Isabella', 'Alejandra', 'Alfonso', 'Escobar', '2005-05-13', 'F', '70070809-6', 'Venezolana', 'Urb. Jardín, Calle J', '04147007080', '02129876547', 'isabella.alfonso@email.com', 'estudiante', 'B-', 'activo'),
-(38, 'Jorge', 'Luis', 'Brito', 'Flores', '2004-01-29', 'M', '80080910-7', 'Colombiana', 'Los Laureles, Casa 15', '04268008091', '02418765438', 'jorge.brito@email.com', 'estudiante', 'O+', 'activo'),
-(39, 'Karelis', 'Yoselyn', 'Chacón', 'García', '2006-12-09', 'F', '90091020-8', 'Venezolana', 'Av. Sur, Res. Delta', '04169009102', '02517654329', 'karelis.chacon@email.com', 'estudiante', 'AB-', 'activo'),
-(40, 'Leandro', 'Fabián', 'Delgado', 'Hurtado', '2003-03-27', 'M', '00102030-9', 'Peruana', 'Calle del Sol, Edif. Alto', '04240010203', '02716543210', 'leandro.delgado@email.com', 'estudiante', 'A-', 'activo'),
-(41, 'Roberto', 'David', 'Méndez', 'Rivas', '1975-02-01', 'M', '11122233-0', 'Venezolana', 'Urb. Familiar, Casa A-1', '04141112223', '02121111111', 'roberto.mendez.rep@email.com', 'representante', 'O+', 'activo'),
-(42, 'Marta', 'Elena', 'Silva', 'Núñez', '1980-11-23', 'F', '22233344-1', 'Venezolana', 'Av. 2, Edif. Z, Piso 3', '04162223334', '02412222222', 'marta.silva.rep@email.com', 'representante', 'B+', 'activo'),
-(43, 'José', 'Gregorio', 'Quintero', 'López', '1968-04-10', 'M', '33344455-2', 'Colombiana', 'Zona Centro, Av. Libertador', '04263334445', '02513333333', 'jose.quintero.rep@email.com', 'representante', 'A+', 'activo'),
-(44, 'Carmen', 'Rosa', 'Vargas', 'Pérez', '1979-07-07', 'F', '44455566-3', 'Venezolana', 'Res. Los Pinos, Apt 1A', '04124445556', '02714444444', 'carmen.vargas.rep@email.com', 'representante', 'O-', 'activo'),
-(45, 'Alfredotres', 'Daniel', 'Gómez', 'Blanco', '1972-09-15', 'M', '55566677', 'Peruana', 'Calle 3, Casa M', '04245556667', '02815555555', 'alfredo.gomez.rep@email.com', 'representante', 'AB+', 'activo'),
-(46, 'Teresa', 'Luisa', 'Reyes', 'Torres', '1985-03-02', 'F', '66677788-5', 'Venezolana', 'Los Girasoles, Apt 2C', '04146667778', '02916666666', 'teresa.reyes.rep@email.com', 'representante', 'A-', 'activo'),
-(47, 'Humberto', 'Andrés', 'Castro', 'Sosa', '1965-12-30', 'M', '77788899-6', 'Chileno', 'Urbanización Vista Alegre', '04267778889', '02127777777', 'humberto.castro.rep@email.com', 'representante', 'B-', 'activo'),
-(48, 'Diana', 'Carolina', 'Flores', 'Zambrano', '1970-06-21', 'F', '88899900-7', 'Venezolana', 'El Paraíso, Quinta Sol', '04168889990', '02418888888', 'diana.flores.rep@email.com', 'representante', 'O+', 'activo'),
-(49, 'Juan', 'Ramón', 'Guerrero', 'Mora', '1978-01-05', 'M', '99900011-8', 'Español', 'Av. Norte, Res. 5', '04249990001', '02519999999', 'juan.guerrero.rep@email.com', 'representante', 'AB-', 'activo'),
-(50, 'Patricia', 'Isabel', 'Leal', 'Arias', '1982-10-12', 'F', '00011122-9', 'Venezolana', 'Altos de Miranda, Torre 3', '04120001112', '02710000000', 'patricia.leal.rep@email.com', 'representante', 'A+', 'activo'),
-(51, 'Jesús', 'Manuel', 'Ortega', 'Ramos', '1990-05-10', 'M', '10111213-0', 'Venezolana', 'Edif. Central, Piso 7', '04141011121', '02125439876', 'jesus.ortega.adm@instituto.edu.ve', 'personal', 'O-', 'activo'),
-(52, 'Maribel', 'Corina', 'Páez', 'Soto', '1988-08-28', 'F', '14151617-1', 'Venezolana', 'Sector 9, Av. Bolivar', '04161415161', '02414328765', 'maribel.paez.prof@instituto.edu.ve', 'personal', 'B+', 'activo'),
-(53, 'Samuel', 'Elías', 'Rivas', 'Toro', '1977-01-16', 'M', '18192021-2', 'Colombiana', 'Vía Pública, Local 1', '04261819202', '02513217654', 'samuel.rivas.dir@instituto.edu.ve', 'personal', 'A-', 'activo'),
-(54, 'Yenny', 'Victoria', 'Vera', 'Yánez', '1995-11-04', 'F', '22232425-3', 'Peruana', 'Calle 1, Res. Los Álamos', '04122223242', '02712106543', 'yenny.vera.sec@instituto.edu.ve', 'personal', 'AB+', 'activo'),
-(55, 'Marco', 'Tulio', 'Díaz', 'Rojas', '1983-06-20', 'M', '26272829-4', 'Venezolana', 'Zona Industrial, Galpón 9', '04242627282', '02811095432', 'marco.diaz.adm@instituto.edu.ve', 'personal', 'O+', 'activo'),
-(56, 'Isabel', 'Cristina', 'Navas', 'Salazar', '1992-04-01', 'F', '30313233-5', 'Ecuatoriana', 'El Bosque, Manzana K', '04143031323', '02919874321', 'isabel.navas.prof@instituto.edu.ve', 'personal', 'A+', 'activo'),
-(57, 'Eugenio', 'Simón', 'Parra', 'Molina', '1963-09-07', 'M', '34353637-6', 'Venezolana', 'Prolongación 10, Casa 1', '04263435363', '02128763210', 'eugenio.parra.dir@instituto.edu.ve', 'personal', 'B-', 'activo'),
-(58, 'Rosa', 'María', 'Quintero', 'Jiménez', '1998-02-14', 'F', '38394041-7', 'Chilena', 'Avenida Intercomunal, Km 5', '04163839404', '02417652109', 'rosa.quintero.sec@instituto.edu.ve', 'personal', 'O+', 'activo'),
-(59, 'Tony', 'Antonio', 'Rangel', 'Herrera', '1981-10-25', 'M', '42434445-8', 'Venezolana', 'Los Laureles, Casa 15', '04244243444', '02516541098', 'tony.rangel.adm@instituto.edu.ve', 'personal', 'AB-', 'activo'),
-(60, 'Zuleima', 'Yelitza', 'Suárez', 'Flores', '1994-07-23', 'F', '46474849-9', 'Venezolana', 'Urb. Jardín, Calle J', '04124647484', '02715430987', 'zuleima.suarez.prof@instituto.edu.ve', 'personal', 'A-', 'activo'),
-(61, 'jose', 'segundo', 'camejo', 'camejo', '2025-11-12', 'M', '2555515', 'Venezolana', 'dsadsadsadsadsadsadsadsadsadsdsadadsada', '0141545124584', NULL, 'asdsadsadhha@gmail.com', 'personal', 'AB-', 'incompleto'),
-(62, 'persona creada para probar', 'sadsa', 'creada para probar', '', '2003-06-14', 'M', 'V-822725272', 'Venezolana', 'Calle 3, Casa M', '04115444444', '', 'sdsadsadsdsa@gmail.com', 'personal', 'A-', 'activo');
+(35, 'Adriana', 'Lucía', 'Yépez', 'Chacón', '2006-10-17', 'F', '50050607', 'Venezolana', 'Carrera 5, Edif. Amarillo', '04245005060', '02812109875', 'adriana.yepez@email.com', 'estudiante', 'O-', 'activo'),
+(86, 'Juan', 'Carlos', 'Pérez', 'González', '2010-05-15', 'M', '30123456', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141234567', NULL, 'juan.perez.est@email.com', 'estudiante', 'O+', 'activo'),
+(87, 'María', 'Gabriela', 'Rodríguez', 'López', '2011-08-22', 'F', '31234567', 'Venezolana', 'Calle 12, El Valle, Caracas', '04147654321', NULL, 'maria.rodriguez.est@email.com', 'estudiante', 'A+', 'activo'),
+(88, 'Carlos', 'Andrés', 'García', 'Martínez', '2012-03-10', 'M', '32345678', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04241122334', NULL, 'carlos.garcia.est@email.com', 'estudiante', 'B+', 'activo'),
+(89, 'Ana', 'María', 'López', 'Pérez', '1985-08-20', 'F', '43456789', 'Venezolana', 'Urb. El Paraíso, Calle 5, Casa 10, Caracas', '04247654321', NULL, 'ana.lopez.doc@email.com', 'personal', 'A+', 'activo'),
+(90, 'Luis', 'Alberto', 'González', 'Ramírez', '1978-11-15', 'M', '44567890', 'Venezolana', 'Av. Bolívar, Edif. Las Torres, Apto 5B, Caracas', '04149876543', NULL, 'luis.gonzalez.doc@email.com', 'personal', 'O+', 'activo'),
+(91, 'María', 'Fernanda', 'Hernández', 'Castro', '1990-04-25', 'F', '45678901', 'Venezolana', 'Calle Los Manguitos, Quinta Luz, Caracas', '04245678901', NULL, 'maria.hernandez.doc@email.com', 'personal', 'AB+', 'activo'),
+(92, 'Pedro', 'José', 'Pérez', 'González', '1975-03-10', 'M', '56789012', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141112233', NULL, 'pedro.perez.rep@email.com', 'representante', 'B+', 'activo'),
+(93, 'Laura', 'Beatriz', 'Rodríguez', 'López', '1978-07-18', 'F', '57890123', 'Venezolana', 'Calle 12, El Valle, Caracas', '04244455566', NULL, 'laura.rodriguez.rep@email.com', 'representante', 'A-', 'activo'),
+(94, 'José', 'Gregorio', 'García', 'Pérez', '1950-12-05', 'M', '58901234', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04167788899', NULL, 'jose.garcia.rep@email.com', 'representante', 'O+', 'activo');
 
 -- --------------------------------------------------------
 
@@ -1018,8 +1064,9 @@ CREATE TABLE `representantes` (
 --
 
 INSERT INTO `representantes` (`id_representante`, `fk_persona`, `oficio`, `nivel_educativo`, `profesion`, `lugar_trabajo`) VALUES
-(1, 14, 'piedrero', 'TSU', 'lava perros', 'en maracay'),
-(2, 51, 'trabaja pal psuv', '', 'lamebotas', 'en la alcaldía');
+(10, 92, 'Ingeniero', 'Licenciatura', 'Ingeniero de Sistemas', 'Empresa Tecnológica XYZ'),
+(11, 93, 'Médico', 'Doctorado', 'Pediatra', 'Hospital Central'),
+(12, 94, 'Pensionado', 'Bachiller', 'Contador (Jubilado)', 'Casa');
 
 -- --------------------------------------------------------
 
@@ -1053,7 +1100,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(36, 1, '65206a272016c214f2ed88e6535a29a52e4283fbc730ab06a68c8808f72fa134', '2025-12-04', '2025-12-05');
+(37, 1, '1cc82aa84d35881e01ade80f395eff422684bb52a484cb83edb0f5c20b0b12f1', '2025-12-10', '2025-12-11');
 
 -- --------------------------------------------------------
 
@@ -1073,7 +1120,86 @@ CREATE TABLE `temas` (
 --
 
 INSERT INTO `temas` (`id_tema`, `fk_contenido`, `nombre_tema`, `estado`) VALUES
-(58, 706, 'sdasd', 'activo');
+(59, 707, 'Identificación de ideas principales y secundarias', 'activo'),
+(60, 707, 'Inferencia y deducción de información implícita', 'activo'),
+(61, 707, 'Análisis de estructura textual', 'activo'),
+(62, 707, 'Comprensión de vocabulario en contexto', 'activo'),
+(63, 708, 'Redacción de párrafos coherentes', 'activo'),
+(64, 708, 'Uso adecuado de signos de puntuación', 'activo'),
+(65, 708, 'Cohesión y coherencia textual', 'activo'),
+(66, 708, 'Diferentes tipos de textos (narrativo, descriptivo, argumentativo)', 'activo'),
+(67, 709, 'Saludos y presentaciones', 'activo'),
+(68, 709, 'Números y colores', 'activo'),
+(69, 709, 'Familia y partes del cuerpo', 'activo'),
+(70, 709, 'Animales y objetos comunes', 'activo'),
+(71, 710, 'Verbo To Be (ser/estar)', 'activo'),
+(72, 710, 'Presente simple', 'activo'),
+(73, 710, 'Pronombres personales y posesivos', 'activo'),
+(74, 710, 'Artículos definidos e indefinidos', 'activo'),
+(75, 711, 'Suma y resta', 'activo'),
+(76, 711, 'Multiplicación y división', 'activo'),
+(77, 711, 'Propiedades de las operaciones', 'activo'),
+(78, 711, 'Resolución de problemas aritméticos', 'activo'),
+(79, 712, 'Figuras geométricas planas', 'activo'),
+(80, 712, 'Cuerpos geométricos', 'activo'),
+(81, 712, 'Perímetro y área', 'activo'),
+(82, 712, 'Sistema de coordenadas básico', 'activo'),
+(83, 713, 'Características de los seres vivos', 'activo'),
+(84, 713, 'Clasificación de animales y plantas', 'activo'),
+(85, 713, 'Ecosistemas y hábitats', 'activo'),
+(86, 713, 'Cadena alimenticia', 'activo'),
+(87, 714, 'Sistemas del cuerpo humano', 'activo'),
+(88, 714, 'Órganos y sus funciones', 'activo'),
+(89, 714, 'Cuidado de la salud', 'activo'),
+(90, 714, 'Nutrición y alimentación saludable', 'activo'),
+(91, 715, 'Fundación de la localidad', 'activo'),
+(92, 715, 'Personajes históricos locales', 'activo'),
+(93, 715, 'Geografía física del entorno', 'activo'),
+(94, 715, 'Tradiciones y costumbres', 'activo'),
+(95, 716, 'Respeto y tolerancia', 'activo'),
+(96, 716, 'Responsabilidad y honestidad', 'activo'),
+(97, 716, 'Participación ciudadana', 'activo'),
+(98, 716, 'Derechos y deberes', 'activo'),
+(99, 717, 'Coordinación y equilibrio', 'activo'),
+(100, 717, 'Fuerza y resistencia', 'activo'),
+(101, 717, 'Flexibilidad y agilidad', 'activo'),
+(102, 717, 'Juegos predeportivos', 'activo'),
+(103, 718, 'Técnicas de dibujo básico', 'activo'),
+(104, 718, 'Uso del color y la forma', 'activo'),
+(105, 718, 'Modelado con diferentes materiales', 'activo'),
+(106, 718, 'Composición y diseño', 'activo'),
+(107, 719, 'Ritmo y percusión corporal', 'activo'),
+(108, 719, 'Melodía y entonación', 'activo'),
+(109, 719, 'Instrumentos musicales básicos', 'activo'),
+(110, 719, 'Canto y expresión vocal', 'activo'),
+(111, 720, 'Movimiento y espacio', 'activo'),
+(112, 720, 'Coordinación rítmica', 'activo'),
+(113, 720, 'Juegos de expresión corporal', 'activo'),
+(114, 720, 'Coreografías básicas', 'activo'),
+(115, 721, 'Juegos dramáticos', 'activo'),
+(116, 721, 'Improvisación teatral', 'activo'),
+(117, 721, 'Creación de personajes', 'activo'),
+(118, 721, 'Representación de situaciones', 'activo'),
+(119, 722, 'Partes de la computadora', 'activo'),
+(120, 722, 'Uso básico del teclado y mouse', 'activo'),
+(121, 722, 'Programas educativos', 'activo'),
+(122, 722, 'Navegación segura en internet', 'activo'),
+(123, 723, 'Procesador de texto básico', 'activo'),
+(124, 723, 'Presentaciones digitales simples', 'activo'),
+(125, 723, 'Hojas de cálculo elementales', 'activo'),
+(126, 723, 'Creación de gráficos sencillos', 'activo'),
+(127, 722, 'Vocales y consonantes básicas', 'activo'),
+(128, 722, 'Formación de sílabas simples', 'activo'),
+(129, 723, 'Conteo y agrupación de objetos', 'activo'),
+(130, 723, 'Relación número-cantidad', 'activo'),
+(131, 724, 'Animales y plantas del entorno', 'activo'),
+(132, 724, 'Estaciones del año y clima', 'activo'),
+(133, 725, 'Géneros literarios', 'activo'),
+(134, 725, 'Figuras literarias básicas', 'activo'),
+(135, 726, 'Expresiones algebraicas simples', 'activo'),
+(136, 726, 'Ecuaciones de primer grado', 'activo'),
+(137, 727, 'Planetas del sistema solar', 'activo'),
+(138, 727, 'Movimientos de la Tierra', 'activo');
 
 -- --------------------------------------------------------
 
@@ -1142,6 +1268,14 @@ CREATE TABLE `vacunas_estudiante` (
   `fecha_aplicacion` date DEFAULT NULL,
   `refuerzos` int(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `vacunas_estudiante`
+--
+
+INSERT INTO `vacunas_estudiante` (`id_vacuna_estudiante`, `fk_vacuna`, `fk_estudiante`, `fecha_aplicacion`, `refuerzos`) VALUES
+(5, 1, 49, '2011-09-15', 1),
+(6, 3, 49, '2011-10-20', 3);
 
 --
 -- Índices para tablas volcadas
@@ -1543,7 +1677,7 @@ ALTER TABLE `cargos`
 -- AUTO_INCREMENT de la tabla `competencias`
 --
 ALTER TABLE `competencias`
-  MODIFY `id_competencia` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_competencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `componentes_aprendizaje`
@@ -1555,19 +1689,19 @@ ALTER TABLE `componentes_aprendizaje`
 -- AUTO_INCREMENT de la tabla `condiciones_salud`
 --
 ALTER TABLE `condiciones_salud`
-  MODIFY `id_condicion` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_condicion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `consultas_medicas`
 --
 ALTER TABLE `consultas_medicas`
-  MODIFY `id_consulta` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_consulta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `contenidos`
 --
 ALTER TABLE `contenidos`
-  MODIFY `id_contenido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=707;
+  MODIFY `id_contenido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=731;
 
 --
 -- AUTO_INCREMENT de la tabla `contenido_indicador`
@@ -1579,13 +1713,13 @@ ALTER TABLE `contenido_indicador`
 -- AUTO_INCREMENT de la tabla `documentos_academicos`
 --
 ALTER TABLE `documentos_academicos`
-  MODIFY `id_documento` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_documento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `evaluar`
@@ -1615,7 +1749,7 @@ ALTER TABLE `grupos_estudiantiles`
 -- AUTO_INCREMENT de la tabla `habilidades`
 --
 ALTER TABLE `habilidades`
-  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios`
@@ -1633,7 +1767,7 @@ ALTER TABLE `imparte`
 -- AUTO_INCREMENT de la tabla `indicadores`
 --
 ALTER TABLE `indicadores`
-  MODIFY `id_indicador` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_indicador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT de la tabla `inscripciones`
@@ -1645,7 +1779,7 @@ ALTER TABLE `inscripciones`
 -- AUTO_INCREMENT de la tabla `lista_alergias`
 --
 ALTER TABLE `lista_alergias`
-  MODIFY `id_lista_alergia` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_lista_alergia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `literal`
@@ -1663,19 +1797,19 @@ ALTER TABLE `momentos`
 -- AUTO_INCREMENT de la tabla `parentesco`
 --
 ALTER TABLE `parentesco`
-  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -1705,7 +1839,7 @@ ALTER TABLE `preguntas`
 -- AUTO_INCREMENT de la tabla `representantes`
 --
 ALTER TABLE `representantes`
-  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `respaldos`
@@ -1717,19 +1851,19 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
 --
 ALTER TABLE `temas`
-  MODIFY `id_tema` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id_tema` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT de la tabla `vacuna`
@@ -1741,7 +1875,7 @@ ALTER TABLE `vacuna`
 -- AUTO_INCREMENT de la tabla `vacunas_estudiante`
 --
 ALTER TABLE `vacunas_estudiante`
-  MODIFY `id_vacuna_estudiante` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_vacuna_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Restricciones para tablas volcadas
@@ -1824,7 +1958,7 @@ ALTER TABLE `documentos_academicos`
 -- Filtros para la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  ADD CONSTRAINT `fk_estudiantes_persona` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `evaluar`
@@ -1935,7 +2069,7 @@ ALTER TABLE `preguntas`
 -- Filtros para la tabla `representantes`
 --
 ALTER TABLE `representantes`
-  ADD CONSTRAINT `fk_representantes_persona` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `representantes_ibfk_1` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `respaldos`

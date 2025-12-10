@@ -176,6 +176,10 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Aula/RutasAula.php';
   registrarRutasAula($router);
 
+  // Incluye y registra las rutas de inscripciones
+  require_once __DIR__ . '/Inscripcion/RutasInscripcion.php';
+  registrarRutasInscripcion($router, $mapAuthenticated);
+
   // Incluye y registra las rutas de impartir
   require_once __DIR__ . '/Impartir/RutasImpartir.php';
   registrarRutasImpartir($router, $mapAuthenticated);

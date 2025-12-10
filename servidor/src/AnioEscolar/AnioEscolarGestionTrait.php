@@ -94,6 +94,13 @@ trait AnioEscolarGestionTrait
       return ['errores' => $momentosValidados['errores']];
     }
 
+    $estadoDestino = strtolower($validacion['datos']['estado'] ?? 'incompleto');
+    if (in_array($estadoDestino, ['activo', 'incompleto'], true)) {
+      if ($this->existeConEstado($conexion, ['activo', 'incompleto'], $idAnio)) {
+        return ['errores' => ['estado' => ['Ya existe un año escolar activo o incompleto.']]];
+      }
+    }
+
     if (!$this->momentosTablaDisponible($conexion)) {
       return ['errores' => ['momentos' => ['La tabla "momentos" no existe en la base de datos. Ejecute las migraciones pendientes antes de actualizar un año escolar.']]];
     }
@@ -171,12 +178,33 @@ trait AnioEscolarGestionTrait
 
     $resumenDocentes = null;
     if ($accionNormalizada === 'activar') {
+      if ($this->existeConEstado($conexion, ['activo', 'incompleto'], $idAnio)) {
+        return ['errores' => ['estado' => ['Ya existe un año escolar activo o incompleto. Debes desactivarlo antes de activar otro.']]];
+      }
+
+      $fechaInicio = $anio['fecha_inicio'] ?? null;
+      if ($this->existeAnioPosterior($conexion, $fechaInicio, $idAnio)) {
+        return ['errores' => ['estado' => ['No se puede activar este año escolar porque existe otro año registrado con fechas posteriores.']]];
+      }
+
       $estadoActual = strtolower($anio['estado'] ?? '');
       if ($estadoActual === 'inactivo') {
-        $fechaInicio = $anio['fecha_inicio'] ?? null;
         if ($this->existeAnioPosteriorConEstado($conexion, $fechaInicio, ['activo', 'incompleto'], $idAnio)) {
           return ['errores' => ['estado' => ['No se puede activar este año escolar mientras exista uno posterior con estado activo o incompleto.']]];
         }
+      }
+
+      if (!$this->momentosTablaDisponible($conexion)) {
+        return ['errores' => ['momentos' => ['No se puede activar el año escolar porque la tabla de momentos no está disponible. Ejecute las migraciones pendientes.']]];
+      }
+
+      $primerMomento = $this->obtenerPrimerMomentoConfigurado($conexion, $idAnio);
+      if ($primerMomento === null) {
+        return ['errores' => ['momentos' => ['Debes configurar al menos el primer momento escolar antes de activar el año.']]];
+      }
+
+      if (($primerMomento['estado'] ?? null) !== 'activo') {
+        return ['errores' => ['momentos' => ['El primer momento escolar debe estar en estado activo antes de activar el año.']]];
       }
 
       $resumenDocentes = $this->obtenerResumenAsignacionesDocentes($conexion, $idAnio);
@@ -201,6 +229,16 @@ trait AnioEscolarGestionTrait
         }
 
         return ['errores' => $errores];
+      }
+
+      $dependencias = $this->obtenerDependenciasInactivas($conexion, $idAnio);
+      if (!empty($dependencias)) {
+        return ['errores' => $dependencias];
+      }
+    } elseif ($accionNormalizada === 'desactivar') {
+      $bloqueos = $this->obtenerBloqueosDesactivacion($conexion, $idAnio);
+      if (!empty($bloqueos)) {
+        return ['errores' => $bloqueos];
       }
     }
 
@@ -408,6 +446,169 @@ trait AnioEscolarGestionTrait
   {
     $sql = 'UPDATE anios_escolares SET estado = "inactivo" WHERE id_anio_escolar <> ? AND estado = "activo"';
     $this->ejecutarAccion($conexion, $sql, [$idMantener]);
+  }
+
+  private function obtenerPrimerMomentoConfigurado(PDO $conexion, int $idAnio): ?array
+  {
+    $momentos = $this->consultarMomentosPorAnio($conexion, $idAnio);
+    if (empty($momentos)) {
+      return null;
+    }
+
+    foreach ($momentos as $momento) {
+      if ((int) ($momento['orden'] ?? 0) === 1) {
+        return $momento;
+      }
+    }
+
+    return null;
+  }
+
+  private function obtenerDependenciasInactivas(PDO $conexion, int $idAnio): array
+  {
+    $errores = [];
+
+    $aulas = $this->ejecutarConsulta(
+      $conexion,
+      "SELECT a.id_aula, a.estado, gs.grado, gs.seccion
+         FROM aula a
+    LEFT JOIN grado_seccion gs ON gs.id_grado_seccion = a.fk_grado_seccion
+        WHERE a.fk_anio_escolar = ?
+          AND a.estado IS NOT NULL
+          AND LOWER(a.estado) <> 'activo'",
+      [$idAnio]
+    );
+
+    if (!empty($aulas)) {
+      $errores['dependencias'][] = 'Existen aulas asociadas al año escolar que no están en estado activo.';
+      $errores['aulas_inactivas'] = array_map(function (array $fila): array {
+        $grado = $fila['grado'] ?? null;
+        $seccion = $fila['seccion'] ?? null;
+        $descripcion = trim(sprintf(
+          'Gr %s - Secc %s',
+          $grado !== null ? $grado : 'N/D',
+          $seccion !== null ? $seccion : 'N/D'
+        ));
+
+        return [
+          'id_aula' => isset($fila['id_aula']) ? (int) $fila['id_aula'] : 0,
+          'grado' => $grado,
+          'seccion' => $seccion,
+          'estado' => $fila['estado'] ?? null,
+          'descripcion' => $descripcion,
+        ];
+      }, $aulas);
+    }
+
+    $personal = $this->ejecutarConsulta(
+      $conexion,
+      "SELECT i.tipo_docente, per.id_personal, per.estado AS estado_personal,
+              p.estado AS estado_persona, p.primer_nombre, p.segundo_nombre,
+              p.primer_apellido, p.segundo_apellido
+         FROM imparte i
+         INNER JOIN aula a ON a.id_aula = i.fk_aula
+         INNER JOIN personal per ON per.id_personal = i.fk_personal
+         INNER JOIN personas p ON p.id_persona = per.fk_persona
+        WHERE a.fk_anio_escolar = ?
+          AND (LOWER(per.estado) <> 'activo' OR LOWER(p.estado) <> 'activo')",
+      [$idAnio]
+    );
+
+    if (!empty($personal)) {
+      $agrupado = [];
+      foreach ($personal as $fila) {
+        $idPersonal = isset($fila['id_personal']) ? (int) $fila['id_personal'] : 0;
+        if (!isset($agrupado[$idPersonal])) {
+          $nombre = trim(implode(' ', array_filter([
+            $fila['primer_nombre'] ?? '',
+            $fila['segundo_nombre'] ?? '',
+            $fila['primer_apellido'] ?? '',
+            $fila['segundo_apellido'] ?? '',
+          ])));
+
+          $agrupado[$idPersonal] = [
+            'id_personal' => $idPersonal,
+            'nombre' => $nombre !== '' ? $nombre : sprintf('Personal #%d', $idPersonal),
+            'estado_personal' => $fila['estado_personal'] ?? null,
+            'estado_persona' => $fila['estado_persona'] ?? null,
+            'roles' => [],
+          ];
+        }
+
+        $rol = $fila['tipo_docente'] ?? '';
+        if ($rol !== '' && !in_array($rol, $agrupado[$idPersonal]['roles'], true)) {
+          $agrupado[$idPersonal]['roles'][] = $rol;
+        }
+      }
+
+      $errores['dependencias'][] = 'Hay docentes o especialistas asociados que no están activos.';
+      $errores['personal_inactivo'] = array_values($agrupado);
+    }
+
+    $componentes = $this->ejecutarConsulta(
+      $conexion,
+      "SELECT DISTINCT c.id_componente, c.nombre_componente, c.estado_componente
+         FROM imparte i
+         INNER JOIN aula a ON a.id_aula = i.fk_aula
+         INNER JOIN componentes_aprendizaje c ON c.id_componente = i.fk_componente
+        WHERE a.fk_anio_escolar = ?
+          AND LOWER(c.estado_componente) <> 'activo'",
+      [$idAnio]
+    );
+
+    if (!empty($componentes)) {
+      $errores['dependencias'][] = 'Los componentes asociados a las clases deben encontrarse activos.';
+      $errores['componentes_inactivos'] = array_map(function (array $fila): array {
+        return [
+          'id_componente' => isset($fila['id_componente']) ? (int) $fila['id_componente'] : 0,
+          'nombre' => $fila['nombre_componente'] ?? sprintf('Componente #%d', (int) ($fila['id_componente'] ?? 0)),
+          'estado' => $fila['estado_componente'] ?? null,
+        ];
+      }, $componentes);
+    }
+
+    return $errores;
+  }
+
+  private function obtenerBloqueosDesactivacion(PDO $conexion, int $idAnio): array
+  {
+    $errores = [];
+    $relaciones = [];
+
+    $inscripciones = (int) $this->ejecutarValor(
+      $conexion,
+      "SELECT COUNT(*)
+         FROM inscripciones ins
+         INNER JOIN aula a ON a.id_aula = ins.fk_aula
+        WHERE a.fk_anio_escolar = ?
+          AND ins.estado_inscripcion IN ('activo', 'en_proceso')",
+      [$idAnio]
+    );
+
+    if ($inscripciones > 0) {
+      $relaciones[] = sprintf('Existen %d inscripciones activas o en proceso asociadas al año escolar.', $inscripciones);
+      $errores['inscripciones'] = $inscripciones;
+    }
+
+    $asignaciones = (int) $this->ejecutarValor(
+      $conexion,
+      "SELECT COUNT(DISTINCT i.fk_aula)
+         FROM imparte i
+         INNER JOIN aula a ON a.id_aula = i.fk_aula
+        WHERE a.fk_anio_escolar = ?",
+      [$idAnio]
+    );
+
+    if ($asignaciones > 0) {
+      $relaciones[] = 'Existen asignaciones de docentes o especialistas asociadas al año escolar.';
+      $errores['asignaciones_docentes'] = $asignaciones;
+    }
+
+    if (!empty($relaciones)) {
+      $errores['dependencias'] = $relaciones;
+    }
+
+    return $errores;
   }
 
   private function obtenerOrdenMomentoComoCadena(array $momento): string

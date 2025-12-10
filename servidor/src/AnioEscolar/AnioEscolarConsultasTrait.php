@@ -307,6 +307,21 @@ trait AnioEscolarConsultasTrait
     }
   }
 
+  protected function existeAnioPosterior(PDO $conexion, ?string $fechaInicioReferencia, int $ignorarId): bool
+  {
+    if ($fechaInicioReferencia === null || $fechaInicioReferencia === '') {
+      return false;
+    }
+
+    $sql = 'SELECT COUNT(*)
+              FROM anios_escolares
+             WHERE fecha_inicio > ?
+               AND id_anio_escolar <> ?';
+
+    $total = (int) $this->ejecutarValor($conexion, $sql, [$fechaInicioReferencia, $ignorarId]);
+    return $total > 0;
+  }
+
   protected function existeAnioPosteriorConEstado(PDO $conexion, ?string $fechaInicioReferencia, array $estados, int $ignorarId): bool
   {
     if ($fechaInicioReferencia === null || $fechaInicioReferencia === '') {

@@ -151,6 +151,113 @@ const construirHtmlMensajes = (entrada) => {
     .join("");
 };
 
+const construirHtmlDependencias = (errores = {}) => {
+  if (!errores || typeof errores !== "object") {
+    return "";
+  }
+
+  const bloques = [];
+  const base = construirHtmlMensajes(errores.dependencias);
+  if (base) {
+    bloques.push(base);
+  }
+
+  if (
+    Array.isArray(errores.aulas_inactivas) &&
+    errores.aulas_inactivas.length > 0
+  ) {
+    const items = errores.aulas_inactivas
+      .map((aula) => {
+        const etiqueta = aula?.descripcion
+          ? String(aula.descripcion)
+          : `Aula #${aula?.id_aula ?? ""}`;
+        const estado = aula?.estado
+          ? ` (estado: ${String(aula.estado).toUpperCase()})`
+          : "";
+        return `<li style="margin:2px 0;">${etiqueta}${estado}</li>`;
+      })
+      .join("");
+
+    bloques.push(
+      `<div style="margin-top:8px; text-align:left;">` +
+        `<p style="margin:0 0 4px; font-weight:600;">Aulas en estado inactivo:</p>` +
+        `<ul style="padding-left:18px; margin:0;">${items}</ul>` +
+        `</div>`
+    );
+  }
+
+  if (
+    Array.isArray(errores.personal_inactivo) &&
+    errores.personal_inactivo.length > 0
+  ) {
+    const items = errores.personal_inactivo
+      .map((persona) => {
+        const nombre = persona?.nombre
+          ? String(persona.nombre)
+          : `Personal #${persona?.id_personal ?? ""}`;
+        const estados = [persona?.estado_personal, persona?.estado_persona]
+          .filter(Boolean)
+          .map((texto) => String(texto).toUpperCase())
+          .join(" / ");
+        const roles =
+          Array.isArray(persona?.roles) && persona.roles.length > 0
+            ? ` · Roles: ${persona.roles.join(", ")}`
+            : "";
+        const estadoTexto = estados ? ` · Estado: ${estados}` : "";
+        return `<li style="margin:2px 0;">${nombre}${estadoTexto}${roles}</li>`;
+      })
+      .join("");
+
+    bloques.push(
+      `<div style="margin-top:8px; text-align:left;">` +
+        `<p style="margin:0 0 4px; font-weight:600;">Personal asociado inactivo:</p>` +
+        `<ul style="padding-left:18px; margin:0;">${items}</ul>` +
+        `</div>`
+    );
+  }
+
+  if (
+    Array.isArray(errores.componentes_inactivos) &&
+    errores.componentes_inactivos.length > 0
+  ) {
+    const items = errores.componentes_inactivos
+      .map((componente) => {
+        const nombre = componente?.nombre
+          ? String(componente.nombre)
+          : `Componente #${componente?.id_componente ?? ""}`;
+        const estado = componente?.estado
+          ? ` (estado: ${String(componente.estado).toUpperCase()})`
+          : "";
+        return `<li style="margin:2px 0;">${nombre}${estado}</li>`;
+      })
+      .join("");
+
+    bloques.push(
+      `<div style="margin-top:8px; text-align:left;">` +
+        `<p style="margin:0 0 4px; font-weight:600;">Componentes inactivos:</p>` +
+        `<ul style="padding-left:18px; margin:0;">${items}</ul>` +
+        `</div>`
+    );
+  }
+
+  if (typeof errores.inscripciones === "number" && errores.inscripciones > 0) {
+    bloques.push(
+      `<p style="margin:4px 0; text-align:left;">Inscripciones asociadas: <strong>${errores.inscripciones}</strong>.</p>`
+    );
+  }
+
+  if (
+    typeof errores.asignaciones_docentes === "number" &&
+    errores.asignaciones_docentes > 0
+  ) {
+    bloques.push(
+      `<p style="margin:4px 0; text-align:left;">Aulas con asignaciones activas: <strong>${errores.asignaciones_docentes}</strong>.</p>`
+    );
+  }
+
+  return bloques.join("");
+};
+
 export const useGestionAniosEscolares = () => {
   const [anios, setAnios] = useState([]);
   const [cargando, setCargando] = useState(false);
@@ -430,6 +537,19 @@ export const useGestionAniosEscolares = () => {
 
         if (errors.docentes || errors.aulas_sin_docente) {
           contenidoHtml = construirHtmlErroresDocentes(errors);
+        } else if (
+          errors.dependencias ||
+          errors.aulas_inactivas ||
+          errors.personal_inactivo ||
+          errors.componentes_inactivos ||
+          typeof errors.inscripciones === "number" ||
+          typeof errors.asignaciones_docentes === "number"
+        ) {
+          contenidoHtml = construirHtmlDependencias(errors);
+        } else if (errors.momentos) {
+          contenidoHtml = construirHtmlMensajes(errors.momentos);
+        } else if (errors.estado) {
+          contenidoHtml = construirHtmlMensajes(errors.estado);
         } else if (errors.contrasena) {
           contenidoHtml = construirHtmlMensajes(errors.contrasena);
         } else if (errors.autenticacion) {

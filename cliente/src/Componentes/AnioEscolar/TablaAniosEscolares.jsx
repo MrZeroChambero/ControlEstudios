@@ -71,8 +71,25 @@ export const TablaAniosEscolares = ({
     });
   }, [registros, filtro]);
 
-  const columnas = useMemo(
-    () => [
+  const columnas = useMemo(() => {
+    const dataset = registros || [];
+
+    const puedeCambiarEstado = (row) => {
+      if ((row.estado || "").toLowerCase() === "activo") {
+        return true;
+      }
+      const rowId = row.id ?? row.id_anio_escolar;
+      return !dataset.some((item) => {
+        const itemId = item.id ?? item.id_anio_escolar;
+        if (itemId === rowId) {
+          return false;
+        }
+        const estadoItem = (item.estado || "").toLowerCase();
+        return estadoItem === "activo" || estadoItem === "incompleto";
+      });
+    };
+
+    return [
       {
         name: "Nombre",
         selector: (row) =>
@@ -137,54 +154,63 @@ export const TablaAniosEscolares = ({
       {
         name: "Acciones",
         width: "220px",
-        cell: (row) => (
-          <div className={anioEscolarTableClasses.actionGroup}>
-            <button
-              type="button"
-              onClick={() => onVer(row)}
-              className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.viewButton}`}
-              title="Ver detalles"
-            >
-              <FaEye className={anioEscolarIconClasses.base} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onEditar(row)}
-              className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.editButton}`}
-              title="Editar"
-            >
-              <FaEdit className={anioEscolarIconClasses.base} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onEliminar(row)}
-              className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.deleteButton}`}
-              title="Eliminar"
-            >
-              <FaTrash className={anioEscolarIconClasses.base} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onCambiarEstado(row)}
-              className={`${anioEscolarTableClasses.actionButton} ${
-                row.estado === "activo"
-                  ? anioEscolarTableClasses.toggleOn
-                  : anioEscolarTableClasses.toggleOff
-              }`}
-              title={row.estado === "activo" ? "Desactivar" : "Activar"}
-            >
-              {row.estado === "activo" ? (
-                <FaToggleOn className={anioEscolarIconClasses.base} />
-              ) : (
-                <FaToggleOff className={anioEscolarIconClasses.base} />
-              )}
-            </button>
-          </div>
-        ),
+        cell: (row) => {
+          const habilitado = puedeCambiarEstado(row);
+          const clasesToggle = `${anioEscolarTableClasses.actionButton} ${
+            (row.estado || "").toLowerCase() === "activo"
+              ? anioEscolarTableClasses.toggleOn
+              : anioEscolarTableClasses.toggleOff
+          } ${habilitado ? "" : "opacity-40 cursor-not-allowed"}`;
+
+          return (
+            <div className={anioEscolarTableClasses.actionGroup}>
+              <button
+                type="button"
+                onClick={() => onVer(row)}
+                className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.viewButton}`}
+                title="Ver detalles"
+              >
+                <FaEye className={anioEscolarIconClasses.base} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onEditar(row)}
+                className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.editButton}`}
+                title="Editar"
+              >
+                <FaEdit className={anioEscolarIconClasses.base} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onEliminar(row)}
+                className={`${anioEscolarTableClasses.actionButton} ${anioEscolarTableClasses.deleteButton}`}
+                title="Eliminar"
+              >
+                <FaTrash className={anioEscolarIconClasses.base} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onCambiarEstado(row)}
+                className={clasesToggle}
+                disabled={!habilitado}
+                title={
+                  (row.estado || "").toLowerCase() === "activo"
+                    ? "Desactivar"
+                    : "Activar"
+                }
+              >
+                {(row.estado || "").toLowerCase() === "activo" ? (
+                  <FaToggleOn className={anioEscolarIconClasses.base} />
+                ) : (
+                  <FaToggleOff className={anioEscolarIconClasses.base} />
+                )}
+              </button>
+            </div>
+          );
+        },
       },
-    ],
-    [onVer, onEditar, onEliminar, onCambiarEstado]
-  );
+    ];
+  }, [onVer, onEditar, onEliminar, onCambiarEstado, registros]);
 
   const barraBusqueda = (
     <div className={anioEscolarTableClasses.filterContainer}>
