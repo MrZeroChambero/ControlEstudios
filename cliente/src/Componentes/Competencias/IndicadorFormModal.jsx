@@ -153,7 +153,12 @@ export const IndicadorFormModal = ({
               className={fieldBase}
               placeholder="Ingrese el orden deseado"
               min={1}
+              max={999}
             />
+            <p className={helperTextBase}>
+              El orden debe estar entre 1 y 999. Si lo dejas vacío, se asigna
+              automáticamente.
+            </p>
             {errores?.orden && (
               <p className={helperTextBase}>{errores.orden.join(" ")}</p>
             )}

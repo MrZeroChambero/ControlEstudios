@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import {
-  FaTimes,
   FaPlus,
   FaEdit,
   FaTrash,
@@ -14,6 +13,7 @@ import {
   contenidosStatusClasses,
   contenidosIconClasses,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const TemasModal = ({
   isOpen,
@@ -38,10 +38,6 @@ export const TemasModal = ({
       tema.nombre_tema?.toLowerCase().includes(termino)
     );
   }, [filtro, temas]);
-
-  if (!isOpen) {
-    return null;
-  }
 
   const columnas = [
     {
@@ -168,104 +164,102 @@ export const TemasModal = ({
     ? contenido.nombre_componente
     : null;
 
-  return (
-    <div className={temasModalClasses.overlay}>
-      <div className={temasModalClasses.content}>
-        <div className={temasModalClasses.header}>
-          <div>
-            <h2 className={temasModalClasses.title}>Gestión de temas</h2>
-            <p className={temasModalClasses.subtitle}>
-              <span className="font-semibold text-slate-700">Contenido:</span>{" "}
-              {tituloContenido}
-              {descripcionComponente && (
-                <>
-                  <span className="mx-2 text-slate-400">•</span>
-                  <span className="text-slate-600">
-                    {descripcionComponente}
-                  </span>
-                </>
-              )}
-              {descripcionArea && (
-                <>
-                  <span className="mx-2 text-slate-400">•</span>
-                  <span className="text-slate-600">{descripcionArea}</span>
-                </>
-              )}
-              {contenido?.grado && (
-                <>
-                  <span className="mx-2 text-slate-400">•</span>
-                  <span className="text-slate-600">
-                    {formatearGrado(contenido.grado)}
-                  </span>
-                </>
-              )}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={temasModalClasses.closeButton}
-            title="Cerrar"
-          >
-            <FaTimes className={contenidosIconClasses.base} />
-          </button>
-        </div>
-
-        {temas.length === 0 ? (
-          <div className="py-12 text-center">
-            <div className={temasModalClasses.emptyIcon}>📚</div>
-            <p className="mb-2 text-lg text-slate-600">
-              No hay temas registrados
-            </p>
-            <p className="mb-6 text-sm text-slate-400">
-              Añade tu primer tema para comenzar la planificación.
-            </p>
-            <button
-              type="button"
-              onClick={onAgregarTema}
-              className={temasTableClasses.addButton}
-            >
-              <FaPlus className={contenidosIconClasses.base} />
-              <span>Agregar primer tema</span>
-            </button>
-          </div>
-        ) : (
-          <DataTable
-            columns={columnas}
-            data={temasFiltrados}
-            customStyles={estilosPersonalizados}
-            pagination
-            paginationComponentOptions={{
-              rowsPerPageText: "Temas por página:",
-              rangeSeparatorText: "de",
-              noRowsPerPage: false,
-            }}
-            paginationPerPage={10}
-            paginationRowsPerPageOptions={[5, 10, 15, 20]}
-            noDataComponent={
-              <p className={temasModalClasses.subtitle}>
-                No se encontraron temas que coincidan con la búsqueda.
-              </p>
-            }
-            subHeader
-            subHeaderComponent={cabeceraTabla}
-            highlightOnHover
-            striped
-            responsive
-            dense
-          />
-        )}
-
-        <div className={temasModalClasses.footer}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={temasModalClasses.footerButton}
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
+  const detalleContenido = (
+    <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 sm:text-sm">
+      <span className="text-slate-600">
+        <span className="font-semibold text-slate-700">Contenido:</span>{" "}
+        <span className="text-slate-800">{tituloContenido}</span>
+      </span>
+      {descripcionComponente && (
+        <span className="flex items-center gap-2 text-slate-500">
+          <span className="text-slate-400">•</span>
+          <span className="text-slate-600">{descripcionComponente}</span>
+        </span>
+      )}
+      {descripcionArea && (
+        <span className="flex items-center gap-2 text-slate-500">
+          <span className="text-slate-400">•</span>
+          <span className="text-slate-600">{descripcionArea}</span>
+        </span>
+      )}
+      {contenido?.grado && (
+        <span className="flex items-center gap-2 text-slate-500">
+          <span className="text-slate-400">•</span>
+          <span className="text-slate-600">
+            {formatearGrado(contenido.grado)}
+          </span>
+        </span>
+      )}
     </div>
+  );
+
+  const pieModal = (
+    <div className={temasModalClasses.footer}>
+      <button
+        type="button"
+        onClick={onClose}
+        className={temasModalClasses.footerButton}
+      >
+        Cerrar
+      </button>
+    </div>
+  );
+
+  return (
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Gestión de temas"
+      subtitle={detalleContenido}
+      size="xl"
+      contentClassName="max-w-6xl"
+      bodyClassName="space-y-6"
+      footer={pieModal}
+    >
+      {temas.length === 0 ? (
+        <div className="py-12 text-center">
+          <div className={temasModalClasses.emptyIcon}>📚</div>
+          <p className="mb-2 text-lg text-slate-600">
+            No hay temas registrados
+          </p>
+          <p className="mb-6 text-sm text-slate-400">
+            Añade tu primer tema para comenzar la planificación.
+          </p>
+          <button
+            type="button"
+            onClick={onAgregarTema}
+            className={temasTableClasses.addButton}
+          >
+            <FaPlus className={contenidosIconClasses.base} />
+            <span>Agregar primer tema</span>
+          </button>
+        </div>
+      ) : (
+        <DataTable
+          columns={columnas}
+          data={temasFiltrados}
+          customStyles={estilosPersonalizados}
+          pagination
+          paginationComponentOptions={{
+            rowsPerPageText: "Temas por página:",
+            rangeSeparatorText: "de",
+            noRowsPerPage: false,
+          }}
+          paginationPerPage={10}
+          paginationRowsPerPageOptions={[5, 10, 15, 20]}
+          noDataComponent={
+            <p className={temasModalClasses.subtitle}>
+              No se encontraron temas que coincidan con la búsqueda.
+            </p>
+          }
+          subHeader
+          subHeaderComponent={cabeceraTabla}
+          highlightOnHover
+          striped
+          responsive
+          dense
+        />
+      )}
+    </VentanaModal>
   );
 };

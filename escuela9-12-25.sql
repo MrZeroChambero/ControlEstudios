@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-12-2025 a las 03:26:17
+-- Tiempo de generación: 09-12-2025 a las 23:41:31
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -198,6 +198,7 @@ CREATE TABLE `asistencia` (
   `id_asistencia` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
   `fk_momento` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
   `grado` enum('1','2','3','4','5','6') NOT NULL,
   `asistencias` int(11) NOT NULL,
   `inasistencias` int(11) NOT NULL,
@@ -659,6 +660,15 @@ CREATE TABLE `imparte` (
   `clases_totales` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `imparte`
+--
+
+INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk_componente`, `tipo_docente`, `clases_totales`) VALUES
+(4, 1, 1, 11, 106, 'Especialista', NULL),
+(5, 1, 1, 12, 106, 'Especialista', NULL),
+(6, 1, 1, 13, 106, 'Especialista', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -1043,7 +1053,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(35, 1, '76279eedf947e95ed8fe9451a8b01f8937334e61db33075bee0fd9086085e717', '2025-12-03', '2025-12-04');
+(36, 1, '65206a272016c214f2ed88e6535a29a52e4283fbc730ab06a68c8808f72fa134', '2025-12-04', '2025-12-05');
 
 -- --------------------------------------------------------
 
@@ -1170,7 +1180,8 @@ ALTER TABLE `areas_aprendizaje`
 ALTER TABLE `asistencia`
   ADD PRIMARY KEY (`id_asistencia`),
   ADD KEY `fk_momento` (`fk_momento`),
-  ADD KEY `fk_estudiante` (`fk_estudiante`);
+  ADD KEY `fk_estudiante` (`fk_estudiante`),
+  ADD KEY `fk_componente` (`fk_componente`);
 
 --
 -- Indices de la tabla `auditoria`
@@ -1616,7 +1627,7 @@ ALTER TABLE `horarios`
 -- AUTO_INCREMENT de la tabla `imparte`
 --
 ALTER TABLE `imparte`
-  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
@@ -1706,7 +1717,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -1749,7 +1760,8 @@ ALTER TABLE `aprobo`
 --
 ALTER TABLE `asistencia`
   ADD CONSTRAINT `asistencia_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `asistencia_ibfk_2` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `asistencia_ibfk_2` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `asistencia_ibfk_3` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `auditoria`

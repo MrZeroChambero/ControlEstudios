@@ -11,11 +11,16 @@ trait IndicadoresValidacionesTrait
   {
     Validator::lang('es');
 
+    $ordenNormalizado = $this->normalizarEntero($entrada['orden'] ?? null);
+    if ($ordenNormalizado !== null && $ordenNormalizado <= 0) {
+      $ordenNormalizado = null;
+    }
+
     $datos = [
       'fk_competencia' => $this->normalizarEntero($entrada['fk_competencia'] ?? null),
       'nombre_indicador' => $this->normalizarTexto($entrada['nombre_indicador'] ?? null, 255),
       'aspecto' => strtolower((string) ($entrada['aspecto'] ?? 'ser')),
-      'orden' => $this->normalizarEntero($entrada['orden'] ?? null),
+      'orden' => $ordenNormalizado,
       'ocultar' => strtolower((string) ($entrada['ocultar'] ?? 'no')),
     ];
 
@@ -37,9 +42,13 @@ trait IndicadoresValidacionesTrait
     ]);
 
     $validador->rule('required', ['fk_competencia', 'nombre_indicador', 'aspecto']);
-    $validador->rule('integer', ['fk_competencia', 'orden']);
+    $validador->rule('integer', 'fk_competencia');
+    if ($datos['orden'] !== null) {
+      $validador->rule('integer', 'orden');
+      $validador->rule('min', 'orden', 1);
+      $validador->rule('max', 'orden', 999);
+    }
     $validador->rule('min', 'fk_competencia', 1);
-    $validador->rule('min', 'orden', 1);
     $validador->rule('lengthBetween', 'nombre_indicador', 3, 255);
     $validador->rule('in', 'aspecto', ['ser', 'hacer', 'conocer', 'convivir']);
     $validador->rule('in', 'ocultar', ['si', 'no']);
@@ -66,27 +75,24 @@ trait IndicadoresValidacionesTrait
       }
     }
 
-    if ($datos['fk_competencia'] !== null && $datos['orden'] !== null) {
-      if ($this->existeIndicadorConOrden($conexion, $datos['fk_competencia'], $datos['orden'], $idIndicador)) {
-        $errores['orden'][] = 'Ya existe un indicador con ese orden en la competencia seleccionada.';
-      }
-    }
-
-    if ($datos['fk_competencia'] !== null && $datos['nombre_indicador'] !== null) {
-      if ($this->existeIndicadorConNombre($conexion, $datos['fk_competencia'], $datos['nombre_indicador'], $idIndicador)) {
-        $errores['nombre_indicador'][] = 'Ya existe un indicador con ese nombre en la competencia seleccionada.';
-      }
-    }
-
-    if ($datos['orden'] === null) {
-      // Si no se proporciono, asignar orden consecutivo
-      $sql = 'SELECT COALESCE(MAX(orden), 0) + 1 FROM indicadores WHERE fk_competencia = ?';
-      if ($datos['fk_competencia'] !== null) {
+    if ($datos['fk_competencia'] !== null) {
+      if ($datos['orden'] === null) {
+        $sql = 'SELECT COALESCE(MAX(orden), 0) + 1 FROM indicadores WHERE fk_competencia = ?';
         $sentencia = $conexion->prepare($sql);
         $sentencia->execute([$datos['fk_competencia']]);
         $datos['orden'] = (int) $sentencia->fetchColumn();
-      } else {
-        $datos['orden'] = 1;
+      }
+
+      if ($datos['orden'] < 1 || $datos['orden'] > 999) {
+        $errores['orden'][] = 'El orden debe estar entre 1 y 999.';
+      } elseif ($this->existeIndicadorConOrden($conexion, $datos['fk_competencia'], $datos['orden'], $idIndicador)) {
+        $errores['orden'][] = 'Ya existe un indicador con ese orden en la competencia seleccionada.';
+      }
+
+      if ($datos['nombre_indicador'] !== null) {
+        if ($this->existeIndicadorConNombre($conexion, $datos['fk_competencia'], $datos['nombre_indicador'], $idIndicador)) {
+          $errores['nombre_indicador'][] = 'Ya existe un indicador con ese nombre en la competencia seleccionada.';
+        }
       }
     }
 

@@ -1,4 +1,5 @@
 import React from "react";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 import { PersonaForm } from "./PersonaForm";
 
 export const PersonaModal = ({
@@ -10,22 +11,23 @@ export const PersonaModal = ({
   handleInputChange,
   errors,
 }) => {
-  if (!isOpen) return null;
+  const titulo = currentPersona ? "Editar Persona" : "Crear Persona";
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-3xl">
-        <h2 className="text-2xl font-bold mb-6">
-          {currentPersona ? "Editar Persona" : "Crear Persona"}
-        </h2>
-        <PersonaForm
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          formData={formData}
-          handleInputChange={handleInputChange}
-          errors={errors}
-        />
-      </div>
-    </div>
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={titulo}
+      size="lg"
+      bodyClassName="pt-2"
+    >
+      <PersonaForm
+        onSubmit={onSubmit}
+        onCancel={onClose}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        errors={errors}
+      />
+    </VentanaModal>
   );
 };
