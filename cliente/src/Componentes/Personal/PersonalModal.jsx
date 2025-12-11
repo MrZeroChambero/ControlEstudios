@@ -1188,7 +1188,11 @@ export const PersonalModal = ({
   );
 
   const renderPersonaFormStep = () => (
-    <form onSubmit={handleSubmitPersona} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmitPersona}
+      className="flex flex-col gap-6"
+      autoComplete="off"
+    >
       <h3 className={personalFormClasses.sectionTitle}>Datos de la persona</h3>
       {renderPersonaFields()}
       <div className={personalModalClasses.actionBar}>
@@ -1226,7 +1230,11 @@ export const PersonalModal = ({
     const personaResumen = personaSeleccionada || personaCreada;
 
     return (
-      <form onSubmit={handleSubmitPersonal} className="flex flex-col gap-6">
+      <form
+        onSubmit={handleSubmitPersonal}
+        className="flex flex-col gap-6"
+        autoComplete="off"
+      >
         {!modoEdicion && personaResumen && (
           <div className={personalFormClasses.highlightCard}>
             <span className="text-sm font-semibold uppercase tracking-wide">

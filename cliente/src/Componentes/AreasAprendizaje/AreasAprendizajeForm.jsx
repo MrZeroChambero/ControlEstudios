@@ -10,7 +10,7 @@ export const AreasAprendizajeForm = ({
   modoVer = false,
 }) => {
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} autoComplete="off">
       <div className={areasFormClasses.group}>
         <label className={areasFormClasses.label} htmlFor="nombre_area">
           Nombre del Área

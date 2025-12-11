@@ -36,7 +36,7 @@ export const UsuariosModal = ({
       size="lg"
       bodyClassName="space-y-6"
     >
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6" autoComplete="off">
         <div>
           <label className={formStyles.label} htmlFor="fk_personal">
             Personal *

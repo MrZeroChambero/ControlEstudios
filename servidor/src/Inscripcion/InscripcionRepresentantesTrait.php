@@ -8,7 +8,7 @@ trait InscripcionRepresentantesTrait
 {
   use InscripcionFormatoNombreTrait;
 
-  private function obtenerRepresentantesAsociados(PDO $conexion, int $estudianteId): array
+  private function obtenerRepresentantesAsociados(PDO $conexion, int $estudianteId, ?array &$debugSql = null): array
   {
     $sql = 'SELECT par.id_parentesco,
                    par.tipo_parentesco,
@@ -26,6 +26,8 @@ trait InscripcionRepresentantesTrait
             WHERE par.fk_estudiante = ?
               AND p.estado = "activo"
             ORDER BY par.tipo_parentesco, p.primer_nombre, p.primer_apellido';
+
+    $this->agregarSqlDebug($debugSql, 'representantes_asociados_estudiante', $sql, ['estudiante_id' => $estudianteId]);
 
     $sentencia = $conexion->prepare($sql);
     $sentencia->execute([$estudianteId]);
@@ -45,7 +47,7 @@ trait InscripcionRepresentantesTrait
     return $lista;
   }
 
-  private function validarRepresentanteSeleccion(PDO $conexion, int $estudianteId, int $representanteId): array
+  private function validarRepresentanteSeleccion(PDO $conexion, int $estudianteId, int $representanteId, ?array &$debugSql = null, ?array &$debugMensajes = null): array
   {
     $sql = 'SELECT par.tipo_parentesco,
                    rep.id_representante,
@@ -62,17 +64,24 @@ trait InscripcionRepresentantesTrait
               AND p.estado = "activo"
             LIMIT 1';
 
+    $this->agregarSqlDebug($debugSql, 'validar_representante_estudiante', $sql, [
+      'estudiante_id' => $estudianteId,
+      'representante_id' => $representanteId,
+    ]);
+
     $sentencia = $conexion->prepare($sql);
     $sentencia->execute([$estudianteId, $representanteId]);
     $fila = $sentencia->fetch(PDO::FETCH_ASSOC);
 
     if (!$fila) {
+      $this->agregarMensajeDebug($debugMensajes, 'El representante solicitado no está asociado al estudiante o no está activo.');
       return [
         'valido' => false,
         'errores' => ['representante' => ['El representante seleccionado no posee un parentesco registrado con el estudiante.']],
       ];
     }
 
+    $this->agregarMensajeDebug($debugMensajes, 'El representante seleccionado está asociado y activo.');
     return [
       'valido' => true,
       'representante' => [

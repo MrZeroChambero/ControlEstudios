@@ -98,7 +98,7 @@ export const CompetenciaFormModal = ({
       size="lg"
       contentClassName="max-w-3xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-6">
+      <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
         <div className={contenidosFormClasses.grid}>
           <div className={contenidosFormClasses.fieldWrapper}>
             <label className={contenidosFormClasses.label}>

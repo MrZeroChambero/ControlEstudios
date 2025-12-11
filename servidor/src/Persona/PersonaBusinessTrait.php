@@ -3,6 +3,7 @@
 namespace Micodigo\Persona;
 
 use DateTime;
+use DateTimeInterface;
 use PDO;
 
 trait PersonaBusinessTrait
@@ -10,12 +11,13 @@ trait PersonaBusinessTrait
   /**
    * Calcular edad en años completos a partir de fecha de nacimiento (Y-m-d).
    */
-  public function calcularEdad(?string $fecha_nacimiento): ?int
+  public function calcularEdad(?string $fecha_nacimiento, ?DateTimeInterface $referencia = null): ?int
   {
     if (empty($fecha_nacimiento)) return null;
     $dt = DateTime::createFromFormat('Y-m-d', $fecha_nacimiento);
     if (!$dt) return null;
-    return (int) $dt->diff(new DateTime())->y;
+    $referencia = $referencia ?? new DateTime();
+    return (int) $dt->diff($referencia)->y;
   }
 
   /**
@@ -25,12 +27,12 @@ trait PersonaBusinessTrait
    *  - Cada grado siguiente: edad mínima = anterior +1, edad máxima = anterior +2 (hasta 6to grado)
    * Devuelve true si válido o array ['edad' => ['Mensaje...']] si inválido.
    */
-  public function validarEdadPorGrado(?string $fecha_nacimiento, int $grado)
+  public function validarEdadPorGrado(?string $fecha_nacimiento, int $grado, ?DateTimeInterface $referencia = null)
   {
     if ($grado < 1 || $grado > 6) {
       return ['grado' => ['Grado fuera de rango válido (1 a 6).']];
     }
-    $edad = $this->calcularEdad($fecha_nacimiento);
+    $edad = $this->calcularEdad($fecha_nacimiento, $referencia);
     if ($edad === null) {
       return ['fecha_nacimiento' => ['Fecha de nacimiento inválida.']];
     }

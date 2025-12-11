@@ -26,7 +26,7 @@ export const ComponentesAprendizajeForm = ({
   );
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} autoComplete="off">
       <div className={componentesFormClasses.group}>
         <label className={componentesFormClasses.label} htmlFor="fk_area">
           Área de aprendizaje

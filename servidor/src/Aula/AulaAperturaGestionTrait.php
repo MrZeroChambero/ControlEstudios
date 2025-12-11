@@ -75,10 +75,9 @@ trait AulaAperturaGestionTrait
       return;
     }
 
-    $inscripciones = $this->contarInscripciones($conexion, $aula['id_aula']);
-    if ($inscripciones === 0) {
-      $this->actualizarEstadoBase($conexion, $aula['id_aula'], 'inactivo');
-    }
+    $this->eliminarDocenteTitularAsignacion($conexion, $aula['id_aula']);
+    $this->eliminarEspecialistasAula($conexion, $aula['id_aula']);
+    $this->actualizarEstadoBase($conexion, $aula['id_aula'], 'inactivo');
   }
 
   protected function actualizarCuposBase(PDO $conexion, int $idAula, int $cupos): void
@@ -302,5 +301,13 @@ trait AulaAperturaGestionTrait
     }
 
     $this->actualizarCuposBase($conexion, $idAula, $cupos);
+  }
+
+  protected function eliminarEspecialistasAula(PDO $conexion, int $aulaId): void
+  {
+    $sentencia = $conexion->prepare(
+      'DELETE FROM imparte WHERE fk_aula = ? AND tipo_docente = "Especialista"'
+    );
+    $sentencia->execute([$aulaId]);
   }
 }

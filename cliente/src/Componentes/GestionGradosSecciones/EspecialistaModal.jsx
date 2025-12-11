@@ -142,7 +142,7 @@ export const EspecialistaModal = ({
       size="lg"
       contentClassName="max-w-3xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-4">
+      <form onSubmit={manejarSubmit} className="space-y-4" autoComplete="off">
         <div className={contenidosFormClasses.fieldWrapper}>
           <label
             className={contenidosFormClasses.label}

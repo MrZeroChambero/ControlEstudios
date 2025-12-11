@@ -60,7 +60,8 @@ const renderizarPaso = (indice, contexto) => {
           onChange={contexto.actualizarDato}
           tiposInscripcion={contexto.tiposInscripcion}
           tipoSeleccionado={contexto.tipoInscripcion}
-          onTipoChange={contexto.setTipoInscripcion}
+          onTipoChange={contexto.actualizarTipoInscripcion}
+          estadoSecciones={contexto.estadoSeccionesFamilia}
         />
       );
     case 5:

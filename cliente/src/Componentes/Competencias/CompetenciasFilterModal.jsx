@@ -65,7 +65,7 @@ export const CompetenciasFilterModal = ({
       size="md"
       contentClassName="max-w-xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-6">
+      <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
         <div className={contenidosFormClasses.grid}>
           <div className={contenidosFormClasses.fieldWrapper}>
             <label className={contenidosFormClasses.label}>

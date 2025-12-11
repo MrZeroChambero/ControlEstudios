@@ -44,6 +44,46 @@ const tiposInscripcion = [
   { valor: "educado_en_casa", etiqueta: "Educado en casa" },
 ];
 
+const camposObligatoriosGenerales = [
+  "fecha_inscripcion",
+  "vive_con",
+  "tipo_vivienda",
+  "zona_vivienda",
+  "tenencia_viviencia",
+];
+
+const camposObligatoriosIndicadores = [
+  "ingreso_familiar",
+  "miembros_familia",
+  "altura",
+  "peso",
+  "talla_zapatos",
+  "talla_camisa",
+  "talla_pantalon",
+];
+
+const mapaCampoSeccion = {
+  tipo_inscripcion: "tipo",
+  fecha_inscripcion: "generales",
+  vive_con: "generales",
+  tipo_vivienda: "generales",
+  zona_vivienda: "generales",
+  tenencia_viviencia: "generales",
+  ingreso_familiar: "indicadores",
+  miembros_familia: "indicadores",
+  altura: "indicadores",
+  peso: "indicadores",
+  talla_zapatos: "indicadores",
+  talla_camisa: "indicadores",
+  talla_pantalon: "indicadores",
+};
+
+const estadoInicialSeccionesFamilia = {
+  tipo: "neutral",
+  generales: "neutral",
+  indicadores: "neutral",
+};
+
 export const useInscripcion = () => {
   const [pasoActual, setPasoActual] = useState(0);
   const [precondiciones, setPrecondiciones] = useState(null);
@@ -67,6 +107,9 @@ export const useInscripcion = () => {
   );
   const [datosFormulario, setDatosFormulario] = useState(datosIniciales);
   const [erroresFormulario, setErroresFormulario] = useState({});
+  const [estadoSeccionesFamilia, setEstadoSeccionesFamilia] = useState(
+    estadoInicialSeccionesFamilia
+  );
   const [guardando, setGuardando] = useState(false);
   const [resultadoRegistro, setResultadoRegistro] = useState(null);
 
@@ -78,6 +121,25 @@ export const useInscripcion = () => {
     setPrecondiciones(respuesta);
     setCargandoPrecondiciones(false);
   }, []);
+
+  useEffect(() => {
+    if (!precondiciones || precondiciones.listo !== false) {
+      return;
+    }
+
+    const motivos = Array.isArray(precondiciones.motivos)
+      ? precondiciones.motivos.filter(
+          (motivo) => typeof motivo === "string" && motivo.trim().length > 0
+        )
+      : [];
+
+    const detalle =
+      motivos.length > 0
+        ? motivos.join("\n")
+        : "La funcion de inscribir estudiantes se encuentra en desarrollo. Aun no es posible registrar nuevas inscripciones.";
+
+    Swal.fire("Inscripcion no disponible", detalle, "info");
+  }, [precondiciones]);
 
   const cargarEstudiantes = useCallback(async () => {
     setCargandoEstudiantes(true);
@@ -137,17 +199,44 @@ export const useInscripcion = () => {
     setErroresFormulario({});
     setResultadoRegistro(null);
     setTipoInscripcion(tiposInscripcion[0].valor);
+    setEstadoSeccionesFamilia(estadoInicialSeccionesFamilia);
     cargarPrecondiciones();
   }, [cargarPrecondiciones]);
 
   const actualizarDato = useCallback((campo, valor) => {
     setDatosFormulario((prev) => ({ ...prev, [campo]: valor }));
+    setErroresFormulario((prev) => {
+      if (!prev[campo]) {
+        return prev;
+      }
+      const actualizado = { ...prev };
+      delete actualizado[campo];
+      return actualizado;
+    });
+
+    const seccion = mapaCampoSeccion[campo];
+    if (seccion) {
+      setEstadoSeccionesFamilia((prev) => {
+        if (prev[seccion] === "error") {
+          return { ...prev, [seccion]: "neutral" };
+        }
+        return prev;
+      });
+    }
   }, []);
 
   const alternarDatoSiNo = useCallback((campo) => {
     setDatosFormulario((prev) => ({
       ...prev,
       [campo]: prev[campo] === "si" ? "no" : "si",
+    }));
+  }, []);
+
+  const actualizarTipoInscripcion = useCallback((valor) => {
+    setTipoInscripcion(valor);
+    setEstadoSeccionesFamilia((prev) => ({
+      ...prev,
+      tipo: valor ? "neutral" : "error",
     }));
   }, []);
 
@@ -194,58 +283,83 @@ export const useInscripcion = () => {
         }
         return true;
       case 4: {
-        const camposRequeridos = [
-          "fecha_inscripcion",
-          "vive_con",
-          "altura",
-          "talla_zapatos",
-          "talla_camisa",
-          "talla_pantalon",
-          "peso",
-          "tipo_vivienda",
-          "zona_vivienda",
-          "tenencia_viviencia",
-          "ingreso_familiar",
-          "miembros_familia",
-          "detalles_participacion",
-        ];
         const nuevosErrores = {};
-        camposRequeridos.forEach((campo) => {
-          if (!datosFormulario[campo]) {
-            nuevosErrores[campo] = "Este campo es obligatorio.";
-          }
-        });
 
-        const numericFields = [
-          "altura",
-          "peso",
-          "ingreso_familiar",
-          "talla_zapatos",
-          "talla_camisa",
-          "talla_pantalon",
-          "miembros_familia",
-        ];
-        numericFields.forEach((campo) => {
+        let generalesValidos = true;
+        camposObligatoriosGenerales.forEach((campo) => {
           const valor = datosFormulario[campo];
-          if (valor === "") {
+          if (valor === undefined || valor === null) {
+            nuevosErrores[campo] = "Este campo es obligatorio.";
+            generalesValidos = false;
             return;
           }
-          const numero = Number(valor);
-          if (Number.isNaN(numero) || numero < 0) {
-            nuevosErrores[campo] = "Debe ser un número válido.";
+          if (String(valor).trim() === "") {
+            nuevosErrores[campo] = "Este campo es obligatorio.";
+            generalesValidos = false;
           }
         });
 
-        if (Object.keys(nuevosErrores).length > 0) {
-          setErroresFormulario(nuevosErrores);
+        let indicadoresValidos = true;
+        camposObligatoriosIndicadores.forEach((campo) => {
+          const valor = datosFormulario[campo];
+          if (
+            valor === undefined ||
+            valor === null ||
+            String(valor).trim() === ""
+          ) {
+            nuevosErrores[campo] = "Este campo es obligatorio.";
+            indicadoresValidos = false;
+            return;
+          }
+
+          const numero = Number(valor);
+          const esNumeroValido = !Number.isNaN(numero);
+          if (!esNumeroValido || numero < 0) {
+            nuevosErrores[campo] = "Debe ser un número válido.";
+            indicadoresValidos = false;
+          }
+          if (campo === "miembros_familia" && numero < 1) {
+            nuevosErrores[campo] = "Debe registrar al menos un miembro.";
+            indicadoresValidos = false;
+          }
+        });
+
+        const tipoValido = Boolean(tipoInscripcion);
+
+        const hayErrores =
+          !tipoValido ||
+          !generalesValidos ||
+          !indicadoresValidos ||
+          Object.keys(nuevosErrores).length > 0;
+
+        setErroresFormulario(hayErrores ? nuevosErrores : {});
+        setEstadoSeccionesFamilia({
+          tipo: tipoValido ? "success" : "error",
+          generales: generalesValidos ? "success" : "error",
+          indicadores: indicadoresValidos ? "success" : "error",
+        });
+
+        if (hayErrores) {
+          const seccionesPendientes = [];
+          if (!tipoValido) seccionesPendientes.push("Tipo de inscripción");
+          if (!generalesValidos)
+            seccionesPendientes.push("Datos generales del hogar");
+          if (!indicadoresValidos)
+            seccionesPendientes.push("Indicadores socioeconómicos");
+
+          const detalle =
+            seccionesPendientes.length > 0
+              ? `Completa o corrige: ${seccionesPendientes.join(", ")}.`
+              : "Revisa los campos resaltados en rojo.";
+
           Swal.fire(
-            "Revisa los datos",
-            "Completa todos los campos obligatorios antes de continuar.",
+            "Información incompleta",
+            `${detalle}\nLos campos obligatorios están resaltados para tu revisión.`,
             "warning"
           );
           return false;
         }
-        setErroresFormulario({});
+
         return true;
       }
       default:
@@ -258,6 +372,7 @@ export const useInscripcion = () => {
     aulaSeleccionada,
     representanteSeleccionado,
     datosFormulario,
+    tipoInscripcion,
   ]);
 
   const avanzar = useCallback(() => {
@@ -284,8 +399,22 @@ export const useInscripcion = () => {
         return Boolean(aulaSeleccionada);
       case 3:
         return Boolean(representanteSeleccionado);
-      case 4:
-        return Object.values(datosFormulario).every((valor) => valor !== "");
+      case 4: {
+        const tipoValido = Boolean(tipoInscripcion);
+        const generalesOk = camposObligatoriosGenerales.every((campo) => {
+          const valor = datosFormulario[campo];
+          return (
+            valor !== undefined && valor !== null && String(valor).trim() !== ""
+          );
+        });
+        const indicadoresOk = camposObligatoriosIndicadores.every((campo) => {
+          const valor = datosFormulario[campo];
+          return (
+            valor !== undefined && valor !== null && String(valor).trim() !== ""
+          );
+        });
+        return tipoValido && generalesOk && indicadoresOk;
+      }
       case 5:
         return true;
       default:
@@ -298,6 +427,7 @@ export const useInscripcion = () => {
     aulaSeleccionada,
     representanteSeleccionado,
     datosFormulario,
+    tipoInscripcion,
   ]);
 
   const guardarInscripcion = useCallback(async () => {
@@ -330,13 +460,8 @@ export const useInscripcion = () => {
     setGuardando(false);
 
     if (respuesta) {
-      setResultadoRegistro(respuesta);
+      setResultadoRegistro(respuesta?.inscripcion ?? respuesta);
       setPasoActual(totalPasos - 1);
-      Swal.fire(
-        "Inscripción lista",
-        "Los datos se guardaron correctamente.",
-        "success"
-      );
     }
   }, [
     validarPasoActual,
@@ -406,8 +531,10 @@ export const useInscripcion = () => {
     erroresFormulario,
 
     tipoInscripcion,
-    setTipoInscripcion,
+    actualizarTipoInscripcion,
     tiposInscripcion,
+
+    estadoSeccionesFamilia,
 
     resumen,
     cargarPrecondiciones,

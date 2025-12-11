@@ -19,6 +19,7 @@ import {
   asignarEspecialista,
   eliminarEspecialista,
 } from "../../api/gestionAulasService";
+import { cambiarEstadoAnioEscolar } from "../../api/anioEscolarService";
 import { DocenteTitularModal } from "./DocenteTitularModal";
 import { EspecialistaModal } from "./EspecialistaModal";
 import { formatearFechaCorta } from "../../utilidades/formatoFechas";
@@ -52,47 +53,82 @@ export const GestionGradosSecciones = () => {
   const [gradoSeleccionado, setGradoSeleccionado] = useState("");
   const [seccionSeleccionada, setSeccionSeleccionada] = useState("");
   const [filtroComponentes, setFiltroComponentes] = useState("todos");
+  const [activandoAnio, setActivandoAnio] = useState(false);
 
   const aniosDisponibles = useMemo(
     () => resumen?.anios ?? [],
     [resumen?.anios]
   );
 
+  const aulasActivas = useMemo(() => {
+    return (resumen?.aulas ?? []).filter((aula) => aula?.estado === "activo");
+  }, [resumen?.aulas]);
+
+  const faltanDocentesActivos = useMemo(() => {
+    return aulasActivas.some((aula) => !aula?.docente);
+  }, [aulasActivas]);
+
+  const puedeActivarAnio = useMemo(() => {
+    if (!resumen?.anio || (resumen.anio.estado ?? "") !== "incompleto") {
+      return false;
+    }
+    if (aulasActivas.length === 0) {
+      return false;
+    }
+    return !faltanDocentesActivos;
+  }, [resumen?.anio, aulasActivas, faltanDocentesActivos]);
+
+  const mensajeEstadoActivacion = useMemo(() => {
+    if (!resumen?.anio || (resumen.anio.estado ?? "") !== "incompleto") {
+      return "";
+    }
+
+    if (aulasActivas.length === 0) {
+      return "Habilita al menos una seccion activa para activar el anio escolar.";
+    }
+
+    if (faltanDocentesActivos) {
+      return "Asigna un docente titular a cada aula activa antes de activar el anio escolar.";
+    }
+
+    return "Todas las aulas activas tienen docente titular. Puedes activar el anio escolar cuando lo necesites.";
+  }, [resumen?.anio, aulasActivas, faltanDocentesActivos]);
+
   const gradosDisponibles = useMemo(() => {
     const conjunto = new Set();
-    (resumen?.aulas ?? []).forEach((aula) => {
+    aulasActivas.forEach((aula) => {
       if (aula?.grado !== undefined && aula?.grado !== null) {
         conjunto.add(String(aula.grado));
       }
     });
     return Array.from(conjunto).sort((a, b) => Number(a) - Number(b));
-  }, [resumen?.aulas]);
+  }, [aulasActivas]);
 
   const seccionesDisponibles = useMemo(() => {
     if (!gradoSeleccionado) {
       return [];
     }
     const conjunto = new Set();
-    (resumen?.aulas ?? []).forEach((aula) => {
+    aulasActivas.forEach((aula) => {
       if (String(aula?.grado) === gradoSeleccionado && aula?.seccion) {
         conjunto.add(String(aula.seccion));
       }
     });
     return Array.from(conjunto).sort((a, b) => a.localeCompare(b));
-  }, [gradoSeleccionado, resumen?.aulas]);
+  }, [gradoSeleccionado, aulasActivas]);
 
   const aulaSeleccionada = useMemo(() => {
     if (!gradoSeleccionado || !seccionSeleccionada) {
       return null;
     }
     return (
-      (resumen?.aulas ?? []).find(
+      aulasActivas.find(
         (aula) =>
           String(aula?.grado) === gradoSeleccionado &&
           String(aula?.seccion) === seccionSeleccionada
       ) ?? null
     );
-  }, [gradoSeleccionado, seccionSeleccionada, resumen?.aulas]);
+  }, [gradoSeleccionado, seccionSeleccionada, aulasActivas]);
 
   const cargarResumen = useCallback(async (opciones = {}) => {
     const { anioId = null, mantenerSeleccion = false } = opciones;
@@ -143,6 +179,88 @@ export const GestionGradosSecciones = () => {
     const anioId = anioSeleccionado ? parseInt(anioSeleccionado, 10) : null;
     cargarResumen({ anioId, mantenerSeleccion: true });
   }, [anioSeleccionado, cargarResumen]);
+
+  const manejarActivarAnioEscolar = useCallback(async () => {
+    if (!puedeActivarAnio || !resumen?.anio?.id) {
+      return;
+    }
+
+    setActivandoAnio(true);
+
+    try {
+      const respuesta = await cambiarEstadoAnioEscolar(resumen.anio.id, {
+        accion: "activar",
+      });
+
+      if (!respuesta.success) {
+        const errores = respuesta.errors ?? {};
+        const mensajes = new Set();
+
+        if (typeof respuesta.message === "string" && respuesta.message.length) {
+          mensajes.add(respuesta.message);
+        }
+
+        if (Array.isArray(errores.docentes)) {
+          errores.docentes.forEach((mensaje) => {
+            if (typeof mensaje === "string" && mensaje.length) {
+              mensajes.add(mensaje);
+            }
+          });
+        }
+
+        if (Array.isArray(errores.momentos)) {
+          errores.momentos.forEach((mensaje) => {
+            if (typeof mensaje === "string" && mensaje.length) {
+              mensajes.add(mensaje);
+            }
+          });
+        }
+
+        if (Array.isArray(errores.aulas_sin_docente)) {
+          errores.aulas_sin_docente.forEach((detalle) => {
+            if (detalle && typeof detalle === "object") {
+              const descripcion =
+                detalle.descripcion ?? detalle.aula ?? detalle.seccion ?? null;
+              if (descripcion) {
+                mensajes.add(`Aula pendiente: ${descripcion}`);
+                return;
+              }
+            }
+            if (detalle) {
+              mensajes.add(String(detalle));
+            }
+          });
+        }
+
+        const detalle =
+          mensajes.size > 0
+            ? Array.from(mensajes).join("\n")
+            : "No se pudo activar el anio escolar. Verifique la configuracion.";
+
+        Swal.fire("No se pudo activar", detalle, "warning");
+        return;
+      }
+
+      await cargarResumen({
+        anioId: resumen.anio.id,
+        mantenerSeleccion: true,
+      });
+
+      Swal.fire(
+        "Listo",
+        respuesta.message ?? "Anio escolar activado correctamente.",
+        "success"
+      );
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        "Ocurrio un error al intentar activar el anio escolar.",
+        "error"
+      );
+    } finally {
+      setActivandoAnio(false);
+    }
+  }, [puedeActivarAnio, resumen?.anio?.id, cargarResumen]);
 
   useEffect(() => {
     if (gradoSeleccionado && !gradosDisponibles.includes(gradoSeleccionado)) {
@@ -400,7 +518,7 @@ export const GestionGradosSecciones = () => {
   }, []);
 
   const estadisticas = useMemo(() => {
-    const aulas = resumen?.aulas ?? [];
+    const aulas = aulasActivas;
     let aulasSinDocente = 0;
     let pendientesEspecialistas = 0;
 
@@ -434,10 +552,10 @@ export const GestionGradosSecciones = () => {
       aulasSinDocente,
       pendientesEspecialistas,
     };
-  }, [construirMapaEspecialistas, resumen]);
+  }, [aulasActivas, construirMapaEspecialistas, resumen?.areas]);
 
   const resumenAsignaciones = useMemo(() => {
-    return (resumen?.aulas ?? []).map((aula) => {
+    return aulasActivas.map((aula) => {
       const especialistasListado = (aula?.especialistas ?? []).map(
         (registro) => {
           const componenteNombre = registro?.componente?.nombre ?? "Componente";
@@ -457,7 +575,7 @@ export const GestionGradosSecciones = () => {
         pendientes: aula?.pendientes?.especialistas ?? 0,
       };
     });
-  }, [resumen?.aulas]);
+  }, [aulasActivas]);
 
   const contenidoPrincipal = () => {
     if (cargando) {
@@ -486,7 +604,7 @@ export const GestionGradosSecciones = () => {
       );
     }
 
-    if ((resumen?.aulas ?? []).length === 0) {
+    if (aulasActivas.length === 0) {
       return (
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
           No se encontraron aulas para el año escolar seleccionado. Realice la
@@ -755,6 +873,21 @@ export const GestionGradosSecciones = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+            {resumen?.anio?.estado === "incompleto" && (
+              <div className="flex max-w-xs flex-col gap-1 text-xs text-emerald-700">
+                <button
+                  type="button"
+                  onClick={manejarActivarAnioEscolar}
+                  disabled={activandoAnio || cargando || !puedeActivarAnio}
+                  className={`${neutralButtonBase} bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-300/60 disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {activandoAnio ? "Activando..." : "Activar anio escolar"}
+                </button>
+                {mensajeEstadoActivacion && (
+                  <span>{mensajeEstadoActivacion}</span>
+                )}
               </div>
             )}
             <button

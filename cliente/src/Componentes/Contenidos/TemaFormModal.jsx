@@ -44,7 +44,7 @@ export const TemaFormModal = ({
       contentClassName="max-w-md"
       bodyClassName="space-y-4"
     >
-      <form onSubmit={manejarSubmit} className="space-y-5">
+      <form onSubmit={manejarSubmit} className="space-y-5" autoComplete="off">
         <div className={temaFormClasses.group}>
           <label className={temaFormClasses.label}>Contenido asociado</label>
           <input

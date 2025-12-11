@@ -583,9 +583,23 @@ export const inscripcionControlClasses = {
 
 export const inscripcionFormClasses = {
   ...createFormTokens("blue"),
-  section: "space-y-4",
+  section:
+    "space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-colors",
   sectionTitle: "text-base font-semibold text-slate-800",
   inline: "grid grid-cols-1 gap-4 md:grid-cols-2",
+  sectionState: {
+    neutral: "",
+    success: "border-emerald-400 bg-emerald-50/80 shadow-md",
+    error: "border-rose-400 bg-rose-50/80 shadow-md",
+  },
+  sectionStatusPill: {
+    neutral:
+      "inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600",
+    success:
+      "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700",
+    error:
+      "inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-rose-700",
+  },
 };
 
 export const inscripcionTableClasses = {

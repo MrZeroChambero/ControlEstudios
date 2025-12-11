@@ -21,7 +21,7 @@ trait PersonaAttributesTrait
   public $tipo_sangre;
   public $estado;
 
-  public function __construct(array $data)
+  public function __construct(array $data = [])
   {
     $this->primer_nombre = $data['primer_nombre'] ?? null;
     $this->segundo_nombre = $data['segundo_nombre'] ?? null;

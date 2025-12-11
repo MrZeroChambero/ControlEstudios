@@ -10,8 +10,9 @@ use Valitron\Validator;
 
 trait InscripcionProcesadorTrait
 {
-  private function registrarProcesoDeInscripcion(PDO $conexion, array $contexto, array $datosFormulario): array
+  private function registrarProcesoDeInscripcion(PDO $conexion, array $contexto, array $datosFormulario, ?array &$debugSql = null, ?array &$debugMensajes = null): array
   {
+    $this->agregarMensajeDebug($debugMensajes, 'Se inicia el proceso de registro de inscripción.');
     $datosValidados = $this->validarDatosDeInscripcion($datosFormulario, $contexto['anio']);
 
     $conexion->beginTransaction();
@@ -21,17 +22,21 @@ trait InscripcionProcesadorTrait
         $conexion,
         $contexto['aula']['id_aula'],
         $contexto['anio']['id'],
-        true
+        true,
+        $debugSql
       );
 
       $idInscripcion = $this->insertarInscripcionEnBase(
         $conexion,
         $contexto,
         $datosValidados,
-        $disponibilidad
+        $disponibilidad,
+        $debugSql
       );
 
       $conexion->commit();
+
+      $this->agregarMensajeDebug($debugMensajes, 'Transacción confirmada correctamente.');
 
       return [
         'id_inscripcion' => $idInscripcion,
@@ -61,6 +66,7 @@ trait InscripcionProcesadorTrait
         ],
       ];
     } catch (Exception $e) {
+      $this->agregarMensajeDebug($debugMensajes, 'Se revierte la transacción por una excepción: ' . $e->getMessage());
       $conexion->rollBack();
       throw $e;
     }
@@ -168,7 +174,7 @@ trait InscripcionProcesadorTrait
     return $datos;
   }
 
-  private function insertarInscripcionEnBase(PDO $conexion, array $contexto, array $datos, array $disponibilidad): int
+  private function insertarInscripcionEnBase(PDO $conexion, array $contexto, array $datos, array $disponibilidad, ?array &$debugSql = null): int
   {
     $sql = 'INSERT INTO inscripciones (
               fk_estudiante,
@@ -197,6 +203,14 @@ trait InscripcionProcesadorTrait
               participar_comite,
               detalles_participacion
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+
+    $this->agregarSqlDebug($debugSql, 'insertar_inscripcion', $sql, [
+      'estudiante_id' => $contexto['estudiante']['id'],
+      'representante_id' => $contexto['representante']['id'],
+      'docente_id' => $disponibilidad['docente_id'],
+      'aula_id' => $contexto['aula']['id_aula'],
+      'tipo_inscripcion' => $contexto['tipo_inscripcion'],
+    ]);
 
     $sentencia = $conexion->prepare($sql);
     $sentencia->execute([

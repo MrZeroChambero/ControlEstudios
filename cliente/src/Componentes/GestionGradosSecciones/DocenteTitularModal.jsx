@@ -113,7 +113,7 @@ export const DocenteTitularModal = ({
       size="xl"
       contentClassName="max-w-4xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-6">
+      <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
         <div className={contenidosFormClasses.fieldWrapper}>
           <label
             className={contenidosFormClasses.label}

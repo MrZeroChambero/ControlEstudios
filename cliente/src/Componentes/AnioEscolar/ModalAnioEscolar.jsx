@@ -75,6 +75,7 @@ export const ModalAnioEscolar = ({
             evento.preventDefault();
             onSubmit();
           }}
+          autoComplete="off"
         >
           <div className={anioEscolarFormClasses.grid}>
             <div className={anioEscolarFormClasses.fieldWrapper}>

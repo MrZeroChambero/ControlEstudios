@@ -35,7 +35,7 @@ export const PersonaForm = ({
     return classes;
   };
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} autoComplete="off">
       <div className={formStyles.grid}>
         {/* Columna 1 */}
         <div>

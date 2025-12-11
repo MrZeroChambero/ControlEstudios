@@ -194,7 +194,11 @@ export const RecuperarClave = () => {
         </p>
 
         {paso === "usuario" ? (
-          <form className="space-y-6" onSubmit={manejarBusquedaUsuario}>
+          <form
+            className="space-y-6"
+            onSubmit={manejarBusquedaUsuario}
+            autoComplete="off"
+          >
             <div>
               <label className="block text-sm font-semibold text-slate-700">
                 Nombre de usuario
@@ -233,7 +237,11 @@ export const RecuperarClave = () => {
             </div>
           </form>
         ) : (
-          <form className="space-y-6" onSubmit={manejarRestablecimiento}>
+          <form
+            className="space-y-6"
+            onSubmit={manejarRestablecimiento}
+            autoComplete="off"
+          >
             <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
               Respondiendo como
               <span className="font-semibold text-slate-800">

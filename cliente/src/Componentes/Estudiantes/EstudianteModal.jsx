@@ -422,6 +422,7 @@ export const EstudianteModal = ({
         <form
           onSubmit={handleCrearPersona}
           className={estudiantesModalClasses.form.wrapper}
+          autoComplete="off"
         >
           <h3 className={estudiantesModalClasses.form.title}>
             Crear nueva persona
@@ -454,6 +455,7 @@ export const EstudianteModal = ({
         <form
           onSubmit={handleCompletarRegistro}
           className={estudiantesModalClasses.form.wrapper}
+          autoComplete="off"
         >
           <h3 className={estudiantesModalClasses.form.title}>
             2) Completar datos académicos
@@ -508,6 +510,7 @@ export const EstudianteModal = ({
           <form
             onSubmit={handleActualizarEstudiante}
             className={estudiantesModalClasses.form.wrapper}
+            autoComplete="off"
           >
             <DynamicForm
               schema={formEstudiante}

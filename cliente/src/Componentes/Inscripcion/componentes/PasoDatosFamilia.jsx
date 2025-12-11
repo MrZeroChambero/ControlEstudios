@@ -38,11 +38,48 @@ export const PasoDatosFamilia = ({
   tiposInscripcion,
   tipoSeleccionado,
   onTipoChange,
+  estadoSecciones = {},
 }) => {
   const handleChange = (evento) => {
     const { name, value } = evento.target;
     onChange(name, value);
   };
+
+  const obtenerEstado = (clave) => estadoSecciones[clave] || "neutral";
+
+  const claseSeccion = (clave) => {
+    const estado = obtenerEstado(clave);
+    const estadoClase =
+      inscripcionFormClasses.sectionState?.[estado] ||
+      inscripcionFormClasses.sectionState?.neutral ||
+      "";
+    return `${inscripcionFormClasses.section} ${estadoClase}`.trim();
+  };
+
+  const renderEncabezado = (texto, claveEstado) => {
+    const estado = obtenerEstado(claveEstado);
+    const etiquetas = {
+      success: "Completo",
+      error: "Revisar",
+      neutral: "Pendiente",
+    };
+    const pillClase =
+      inscripcionFormClasses.sectionStatusPill?.[estado] ||
+      inscripcionFormClasses.sectionStatusPill?.neutral ||
+      "";
+
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className={inscripcionFormClasses.sectionTitle}>{texto}</h3>
+        <span className={pillClase}>{etiquetas[estado] || "Pendiente"}</span>
+      </div>
+    );
+  };
+
+  const claseSelectTipo =
+    obtenerEstado("tipo") === "error"
+      ? inscripcionFormClasses.selectInvalid
+      : inscripcionFormClasses.select;
 
   return (
     <form
@@ -50,13 +87,8 @@ export const PasoDatosFamilia = ({
       className="space-y-6"
       autoComplete="off"
     >
-      <section
-        name="seccion-tipo-inscripcion"
-        className={inscripcionFormClasses.section}
-      >
-        <h3 className={inscripcionFormClasses.sectionTitle}>
-          Tipo de inscripción
-        </h3>
+      <section name="seccion-tipo-inscripcion" className={claseSeccion("tipo")}>
+        {renderEncabezado("Tipo de inscripción", "tipo")}
         <div
           name="grupo-tipo-inscripcion"
           className={inscripcionFormClasses.group}
@@ -72,7 +104,7 @@ export const PasoDatosFamilia = ({
             name="tipo_inscripcion"
             value={tipoSeleccionado}
             onChange={(e) => onTipoChange(e.target.value)}
-            className={inscripcionFormClasses.select}
+            className={claseSelectTipo}
           >
             {tiposInscripcion.map((opcion) => (
               <option key={opcion.valor} value={opcion.valor}>
@@ -80,16 +112,19 @@ export const PasoDatosFamilia = ({
               </option>
             ))}
           </select>
+          {obtenerEstado("tipo") === "error" ? (
+            <p className={inscripcionFormClasses.error}>
+              Debes seleccionar un tipo de inscripción válido.
+            </p>
+          ) : null}
         </div>
       </section>
 
       <section
         name="seccion-datos-generales-hogar"
-        className={inscripcionFormClasses.section}
+        className={claseSeccion("generales")}
       >
-        <h3 className={inscripcionFormClasses.sectionTitle}>
-          Datos generales del hogar
-        </h3>
+        {renderEncabezado("Datos generales del hogar", "generales")}
         <div
           name="contenedor-datos-generales"
           className={inscripcionFormClasses.inline}
@@ -131,11 +166,9 @@ export const PasoDatosFamilia = ({
 
       <section
         name="seccion-indicadores-socioeconomicos"
-        className={inscripcionFormClasses.section}
+        className={claseSeccion("indicadores")}
       >
-        <h3 className={inscripcionFormClasses.sectionTitle}>
-          Indicadores socioeconómicos
-        </h3>
+        {renderEncabezado("Indicadores socioeconómicos", "indicadores")}
         <div
           name="contenedor-indicadores-socioeconomicos"
           className="grid grid-cols-1 gap-4 md:grid-cols-3"

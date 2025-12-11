@@ -102,7 +102,7 @@ export const IndicadorFormModal = ({
       size="md"
       contentClassName="max-w-2xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-6">
+      <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
         <div className="grid gap-4">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">

@@ -33,7 +33,7 @@ export const ContenidosModal = ({
       size="md"
       bodyClassName="space-y-6"
     >
-      <form onSubmit={onSubmit} className="space-y-5">
+      <form onSubmit={onSubmit} className="space-y-5" autoComplete="off">
         <div className={contenidosFormClasses.group}>
           <label
             className={contenidosFormClasses.label}

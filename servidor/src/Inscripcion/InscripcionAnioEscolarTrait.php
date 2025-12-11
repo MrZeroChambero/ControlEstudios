@@ -6,10 +6,11 @@ use PDO;
 
 trait InscripcionAnioEscolarTrait
 {
-  private function validarAnioEscolar(PDO $conexion): array
+  private function validarAnioEscolar(PDO $conexion, ?array &$debugSql = null, ?array &$debugMensajes = null): array
   {
-    $anio = $this->obtenerAnioEscolarActivo($conexion);
+    $anio = $this->obtenerAnioEscolarActivo($conexion, $debugSql);
     if ($anio === null) {
+      $this->agregarMensajeDebug($debugMensajes, 'No existe un año escolar activo.');
       return [
         'valido' => false,
         'anio' => null,
@@ -18,8 +19,9 @@ trait InscripcionAnioEscolarTrait
       ];
     }
 
-    $faltantes = $this->obtenerAulasSinDocenteAsignado($conexion, $anio['id']);
+    $faltantes = $this->obtenerAulasSinDocenteAsignado($conexion, $anio['id'], $debugSql);
     if (!empty($faltantes)) {
+      $this->agregarMensajeDebug($debugMensajes, 'Se detectaron aulas activas sin docente asignado.');
       return [
         'valido' => false,
         'anio' => $anio,
@@ -28,6 +30,7 @@ trait InscripcionAnioEscolarTrait
       ];
     }
 
+    $this->agregarMensajeDebug($debugMensajes, 'Año escolar activo y todas las aulas activas cuentan con docente de aula.');
     return [
       'valido' => true,
       'anio' => $anio,
@@ -36,13 +39,15 @@ trait InscripcionAnioEscolarTrait
     ];
   }
 
-  private function obtenerAnioEscolarActivo(PDO $conexion): ?array
+  private function obtenerAnioEscolarActivo(PDO $conexion, ?array &$debugSql = null): ?array
   {
     $sql = 'SELECT id_anio_escolar, fecha_inicio, fecha_fin, limite_inscripcion
             FROM anios_escolares
             WHERE estado = "activo"
             ORDER BY fecha_inicio DESC
             LIMIT 1';
+
+    $this->agregarSqlDebug($debugSql, 'anio_escolar_activo', $sql);
 
     $sentencia = $conexion->query($sql);
     $fila = $sentencia !== false ? $sentencia->fetch(PDO::FETCH_ASSOC) : false;
@@ -58,7 +63,7 @@ trait InscripcionAnioEscolarTrait
     ];
   }
 
-  private function obtenerAulasSinDocenteAsignado(PDO $conexion, int $anioId): array
+  private function obtenerAulasSinDocenteAsignado(PDO $conexion, int $anioId, ?array &$debugSql = null): array
   {
     $sql = 'SELECT a.id_aula, gs.grado, gs.seccion
             FROM aula a
@@ -69,11 +74,11 @@ trait InscripcionAnioEscolarTrait
               WHERE tipo_docente = "aula"
               GROUP BY fk_aula
             ) doc ON doc.fk_aula = a.id_aula
-            LEFT JOIN personal per ON per.id_personal = doc.docente_id
-            LEFT JOIN personas p ON p.id_persona = per.fk_persona
             WHERE a.fk_anio_escolar = ?
               AND a.estado = "activo"
-              AND (doc.docente_id IS NULL OR per.estado <> "activo" OR p.estado <> "activo")';
+              AND doc.docente_id IS NULL';
+
+    $this->agregarSqlDebug($debugSql, 'aulas_sin_docente', $sql, ['anio_escolar_id' => $anioId]);
 
     $sentencia = $conexion->prepare($sql);
     $sentencia->execute([$anioId]);
