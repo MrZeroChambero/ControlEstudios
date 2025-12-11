@@ -11,6 +11,7 @@ import {
   componentesTableClasses,
   componentesStatusClasses,
   componentesIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 
 export const ComponentesAprendizajeTable = ({
@@ -41,12 +42,6 @@ export const ComponentesAprendizajeTable = ({
   });
 
   const columns = [
-    {
-      name: "ID Componente",
-      selector: (row) => row.id_componente,
-      sortable: true,
-      width: "150px",
-    },
     {
       name: "Área",
       selector: (row) => row.nombre_area || "Sin área",
@@ -186,6 +181,7 @@ export const ComponentesAprendizajeTable = ({
       striped
       highlightOnHover
       responsive
+      customStyles={dataTableBaseStyles}
     />
   );
 };

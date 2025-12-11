@@ -11,6 +11,7 @@ import {
   anioEscolarIconClasses,
   anioEscolarStatusClasses,
   anioEscolarTableClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 import {
   construirNombrePeriodo,
@@ -224,29 +225,6 @@ export const TablaAniosEscolares = ({
     </div>
   );
 
-  const estilosPersonalizados = {
-    headRow: {
-      style: {
-        backgroundColor: "#f8fafc",
-        fontSize: "13px",
-        fontWeight: 600,
-        textTransform: "uppercase",
-      },
-    },
-    headCells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-  };
-
   return (
     <DataTable
       columns={columnas}
@@ -262,7 +240,7 @@ export const TablaAniosEscolares = ({
           No hay años escolares registrados.
         </p>
       }
-      customStyles={estilosPersonalizados}
+      customStyles={dataTableBaseStyles}
       pagination
       paginationPerPage={10}
       paginationRowsPerPageOptions={[5, 10, 15, 20]}

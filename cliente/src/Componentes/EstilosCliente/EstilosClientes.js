@@ -49,7 +49,7 @@ const createFormTokens = (accentKey) => ({
   label: "text-sm font-semibold text-slate-700",
   input: fieldBase,
   inputValid:
-    "w-full rounded-2xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200",
+    "w-full rounded-2xl border border-blue-300 bg-blue-50 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
   inputInvalid:
     "w-full rounded-2xl border border-rose-400 bg-rose-50 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200",
   select: fieldBase,
@@ -72,7 +72,7 @@ const createFormTokens = (accentKey) => ({
 
 const baseStatusPills = {
   base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide",
-  active: "bg-emerald-100 text-emerald-700",
+  active: "bg-blue-100 text-blue-700",
   inactive: "bg-rose-100 text-rose-700",
   warning: "bg-amber-100 text-amber-700",
 };
@@ -88,7 +88,8 @@ const tableBase = {
   actionGroup: actionGroupBase,
   actionButton: actionButtonBase,
   viewButton: "text-blue-600 hover:text-blue-700",
-  editButton: "text-amber-500 hover:text-amber-600",
+  editButton:
+    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   deleteButton: "text-red-500 hover:text-red-600",
   toggleOn: "text-emerald-600 hover:text-emerald-700",
   toggleOff: "text-slate-400 hover:text-slate-500",
@@ -102,10 +103,42 @@ const temasTableBase = {
   stats: "text-sm text-slate-500",
   actionGroup: actionGroupBase,
   actionButton: smallActionButtonBase,
-  editButton: "text-amber-500 hover:text-amber-600",
+  editButton:
+    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   deleteButton: "text-red-500 hover:text-red-600",
   toggleOn: "text-emerald-600 hover:text-emerald-700",
   toggleOff: "text-slate-400 hover:text-slate-500",
+};
+
+export const dataTableBaseStyles = {
+  table: {
+    style: {
+      width: "100%",
+      tableLayout: "auto",
+    },
+  },
+  headRow: {
+    style: {
+      backgroundColor: "#f8fafc",
+      fontSize: "13px",
+      fontWeight: 600,
+      textTransform: "uppercase",
+    },
+  },
+  headCells: {
+    style: {
+      paddingLeft: "16px",
+      paddingRight: "16px",
+      whiteSpace: "normal",
+    },
+  },
+  cells: {
+    style: {
+      paddingLeft: "16px",
+      paddingRight: "16px",
+      whiteSpace: "normal",
+    },
+  },
 };
 
 const modalOverlayBase =
@@ -191,14 +224,14 @@ export const temaFormClasses = {
 };
 
 // Años escolares
-export const anioEscolarLayout = createLayoutTokens("indigo");
+export const anioEscolarLayout = createLayoutTokens("blue");
 
 export const anioEscolarFormClasses = {
-  ...createFormTokens("indigo"),
+  ...createFormTokens("blue"),
   momentosGrid: "mt-4 grid grid-cols-1 gap-4 md:grid-cols-3",
   momentoCard:
-    "flex flex-col gap-3 rounded-3xl border border-indigo-100 bg-indigo-50/60 p-4 shadow-sm",
-  momentoTitle: "text-sm font-semibold text-indigo-700",
+    "flex flex-col gap-3 rounded-3xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm",
+  momentoTitle: "text-sm font-semibold text-blue-700",
 };
 
 export const anioEscolarModalClasses = {
@@ -208,7 +241,7 @@ export const anioEscolarModalClasses = {
   header: "mb-6 flex flex-wrap items-center justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
   closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
   errorBox: "mb-6 rounded-3xl border border-rose-200 bg-rose-50/70 p-4",
   errorList: "space-y-2 text-sm text-rose-600",
   errorItem: "leading-snug",
@@ -224,8 +257,9 @@ export const anioEscolarTableClasses = {
   filterInput: filterInputBase,
   actionGroup: actionGroupBase,
   actionButton: actionButtonBase,
-  viewButton: "text-indigo-600 hover:text-indigo-700",
-  editButton: "text-amber-500 hover:text-amber-600",
+  viewButton: "text-blue-600 hover:text-blue-700",
+  editButton:
+    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   deleteButton: "text-rose-500 hover:text-rose-600",
   toggleOn: "text-emerald-600 hover:text-emerald-700",
   toggleOff: "text-slate-400 hover:text-slate-500",
@@ -236,19 +270,17 @@ export const anioEscolarStatusClasses = {
   activo: baseStatusPills.active,
   incompleto: baseStatusPills.warning,
   inactivo: baseStatusPills.inactive,
-  planificado: "bg-indigo-100 text-indigo-700",
+  planificado: "bg-blue-100 text-blue-700",
   desconocido: "bg-slate-200 text-slate-600",
 };
 
-export const anioEscolarIconClasses = {
-  base: "h-5 w-5",
-};
+export const anioEscolarIconClasses = contenidosIconClasses;
 
 // Aulas
-export const aulasLayout = createLayoutTokens("emerald");
+export const aulasLayout = createLayoutTokens("blue");
 
 export const aulasFormClasses = {
-  ...createFormTokens("emerald"),
+  ...createFormTokens("blue"),
   grid: "grid grid-cols-1 gap-4 md:grid-cols-3",
   section: "mt-6",
   sectionTitle: "text-base font-semibold text-slate-800",
@@ -258,7 +290,8 @@ export const aulasFormClasses = {
 export const aulasTableClasses = {
   ...tableBase,
   helperText: helperMessageBase,
-  editButton: "text-amber-500 hover:text-amber-600",
+  editButton:
+    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   toggleOn: "text-emerald-600 hover:text-emerald-700",
   toggleOff: "text-slate-400 hover:text-slate-500",
 };
@@ -269,22 +302,20 @@ export const aulasStatusClasses = {
   inactivo: baseStatusPills.inactive,
 };
 
-export const aulasIconClasses = {
-  base: "h-5 w-5",
-};
+export const aulasIconClasses = contenidosIconClasses;
 
 // Áreas de aprendizaje
-export const areasLayout = createLayoutTokens("emerald");
+export const areasLayout = createLayoutTokens("blue");
 
 export const areasFormClasses = {
-  ...createFormTokens("emerald"),
+  ...createFormTokens("blue"),
   infoGroup: "mt-4",
 };
 
 export const areasTableClasses = {
   ...tableBase,
   filterWrapper: tableBase.filterContainer,
-  viewButton: "text-emerald-600 hover:text-emerald-700",
+  viewButton: "text-blue-600 hover:text-blue-700",
 };
 
 export const areasBadgeClasses = {
@@ -333,9 +364,7 @@ export const componentesStatusClasses = {
   evalNo: "bg-amber-100 text-amber-700",
 };
 
-export const componentesIconClasses = {
-  base: "h-5 w-5",
-};
+export const componentesIconClasses = contenidosIconClasses;
 
 // Estudiantes
 export const estudiantesLayout = createLayoutTokens("blue");
@@ -350,7 +379,8 @@ export const estudiantesTableClasses = {
   ...tableBase,
   filterInputWide: `${filterInputBase} md:max-w-sm`,
   viewButton: "text-blue-600 hover:text-blue-700",
-  editButton: "text-blue-500 hover:text-blue-600",
+  editButton:
+    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   deleteButton: "text-rose-500 hover:text-rose-600",
   status: {
     base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
@@ -359,8 +389,67 @@ export const estudiantesTableClasses = {
     inactivo: "bg-rose-100 text-rose-700",
     desconocido: "bg-slate-200 text-slate-600",
   },
-  toggleOn: "text-blue-600 hover:text-blue-700",
-  toggleOff: "text-slate-400 hover:text-slate-500",
+  toggleOn: tableBase.toggleOn,
+  toggleOff: tableBase.toggleOff,
+};
+
+export const personasTableClasses = {
+  ...tableBase,
+  wrapper:
+    "overflow-x-auto rounded-3xl border border-slate-100 bg-white/90 backdrop-blur p-4 shadow-sm",
+  helperText: helperMessageBase,
+  filterContainer: "w-full max-w-sm",
+  filterInput: filterInputBase,
+  statusChip: {
+    base: baseStatusPills.base,
+    activo: baseStatusPills.active,
+    inactivo: baseStatusPills.inactive,
+    incompleto: baseStatusPills.warning,
+  },
+};
+
+export const usuariosTableClasses = {
+  ...tableBase,
+  wrapper:
+    "overflow-x-auto rounded-3xl border border-slate-100 bg-white/90 backdrop-blur p-4 shadow-sm",
+  helperText: helperMessageBase,
+  filterContainer: "w-full max-w-sm",
+  filterInput: filterInputBase,
+  statusChip: {
+    base: baseStatusPills.base,
+    activo: baseStatusPills.active,
+    inactivo: baseStatusPills.inactive,
+  },
+};
+
+const smallActionPrimary = `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`;
+const smallActionNeutral = `${neutralButtonBase} bg-slate-200 text-slate-600 hover:bg-slate-300 focus:ring-slate-200/60 px-3 py-1 text-xs`;
+
+export const parentescosTableClasses = {
+  ...tableBase,
+  card: "rounded-3xl border border-slate-100 bg-white/90 backdrop-blur p-5 shadow-sm",
+  title: "text-lg font-semibold text-slate-800",
+  helperText: helperMessageBase,
+  actionBar: "flex gap-2",
+  saveButton: smallActionPrimary,
+  cancelButton: smallActionNeutral,
+  inlineEditSelect:
+    "w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
+};
+
+export const seleccionEntidadClasses = {
+  container: "space-y-3",
+  title: "text-lg font-semibold text-slate-800",
+  searchWrapper: "relative",
+  searchInput: `${filterInputBase} bg-white/95`,
+  list: "max-h-64 overflow-y-auto rounded-3xl border border-slate-200 bg-white/90 backdrop-blur divide-y",
+  listItem:
+    "flex cursor-pointer items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50",
+  listItemActive: "bg-blue-50/70",
+  itemName: "text-sm font-semibold text-slate-800",
+  itemMeta: "text-xs text-slate-500",
+  activeTag: "text-xs font-semibold uppercase tracking-wide text-blue-600",
+  empty: helperMessageBase,
 };
 
 export const estudiantesFichaClasses = {
@@ -545,7 +634,7 @@ export const personalFormClasses = {
 };
 
 export const personalTableClasses = {
-  ...tableBase,
+  ...personasTableClasses,
   viewButton: "text-blue-600 hover:text-blue-700",
   rolePill:
     "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
@@ -641,8 +730,7 @@ export const representantesLayout = createLayoutTokens("blue");
 export const representantesFormClasses = createFormTokens("blue");
 
 export const representantesTableClasses = {
-  ...tableBase,
-  viewButton: "text-blue-600 hover:text-blue-700",
+  ...personasTableClasses,
   relationshipPill:
     "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
 };

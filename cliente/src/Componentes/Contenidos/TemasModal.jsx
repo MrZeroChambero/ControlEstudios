@@ -12,6 +12,7 @@ import {
   temasTableClasses,
   contenidosStatusClasses,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
@@ -133,29 +134,6 @@ export const TemasModal = ({
     </div>
   );
 
-  const estilosPersonalizados = {
-    headRow: {
-      style: {
-        backgroundColor: "#f8fafc",
-        fontSize: "12px",
-        fontWeight: 600,
-        textTransform: "uppercase",
-      },
-    },
-    headCells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-  };
-
   const tituloContenido = contenido?.nombre_contenido ?? "Contenido sin nombre";
   const descripcionArea = contenido?.nombre_area
     ? `${contenido.nombre_area}`
@@ -238,7 +216,7 @@ export const TemasModal = ({
         <DataTable
           columns={columnas}
           data={temasFiltrados}
-          customStyles={estilosPersonalizados}
+          customStyles={dataTableBaseStyles}
           pagination
           paginationComponentOptions={{
             rowsPerPageText: "Temas por página:",

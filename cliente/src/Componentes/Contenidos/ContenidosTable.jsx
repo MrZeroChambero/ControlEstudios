@@ -12,6 +12,7 @@ import {
   contenidosTableClasses,
   contenidosStatusClasses,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 
 export const ContenidosTable = ({
@@ -167,29 +168,6 @@ export const ContenidosTable = ({
     </div>
   );
 
-  const estilosPersonalizados = {
-    headRow: {
-      style: {
-        backgroundColor: "#f8fafc",
-        fontSize: "13px",
-        fontWeight: 600,
-        textTransform: "uppercase",
-      },
-    },
-    headCells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: "16px",
-        paddingRight: "16px",
-      },
-    },
-  };
-
   return (
     <DataTable
       columns={columnas}
@@ -205,7 +183,7 @@ export const ContenidosTable = ({
           No hay contenidos registrados.
         </p>
       }
-      customStyles={estilosPersonalizados}
+      customStyles={dataTableBaseStyles}
       pagination
       paginationPerPage={10}
       paginationRowsPerPageOptions={[5, 10, 15, 20]}

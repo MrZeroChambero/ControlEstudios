@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import DataTable from "react-data-table-component";
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import {
+  personasTableClasses,
+  contenidosIconClasses,
+  dataTableBaseStyles,
+} from "../EstilosCliente/EstilosClientes";
 
 export const PersonaTable = ({
   personas,
@@ -21,8 +26,11 @@ export const PersonaTable = ({
 
   const filteredItems = personas.filter(
     (item) =>
-      getNombreCompleto(item).toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.cedula && item.cedula.toLowerCase().includes(filterText.toLowerCase()))
+      getNombreCompleto(item)
+        .toLowerCase()
+        .includes(filterText.toLowerCase()) ||
+      (item.cedula &&
+        item.cedula.toLowerCase().includes(filterText.toLowerCase()))
   );
 
   const columns = [
@@ -51,97 +59,95 @@ export const PersonaTable = ({
       name: "Tipo",
       selector: (row) => row.tipo_persona || "No asignado",
       sortable: true,
-      format: (row) => <span className="capitalize">{row.tipo_persona || "No asignado"}</span>,
+      format: (row) => (
+        <span className="capitalize">{row.tipo_persona || "No asignado"}</span>
+      ),
     },
     {
       name: "Estado",
       cell: (row) => (
         <span
-          className={`px-2 py-1 text-xs font-bold rounded-full ${
+          className={`${personasTableClasses.statusChip.base} ${
             row.estado === "activo"
-              ? "bg-green-200 text-green-800"
-              : "bg-red-200 text-red-800"
+              ? personasTableClasses.statusChip.activo
+              : personasTableClasses.statusChip.inactivo
           }`}
         >
-          {row.estado}
+          {row.estado || "—"}
         </span>
       ),
       sortable: true,
       selector: (row) => row.estado,
-      width: "100px",
+      width: "110px",
     },
     {
       name: "Acciones",
       cell: (row) => (
-        <div className="text-center">
+        <div className={personasTableClasses.actionGroup}>
           <button
             onClick={() => cambioEstados(row)}
-            className={`text-2xl mr-2 ${
+            className={`${personasTableClasses.actionButton} ${
               row.estado === "activo"
-                ? "text-green-500 hover:text-green-600"
-                : "text-gray-400 hover:text-gray-500"
+                ? personasTableClasses.toggleOn
+                : personasTableClasses.toggleOff
             }`}
             title={row.estado === "activo" ? "Desactivar" : "Activar"}
           >
-            {row.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
           </button>
           <button
             onClick={() => onEdit(row)}
-            className="text-yellow-500 hover:text-yellow-700 mr-4"
+            className={`${personasTableClasses.actionButton} ${personasTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit />
+            <FaEdit className={contenidosIconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_persona)}
-            className="text-red-500 hover:text-red-700"
+            className={`${personasTableClasses.actionButton} ${personasTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash />
+            <FaTrash className={contenidosIconClasses.base} />
           </button>
         </div>
       ),
+      width: "220px",
     },
   ];
 
   const subHeaderComponent = (
-    <input
-      type="text"
-      placeholder="Buscar..."
-      className="w-1/4 p-2 border border-gray-300 rounded-md"
-      onChange={(e) => setFilterText(e.target.value)}
-      value={filterText}
-    />
+    <div className={personasTableClasses.filterContainer}>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o cédula..."
+        className={personasTableClasses.filterInput}
+        onChange={(e) => setFilterText(e.target.value)}
+        value={filterText}
+      />
+    </div>
   );
 
-  const customStyles = {
-    table: {
-      style: {
-        width: '100%',
-        tableLayout: 'auto',
-      },
-    },
-    headCells: {
-      style: {
-        whiteSpace: 'normal',
-      },
-    },
-    cells: {
-      style: {
-        whiteSpace: 'normal',
-      },
-    },
-  };
-
   return (
-    <div className="overflow-x-auto">
+    <div className={personasTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filteredItems}
-        customStyles={customStyles}
+        customStyles={dataTableBaseStyles}
         progressPending={isLoading}
-        progressComponent={<p className="text-center text-gray-500">Cargando personas...</p>}
-        noDataComponent={<p className="text-center text-gray-500">No hay personas para mostrar.</p>}
+        progressComponent={
+          <p className={personasTableClasses.helperText}>
+            Cargando personas...
+          </p>
+        }
+        noDataComponent={
+          <p className={personasTableClasses.helperText}>
+            No hay personas para mostrar.
+          </p>
+        }
         pagination
         paginationComponentOptions={{
           rowsPerPageText: "Filas por página:",
@@ -155,4 +161,3 @@ export const PersonaTable = ({
     </div>
   );
 };
-

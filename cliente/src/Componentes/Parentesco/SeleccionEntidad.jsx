@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { seleccionEntidadClasses } from "../EstilosCliente/EstilosClientes";
 
 const SeleccionEntidad = ({
   tipo, // 'estudiante' | 'representante'
@@ -19,20 +20,20 @@ const SeleccionEntidad = ({
   }, [items, busqueda]);
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3 text-blue-600">
+    <div className={seleccionEntidadClasses.container}>
+      <h3 className={seleccionEntidadClasses.title}>
         Seleccionar {tipo === "estudiante" ? "Estudiante" : "Representante"}
       </h3>
-      <div className="relative mb-3">
+      <div className={seleccionEntidadClasses.searchWrapper}>
         <input
           type="text"
           placeholder={`Buscar ${tipo} (nombre, cédula)`}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={seleccionEntidadClasses.searchInput}
         />
       </div>
-      <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg divide-y bg-white">
+      <div className={seleccionEntidadClasses.list}>
         {filtrados.map((item) => {
           const esSeleccionado =
             tipo === "estudiante"
@@ -46,20 +47,20 @@ const SeleccionEntidad = ({
                   : item.id_representante
               }
               onClick={() => onSelect(item)}
-              className={`p-3 cursor-pointer flex justify-between items-center ${
-                esSeleccionado ? "bg-blue-50" : "hover:bg-gray-50"
+              className={`${seleccionEntidadClasses.listItem} ${
+                esSeleccionado ? seleccionEntidadClasses.listItemActive : ""
               }`}
             >
               <div>
-                <p className="font-semibold text-sm">
+                <p className={seleccionEntidadClasses.itemName}>
                   {item.primer_nombre} {item.primer_apellido}
                 </p>
-                <p className="text-xs text-gray-600">
+                <p className={seleccionEntidadClasses.itemMeta}>
                   Cédula: {item.cedula || "-"}
                 </p>
               </div>
               {esSeleccionado && (
-                <span className="text-blue-600 text-xs font-bold">
+                <span className={seleccionEntidadClasses.activeTag}>
                   {etiquetaSeleccion}
                 </span>
               )}
@@ -67,9 +68,7 @@ const SeleccionEntidad = ({
           );
         })}
         {filtrados.length === 0 && (
-          <p className="text-center text-gray-400 text-sm py-6">
-            Sin resultados
-          </p>
+          <p className={seleccionEntidadClasses.empty}>Sin resultados</p>
         )}
       </div>
     </div>

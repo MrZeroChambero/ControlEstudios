@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaPlus } from "react-icons/fa";
-import { MenuPrincipal } from "../Dashboard/MenuPrincipal";
 import { PersonaTable } from "./PersonaTable";
 import { PersonaModal } from "./PersonaModal";
+import { contenidosLayout } from "../EstilosCliente/EstilosClientes";
 
 const initialFormData = {
   primer_nombre: "",
@@ -213,17 +213,17 @@ export const Personas = () => {
 
   return (
     <>
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Gestión de Personas</h2>
+      <div className={contenidosLayout.container}>
+        <div className={contenidosLayout.header}>
+          <h2 className={contenidosLayout.title}>Gestión de Personas</h2>
           <button
             onClick={() => openModal()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"
+            className={contenidosLayout.addButton}
           >
-            <FaPlus className="mr-2" /> Agregar Persona
+            <FaPlus className="h-4 w-4" /> <span>Agregar Persona</span>
           </button>
         </div>
-        <p className="text-gray-600 mb-6">
+        <p className={contenidosLayout.description}>
           Administra los registros de todas las personas en el sistema.
         </p>
 

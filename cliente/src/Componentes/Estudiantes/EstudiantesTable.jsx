@@ -10,6 +10,7 @@ import {
 import {
   estudiantesTableClasses,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 import { calcularEdad } from "../../utilidades/formatoFechas";
 
@@ -46,12 +47,6 @@ export const EstudiantesTable = ({
   };
 
   const columns = [
-    {
-      name: "ID",
-      selector: (row) => row.id_estudiante ?? row.id,
-      sortable: true,
-      width: "80px",
-    },
     {
       name: "Nombre Completo",
       selector: (row) =>
@@ -203,6 +198,7 @@ export const EstudiantesTable = ({
         striped
         highlightOnHover
         responsive
+        customStyles={dataTableBaseStyles}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import {
   areasTableClasses,
   areasBadgeClasses,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 
 export const AreasAprendizajeTable = ({
@@ -38,11 +39,6 @@ export const AreasAprendizajeTable = ({
   });
 
   const columns = [
-    {
-      name: "ID",
-      selector: (row) => row.id_area_aprendizaje,
-      sortable: true,
-    },
     {
       name: "Nombre del Área",
       selector: (row) => row.nombre_area,
@@ -131,30 +127,11 @@ export const AreasAprendizajeTable = ({
     </div>
   );
 
-  const customStyles = {
-    table: {
-      style: {
-        width: "100%",
-        tableLayout: "auto",
-      },
-    },
-    headCells: {
-      style: {
-        whiteSpace: "normal",
-      },
-    },
-    cells: {
-      style: {
-        whiteSpace: "normal",
-      },
-    },
-  };
-
   return (
     <div className={areasTableClasses.wrapper}>
       <DataTable
         columns={columns}
-        customStyles={customStyles}
+        customStyles={dataTableBaseStyles}
         data={filteredItems}
         progressPending={isLoading}
         progressComponent={

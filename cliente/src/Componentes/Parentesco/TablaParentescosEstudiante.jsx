@@ -1,6 +1,11 @@
 import React, { useMemo } from "react";
 import DataTable from "react-data-table-component";
 import { FaEdit, FaTrash, FaSync } from "react-icons/fa";
+import {
+  parentescosTableClasses,
+  contenidosIconClasses,
+  dataTableBaseStyles,
+} from "../EstilosCliente/EstilosClientes";
 // Recibe tiposPermitidos desde el padre (Parentesco.jsx)
 
 const TablaParentescosEstudiante = ({
@@ -73,7 +78,7 @@ const TablaParentescosEstudiante = ({
             <select
               value={tipoEdicion}
               onChange={(e) => setTipoEdicion(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
+              className={parentescosTableClasses.inlineEditSelect}
             >
               {tiposDisponibles.map((t) => (
                 <option key={t} value={t}>
@@ -92,35 +97,35 @@ const TablaParentescosEstudiante = ({
             editando?.id === row.id_parentesco &&
             editando?.contexto === "estudiante";
           return enEdicion ? (
-            <div className="flex gap-2">
+            <div className={parentescosTableClasses.actionBar}>
               <button
                 onClick={guardarEdicion}
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded flex items-center gap-1"
+                className={parentescosTableClasses.saveButton}
               >
-                <FaSync /> Guardar
+                <FaSync className={contenidosIconClasses.base} /> Guardar
               </button>
               <button
                 onClick={cancelarEdicion}
-                className="text-xs bg-gray-400 hover:bg-gray-500 text-white px-2 py-1 rounded"
+                className={parentescosTableClasses.cancelButton}
               >
                 Cancelar
               </button>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <div className={parentescosTableClasses.actionGroup}>
               <button
                 onClick={() => iniciarEdicion(row, "estudiante")}
-                className="text-blue-600 hover:text-blue-800"
+                className={`${parentescosTableClasses.actionButton} ${parentescosTableClasses.editButton}`}
                 title="Editar"
               >
-                <FaEdit />
+                <FaEdit className={contenidosIconClasses.base} />
               </button>
               <button
                 onClick={() => quitarParentesco(row, "estudiante")}
-                className="text-red-600 hover:text-red-800"
+                className={`${parentescosTableClasses.actionButton} ${parentescosTableClasses.deleteButton}`}
                 title="Eliminar"
               >
-                <FaTrash />
+                <FaTrash className={contenidosIconClasses.base} />
               </button>
             </div>
           );
@@ -140,9 +145,10 @@ const TablaParentescosEstudiante = ({
     data,
     tiposPermitidos,
   ]);
+
   return (
-    <div className="bg-white/80 backdrop-blur rounded-lg border border-gray-200 p-4 shadow-sm">
-      <h3 className="text-lg font-bold mb-4 text-blue-600">
+    <div className={parentescosTableClasses.card}>
+      <h3 className={parentescosTableClasses.title}>
         Parentescos del Estudiante
       </h3>
       {estudianteSeleccionado ? (
@@ -150,8 +156,11 @@ const TablaParentescosEstudiante = ({
           data={data}
           columns={columns}
           dense
+          customStyles={dataTableBaseStyles}
           noDataComponent={
-            <span className="text-gray-400 text-sm">Sin parentescos aún.</span>
+            <span className={parentescosTableClasses.helperText}>
+              Sin parentescos aún.
+            </span>
           }
           pagination
           paginationPerPage={10}
@@ -161,8 +170,8 @@ const TablaParentescosEstudiante = ({
           }}
         />
       ) : (
-        <p className="text-gray-500 text-sm">
-          Seleccione un estudiante para ver / agregar parentescos.
+        <p className={parentescosTableClasses.helperText}>
+          Seleccione un estudiante para ver o agregar parentescos.
         </p>
       )}
     </div>

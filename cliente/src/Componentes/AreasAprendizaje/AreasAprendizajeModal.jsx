@@ -26,13 +26,6 @@ export const AreasAprendizajeModal = ({
 
   const columnasComponentes = [
     {
-      name: "ID",
-      selector: (row) =>
-        row.id_componente_aprendizaje ?? row.id_componente ?? "-",
-      sortable: true,
-      width: "80px",
-    },
-    {
       name: "Nombre",
       selector: (row) => row.nombre_componente ?? "Sin nombre",
       sortable: true,

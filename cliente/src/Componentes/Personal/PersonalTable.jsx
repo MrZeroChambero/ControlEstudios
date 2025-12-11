@@ -12,6 +12,7 @@ import {
   personalBadgeClasses,
   estadoGenericoClases,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 
 export const PersonalTable = ({
@@ -61,12 +62,6 @@ export const PersonalTable = ({
   };
 
   const columns = [
-    {
-      name: "ID",
-      selector: (row) => row.id_personal,
-      sortable: true,
-      width: "80px",
-    },
     {
       name: "Nombre Completo",
       selector: (row) =>
@@ -193,31 +188,12 @@ export const PersonalTable = ({
     </div>
   );
 
-  const customStyles = {
-    table: {
-      style: {
-        width: "100%",
-        tableLayout: "auto",
-      },
-    },
-    headCells: {
-      style: {
-        whiteSpace: "normal",
-      },
-    },
-    cells: {
-      style: {
-        whiteSpace: "normal",
-      },
-    },
-  };
-
   return (
     <div className={personalTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filteredItems}
-        customStyles={customStyles}
+        customStyles={dataTableBaseStyles}
         progressPending={isLoading}
         progressComponent={
           <p className={personalTableClasses.helperText}>

@@ -10,6 +10,7 @@ import {
 import {
   representantesTableClasses,
   contenidosIconClasses,
+  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
 
 export const RepresentanteTable = ({
@@ -39,26 +40,23 @@ export const RepresentanteTable = ({
   }, [representantes, filterText]);
 
   const resolveEstadoBadge = (estado) => {
-    const base =
-      "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide";
-    switch (estado) {
-      case "activo":
-        return `${base} bg-emerald-100 text-emerald-700`;
-      case "incompleto":
-        return `${base} bg-amber-100 text-amber-700`;
-      default:
-        return `${base} bg-rose-100 text-rose-700`;
+    const normalized = (estado || "").toString().toLowerCase();
+    const { statusChip } = representantesTableClasses;
+    if (!statusChip)
+      return "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-slate-200 text-slate-600";
+    if (normalized === "activo") {
+      return `${statusChip.base} ${statusChip.activo || statusChip.active}`;
     }
+    if (normalized === "incompleto") {
+      return `${statusChip.base} ${
+        statusChip.incompleto || statusChip.warning
+      }`;
+    }
+    return `${statusChip.base} ${statusChip.inactivo || statusChip.inactive}`;
   };
 
   const columns = useMemo(
     () => [
-      {
-        name: "ID",
-        selector: (row) => row.id_representante,
-        sortable: true,
-        width: "80px",
-      },
       {
         name: "Nombre Completo",
         selector: (row) =>
@@ -167,7 +165,7 @@ export const RepresentanteTable = ({
   );
 
   return (
-    <div className="overflow-x-auto">
+    <div className={representantesTableClasses.wrapper}>
       <DataTable
         columns={columns}
         data={filtered}
@@ -189,6 +187,7 @@ export const RepresentanteTable = ({
         }}
         subHeader
         subHeaderComponent={subHeaderComponent}
+        customStyles={dataTableBaseStyles}
         striped
         highlightOnHover
         responsive
