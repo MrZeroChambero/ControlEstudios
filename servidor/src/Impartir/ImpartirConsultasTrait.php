@@ -22,6 +22,25 @@ trait ImpartirConsultasTrait
     return $fila ?: null;
   }
 
+  protected function obtenerAniosGestion(PDO $conexion): array
+  {
+    $sql = 'SELECT id_anio_escolar, estado, fecha_inicio, fecha_fin
+            FROM anios_escolares
+            ORDER BY fecha_inicio DESC';
+
+    $sentencia = $conexion->query($sql);
+    $filas = $sentencia !== false ? $sentencia->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    return array_map(function (array $fila): array {
+      return [
+        'id_anio_escolar' => (int) $fila['id_anio_escolar'],
+        'estado' => $fila['estado'],
+        'fecha_inicio' => $fila['fecha_inicio'],
+        'fecha_fin' => $fila['fecha_fin'],
+      ];
+    }, $filas);
+  }
+
   protected function obtenerAulasPorAnio(PDO $conexion, int $anioId): array
   {
     $sql = "SELECT a.id_aula,
@@ -206,6 +225,8 @@ trait ImpartirConsultasTrait
         'nombre_componente' => $fila['nombre_componente'],
         'especialista' => $fila['especialista'],
         'estado' => $fila['estado_componente'],
+        'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
+        'es_docente_aula' => $this->esEspecialidadDocenteAula($fila['especialista'] ?? null),
       ];
     }, $registros);
   }
@@ -245,11 +266,45 @@ trait ImpartirConsultasTrait
           'nombre' => $fila['nombre_componente'],
           'especialista' => $fila['especialista'],
           'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
+          'es_docente_aula' => $this->esEspecialidadDocenteAula($fila['especialista'] ?? null),
         ];
       }
     }
 
     return array_values($agrupado);
+  }
+
+  protected function obtenerComponentesDocenteAula(PDO $conexion): array
+  {
+    $sql = 'SELECT id_componente,
+                   fk_area,
+                   nombre_componente,
+                   especialista,
+                   estado_componente
+            FROM componentes_aprendizaje
+            WHERE estado_componente = "activo"';
+
+    $sentencia = $conexion->query($sql);
+    $filas = $sentencia !== false ? $sentencia->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    $componentes = [];
+    foreach ($filas as $fila) {
+      if (!$this->esEspecialidadDocenteAula($fila['especialista'] ?? null)) {
+        continue;
+      }
+
+      $componentes[] = [
+        'id_componente' => (int) $fila['id_componente'],
+        'fk_area' => (int) $fila['fk_area'],
+        'nombre_componente' => $fila['nombre_componente'],
+        'especialista' => $fila['especialista'],
+        'estado' => $fila['estado_componente'],
+        'requiere_especialista' => false,
+        'es_docente_aula' => true,
+      ];
+    }
+
+    return $componentes;
   }
 
   public function obtenerDocentesDisponibles(PDO $conexion, int $anioId): array
@@ -504,10 +559,37 @@ trait ImpartirConsultasTrait
     ];
   }
 
-  public function obtenerResumenGestion(PDO $conexion): array
+  public function obtenerResumenGestion(PDO $conexion, ?int $anioSeleccionado = null): array
   {
     $areas = $this->obtenerAreasConComponentes($conexion);
-    $anio = $this->obtenerAnioActivoOIncompleto($conexion);
+    $aniosDisponibles = $this->obtenerAniosGestion($conexion);
+
+    $anio = null;
+    if ($anioSeleccionado !== null) {
+      foreach ($aniosDisponibles as $registro) {
+        if ((int) $registro['id_anio_escolar'] === $anioSeleccionado) {
+          $anio = $registro;
+          break;
+        }
+      }
+    }
+
+    if ($anio === null) {
+      $anio = $this->obtenerAnioActivoOIncompleto($conexion);
+    }
+
+    if ($anio === null && !empty($aniosDisponibles)) {
+      $anio = $aniosDisponibles[0];
+    }
+
+    $aniosNormalizados = array_map(function (array $fila): array {
+      return [
+        'id' => (int) $fila['id_anio_escolar'],
+        'estado' => $fila['estado'],
+        'fecha_inicio' => $fila['fecha_inicio'],
+        'fecha_fin' => $fila['fecha_fin'],
+      ];
+    }, $aniosDisponibles);
 
     if ($anio === null) {
       return [
@@ -517,13 +599,16 @@ trait ImpartirConsultasTrait
         'aulas' => [],
         'docentes' => [],
         'especialistas' => $this->obtenerEspecialistasDisponibles($conexion),
+        'anios' => $aniosNormalizados,
       ];
     }
 
     $anioId = (int) $anio['id_anio_escolar'];
     $momentos = $this->obtenerMomentosPorAnio($conexion, $anioId);
     $aulas = $this->obtenerAulasPorAnio($conexion, $anioId);
+    $resumen = $this->construirResumenGestion($conexion, $anio, $momentos, $aulas, $areas);
+    $resumen['anios'] = $aniosNormalizados;
 
-    return $this->construirResumenGestion($conexion, $anio, $momentos, $aulas, $areas);
+    return $resumen;
   }
 }

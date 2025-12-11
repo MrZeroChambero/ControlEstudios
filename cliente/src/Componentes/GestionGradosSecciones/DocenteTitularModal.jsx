@@ -31,14 +31,25 @@ export const DocenteTitularModal = ({
 }) => {
   const [formState, setFormState] = useState({
     id_personal: "",
-    componentes: new Set(),
   });
   const [errores, setErrores] = useState({});
   const componentes = useMemo(() => buildComponentList(areas), [areas]);
+  const componentesDocenteAula = useMemo(
+    () => componentes.filter((item) => item.es_docente_aula),
+    [componentes]
+  );
+  const componentesDocenteAulaIds = useMemo(() => {
+    const ids = componentesDocenteAula.map((item) => item.id);
+    return Array.from(new Set(ids));
+  }, [componentesDocenteAula]);
+  const componentesAsignadosDocente = useMemo(() => {
+    const lista = aula?.componentes_docente ?? [];
+    return new Set(lista.map((id) => Number(id)));
+  }, [aula]);
 
   useEffect(() => {
     if (!isOpen) {
-      setFormState({ id_personal: "", componentes: new Set() });
+      setFormState({ id_personal: "" });
       setErrores({});
       return;
     }
@@ -47,12 +58,7 @@ export const DocenteTitularModal = ({
       ? String(aula.docente.id_personal)
       : "";
 
-    const componentesAsignados = new Set(
-      aula?.componentes_docente?.map((componenteId) => Number(componenteId)) ??
-        []
-    );
-
-    setFormState({ id_personal: idDocente, componentes: componentesAsignados });
+    setFormState({ id_personal: idDocente });
     setErrores({});
   }, [aula, isOpen]);
 
@@ -67,18 +73,6 @@ export const DocenteTitularModal = ({
     }));
   };
 
-  const alternarComponente = (componenteId) => {
-    setFormState((prev) => {
-      const nuevo = new Set(prev.componentes);
-      if (nuevo.has(componenteId)) {
-        nuevo.delete(componenteId);
-      } else {
-        nuevo.add(componenteId);
-      }
-      return { ...prev, componentes: nuevo };
-    });
-  };
-
   const manejarSubmit = async (evento) => {
     evento.preventDefault();
     setErrores({});
@@ -88,7 +82,7 @@ export const DocenteTitularModal = ({
         id_personal: formState.id_personal
           ? parseInt(formState.id_personal, 10)
           : null,
-        componentes: Array.from(formState.componentes),
+        componentes: componentesDocenteAulaIds.map((id) => Number(id)),
       });
       onClose();
     } catch (error) {
@@ -122,8 +116,8 @@ export const DocenteTitularModal = ({
                 : "Asignar docente titular"}
             </h2>
             <p className={contenidosFormClasses.helper}>
-              Seleccione el docente titular y los componentes que impartira en
-              esta aula.
+              Selecciona el docente titular. Los componentes marcados como
+              "Docente de aula" se asignan automaticamente al guardar.
             </p>
           </div>
           <button
@@ -178,37 +172,51 @@ export const DocenteTitularModal = ({
           </div>
 
           <div className="rounded-3xl border border-slate-100 bg-slate-50/60 p-4">
-            <p className="mb-3 text-sm font-semibold text-slate-700">
-              Componentes asignados al docente
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {componentes.map((componente) => {
-                const marcado = formState.componentes.has(componente.id);
-                return (
-                  <label
-                    key={`${componente.id}-${componente.areaId}`}
-                    className="flex items-start gap-3 rounded-2xl border border-transparent bg-white p-3 shadow-sm transition hover:border-blue-200"
-                  >
-                    <input
-                      type="checkbox"
-                      className="mt-1"
-                      checked={marcado}
-                      onChange={() => alternarComponente(componente.id)}
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-slate-800">
-                        {componente.nombre}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {componente.areaNombre}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-slate-700">
+                Componentes a cargo del docente de aula
+              </p>
+              <p className="text-xs text-slate-500">
+                Se asignan automaticamente segun la especialidad configurada.
+              </p>
             </div>
+
+            {componentesDocenteAula.length ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-1 md:grid-cols-2">
+                {componentesDocenteAula.map((componente) => (
+                  <div
+                    key={`${componente.id}-${componente.areaId}`}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  >
+                    <span className="block text-sm font-semibold text-slate-800 break-words">
+                      {componente.nombre}
+                    </span>
+                    <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+                      {componente.areaNombre}
+                    </span>
+                    <span
+                      className={`mt-3 inline-flex w-max items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                        componentesAsignadosDocente.has(Number(componente.id))
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {componentesAsignadosDocente.has(Number(componente.id))
+                        ? "Asignado"
+                        : "Se asignara al guardar"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={`${helperTextBase} mt-3 text-amber-600`}>
+                No hay componentes configurados con especialidad de docente de
+                aula. Revise el catalogo de componentes antes de continuar.
+              </p>
+            )}
+
             {errores?.componentes && (
-              <p className={`${helperTextBase} mt-3`}>
+              <p className={`${helperTextBase} mt-3 text-rose-600`}>
                 {errores.componentes.join(" ")}
               </p>
             )}
@@ -232,7 +240,9 @@ export const DocenteTitularModal = ({
           <button
             type="submit"
             className={contenidosFormClasses.primaryButton}
-            disabled={!docenteSeleccionado || formState.componentes.size === 0}
+            disabled={
+              !docenteSeleccionado || componentesDocenteAulaIds.length === 0
+            }
           >
             Guardar cambios
           </button>
@@ -267,6 +277,8 @@ DocenteTitularModal.propTypes = {
         PropTypes.shape({
           id: PropTypes.number.isRequired,
           nombre: PropTypes.string.isRequired,
+          requiere_especialista: PropTypes.bool,
+          es_docente_aula: PropTypes.bool,
         })
       ),
     })

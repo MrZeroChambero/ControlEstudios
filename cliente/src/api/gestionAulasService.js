@@ -13,9 +13,18 @@ const buildError = (error) => {
   return err;
 };
 
-export const obtenerGestionDocentes = async () => {
+export const obtenerGestionDocentes = async (anioId) => {
   try {
-    const { data } = await axios.get(`${BASE_URL}/aulas/gestion-docentes`, {
+    const parametros = new URLSearchParams();
+    if (anioId !== undefined && anioId !== null && anioId !== "") {
+      parametros.append("anio_id", anioId);
+    }
+
+    const endpoint = parametros.toString()
+      ? `${BASE_URL}/aulas/gestion-docentes?${parametros.toString()}`
+      : `${BASE_URL}/aulas/gestion-docentes`;
+
+    const { data } = await axios.get(endpoint, {
       withCredentials: true,
     });
     return data?.datos;

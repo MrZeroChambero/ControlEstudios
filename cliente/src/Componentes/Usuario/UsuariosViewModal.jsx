@@ -1,4 +1,8 @@
 import React from "react";
+import {
+  formatearFechaCorta,
+  formatearFechaHoraCorta,
+} from "../../utilidades/formatoFechas";
 
 export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
   if (!isOpen || !usuario) return null;
@@ -8,6 +12,11 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
     value: "text-gray-900 text-lg",
     sectionTitle: "text-xl font-bold mb-4 text-blue-600 border-b pb-2",
   };
+
+  const ultimoLogin = formatearFechaHoraCorta(usuario.ultimo_login);
+  const fechaBloqueo = formatearFechaHoraCorta(usuario.fecha_bloqueo);
+  const fechaNacimiento = formatearFechaCorta(usuario.fecha_nacimiento);
+  const fechaContratacion = formatearFechaCorta(usuario.fecha_contratacion);
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-start z-50 overflow-y-auto py-10">
@@ -44,11 +53,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
             </div>
             <div>
               <label className={formStyles.label}>Último Login</label>
-              <p className={formStyles.value}>
-                {usuario.ultimo_login
-                  ? new Date(usuario.ultimo_login).toLocaleString()
-                  : "Nunca"}
-              </p>
+              <p className={formStyles.value}>{ultimoLogin || "Nunca"}</p>
             </div>
             <div>
               <label className={formStyles.label}>Intentos Fallidos</label>
@@ -59,9 +64,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
             <div>
               <label className={formStyles.label}>Fecha de Bloqueo</label>
               <p className={formStyles.value}>
-                {usuario.fecha_bloqueo
-                  ? new Date(usuario.fecha_bloqueo).toLocaleString()
-                  : "No bloqueado"}
+                {fechaBloqueo || "No bloqueado"}
               </p>
             </div>
           </div>
@@ -84,9 +87,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
             </div>
             <div>
               <label className={formStyles.label}>Fecha de Nacimiento</label>
-              <p className={formStyles.value}>
-                {new Date(usuario.fecha_nacimiento).toLocaleDateString()}
-              </p>
+              <p className={formStyles.value}>{fechaNacimiento || "-"}</p>
             </div>
             <div>
               <label className={formStyles.label}>Género</label>
@@ -167,9 +168,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
             <div>
               <label className={formStyles.label}>Fecha de Contratación</label>
               <p className={formStyles.value}>
-                {usuario.fecha_contratacion
-                  ? new Date(usuario.fecha_contratacion).toLocaleDateString()
-                  : "No especificado"}
+                {fechaContratacion || "No especificado"}
               </p>
             </div>
             <div>

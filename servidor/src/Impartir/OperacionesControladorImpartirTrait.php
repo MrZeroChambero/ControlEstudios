@@ -12,7 +12,15 @@ trait OperacionesControladorImpartirTrait
   {
     try {
       $conexion = Conexion::obtener();
-      $resumen = $this->obtenerResumenGestion($conexion);
+      $anioId = null;
+      if (isset($_GET['anio_id'])) {
+        $anioFiltrado = filter_var($_GET['anio_id'], FILTER_VALIDATE_INT);
+        if ($anioFiltrado !== false && $anioFiltrado > 0) {
+          $anioId = (int) $anioFiltrado;
+        }
+      }
+
+      $resumen = $this->obtenerResumenGestion($conexion, $anioId);
       $mensaje = $resumen['anio'] !== null
         ? 'Resumen de asignaciones obtenido correctamente.'
         : 'No existe un año escolar activo o incompleto. Configure uno para gestionar las asignaciones.';

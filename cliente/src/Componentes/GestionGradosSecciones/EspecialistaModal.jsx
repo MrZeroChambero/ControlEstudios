@@ -31,6 +31,24 @@ export const EspecialistaModal = ({
   componenteSeleccionado,
 }) => {
   const componentes = useMemo(() => flattenComponents(areas), [areas]);
+  const componentesEspecialistas = useMemo(
+    () => componentes.filter((item) => item.requiere_especialista),
+    [componentes]
+  );
+  const opcionesComponentes = useMemo(() => {
+    if (!componentesEspecialistas.length) {
+      return [];
+    }
+
+    if (componenteSeleccionado?.id) {
+      const coincidencia = componentesEspecialistas.find(
+        (item) => item.id === componenteSeleccionado.id
+      );
+      return coincidencia ? [coincidencia] : componentesEspecialistas;
+    }
+
+    return componentesEspecialistas;
+  }, [componenteSeleccionado?.id, componentesEspecialistas]);
   const [formState, setFormState] = useState({
     id_personal: "",
     id_componente: "",
@@ -63,6 +81,19 @@ export const EspecialistaModal = ({
     });
     setErrores({});
   }, [aula, componenteSeleccionado, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (!formState.id_componente && opcionesComponentes.length === 1) {
+      setFormState((prev) => ({
+        ...prev,
+        id_componente: String(opcionesComponentes[0].id),
+      }));
+    }
+  }, [formState.id_componente, isOpen, opcionesComponentes]);
 
   if (!isOpen) {
     return null;
@@ -102,7 +133,7 @@ export const EspecialistaModal = ({
     <div className={contenidosModalClasses.overlay}>
       <form
         onSubmit={manejarSubmit}
-        className={`${contenidosModalClasses.content} max-h-[80vh] w-full max-w-xl overflow-y-auto`}
+        className={`${contenidosModalClasses.content} max-h-[80vh] w-full max-w-3xl overflow-y-auto`}
       >
         <div className={contenidosModalClasses.header}>
           <div>
@@ -112,8 +143,7 @@ export const EspecialistaModal = ({
                 : "Asignar especialista"}
             </h2>
             <p className={contenidosFormClasses.helper}>
-              Seleccione el componente y el especialista que se hara
-              responsable.
+              Asigna un especialista solo a los componentes que lo requieren.
             </p>
           </div>
           <button
@@ -140,9 +170,13 @@ export const EspecialistaModal = ({
               className={contenidosFormClasses.select}
               value={formState.id_componente}
               onChange={manejarCambio}
+              disabled={
+                opcionesComponentes.length === 0 ||
+                opcionesComponentes.length === 1
+              }
             >
               <option value="">Seleccione un componente</option>
-              {componentes.map((componente) => (
+              {opcionesComponentes.map((componente) => (
                 <option key={componente.id} value={componente.id}>
                   {componente.nombre} — {componente.areaNombre}
                 </option>
@@ -151,7 +185,45 @@ export const EspecialistaModal = ({
             {errores?.componentes && (
               <p className={helperTextBase}>{errores.componentes.join(" ")}</p>
             )}
+            {opcionesComponentes.length === 0 && !errores?.componentes && (
+              <p className={`${helperTextBase} mt-2 text-amber-600`}>
+                No hay componentes configurados que requieran especialista.
+              </p>
+            )}
           </div>
+
+          {formState.id_componente ? (
+            <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+              {(() => {
+                const componenteActivo = opcionesComponentes.find(
+                  (item) => String(item.id) === formState.id_componente
+                );
+
+                if (!componenteActivo) {
+                  return (
+                    <p className={`${helperTextBase} text-amber-600`}>
+                      Selecciona un componente para ver los detalles.
+                    </p>
+                  );
+                }
+
+                return (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-slate-700">
+                      {componenteActivo.nombre}
+                    </p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      Area: {componenteActivo.areaNombre}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Este componente requiere la asignacion de un especialista
+                      para completar la cobertura del aula.
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : null}
 
           <div className={contenidosFormClasses.fieldWrapper}>
             <label

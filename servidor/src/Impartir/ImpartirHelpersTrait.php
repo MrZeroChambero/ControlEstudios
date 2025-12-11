@@ -48,4 +48,18 @@ trait ImpartirHelpersTrait
       return $gradoA <=> $gradoB;
     });
   }
+
+  protected function esEspecialidadDocenteAula(?string $valor): bool
+  {
+    if ($valor === null) {
+      return false;
+    }
+
+    $normalizado = strtolower(trim($valor));
+    if ($normalizado === '') {
+      return false;
+    }
+
+    return str_contains($normalizado, 'docente') && str_contains($normalizado, 'aula');
+  }
 }

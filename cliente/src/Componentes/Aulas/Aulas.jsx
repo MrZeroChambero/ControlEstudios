@@ -11,6 +11,7 @@ import {
   actualizarCuposAula,
 } from "./aulasService";
 import { AulasTable } from "./AulasTable";
+import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 
 const construirConfiguracionInicial = (grados) => {
   const configuracion = {};
@@ -32,7 +33,10 @@ const formatearRangoFechas = (anio) => {
     return "Sin anio escolar activo";
   }
 
-  return `Del ${anio.fecha_inicio} al ${anio.fecha_fin} - ${anio.estado}`;
+  const inicio = formatearFechaCorta(anio.fecha_inicio);
+  const fin = formatearFechaCorta(anio.fecha_fin);
+  const estado = anio.estado ?? "Sin estado";
+  return `Del ${inicio || "-"} al ${fin || "-"} - ${estado}`;
 };
 
 export const Aulas = () => {

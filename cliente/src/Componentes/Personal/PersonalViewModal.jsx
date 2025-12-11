@@ -1,4 +1,5 @@
 import React from "react";
+import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 
 export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
   if (!isOpen || !personal) return null;
@@ -8,6 +9,9 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
     value: "text-gray-900 text-lg",
     sectionTitle: "text-xl font-bold mb-4 text-blue-600 border-b pb-2",
   };
+
+  const fechaNacimiento = formatearFechaCorta(personal.fecha_nacimiento);
+  const fechaContratacion = formatearFechaCorta(personal.fecha_contratacion);
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex justify-center items-start z-50 overflow-y-auto py-10">
@@ -71,9 +75,7 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
             </div>
             <div>
               <label className={formStyles.label}>Fecha de Nacimiento</label>
-              <p className={formStyles.value}>
-                {new Date(personal.fecha_nacimiento).toLocaleDateString()}
-              </p>
+              <p className={formStyles.value}>{fechaNacimiento || "-"}</p>
             </div>
             <div>
               <label className={formStyles.label}>Edad</label>
@@ -170,7 +172,7 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
             <div>
               <label className={formStyles.label}>Fecha de Contratación</label>
               <p className={formStyles.value}>
-                {new Date(personal.fecha_contratacion).toLocaleDateString()}
+                {fechaContratacion || "No especificado"}
               </p>
             </div>
             <div>

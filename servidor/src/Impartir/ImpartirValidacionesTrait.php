@@ -49,10 +49,6 @@ trait ImpartirValidacionesTrait
       }
     }
 
-    if (empty($componentes)) {
-      $errores['componentes'][] = 'Debe seleccionar al menos un componente que impartira el docente titular.';
-    }
-
     $clasesTotales = $this->normalizarEntero($datos['clases_totales'] ?? null);
     if ($clasesTotales !== null && $clasesTotales < 0) {
       $errores['clases_totales'][] = 'El numero de clases debe ser un valor positivo.';

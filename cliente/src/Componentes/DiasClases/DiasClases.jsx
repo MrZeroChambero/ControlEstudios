@@ -12,6 +12,7 @@ import {
   asignarDocenteTitular,
   asignarEspecialista,
 } from "../../api/gestionAulasService";
+import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 
 const layout = contenidosLayout;
 const formClasses = contenidosFormClasses;
@@ -49,6 +50,15 @@ export const DiasClases = () => {
   const [erroresEspecialistas, setErroresEspecialistas] = useState({});
   const [guardandoDocente, setGuardandoDocente] = useState(false);
   const [guardandoEspecialistas, setGuardandoEspecialistas] = useState({});
+
+  const inicioAnio = useMemo(
+    () => formatearFechaCorta(resumen?.anio?.fecha_inicio),
+    [resumen?.anio?.fecha_inicio]
+  );
+  const finAnio = useMemo(
+    () => formatearFechaCorta(resumen?.anio?.fecha_fin),
+    [resumen?.anio?.fecha_fin]
+  );
 
   const cargarResumen = async () => {
     setCargando(true);
@@ -292,10 +302,10 @@ export const DiasClases = () => {
                 {resumen.anio.estado ?? "Desconocido"}
               </span>
               <span>
-                Inicio: <strong>{resumen.anio.fecha_inicio ?? "N/D"}</strong>
+                Inicio: <strong>{inicioAnio || "N/D"}</strong>
               </span>
               <span>
-                Fin: <strong>{resumen.anio.fecha_fin ?? "N/D"}</strong>
+                Fin: <strong>{finAnio || "N/D"}</strong>
               </span>
               {momentosActivos.length > 0 ? (
                 <span>

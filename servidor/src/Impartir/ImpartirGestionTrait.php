@@ -44,10 +44,29 @@ trait ImpartirGestionTrait
       throw new RuntimeException('El docente ya tiene asignada otra aula en el año escolar.');
     }
 
-    $componentes = $this->obtenerComponentesPorIds($conexion, $datos['componentes']);
-    if (count($componentes) !== count($datos['componentes'])) {
-      throw new RuntimeException('Uno o mas componentes seleccionados no existen.');
+    $componentesDocenteAula = $this->obtenerComponentesDocenteAula($conexion);
+    if (empty($componentesDocenteAula)) {
+      throw new RuntimeException('No hay componentes configurados con especialidad Docente de aula.');
     }
+
+    $componentesIndice = [];
+    foreach ($componentesDocenteAula as $componente) {
+      $componentesIndice[$componente['id_componente']] = $componente;
+    }
+
+    $componentesSeleccionados = [];
+    foreach ($datos['componentes'] ?? [] as $componenteId) {
+      $componenteId = (int) $componenteId;
+      if (isset($componentesIndice[$componenteId])) {
+        $componentesSeleccionados[$componenteId] = $componentesIndice[$componenteId];
+      }
+    }
+
+    foreach ($componentesIndice as $id => $componente) {
+      $componentesSeleccionados[$id] = $componente;
+    }
+
+    $componentes = array_values($componentesSeleccionados);
 
     foreach ($componentes as $componente) {
       if (($componente['estado'] ?? '') !== 'activo') {

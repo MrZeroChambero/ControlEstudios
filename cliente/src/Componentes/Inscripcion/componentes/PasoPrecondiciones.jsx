@@ -1,4 +1,5 @@
 import React from "react";
+import { formatearFechaCorta } from "../../../utilidades/formatoFechas";
 import { inscripcionLayout } from "../../EstilosCliente/EstilosClientes";
 
 export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
@@ -39,6 +40,11 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
   }
 
   const listo = resultado.listo ?? false;
+  const inicioAnio = formatearFechaCorta(resultado?.anio?.fecha_inicio);
+  const finAnio = formatearFechaCorta(resultado?.anio?.fecha_fin);
+  const limiteInscripcion = formatearFechaCorta(
+    resultado?.anio?.fecha_limite_inscripcion
+  );
 
   return (
     <div name="contenedor-precondiciones" className="space-y-4">
@@ -59,9 +65,23 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
               : "bg-amber-100 text-amber-700"
           }`}
         >
-          {listo ? "Requisitos completos" : "Requisitos pendientes"}
+          {listo ? "Listo para inscribir" : "Pendientes por resolver"}
         </div>
       </header>
+
+      <section
+        name="precondiciones-resumen"
+        className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600"
+      >
+        <p>
+          Año escolar activo: <strong>{inicioAnio || "-"}</strong> a{" "}
+          <strong>{finAnio || "-"}</strong>.
+        </p>
+        <p className="mt-2">
+          Recuerda que la fecha límite de inscripción es el{" "}
+          <strong>{limiteInscripcion || "-"}</strong>.
+        </p>
+      </section>
 
       {listo ? (
         <article
@@ -69,13 +89,16 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
           className="space-y-3 text-sm text-slate-600"
         >
           <p>
-            Año escolar activo: <strong>{resultado.anio?.fecha_inicio}</strong>{" "}
-            a <strong>{resultado.anio?.fecha_fin}</strong>.
+            Ya puedes gestionar la inscripción de estudiantes. Revisa las
+            secciones disponibles y confirma los cupos antes de continuar.
           </p>
-          <p>
-            Recuerda que la fecha límite de inscripción es el{" "}
-            <strong>{resultado.anio?.fecha_limite_inscripcion}</strong>.
-          </p>
+          <button
+            type="button"
+            onClick={onReintentar}
+            className={inscripcionLayout.addButton}
+          >
+            Actualizar estado
+          </button>
         </article>
       ) : (
         <article name="precondiciones-pendientes" className="space-y-4">

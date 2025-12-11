@@ -1,4 +1,5 @@
 import React from "react";
+import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 
 export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
   if (!isOpen || !representante) return null;
@@ -24,6 +25,13 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
       ? "bg-yellow-200 text-yellow-800"
       : "bg-red-200 text-red-800"
   }`;
+
+  const fechaNacimiento = formatearFechaCorta(
+    representante.fecha_nacimiento || representante.fecha
+  );
+  const fechaIngreso = formatearFechaCorta(
+    representante.estudiante?.fecha_ingreso_escuela
+  );
 
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex justify-center items-start z-50 overflow-y-auto py-10">
@@ -69,9 +77,7 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
             </div>
             <div>
               <label className={formStyles.label}>Fecha de Nacimiento</label>
-              <p className={formStyles.value}>
-                {representante.fecha_nacimiento || representante.fecha || "-"}
-              </p>
+              <p className={formStyles.value}>{fechaNacimiento || "-"}</p>
             </div>
             <div>
               <label className={formStyles.label}>Género</label>
@@ -201,9 +207,7 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
               </div>
               <div>
                 <label className={formStyles.label}>Fecha Ingreso</label>
-                <p className={formStyles.value}>
-                  {representante.estudiante.fecha_ingreso_escuela || "-"}
-                </p>
+                <p className={formStyles.value}>{fechaIngreso || "-"}</p>
               </div>
               <div>
                 <label className={formStyles.label}>Edad</label>
@@ -246,7 +250,7 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
                     {v.nombre}
                   </span>
                   <span className="text-xs text-green-600">
-                    {v.fecha_aplicacion || "Sin fecha"}{" "}
+                    {formatearFechaCorta(v.fecha_aplicacion) || "Sin fecha"}{" "}
                     {v.refuerzos && `(Refuerzos: ${v.refuerzos})`}
                   </span>
                 </div>

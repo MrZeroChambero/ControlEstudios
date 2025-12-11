@@ -1,3 +1,5 @@
+import { formatearFechaCorta } from "../../utilidades/formatoFechas";
+
 const MILISEGUNDOS_DIA = 86400000;
 
 export const parsearISO = (iso) => {
@@ -50,20 +52,7 @@ export const sumarDias = (fecha, dias) => {
   return copia;
 };
 
-export const formatearFecha = (iso) => {
-  if (!iso) {
-    return "-";
-  }
-  const fecha = parsearISO(iso);
-  if (!fecha) {
-    return "-";
-  }
-  return fecha.toLocaleDateString("es-VE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
+export const formatearFecha = (iso) => formatearFechaCorta(iso) || "-";
 
 const calcularPascua = (anio) => {
   const a = anio % 19;

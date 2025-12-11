@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 10-12-2025 a las 23:03:51
+-- Tiempo de generación: 11-12-2025 a las 01:30:36
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -698,6 +698,48 @@ CREATE TABLE `imparte` (
   `tipo_docente` enum('aula','Especialista') NOT NULL,
   `clases_totales` int(2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `imparte`
+--
+
+INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk_componente`, `tipo_docente`, `clases_totales`) VALUES
+(62, 1, 14, 11, 4, 'aula', NULL),
+(63, 1, 14, 12, 4, 'aula', NULL),
+(64, 1, 14, 13, 4, 'aula', NULL),
+(65, 1, 14, 11, 5, 'aula', NULL),
+(66, 1, 14, 12, 5, 'aula', NULL),
+(67, 1, 14, 13, 5, 'aula', NULL),
+(68, 1, 14, 11, 106, 'aula', NULL),
+(69, 1, 14, 12, 106, 'aula', NULL),
+(70, 1, 14, 13, 106, 'aula', NULL),
+(71, 1, 14, 11, 6, 'aula', NULL),
+(72, 1, 14, 12, 6, 'aula', NULL),
+(73, 1, 14, 13, 6, 'aula', NULL),
+(74, 1, 14, 11, 1, 'aula', NULL),
+(75, 1, 14, 12, 1, 'aula', NULL),
+(76, 1, 14, 13, 1, 'aula', NULL),
+(77, 1, 14, 11, 3, 'aula', NULL),
+(78, 1, 14, 12, 3, 'aula', NULL),
+(79, 1, 14, 13, 3, 'aula', NULL),
+(80, 2, 15, 11, 4, 'aula', NULL),
+(81, 2, 15, 12, 4, 'aula', NULL),
+(82, 2, 15, 13, 4, 'aula', NULL),
+(83, 2, 15, 11, 5, 'aula', NULL),
+(84, 2, 15, 12, 5, 'aula', NULL),
+(85, 2, 15, 13, 5, 'aula', NULL),
+(86, 2, 15, 11, 106, 'aula', NULL),
+(87, 2, 15, 12, 106, 'aula', NULL),
+(88, 2, 15, 13, 106, 'aula', NULL),
+(89, 2, 15, 11, 6, 'aula', NULL),
+(90, 2, 15, 12, 6, 'aula', NULL),
+(91, 2, 15, 13, 6, 'aula', NULL),
+(92, 2, 15, 11, 1, 'aula', NULL),
+(93, 2, 15, 12, 1, 'aula', NULL),
+(94, 2, 15, 13, 1, 'aula', NULL),
+(95, 2, 15, 11, 3, 'aula', NULL),
+(96, 2, 15, 12, 3, 'aula', NULL),
+(97, 2, 15, 13, 3, 'aula', NULL);
 
 -- --------------------------------------------------------
 
@@ -1761,7 +1803,7 @@ ALTER TABLE `horarios`
 -- AUTO_INCREMENT de la tabla `imparte`
 --
 ALTER TABLE `imparte`
-  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
@@ -1996,8 +2038,8 @@ ALTER TABLE `horarios`
 ALTER TABLE `imparte`
   ADD CONSTRAINT `imparte_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `imparte_ibfk_2` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `imparte_ibfk_3` FOREIGN KEY (`fk_personal`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `imparte_ibfk_4` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `imparte_ibfk_4` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `imparte_ibfk_5` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `indicadores`
