@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
-  contenidosModalClasses,
   contenidosFormClasses,
   neutralButtonBase,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const CompetenciasFilterModal = ({
   isOpen,
@@ -57,31 +57,15 @@ export const CompetenciasFilterModal = ({
   };
 
   return (
-    <div className={contenidosModalClasses.overlay}>
-      <form
-        onSubmit={manejarSubmit}
-        className={`${contenidosModalClasses.content} max-h-[90vh] w-full max-w-xl overflow-y-auto`}
-      >
-        <div className={contenidosModalClasses.header}>
-          <div>
-            <h2 className={contenidosModalClasses.title}>
-              Filtros de competencias
-            </h2>
-            <p className={contenidosFormClasses.helper}>
-              Seleccione el area y el componente para refinar la lista de
-              competencias.
-            </p>
-          </div>
-          <button
-            type="button"
-            className={contenidosModalClasses.closeButton}
-            onClick={manejarCerrar}
-            aria-label="Cerrar filtros"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={manejarCerrar}
+      title="Filtros de competencias"
+      subtitle="Seleccione el area y el componente para refinar la lista de competencias."
+      size="md"
+      contentClassName="max-w-xl"
+    >
+      <form onSubmit={manejarSubmit} className="space-y-6">
         <div className={contenidosFormClasses.grid}>
           <div className={contenidosFormClasses.fieldWrapper}>
             <label className={contenidosFormClasses.label}>
@@ -125,7 +109,7 @@ export const CompetenciasFilterModal = ({
           </div>
         </div>
 
-        <div className={contenidosFormClasses.actions}>
+        <div className={`${contenidosFormClasses.actions} mt-6`}>
           <button
             type="button"
             onClick={manejarLimpiar}
@@ -150,7 +134,7 @@ export const CompetenciasFilterModal = ({
           </div>
         </div>
       </form>
-    </div>
+    </VentanaModal>
   );
 };
 

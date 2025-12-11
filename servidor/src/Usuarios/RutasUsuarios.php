@@ -11,6 +11,9 @@ function registrarRutasUsuarios(AltoRouter $router)
   $router->map('GET', '/usuarios/[i:id]/completo', function ($id) use ($controlador) {
     $controlador->obtenerCompleto($id);
   });
+  $router->map('GET', '/usuarios/[i:id]/preguntas', function ($id) use ($controlador) {
+    $controlador->obtenerPreguntas($id);
+  });
   $router->map('POST', '/usuarios', [$controlador, 'crear']);
   $router->map('PUT', '/usuarios/[i:id]', function ($id) use ($controlador) {
     $controlador->actualizar($id);

@@ -3,7 +3,6 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaSearch,
-  FaTimes,
   FaUserPlus,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
@@ -19,6 +18,7 @@ import {
   personalModalClasses,
   personalFormClasses,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const initialPersonaState = {
   primer_nombre: "",
@@ -1308,26 +1308,20 @@ export const PersonalModal = ({
   };
 
   return (
-    <div className={personalModalClasses.overlay}>
-      <div className={personalModalClasses.content}>
-        <div className={personalModalClasses.header}>
-          <div className="flex flex-col gap-2">
-            <h2 className={personalModalClasses.title}>{modalTitle}</h2>
-            {renderStepIndicator()}
-          </div>
-          <button
-            type="button"
-            onClick={handleCancelar}
-            className={personalModalClasses.closeButton}
-          >
-            <FaTimes className="h-4 w-4" />
-          </button>
-        </div>
-
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={handleCancelar}
+      title={modalTitle}
+      size="xl"
+      bodyClassName="space-y-6"
+      headerSlot={renderStepIndicator()}
+      contentClassName="max-w-5xl"
+    >
+      <>
         {!modoEdicion && paso === 1 && renderPersonaSelectionStep()}
         {!modoEdicion && paso === 2 && renderPersonaFormStep()}
         {(paso === 3 || modoEdicion) && renderPersonalFormStep()}
-      </div>
-    </div>
+      </>
+    </VentanaModal>
   );
 };

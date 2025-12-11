@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentesAprendizajeForm } from "./ComponentesAprendizajeForm";
-import { componentesModalClasses } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const ComponentesAprendizajeModal = ({
   isOpen,
@@ -22,29 +22,22 @@ export const ComponentesAprendizajeModal = ({
   };
 
   return (
-    <div className={componentesModalClasses.overlay}>
-      <div className={componentesModalClasses.content}>
-        <div className={componentesModalClasses.header}>
-          <h2 className={componentesModalClasses.title}>{getTitle()}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className={componentesModalClasses.closeButton}
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
-        <ComponentesAprendizajeForm
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          formData={formData}
-          handleInputChange={handleInputChange}
-          isViewMode={isViewMode}
-          currentComponente={currentComponente}
-          areas={areas}
-        />
-      </div>
-    </div>
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={getTitle()}
+      size="lg"
+      contentClassName="max-w-3xl"
+    >
+      <ComponentesAprendizajeForm
+        onSubmit={onSubmit}
+        onCancel={onClose}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        isViewMode={isViewMode}
+        currentComponente={currentComponente}
+        areas={areas}
+      />
+    </VentanaModal>
   );
 };

@@ -3,6 +3,8 @@
 namespace Micodigo\Usuarios;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Login\Login;
+use Micodigo\PreguntasSeguridad\PreguntasSeguridad;
 use Valitron\Validator;
 use Exception;
 
@@ -44,6 +46,62 @@ class ControladoraUsuarios
     }
 
     return null;
+  }
+
+  private function obtenerUsuarioAutenticado(): ?array
+  {
+    if (!isset($_COOKIE['session_token'])) {
+      return null;
+    }
+
+    try {
+      $pdo = Conexion::obtener();
+      $login = new Login($pdo);
+      $usuario = $login->obtenerUsuarioPorHash($_COOKIE['session_token']);
+      return $usuario ?: null;
+    } catch (Exception $e) {
+      return null;
+    }
+  }
+
+  private function puedeGestionarPreguntas(?array $actor, int $usuarioObjetivoId = null, ?string $rolObjetivo = null): bool
+  {
+    if (!$actor) {
+      return false;
+    }
+
+    $actorId = (int) ($actor['id_usuario'] ?? 0);
+    $actorRol = $actor['rol'] ?? '';
+
+    if ($usuarioObjetivoId !== null && $actorId === $usuarioObjetivoId) {
+      return true;
+    }
+
+    if (strcasecmp($actorRol, 'Director') === 0) {
+      if ($rolObjetivo !== null && strcasecmp($rolObjetivo, 'Director') === 0 && $actorId !== $usuarioObjetivoId) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  private function mapearErroresPreguntas(array $errores): array
+  {
+    $mensajes = [];
+    foreach ($errores as $entrada) {
+      if (is_array($entrada)) {
+        foreach ($entrada as $mensaje) {
+          $mensajes[] = $mensaje;
+        }
+      } elseif (is_string($entrada)) {
+        $mensajes[] = $entrada;
+      }
+    }
+
+    return $mensajes;
   }
 
   public function listar()
@@ -126,6 +184,7 @@ class ControladoraUsuarios
 
   public function crear()
   {
+    $pdo = null;
     try {
       $input = file_get_contents('php://input');
       $data = json_decode($input, true);
@@ -134,13 +193,15 @@ class ControladoraUsuarios
         throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
       }
 
-      // Limpiar textos
       $data['nombre_usuario'] = $this->limpiarTexto($data['nombre_usuario'] ?? '');
-      $data['contrasena'] = $data['contrasena'] ?? ''; // No limpiar contraseña porque puede tener caracteres especiales
+      $data['contrasena'] = $data['contrasena'] ?? '';
+
+      $preguntas = isset($data['preguntas']) && is_array($data['preguntas']) ? $data['preguntas'] : [];
+      $preguntasSeguridad = new PreguntasSeguridad();
+      $actor = $this->obtenerUsuarioAutenticado();
 
       $errores = [];
 
-      // Validar campos requeridos
       if (empty($data['fk_personal'])) {
         $errores['fk_personal'] = 'El personal es requerido';
       }
@@ -150,55 +211,62 @@ class ControladoraUsuarios
       }
 
       if (empty($data['contrasena'])) {
-        $errores['contrasena'] = 'La contraseña es requerida';
+        $errores['contrasena'] = 'La contrasena es requerida';
       }
 
       if (empty($data['rol'])) {
         $errores['rol'] = 'El rol es requerido';
       }
 
-      // Validar formato de campos
       $errorNombreUsuario = $this->validarTextoEspanol('nombre_usuario', $data['nombre_usuario'], true);
-      if ($errorNombreUsuario) $errores['nombre_usuario'] = $errorNombreUsuario;
+      if ($errorNombreUsuario) {
+        $errores['nombre_usuario'] = $errorNombreUsuario;
+      }
 
-      // Validar longitud máxima
       if (strlen($data['nombre_usuario']) > 50) {
         $errores['nombre_usuario'] = 'El nombre de usuario no debe exceder los 50 caracteres';
       }
 
-      // Validar rol
-      $rolesPermitidos = ['Administrador', 'Docente', 'Secretaria', 'Representante'];
-      if (!empty($data['rol']) && !in_array($data['rol'], $rolesPermitidos)) {
+      $rolesPermitidos = ['Director', 'Docente', 'Secretaria'];
+      if (!empty($data['rol']) && !in_array($data['rol'], $rolesPermitidos, true)) {
         $errores['rol'] = 'El rol debe ser uno de: ' . implode(', ', $rolesPermitidos);
       }
 
-      // Validar que el nombre de usuario sea único
-      if (!empty($data['nombre_usuario'])) {
-        $pdo = Conexion::obtener();
-        if (Usuarios::verificarNombreUsuario($pdo, $data['nombre_usuario'])) {
-          $errores['nombre_usuario'] = 'El nombre de usuario ya está en uso';
+      if (count($preguntas) < 3) {
+        $errores['preguntas'][] = 'Debes registrar al menos 3 preguntas de seguridad.';
+      }
+
+      if (!empty($preguntas)) {
+        $erroresPreguntas = $preguntasSeguridad->validarPreguntas($preguntas);
+        if (!empty($erroresPreguntas)) {
+          $errores['preguntas'] = array_merge($errores['preguntas'] ?? [], $this->mapearErroresPreguntas($erroresPreguntas));
+        }
+
+        if (!$this->puedeGestionarPreguntas($actor)) {
+          $errores['permisos'][] = 'Solo un usuario con rol Director puede registrar preguntas de seguridad de otros usuarios.';
         }
       }
 
-      // Validar que el personal no tenga ya un usuario
+      $pdo = Conexion::obtener();
+
+      if (!empty($data['nombre_usuario']) && Usuarios::verificarNombreUsuario($pdo, $data['nombre_usuario'])) {
+        $errores['nombre_usuario'] = 'El nombre de usuario ya está en uso';
+      }
+
       if (!empty($data['fk_personal'])) {
-        $pdo = Conexion::obtener();
         if (Usuarios::verificarPersonalTieneUsuario($pdo, $data['fk_personal'])) {
           $errores['fk_personal'] = 'El personal seleccionado ya tiene un usuario';
         }
 
-        // Validar que el personal tenga una función permitida (Docente, Especialista, Administrativo)
         if (!Usuarios::verificarFuncionPermitida($pdo, $data['fk_personal'])) {
           $errores['fk_personal'] = 'El personal seleccionado no tiene una función permitida para crear usuarios (solo Docente, Especialista o Administrativo)';
         }
       }
 
-      // Validar máximo de directivos (2)
-      if (!empty($data['rol']) && $data['rol'] === 'Administrador') {
-        $pdo = Conexion::obtener();
+      if (!empty($data['rol']) && $data['rol'] === 'Director') {
         $cantidadDirectores = Usuarios::contarDirectores($pdo);
         if ($cantidadDirectores >= 2) {
-          $errores['rol'] = 'Solo se permiten 2 usuarios con rol de Administrador';
+          $errores['rol'] = 'Solo se permiten 2 usuarios con rol de Director';
         }
       }
 
@@ -213,7 +281,6 @@ class ControladoraUsuarios
         return;
       }
 
-      $pdo = Conexion::obtener();
       $usuario = new Usuarios(
         $data['fk_personal'],
         $data['nombre_usuario'],
@@ -221,22 +288,34 @@ class ControladoraUsuarios
         $data['rol']
       );
 
+      $pdo->beginTransaction();
       $id = $usuario->crear($pdo);
+      $preguntasGuardadas = $preguntasSeguridad->reemplazarParaUsuario($pdo, (int) $id, $preguntas);
+      $pdo->commit();
 
-      if ($id) {
-        http_response_code(201);
-        $usuario->id_usuario = $id;
+      $respuestaUsuario = [
+        'id_usuario' => (int) $id,
+        'fk_personal' => (int) $data['fk_personal'],
+        'nombre_usuario' => $data['nombre_usuario'],
+        'rol' => $data['rol'],
+        'estado' => 'activo',
+      ];
 
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'data' => $usuario,
-          'message' => 'Usuario creado exitosamente.'
-        ]);
-      } else {
-        throw new Exception('No se pudo crear el usuario en la base de datos');
-      }
+      http_response_code(201);
+      header('Content-Type: application/json');
+      echo json_encode([
+        'back' => true,
+        'data' => [
+          'usuario' => $respuestaUsuario,
+          'preguntas' => $preguntasGuardadas,
+        ],
+        'message' => 'Usuario creado exitosamente.'
+      ]);
     } catch (Exception $e) {
+      if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+
       http_response_code(500);
       header('Content-Type: application/json');
       echo json_encode([
@@ -249,6 +328,7 @@ class ControladoraUsuarios
 
   public function actualizar($id)
   {
+    $pdo = null;
     try {
       $input = file_get_contents('php://input');
       $data = json_decode($input, true);
@@ -270,13 +350,16 @@ class ControladoraUsuarios
         return;
       }
 
-      // Limpiar textos
       $data['nombre_usuario'] = $this->limpiarTexto($data['nombre_usuario'] ?? '');
       $contrasena = $data['contrasena'] ?? '';
+      $actor = $this->obtenerUsuarioAutenticado();
+      $preguntasSeguridad = new PreguntasSeguridad();
+
+      $actualizarPreguntas = array_key_exists('preguntas', $data);
+      $preguntas = $actualizarPreguntas && is_array($data['preguntas']) ? $data['preguntas'] : [];
 
       $errores = [];
 
-      // Validar campos requeridos
       if (empty($data['nombre_usuario'])) {
         $errores['nombre_usuario'] = 'El nombre de usuario es requerido';
       }
@@ -285,37 +368,49 @@ class ControladoraUsuarios
         $errores['rol'] = 'El rol es requerido';
       }
 
-      // Validar formato de campos
       $errorNombreUsuario = $this->validarTextoEspanol('nombre_usuario', $data['nombre_usuario'], true);
-      if ($errorNombreUsuario) $errores['nombre_usuario'] = $errorNombreUsuario;
+      if ($errorNombreUsuario) {
+        $errores['nombre_usuario'] = $errorNombreUsuario;
+      }
 
-      // Validar longitud máxima
       if (strlen($data['nombre_usuario']) > 50) {
         $errores['nombre_usuario'] = 'El nombre de usuario no debe exceder los 50 caracteres';
       }
 
-      // Validar rol
-      $rolesPermitidos = ['Administrador', 'Docente', 'Secretaria', 'Representante'];
-      if (!empty($data['rol']) && !in_array($data['rol'], $rolesPermitidos)) {
+      $rolesPermitidos = ['Director', 'Docente', 'Secretaria'];
+      if (!empty($data['rol']) && !in_array($data['rol'], $rolesPermitidos, true)) {
         $errores['rol'] = 'El rol debe ser uno de: ' . implode(', ', $rolesPermitidos);
       }
 
-      // Validar que el nombre de usuario sea único (excepto para este usuario)
-      if (!empty($data['nombre_usuario'])) {
-        if (Usuarios::verificarNombreUsuario($pdo, $data['nombre_usuario'], $id)) {
-          $errores['nombre_usuario'] = 'El nombre de usuario ya está en uso';
-        }
+      if (Usuarios::verificarNombreUsuario($pdo, $data['nombre_usuario'], $id)) {
+        $errores['nombre_usuario'] = 'El nombre de usuario ya está en uso';
       }
 
-      // Validar máximo de directivos (2) - solo si se está cambiando a Administrador
-      if (!empty($data['rol']) && $data['rol'] === 'Administrador' && $usuario->rol !== 'Administrador') {
+      if (!empty($data['rol']) && $data['rol'] === 'Director' && $usuario->rol !== 'Director') {
         $cantidadDirectores = Usuarios::contarDirectores($pdo);
         if ($cantidadDirectores >= 2) {
-          $errores['rol'] = 'Solo se permiten 2 usuarios con rol de Administrador';
+          $errores['rol'] = 'Solo se permiten 2 usuarios con rol de Director';
         }
       }
 
-      // Nota: No validamos el personal porque no se debe cambiar.
+      if ($actualizarPreguntas) {
+        if (count($preguntas) < 3) {
+          $errores['preguntas'][] = 'El usuario debe mantener al menos 3 preguntas de seguridad.';
+        }
+
+        $erroresPreguntas = $preguntasSeguridad->validarPreguntas($preguntas);
+        if (!empty($erroresPreguntas)) {
+          $errores['preguntas'] = array_merge($errores['preguntas'] ?? [], $this->mapearErroresPreguntas($erroresPreguntas));
+        }
+
+        if (!$this->puedeGestionarPreguntas($actor, (int) $usuario->id_usuario, $usuario->rol)) {
+          $errores['permisos'][] = 'No tienes permisos para modificar las preguntas de seguridad de este usuario.';
+        }
+      } else {
+        if (!$preguntasSeguridad->tieneMinimoPreguntas($pdo, (int) $usuario->id_usuario)) {
+          $errores['preguntas'][] = 'El usuario debe mantener al menos 3 preguntas de seguridad.';
+        }
+      }
 
       if (!empty($errores)) {
         http_response_code(400);
@@ -331,22 +426,43 @@ class ControladoraUsuarios
       $usuario->nombre_usuario = $data['nombre_usuario'];
       $usuario->rol = $data['rol'];
 
-      // Si se proporciona una nueva contraseña, hashearla
       if (!empty($contrasena)) {
         $usuario->contrasena_hash = password_hash($contrasena, PASSWORD_DEFAULT);
       }
 
-      if ($usuario->actualizar($pdo)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'data' => $usuario,
-          'message' => 'Usuario actualizado exitosamente.'
-        ]);
-      } else {
+      $pdo->beginTransaction();
+
+      if ($actualizarPreguntas) {
+        $preguntasSeguridad->reemplazarParaUsuario($pdo, (int) $usuario->id_usuario, $preguntas);
+      }
+
+      if (!$usuario->actualizar($pdo)) {
         throw new Exception('No se pudo actualizar el usuario en la base de datos');
       }
+
+      $pdo->commit();
+
+      $respuesta = [
+        'id_usuario' => (int) $usuario->id_usuario,
+        'nombre_usuario' => $usuario->nombre_usuario,
+        'rol' => $usuario->rol,
+        'estado' => $usuario->estado,
+      ];
+
+      header('Content-Type: application/json');
+      echo json_encode([
+        'back' => true,
+        'data' => [
+          'usuario' => $respuesta,
+          'preguntas' => $actualizarPreguntas ? $preguntasSeguridad->listarPorUsuario($pdo, (int) $usuario->id_usuario) : null,
+        ],
+        'message' => 'Usuario actualizado exitosamente.'
+      ]);
     } catch (Exception $e) {
+      if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+
       http_response_code(500);
       header('Content-Type: application/json');
       echo json_encode([
@@ -410,6 +526,53 @@ class ControladoraUsuarios
       echo json_encode([
         'back' => false,
         'message' => 'Error en el servidor al cambiar el estado del usuario.',
+        'error_details' => $e->getMessage()
+      ]);
+    }
+  }
+
+  public function obtenerPreguntas($idUsuario)
+  {
+    try {
+      $pdo = Conexion::obtener();
+      $usuario = Usuarios::consultarActualizar($pdo, $idUsuario);
+
+      if (!$usuario) {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode([
+          'back' => false,
+          'message' => 'Usuario no encontrado.'
+        ]);
+        return;
+      }
+
+      $actor = $this->obtenerUsuarioAutenticado();
+      if (!$this->puedeGestionarPreguntas($actor, (int) $usuario->id_usuario, $usuario->rol)) {
+        http_response_code(403);
+        header('Content-Type: application/json');
+        echo json_encode([
+          'back' => false,
+          'message' => 'No tienes permisos para consultar las preguntas de seguridad de este usuario.'
+        ]);
+        return;
+      }
+
+      $preguntasSeguridad = new PreguntasSeguridad();
+      $preguntas = $preguntasSeguridad->listarPorUsuario($pdo, (int) $usuario->id_usuario);
+
+      header('Content-Type: application/json');
+      echo json_encode([
+        'back' => true,
+        'data' => $preguntas,
+        'message' => 'Preguntas de seguridad obtenidas correctamente.'
+      ]);
+    } catch (Exception $e) {
+      http_response_code(500);
+      header('Content-Type: application/json');
+      echo json_encode([
+        'back' => false,
+        'message' => 'Error al consultar las preguntas de seguridad.',
         'error_details' => $e->getMessage()
       ]);
     }

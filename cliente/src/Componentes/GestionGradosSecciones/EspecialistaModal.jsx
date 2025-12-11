@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
-  contenidosModalClasses,
   contenidosFormClasses,
   neutralButtonBase,
   helperTextBase,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const flattenComponents = (areas) => {
   const resultado = [];
@@ -130,134 +130,119 @@ export const EspecialistaModal = ({
   };
 
   return (
-    <div className={contenidosModalClasses.overlay}>
-      <form
-        onSubmit={manejarSubmit}
-        className={`${contenidosModalClasses.content} max-h-[80vh] w-full max-w-3xl overflow-y-auto`}
-      >
-        <div className={contenidosModalClasses.header}>
-          <div>
-            <h2 className={contenidosModalClasses.title}>
-              {componenteSeleccionado
-                ? `Asignar especialista a ${componenteSeleccionado.nombre}`
-                : "Asignar especialista"}
-            </h2>
-            <p className={contenidosFormClasses.helper}>
-              Asigna un especialista solo a los componentes que lo requieren.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={contenidosModalClasses.closeButton}
-            aria-label="Cerrar"
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        componenteSeleccionado
+          ? `Asignar especialista a ${componenteSeleccionado.nombre}`
+          : "Asignar especialista"
+      }
+      subtitle="Asigna un especialista solo a los componentes que lo requieren."
+      size="lg"
+      contentClassName="max-w-3xl"
+    >
+      <form onSubmit={manejarSubmit} className="space-y-4">
+        <div className={contenidosFormClasses.fieldWrapper}>
+          <label
+            className={contenidosFormClasses.label}
+            htmlFor="componente-select"
           >
-            <span aria-hidden="true">&times;</span>
-          </button>
+            Componente de aprendizaje
+          </label>
+          <select
+            id="componente-select"
+            name="id_componente"
+            className={contenidosFormClasses.select}
+            value={formState.id_componente}
+            onChange={manejarCambio}
+            disabled={
+              opcionesComponentes.length === 0 ||
+              opcionesComponentes.length === 1
+            }
+          >
+            <option value="">Seleccione un componente</option>
+            {opcionesComponentes.map((componente) => (
+              <option key={componente.id} value={componente.id}>
+                {componente.nombre} — {componente.areaNombre}
+              </option>
+            ))}
+          </select>
+          {errores?.componentes && (
+            <p className={helperTextBase}>{errores.componentes.join(" ")}</p>
+          )}
+          {opcionesComponentes.length === 0 && !errores?.componentes && (
+            <p className={`${helperTextBase} mt-2 text-amber-600`}>
+              No hay componentes configurados que requieran especialista.
+            </p>
+          )}
         </div>
 
-        <div className="space-y-4">
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label
-              className={contenidosFormClasses.label}
-              htmlFor="componente-select"
-            >
-              Componente de aprendizaje
-            </label>
-            <select
-              id="componente-select"
-              name="id_componente"
-              className={contenidosFormClasses.select}
-              value={formState.id_componente}
-              onChange={manejarCambio}
-              disabled={
-                opcionesComponentes.length === 0 ||
-                opcionesComponentes.length === 1
-              }
-            >
-              <option value="">Seleccione un componente</option>
-              {opcionesComponentes.map((componente) => (
-                <option key={componente.id} value={componente.id}>
-                  {componente.nombre} — {componente.areaNombre}
-                </option>
-              ))}
-            </select>
-            {errores?.componentes && (
-              <p className={helperTextBase}>{errores.componentes.join(" ")}</p>
-            )}
-            {opcionesComponentes.length === 0 && !errores?.componentes && (
-              <p className={`${helperTextBase} mt-2 text-amber-600`}>
-                No hay componentes configurados que requieran especialista.
-              </p>
-            )}
-          </div>
+        {formState.id_componente ? (
+          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+            {(() => {
+              const componenteActivo = opcionesComponentes.find(
+                (item) => String(item.id) === formState.id_componente
+              );
 
-          {formState.id_componente ? (
-            <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
-              {(() => {
-                const componenteActivo = opcionesComponentes.find(
-                  (item) => String(item.id) === formState.id_componente
-                );
-
-                if (!componenteActivo) {
-                  return (
-                    <p className={`${helperTextBase} text-amber-600`}>
-                      Selecciona un componente para ver los detalles.
-                    </p>
-                  );
-                }
-
+              if (!componenteActivo) {
                 return (
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-slate-700">
-                      {componenteActivo.nombre}
-                    </p>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Area: {componenteActivo.areaNombre}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Este componente requiere la asignacion de un especialista
-                      para completar la cobertura del aula.
-                    </p>
-                  </div>
+                  <p className={`${helperTextBase} text-amber-600`}>
+                    Selecciona un componente para ver los detalles.
+                  </p>
                 );
-              })()}
-            </div>
-          ) : null}
+              }
 
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label
-              className={contenidosFormClasses.label}
-              htmlFor="especialista-select"
-            >
-              Especialista asignado
-            </label>
-            <select
-              id="especialista-select"
-              name="id_personal"
-              className={contenidosFormClasses.select}
-              value={formState.id_personal}
-              onChange={manejarCambio}
-            >
-              <option value="">Seleccione un especialista</option>
-              {especialistas.map((especialista) => (
-                <option
-                  key={especialista.id_personal}
-                  value={especialista.id_personal}
-                >
-                  {especialista.nombre_completo}
-                  {especialista.cedula ? ` (${especialista.cedula})` : ""}
-                </option>
-              ))}
-            </select>
-            {errores?.id_personal && (
-              <p className={helperTextBase}>{errores.id_personal.join(" ")}</p>
-            )}
+              return (
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-700">
+                    {componenteActivo.nombre}
+                  </p>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Area: {componenteActivo.areaNombre}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Este componente requiere la asignacion de un especialista
+                    para completar la cobertura del aula.
+                  </p>
+                </div>
+              );
+            })()}
           </div>
+        ) : null}
+
+        <div className={contenidosFormClasses.fieldWrapper}>
+          <label
+            className={contenidosFormClasses.label}
+            htmlFor="especialista-select"
+          >
+            Especialista asignado
+          </label>
+          <select
+            id="especialista-select"
+            name="id_personal"
+            className={contenidosFormClasses.select}
+            value={formState.id_personal}
+            onChange={manejarCambio}
+          >
+            <option value="">Seleccione un especialista</option>
+            {especialistas.map((especialista) => (
+              <option
+                key={especialista.id_personal}
+                value={especialista.id_personal}
+              >
+                {especialista.nombre_completo}
+                {especialista.cedula ? ` (${especialista.cedula})` : ""}
+              </option>
+            ))}
+          </select>
+          {errores?.id_personal && (
+            <p className={helperTextBase}>{errores.id_personal.join(" ")}</p>
+          )}
         </div>
 
         {errores?.generales && (
-          <div className="mt-4 rounded-3xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700">
+          <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700">
             {errores.generales.join(" ")}
           </div>
         )}
@@ -279,7 +264,7 @@ export const EspecialistaModal = ({
           </button>
         </div>
       </form>
-    </div>
+    </VentanaModal>
   );
 };
 

@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
-  baseContainer,
-  baseTitle,
-  baseDescription,
   primaryButtonBase,
   neutralButtonBase,
   fieldBase,
   helperTextBase,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const aspectos = [
   { valor: "ser", etiqueta: "Ser" },
@@ -41,7 +39,10 @@ export const IndicadorFormModal = ({
     if (indicador) {
       setFormData({
         fk_competencia:
-          indicador?.fk_competencia || competencia?.id_competencia || null,
+          indicador?.fk_competencia ||
+          competencia?.id_competencia ||
+          competencia?.id ||
+          null,
         nombre_indicador: indicador?.nombre_indicador ?? "",
         aspecto: indicador?.aspecto ?? "ser",
         orden: indicador?.orden?.toString() ?? "",
@@ -86,23 +87,22 @@ export const IndicadorFormModal = ({
   };
 
   const titulo = modo === "editar" ? "Editar indicador" : "Registrar indicador";
+  const modalSubtitle = competencia
+    ? `Competencia: ${
+        competencia?.nombre_competencia || competencia?.nombre || "Sin nombre"
+      }`
+    : "Registra los detalles del indicador.";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-6">
-      <form
-        onSubmit={manejarSubmit}
-        className={`${baseContainer} max-h-[90vh] w-full max-w-2xl overflow-y-auto`}
-      >
-        <div className="mb-6">
-          <h2 className={baseTitle}>{titulo}</h2>
-          {competencia && (
-            <p className={baseDescription}>
-              Competencia:{" "}
-              {competencia?.nombre_competencia || competencia?.nombre}
-            </p>
-          )}
-        </div>
-
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={titulo}
+      subtitle={modalSubtitle}
+      size="md"
+      contentClassName="max-w-2xl"
+    >
+      <form onSubmit={manejarSubmit} className="space-y-6">
         <div className="grid gap-4">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
@@ -123,49 +123,51 @@ export const IndicadorFormModal = ({
             )}
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Aspecto
-            </label>
-            <select
-              name="aspecto"
-              value={formData.aspecto}
-              onChange={manejarCambio}
-              className={fieldBase}
-            >
-              {aspectos.map((item) => (
-                <option key={item.valor} value={item.valor}>
-                  {item.etiqueta}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Aspecto
+              </label>
+              <select
+                name="aspecto"
+                value={formData.aspecto}
+                onChange={manejarCambio}
+                className={fieldBase}
+              >
+                {aspectos.map((item) => (
+                  <option key={item.valor} value={item.valor}>
+                    {item.etiqueta}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Orden (opcional)
-            </label>
-            <input
-              type="number"
-              name="orden"
-              value={formData.orden}
-              onChange={manejarCambio}
-              className={fieldBase}
-              placeholder="Ingrese el orden deseado"
-              min={1}
-              max={999}
-            />
-            <p className={helperTextBase}>
-              El orden debe estar entre 1 y 999. Si lo dejas vacío, se asigna
-              automáticamente.
-            </p>
-            {errores?.orden && (
-              <p className={helperTextBase}>{errores.orden.join(" ")}</p>
-            )}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Orden
+              </label>
+              <input
+                type="number"
+                name="orden"
+                value={formData.orden}
+                onChange={manejarCambio}
+                className={fieldBase}
+                placeholder="Defina el orden de presentación"
+                min={1}
+                max={999}
+              />
+              <p className={helperTextBase}>
+                El orden debe estar entre 1 y 999. Déjalo vacío para asignarlo
+                automáticamente.
+              </p>
+              {errores?.orden && (
+                <p className={helperTextBase}>{errores.orden.join(" ")}</p>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
@@ -177,11 +179,11 @@ export const IndicadorFormModal = ({
             type="submit"
             className={`${primaryButtonBase} bg-blue-600 hover:bg-blue-700`}
           >
-            Guardar cambios
+            Guardar indicador
           </button>
         </div>
       </form>
-    </div>
+    </VentanaModal>
   );
 };
 

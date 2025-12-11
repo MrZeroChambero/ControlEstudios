@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import {
-  contenidosModalClasses,
   contenidosFormClasses,
   contenidosTableClasses,
   temasTableClasses,
   contenidosIconClasses,
   neutralButtonBase,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 import {
   FaPlus,
   FaEdit,
@@ -214,33 +214,25 @@ export const IndicadoresModal = ({
     },
   };
 
-  return (
-    <div className={contenidosModalClasses.overlay}>
-      <div
-        className={`${contenidosModalClasses.content} max-h-[90vh] w-full max-w-5xl overflow-y-auto`}
-      >
-        <div className={contenidosModalClasses.header}>
-          <div>
-            <h2 className={contenidosModalClasses.title}>
-              Indicadores de la competencia
-            </h2>
-            {competencia && (
-              <p className={contenidosFormClasses.helper}>
-                {competencia.nombre_competencia} -{" "}
-                {competencia.componente?.nombre || competencia.componente}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={contenidosModalClasses.closeButton}
-            aria-label="Cerrar"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
+  const componenteNombre =
+    competencia?.componente?.nombre || competencia?.componente || "";
+  const modalSubtitle = competencia
+    ? componenteNombre
+      ? `${competencia.nombre_competencia} - ${componenteNombre}`
+      : competencia.nombre_competencia
+    : null;
 
+  return (
+    <>
+      <VentanaModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Indicadores de la competencia"
+        subtitle={modalSubtitle}
+        size="xl"
+        contentClassName="max-w-5xl"
+        bodyClassName="space-y-6"
+      >
         <DataTable
           columns={columnas}
           data={registrosFiltrados}
@@ -267,7 +259,7 @@ export const IndicadoresModal = ({
           persistTableHead
         />
 
-        <div className="mt-6 flex justify-end">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={onClose}
@@ -276,7 +268,7 @@ export const IndicadoresModal = ({
             Cerrar
           </button>
         </div>
-      </div>
+      </VentanaModal>
 
       <IndicadorFormModal
         isOpen={modalIndicador.abierto}
@@ -286,7 +278,7 @@ export const IndicadoresModal = ({
         indicador={modalIndicador.indicador}
         competencia={competencia}
       />
-    </div>
+    </>
   );
 };
 

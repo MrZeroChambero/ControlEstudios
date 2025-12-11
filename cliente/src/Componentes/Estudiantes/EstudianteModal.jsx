@@ -35,6 +35,7 @@ import {
   formatearFechaHoraCorta,
 } from "../../utilidades/formatoFechas";
 import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const EstudianteModal = ({
   isOpen,
@@ -889,35 +890,42 @@ export const EstudianteModal = ({
     </div>
   );
 
+  const modalTitle = modoEdicion ? "Editar Estudiante" : "Crear Estudiante";
+  const modalSubtitle = (() => {
+    if (modoEdicion) {
+      return "Actualiza la información del estudiante seleccionado.";
+    }
+    if (paso === 1) {
+      return "Selecciona una persona candidata o crea una nueva.";
+    }
+    if (paso === 1.5) {
+      return "Registra los datos básicos de la persona.";
+    }
+    if (paso === 2) {
+      return "Completa la ficha académica del estudiante.";
+    }
+    return null;
+  })();
+
   return (
-    <div className={estudiantesModalClasses.overlay}>
-      <div className={estudiantesModalClasses.content}>
-        <div className={estudiantesModalClasses.header}>
-          <h2 className={estudiantesModalClasses.title}>
-            {modoEdicion ? "Editar Estudiante" : "Crear Estudiante"}
-          </h2>
-          <button
-            onClick={resetAndClose}
-            className={estudiantesModalClasses.closeButton}
-            type="button"
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
-
-        {!modoEdicion ? renderPasoCrear() : renderEdicion()}
-
-        <div className={estudiantesModalClasses.footer}>
-          <button
-            onClick={resetAndClose}
-            type="button"
-            className={estudiantesModalClasses.footerButton}
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={resetAndClose}
+      title={modalTitle}
+      subtitle={modalSubtitle}
+      size="xl"
+      contentClassName="max-w-5xl"
+      footer={
+        <button
+          onClick={resetAndClose}
+          type="button"
+          className={estudiantesModalClasses.footerButton}
+        >
+          Cerrar
+        </button>
+      }
+    >
+      {!modoEdicion ? renderPasoCrear() : renderEdicion()}
+    </VentanaModal>
   );
 };

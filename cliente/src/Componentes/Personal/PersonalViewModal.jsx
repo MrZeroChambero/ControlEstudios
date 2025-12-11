@@ -1,6 +1,7 @@
 import React from "react";
 import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 import { personalViewModalClasses } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const getDisplayValue = (value) => {
   if (value === null || typeof value === "undefined" || value === "") {
@@ -68,138 +69,104 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
   );
 
   return (
-    <div className={personalViewModalClasses.overlay}>
-      <div className={personalViewModalClasses.content}>
-        <div className={personalViewModalClasses.header}>
-          <h2 className={personalViewModalClasses.title}>
-            Información Completa del Personal
-          </h2>
-          <button
-            onClick={onClose}
-            type="button"
-            className={personalViewModalClasses.closeButton}
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Información Completa del Personal"
+      size="xl"
+      bodyClassName={personalViewModalClasses.body}
+      contentClassName="max-w-5xl"
+    >
+      <Section title="Estados">
+        <Field label="Estado persona">
+          <span className={estadoPersonaClass}>
+            {personal.estado_persona_nombre || personal.estado || "-"}
+          </span>
+        </Field>
+        <Field label="Estado personal">
+          <span className={estadoPersonalClass}>
+            {personal.estado_personal_nombre || personal.estado_personal || "-"}
+          </span>
+        </Field>
+      </Section>
 
-        <div className={personalViewModalClasses.body}>
-          <Section title="Estados">
-            <Field label="Estado persona">
-              <span className={estadoPersonaClass}>
-                {personal.estado_persona_nombre || personal.estado || "-"}
-              </span>
-            </Field>
-            <Field label="Estado personal">
-              <span className={estadoPersonalClass}>
-                {personal.estado_personal_nombre ||
-                  personal.estado_personal ||
-                  "-"}
-              </span>
-            </Field>
-          </Section>
+      <Section title="Información personal">
+        <Field label="Cédula" value={personal.cedula} />
+        <Field
+          label="Fecha de nacimiento"
+          value={fechaNacimiento || "No especificado"}
+        />
+        <Field
+          label="Edad"
+          value={personal.edad ? `${personal.edad} años` : "No especificado"}
+        />
+        <Field
+          label="Género"
+          value={personal.genero === "M" ? "Masculino" : "Femenino"}
+        />
+        <Field label="Nacionalidad" value={personal.nacionalidad} />
+        <Field label="Tipo de sangre" value={personal.tipo_sangre} />
+      </Section>
 
-          <Section title="Información personal">
-            <Field label="Nombre completo" value={nombreCompleto || "-"} />
-            <Field label="Cédula" value={personal.cedula} />
-            <Field
-              label="Fecha de nacimiento"
-              value={fechaNacimiento || "No especificado"}
-            />
-            <Field
-              label="Edad"
-              value={
-                personal.edad ? `${personal.edad} años` : "No especificado"
-              }
-            />
-            <Field
-              label="Género"
-              value={personal.genero === "M" ? "Masculino" : "Femenino"}
-            />
-            <Field label="Nacionalidad" value={personal.nacionalidad} />
-            <Field label="Tipo de sangre" value={personal.tipo_sangre} />
-          </Section>
+      <Section title="Información de contacto">
+        <Field label="Dirección" value={personal.direccion} />
+        <Field label="Teléfono principal" value={personal.telefono_principal} />
+        <Field
+          label="Teléfono secundario"
+          value={personal.telefono_secundario}
+        />
+        <Field label="Email" value={personal.email} />
+      </Section>
 
-          <Section title="Información de contacto">
-            <Field label="Dirección" value={personal.direccion} />
-            <Field
-              label="Teléfono principal"
-              value={personal.telefono_principal}
-            />
-            <Field
-              label="Teléfono secundario"
-              value={personal.telefono_secundario}
-            />
-            <Field label="Email" value={personal.email} />
-          </Section>
+      <Section title="Información laboral">
+        <Field label="Cargo" value={personal.nombre_cargo} />
+        <Field label="Función" value={personal.nombre_funcion} />
+        <Field label="Tipo de cargo">
+          <span className={tipoCargoClass}>
+            {getDisplayValue(personal.tipo_cargo)}
+          </span>
+        </Field>
+        <Field label="Tipo de función">
+          <span className={tipoFuncionClass}>
+            {getDisplayValue(personal.tipo_funcion)}
+          </span>
+        </Field>
+        <Field
+          label="Fecha de contratación"
+          value={fechaContratacion || "No especificado"}
+        />
+        <Field label="Nivel académico" value={personal.nivel_academico} />
+        <Field label="Horas de trabajo" value={personal.horas_trabajo} />
+        <Field label="RIF" value={personal.rif} />
+        <Field label="Etnia / Religión" value={personal.etnia_religion} />
+        <Field label="Cantidad de hijas" value={personal.cantidad_hijas} />
+        <Field
+          label="Cantidad de hijos varones"
+          value={personal.cantidad_hijos_varones}
+        />
+        <Field label="Código de dependencia" value={personal.cod_dependencia} />
+      </Section>
 
-          <Section title="Información laboral">
-            <Field label="Cargo" value={personal.nombre_cargo} />
-            <Field label="Función" value={personal.nombre_funcion} />
-            <Field label="Tipo de cargo">
-              <span className={tipoCargoClass}>
-                {getDisplayValue(personal.tipo_cargo)}
-              </span>
-            </Field>
-            <Field label="Tipo de función">
-              <span className={tipoFuncionClass}>
-                {getDisplayValue(personal.tipo_funcion)}
-              </span>
-            </Field>
-            <Field
-              label="Fecha de contratación"
-              value={fechaContratacion || "No especificado"}
-            />
-            <Field label="Nivel académico" value={personal.nivel_academico} />
-            <Field label="Horas de trabajo" value={personal.horas_trabajo} />
-            <Field label="RIF" value={personal.rif} />
-            <Field label="Etnia / Religión" value={personal.etnia_religion} />
-            <Field label="Cantidad de hijas" value={personal.cantidad_hijas} />
-            <Field
-              label="Cantidad de hijos varones"
-              value={personal.cantidad_hijos_varones}
-            />
-            <Field
-              label="Código de dependencia"
-              value={personal.cod_dependencia}
-            />
-          </Section>
-
-          <Section
-            title="Habilidades"
-            bodyClass={personalViewModalClasses.sectionStack}
-          >
-            {Array.isArray(personal.habilidades) &&
-            personal.habilidades.length > 0 ? (
-              <ul className={personalViewModalClasses.listGrid}>
-                {personal.habilidades.map((hab) => (
-                  <li
-                    key={hab.id_habilidad || hab.id}
-                    className={personalViewModalClasses.listItem}
-                  >
-                    {hab.nombre_habilidad}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-500">
-                Sin habilidades registradas.
-              </p>
-            )}
-          </Section>
-        </div>
-
-        <div className={personalViewModalClasses.footer}>
-          <button
-            onClick={onClose}
-            type="button"
-            className={personalViewModalClasses.footerButton}
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+      <Section
+        title="Habilidades"
+        bodyClass={personalViewModalClasses.sectionStack}
+      >
+        {Array.isArray(personal.habilidades) &&
+        personal.habilidades.length > 0 ? (
+          <ul className={personalViewModalClasses.listGrid}>
+            {personal.habilidades.map((hab) => (
+              <li
+                key={hab.id_habilidad || hab.id}
+                className={personalViewModalClasses.listItem}
+              >
+                {hab.nombre_habilidad}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-500">Sin habilidades registradas.</p>
+        )}
+      </Section>
+    </VentanaModal>
   );
 };

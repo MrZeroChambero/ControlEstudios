@@ -98,6 +98,10 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Login/RutasLogin.php';
   registrarRutasLogin($router);
 
+  // Rutas publicas para recuperacion de contrasena mediante preguntas de seguridad
+  require_once __DIR__ . '/PreguntasSeguridad/RutasPreguntasSeguridad.php';
+  registrarRutasPreguntasSeguridad($router);
+
   // Incluye y registra las rutas de usuarios
   require_once __DIR__ . '/Usuarios/RutasUsuarios.php';
   registrarRutasUsuarios($router);

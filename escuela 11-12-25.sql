@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-12-2025 a las 01:30:36
+-- Tiempo de generación: 11-12-2025 a las 17:21:33
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -393,7 +393,24 @@ CREATE TABLE `condiciones_salud` (
 --
 
 INSERT INTO `condiciones_salud` (`id_condicion`, `fk_estudiante`, `fk_patologia`, `afectado`, `presente_en`, `tipo_familiar`, `fecha_deteccion`, `cronica`, `impedimento_fisico`, `observaciones`) VALUES
-(3, 50, 1, 'estudiante', 'estudiante', NULL, '2020-05-10', 'si', 'no', 'Asma controlado con inhalador');
+(3, 50, 1, 'estudiante', 'estudiante', NULL, '2020-05-10', 'si', 'no', 'Asma controlado con inhalador'),
+(4, 28, 1, 'estudiante', 'estudiante', NULL, '2022-03-15', 'si', 'no', 'Asma leve, controlado con inhalador'),
+(5, 30, 6, 'estudiante', 'estudiante', NULL, '2023-01-20', 'si', 'no', 'TDAH, en tratamiento'),
+(6, 32, 2, 'familiar', 'familiar', 'madre', '2018-05-10', 'si', 'no', 'Diabetes tipo 2 en la madre'),
+(7, 34, 4, 'estudiante', 'estudiante', NULL, '2021-11-08', 'si', 'no', 'Epilepsia controlada con medicación'),
+(8, 37, 5, 'estudiante', 'estudiante', NULL, '2022-09-14', 'si', 'no', 'Dermatitis atópica, cuidados especiales de piel'),
+(9, 39, 3, 'familiar', 'familiar', 'padre', '2019-07-30', 'si', 'no', 'Hipertensión en el padre'),
+(10, 42, 7, 'estudiante_y_familiar', 'estudiante', NULL, '2020-12-05', 'si', 'no', 'Trastorno del espectro autista'),
+(11, 45, 8, 'estudiante', 'estudiante', NULL, '2021-04-18', 'si', 'si', 'Cardiopatía congénita, limitación para ejercicio intenso'),
+(12, 47, 9, 'estudiante', 'estudiante', NULL, '2023-02-22', 'no', 'no', 'Anemia por deficiencia de hierro, en tratamiento'),
+(13, 49, 10, 'estudiante', 'estudiante', NULL, '2022-06-10', 'si', 'no', 'Alergia alimentaria a frutos secos'),
+(14, 52, 1, 'familiar', 'familiar', 'hermano', '2021-08-25', 'si', 'no', 'Asma en hermano menor'),
+(15, 55, 6, 'estudiante', 'estudiante', NULL, '2023-03-12', 'si', 'no', 'TDAH, seguimiento por psicopedagogo'),
+(16, 49, 5, 'estudiante', 'estudiante', NULL, '2020-03-15', 'si', 'no', 'Dermatitis leve, controlada con cremas'),
+(17, 51, 9, 'estudiante', 'estudiante', NULL, '2021-07-10', 'si', 'no', 'Anemia ferropénica, suplementación con hierro'),
+(18, 52, 4, 'familiar', 'familiar', 'padre', '2015-02-20', 'si', 'no', 'Epilepsia controlada con medicación'),
+(19, 54, 10, 'estudiante_y_familiar', 'estudiante', 'madre', '2018-05-30', 'si', 'no', 'Alergia alimentaria compartida con la madre'),
+(20, 56, 3, 'familiar', 'familiar', 'abuelo', '2010-11-05', 'si', 'si', 'Hipertensión arterial del abuelo paterno');
 
 -- --------------------------------------------------------
 
@@ -416,7 +433,17 @@ CREATE TABLE `consultas_medicas` (
 --
 
 INSERT INTO `consultas_medicas` (`id_consulta`, `fk_estudiante`, `tipo_consulta`, `motivo`, `tiene_informe_medico`, `fecha_consulta`, `observaciones`) VALUES
-(3, 48, 'psicologo', 'Evaluación inicial', 'si', '2025-09-10', 'Seguimiento mensual recomendado');
+(3, 48, 'psicologo', 'Evaluación inicial', 'si', '2025-09-10', 'Seguimiento mensual recomendado'),
+(4, 28, 'psicologo', 'Evaluación por problemas de atención', 'si', '2024-02-10', 'Se recomienda seguimiento mensual'),
+(5, 30, 'neurologo', 'Control de epilepsia', 'si', '2024-01-15', 'Medicación ajustada correctamente'),
+(6, 34, 'terapista_lenguaje', 'Retraso en el desarrollo del lenguaje', 'si', '2024-03-05', 'Mejoría notable, continuar terapia'),
+(7, 39, 'psicopedagogo', 'Dificultades de aprendizaje', 'si', '2024-02-20', 'Necesita adaptación curricular'),
+(8, 42, 'orientador', 'Orientación vocacional', 'no', '2024-01-30', 'Intereses definidos hacia áreas técnicas'),
+(9, 47, 'psicologo', 'Ansiedad escolar', 'si', '2024-03-12', 'En tratamiento cognitivo-conductual'),
+(10, 49, 'psicologo', 'Evaluación por comportamiento en el aula', 'si', '2025-10-15', 'Se recomienda seguimiento trimestral'),
+(11, 51, 'terapista_lenguaje', 'Dificultades en pronunciación', 'si', '2025-09-20', 'Sesiones semanales recomendadas'),
+(12, 53, 'orientador', 'Orientación vocacional temprana', 'no', '2025-10-05', 'Interés en áreas científicas identificado'),
+(13, 55, 'neurologo', 'Evaluación por déficit de atención', 'si', '2025-08-15', 'Requiere evaluación complementaria');
 
 -- --------------------------------------------------------
 
@@ -494,7 +521,15 @@ CREATE TABLE `documentos_academicos` (
 --
 
 INSERT INTO `documentos_academicos` (`id_documento`, `fk_estudiante`, `tipo_documento`, `grado`, `entregado`, `observaciones`) VALUES
-(3, 48, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado');
+(3, 48, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
+(4, 28, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
+(5, 28, 'Tarjeta Vacunación', 'Primero', 'si', 'Completa'),
+(6, 30, 'Partida Nacimiento', 'Tercero', 'si', 'Copia legalizada'),
+(7, 32, 'Carta Residencia', 'Quinto', 'si', 'Con sellos correspondientes'),
+(8, 34, 'Constancia Act. Extracurricular', 'Segundo', 'no', 'Pendiente de entrega'),
+(9, 39, 'Boleta', 'Cuarto', 'si', 'Año anterior'),
+(10, 42, 'Certificado Aprendizaje', 'Sexto', 'si', 'Promovido'),
+(11, 47, 'Constancia Prosecución', 'Quinto', 'si', 'Para trámite bancario');
 
 -- --------------------------------------------------------
 
@@ -524,7 +559,43 @@ CREATE TABLE `estudiantes` (
 INSERT INTO `estudiantes` (`id_estudiante`, `id_persona`, `cedula_escolar`, `fecha_ingreso_escuela`, `vive_con_padres`, `orden_nacimiento`, `tiempo_gestacion`, `embarazo_deseado`, `tipo_parto`, `control_esfinteres`, `control_embarazo`, `estado`) VALUES
 (48, 86, '2025-30123456', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
 (49, 87, '2025-31234567', '2025-09-01', 'si', 2, 8, 'si', 'cesaria', 'si', 'si', 'activo'),
-(50, 88, '2025-32345678', '2025-09-01', 'no', 3, 9, 'no', 'normal', 'si', 'si', 'activo');
+(50, 88, '2025-32345678', '2025-09-01', 'no', 3, 9, 'no', 'normal', 'si', 'si', 'activo'),
+(51, 95, '2025-33456789', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(52, 96, '2025-34567890', '2025-09-01', 'si', 2, 8, 'si', 'cesaria', 'si', 'si', 'activo'),
+(53, 97, '2025-35678901', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(54, 98, '2025-36789012', '2025-09-01', 'no', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(55, 99, '2025-37890123', '2025-09-01', 'si', 3, 7, 'no', 'normal', 'si', 'no', 'activo'),
+(56, 100, '2025-38901234', '2025-09-01', 'si', 1, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(57, 144, '2025-00000001', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(58, 145, '2025-00000002', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(59, 146, '2025-00000003', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(60, 147, '2025-00000004', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(61, 148, '2025-00000005', '2025-09-01', 'si', 1, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(62, 149, '2025-00000006', '2025-09-01', 'si', 2, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(63, 150, '2025-00000007', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(64, 151, '2025-00000008', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(65, 152, '2025-00000009', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(66, 153, '2025-00000010', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(67, 154, '2025-00000011', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(68, 155, '2025-00000012', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(69, 156, '2025-00000013', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(70, 157, '2025-00000014', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(71, 158, '2025-00000015', '2025-09-01', 'si', 1, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(72, 159, '2025-00000016', '2025-09-01', 'si', 2, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(73, 160, '2025-00000017', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(74, 161, '2025-00000018', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(75, 162, '2025-00000019', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(76, 163, '2025-00000020', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(77, 164, '2025-00000021', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(78, 165, '2025-00000022', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(79, 166, '2025-00000023', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(80, 167, '2025-00000024', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(81, 168, '2025-00000025', '2025-09-01', 'si', 1, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(82, 169, '2025-00000026', '2025-09-01', 'si', 2, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(83, 170, '2025-00000027', '2025-09-01', 'si', 1, 9, 'si', 'normal', 'si', 'si', 'activo'),
+(84, 171, '2025-00000028', '2025-09-01', 'si', 2, 9, 'si', 'cesaria', 'si', 'si', 'activo'),
+(85, 172, '2025-00000029', '2025-09-01', 'si', 1, 8, 'si', 'normal', 'si', 'si', 'activo'),
+(86, 173, '2025-00000030', '2025-09-01', 'si', 2, 9, 'si', 'normal', 'si', 'si', 'activo');
 
 -- --------------------------------------------------------
 
@@ -663,7 +734,26 @@ CREATE TABLE `habilidades` (
 
 INSERT INTO `habilidades` (`id_habilidad`, `fk_representante`, `nombre_habilidad`) VALUES
 (11, 10, 'Manejo de herramientas tecnológicas'),
-(12, 10, 'Primeros auxilios');
+(12, 10, 'Primeros auxilios'),
+(13, 8, 'Primeros auxilios'),
+(14, 8, 'Carpintería básica'),
+(15, 9, 'Idiomas (inglés avanzado)'),
+(16, 10, 'Contabilidad'),
+(17, 11, 'Mediación de conflictos'),
+(18, 12, 'Tutoría académica'),
+(19, 13, 'Cuidado de pacientes'),
+(20, 14, 'Dibujo técnico'),
+(21, 15, 'Planificación financiera'),
+(22, 16, 'Programación'),
+(23, 16, 'Redes informáticas'),
+(24, 17, 'Terapia cognitivo-conductual'),
+(25, 11, 'Primeros auxilios avanzados'),
+(26, 11, 'Conocimientos en nutrición infantil'),
+(27, 12, 'Cuidado de niños'),
+(28, 12, 'Manejo de situaciones de emergencia'),
+(29, 13, 'Gestión administrativa'),
+(30, 14, 'Planificación de proyectos'),
+(31, 15, 'Mediación y resolución de conflictos');
 
 -- --------------------------------------------------------
 
@@ -869,7 +959,26 @@ CREATE TABLE `lista_alergias` (
 
 INSERT INTO `lista_alergias` (`id_lista_alergia`, `fk_alergia`, `fk_estudiante`) VALUES
 (5, 1, 48),
-(6, 5, 48);
+(6, 5, 48),
+(7, 1, 28),
+(8, 3, 28),
+(9, 5, 30),
+(10, 4, 32),
+(11, 6, 34),
+(12, 2, 37),
+(13, 8, 39),
+(14, 9, 42),
+(15, 10, 45),
+(16, 1, 47),
+(17, 5, 49),
+(18, 3, 52),
+(19, 6, 55),
+(20, 2, 49),
+(21, 4, 51),
+(22, 6, 52),
+(23, 8, 54),
+(24, 10, 56),
+(25, 2, 54);
 
 -- --------------------------------------------------------
 
@@ -929,7 +1038,53 @@ INSERT INTO `parentesco` (`id_parentesco`, `fk_representante`, `fk_estudiante`, 
 (27, 11, 48, 'madre'),
 (28, 10, 49, 'padre'),
 (29, 11, 49, 'madre'),
-(30, 12, 50, 'abuelo');
+(30, 12, 50, 'abuelo'),
+(31, 13, 51, 'madre'),
+(32, 14, 52, 'padre'),
+(33, 15, 53, 'madre'),
+(34, 16, 54, 'tio'),
+(35, 13, 55, 'madre'),
+(36, 14, 56, 'padre'),
+(37, 8, 28, 'padre'),
+(38, 9, 28, 'madre'),
+(39, 8, 29, 'padre'),
+(40, 9, 29, 'madre'),
+(41, 10, 30, 'padre'),
+(42, 11, 30, 'madre'),
+(43, 10, 31, 'padre'),
+(44, 11, 31, 'madre'),
+(45, 12, 32, 'padre'),
+(46, 13, 32, 'madre'),
+(47, 12, 33, 'padre'),
+(48, 13, 33, 'madre'),
+(49, 14, 34, 'padre'),
+(50, 15, 34, 'madre'),
+(51, 14, 35, 'padre'),
+(52, 15, 35, 'madre'),
+(53, 16, 36, 'padre'),
+(54, 17, 36, 'madre'),
+(55, 16, 37, 'padre'),
+(56, 17, 37, 'madre'),
+(57, 8, 38, 'padre'),
+(58, 9, 39, 'madre'),
+(59, 10, 40, 'padre'),
+(60, 11, 41, 'madre'),
+(61, 12, 42, 'padre'),
+(62, 13, 43, 'madre'),
+(63, 14, 44, 'padre'),
+(64, 15, 45, 'madre'),
+(65, 16, 46, 'padre'),
+(66, 17, 47, 'madre'),
+(67, 8, 48, 'tio'),
+(68, 9, 49, 'abuela'),
+(69, 10, 50, 'hermano'),
+(70, 11, 51, 'tia'),
+(71, 12, 52, 'abuelo'),
+(72, 13, 53, 'hermana'),
+(73, 14, 54, 'otro'),
+(74, 15, 55, 'otro'),
+(75, 16, 56, 'tio'),
+(76, 17, 57, 'abuela');
 
 -- --------------------------------------------------------
 
@@ -989,7 +1144,10 @@ INSERT INTO `personal` (`id_personal`, `fk_persona`, `fk_funcion`, `fecha_contra
 (1, 35, 8, '2025-11-11', 'dsadsadas', NULL, NULL, 'sdsadsa', 4, 2, 'activo', 2, ''),
 (14, 89, 1, '2020-09-01', 'Licenciatura en Educación', 44, NULL, 'Católica', 2, 0, 'activo', 1, 'DOC-001'),
 (15, 90, 4, '2015-09-01', 'Maestría en Matemáticas', 40, NULL, 'Sin preferencia', 1, 1, 'activo', 2, 'DOC-002'),
-(16, 91, 5, '2018-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Cristiana', 0, 0, 'activo', 15, 'ESP-001');
+(16, 91, 5, '2018-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Cristiana', 0, 0, 'activo', 15, 'ESP-001'),
+(17, 101, 2, '2018-09-01', 'Licenciatura en Educación Integral', 44, NULL, 'Católica', 1, 1, 'activo', 1, 'DOC-003'),
+(18, 102, 12, '2020-09-01', 'Licenciatura en Idiomas Modernos', 36, NULL, 'Cristiana', 0, 0, 'activo', 7, 'ESP-002'),
+(19, 103, 5, '2019-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Sin preferencia', 0, 2, 'activo', 15, 'ESP-003');
 
 -- --------------------------------------------------------
 
@@ -1010,27 +1168,80 @@ CREATE TABLE `personas` (
   `direccion` varchar(255) NOT NULL,
   `telefono_principal` varchar(20) NOT NULL,
   `telefono_secundario` varchar(20) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
   `tipo_persona` enum('estudiante','representante','personal') DEFAULT NULL,
   `tipo_sangre` enum('No sabe','O-','O+','A-','A+','B-','B+','AB-','AB+') NOT NULL,
-  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo'
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
+  `email` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `personas`
 --
 
-INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `fecha_nacimiento`, `genero`, `cedula`, `nacionalidad`, `direccion`, `telefono_principal`, `telefono_secundario`, `email`, `tipo_persona`, `tipo_sangre`, `estado`) VALUES
-(35, 'Adriana', 'Lucía', 'Yépez', 'Chacón', '2006-10-17', 'F', '50050607', 'Venezolana', 'Carrera 5, Edif. Amarillo', '04245005060', '02812109875', 'adriana.yepez@email.com', 'estudiante', 'O-', 'activo'),
-(86, 'Juan', 'Carlos', 'Pérez', 'González', '2010-05-15', 'M', '30123456', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141234567', NULL, 'juan.perez.est@email.com', 'estudiante', 'O+', 'activo'),
-(87, 'María', 'Gabriela', 'Rodríguez', 'López', '2011-08-22', 'F', '31234567', 'Venezolana', 'Calle 12, El Valle, Caracas', '04147654321', NULL, 'maria.rodriguez.est@email.com', 'estudiante', 'A+', 'activo'),
-(88, 'Carlos', 'Andrés', 'García', 'Martínez', '2012-03-10', 'M', '32345678', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04241122334', NULL, 'carlos.garcia.est@email.com', 'estudiante', 'B+', 'activo'),
-(89, 'Ana', 'María', 'López', 'Pérez', '1985-08-20', 'F', '43456789', 'Venezolana', 'Urb. El Paraíso, Calle 5, Casa 10, Caracas', '04247654321', NULL, 'ana.lopez.doc@email.com', 'personal', 'A+', 'activo'),
-(90, 'Luis', 'Alberto', 'González', 'Ramírez', '1978-11-15', 'M', '44567890', 'Venezolana', 'Av. Bolívar, Edif. Las Torres, Apto 5B, Caracas', '04149876543', NULL, 'luis.gonzalez.doc@email.com', 'personal', 'O+', 'activo'),
-(91, 'María', 'Fernanda', 'Hernández', 'Castro', '1990-04-25', 'F', '45678901', 'Venezolana', 'Calle Los Manguitos, Quinta Luz, Caracas', '04245678901', NULL, 'maria.hernandez.doc@email.com', 'personal', 'AB+', 'activo'),
-(92, 'Pedro', 'José', 'Pérez', 'González', '1975-03-10', 'M', '56789012', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141112233', NULL, 'pedro.perez.rep@email.com', 'representante', 'B+', 'activo'),
-(93, 'Laura', 'Beatriz', 'Rodríguez', 'López', '1978-07-18', 'F', '57890123', 'Venezolana', 'Calle 12, El Valle, Caracas', '04244455566', NULL, 'laura.rodriguez.rep@email.com', 'representante', 'A-', 'activo'),
-(94, 'José', 'Gregorio', 'García', 'Pérez', '1950-12-05', 'M', '58901234', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04167788899', NULL, 'jose.garcia.rep@email.com', 'representante', 'O+', 'activo');
+INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `fecha_nacimiento`, `genero`, `cedula`, `nacionalidad`, `direccion`, `telefono_principal`, `telefono_secundario`, `tipo_persona`, `tipo_sangre`, `estado`, `email`) VALUES
+(35, 'Adriana', 'Lucía', 'Yépez', 'Chacón', '2016-12-11', 'F', '50050607', 'Venezolana', 'Carrera 5, Edif. Amarillo', '04245005060', '02812109875', 'estudiante', 'O-', 'activo', ''),
+(86, 'Juan', 'Carlos', 'Pérez', 'González', '2020-12-11', 'M', '30123456', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141234567', NULL, 'estudiante', 'O+', 'activo', ''),
+(87, 'María', 'Gabriela', 'Rodríguez', 'López', '2019-12-11', 'F', '31234567', 'Venezolana', 'Calle 12, El Valle, Caracas', '04147654321', NULL, 'estudiante', 'A+', 'activo', ''),
+(88, 'Carlos', 'Andrés', 'García', 'Martínez', '2016-12-11', 'M', '32345678', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04241122334', NULL, 'estudiante', 'B+', 'activo', ''),
+(89, 'Ana', 'María', 'López', 'Pérez', '1985-08-20', 'F', '43456789', 'Venezolana', 'Urb. El Paraíso, Calle 5, Casa 10, Caracas', '04247654321', NULL, 'personal', 'A+', 'activo', ''),
+(90, 'Luis', 'Alberto', 'González', 'Ramírez', '1978-11-15', 'M', '44567890', 'Venezolana', 'Av. Bolívar, Edif. Las Torres, Apto 5B, Caracas', '04149876543', NULL, 'personal', 'O+', 'activo', ''),
+(91, 'María', 'Fernanda', 'Hernández', 'Castro', '1990-04-25', 'F', '45678901', 'Venezolana', 'Calle Los Manguitos, Quinta Luz, Caracas', '04245678901', NULL, 'personal', 'AB+', 'activo', ''),
+(92, 'Pedro', 'José', 'Pérez', 'González', '1975-03-10', 'M', '56789012', 'Venezolana', 'Av. Principal, Los Rosales, Caracas', '04141112233', NULL, 'representante', 'B+', 'activo', ''),
+(93, 'Laura', 'Beatriz', 'Rodríguez', 'López', '1978-07-18', 'F', '57890123', 'Venezolana', 'Calle 12, El Valle, Caracas', '04244455566', NULL, 'representante', 'A-', 'activo', ''),
+(94, 'José', 'Gregorio', 'García', 'Pérez', '1950-12-05', 'M', '58901234', 'Venezolana', 'Urb. Las Acacias, Calle 5, Casa 12, Caracas', '04167788899', NULL, 'representante', 'O+', 'activo', ''),
+(95, 'Laura', 'Isabel', 'Fernández', 'Morales', '2014-12-11', 'F', '33456789', 'Venezolana', 'Calle 15, Urb. El Paraíso, Caracas', '04149998877', NULL, 'estudiante', 'O+', 'activo', ''),
+(96, 'José', 'Miguel', 'Martínez', 'Gutiérrez', '2017-12-11', 'M', '34567890', 'Venezolana', 'Av. Libertador, Edif. Las Flores, Apto 3A, Caracas', '04243332211', NULL, 'estudiante', 'A-', 'activo', ''),
+(97, 'Ana', 'Sofía', 'Pérez', 'Rodríguez', '2016-12-11', 'F', '35678901', 'Venezolana', 'Urb. Santa Mónica, Calle 8, Casa 15, Caracas', '04145556677', NULL, 'estudiante', 'B+', 'activo', ''),
+(98, 'Diego', 'Alejandro', 'Hernández', 'López', '2015-12-11', 'M', '36789012', 'Venezolana', 'Carrera 12, El Rosal, Caracas', '04248889900', NULL, 'estudiante', 'AB+', 'activo', ''),
+(99, 'Valentina', 'Carolina', 'González', 'Sánchez', '2014-12-11', 'F', '37890123', 'Venezolana', 'Av. Páez, Quinta Los Álamos, Caracas', '04141112233', NULL, 'estudiante', 'O-', 'activo', ''),
+(100, 'Andrés', 'Felipe', 'Díaz', 'Ramírez', '2017-12-11', 'M', '38901234', 'Venezolana', 'Calle Los Jardines, Urb. La Floresta, Caracas', '04244445555', NULL, 'estudiante', 'A+', 'activo', ''),
+(101, 'Carlos', 'Enrique', 'Rojas', 'Vargas', '1982-03-15', 'M', '46789012', 'Venezolana', 'Av. Universidad, Edif. El Mirador, Apto 7C, Caracas', '04161234567', NULL, 'personal', 'B+', 'activo', ''),
+(102, 'Gabriela', 'Elena', 'Castro', 'Mendoza', '1992-06-22', 'F', '47890123', 'Venezolana', 'Calle Los Pinos, Urb. La Paz, Caracas', '04269876543', NULL, 'personal', 'O+', 'activo', ''),
+(103, 'Roberto', 'José', 'Silva', 'Paredes', '1988-11-30', 'M', '48901234', 'Venezolana', 'Urb. Los Chaguaramos, Calle 10, Casa 22, Caracas', '04172345678', NULL, 'personal', 'AB-', 'activo', ''),
+(104, 'Marta', 'Lucía', 'Morales', 'Pérez', '1979-04-18', 'F', '59012345', 'Venezolana', 'Calle 15, Urb. El Paraíso, Caracas', '04260011223', NULL, 'representante', 'A+', 'activo', ''),
+(105, 'Alberto', 'Juan', 'Gutiérrez', 'Fernández', '1976-09-25', 'M', '60123456', 'Venezolana', 'Av. Libertador, Edif. Las Flores, Apto 3A, Caracas', '04174445566', NULL, 'representante', 'O+', 'activo', ''),
+(106, 'Isabel', 'Carmen', 'Rodríguez', 'Martínez', '1980-12-10', 'F', '61234567', 'Venezolana', 'Urb. Santa Mónica, Calle 8, Casa 15, Caracas', '04267778899', NULL, 'representante', 'B-', 'activo', ''),
+(107, 'Ricardo', 'Antonio', 'López', 'Hernández', '1968-05-03', 'M', '62345678', 'Venezolana', 'Carrera 12, El Rosal, Caracas', '04189990011', NULL, 'representante', 'AB+', 'activo', ''),
+(163, 'Carlos', 'Alberto', 'González', 'Pérez', '2018-12-11', 'M', 'V12345678', 'Venezolana', 'Av. Principal #123', '04141234567', '04149876543', 'representante', 'O+', 'activo', 'carlos.gonzalez@email.com'),
+(164, 'María', 'Isabel', 'Rodríguez', 'López', '2015-12-11', 'F', 'V23456789', 'Venezolana', 'Calle 5 #45', '04142345678', NULL, 'representante', 'A+', 'activo', 'maria.rodriguez@email.com'),
+(165, 'José', 'Luis', 'Martínez', 'García', '2018-12-11', 'M', 'V34567890', 'Venezolana', 'Urb. Las Acacias', '04143456789', '04241234567', NULL, 'B+', 'activo', NULL),
+(166, 'Ana', 'Gabriela', 'Pérez', 'Sánchez', '2015-12-11', 'F', 'V45678901', 'Venezolana', 'Sector El Valle', '04144567890', NULL, 'representante', 'AB+', 'activo', 'ana.perez@email.com'),
+(167, 'Luis', 'Miguel', 'Hernández', 'Díaz', '2016-12-11', 'M', 'V56789012', 'Venezolana', 'Av. Bolívar #78', '04145678901', '04141237890', 'representante', 'O-', 'activo', 'luis.hernandez@email.com'),
+(168, 'Carmen', 'Elena', 'Gómez', 'Ramírez', '2014-12-11', 'F', 'V67890123', 'Venezolana', 'Carrera 8 #23', '04146789012', NULL, 'representante', 'A-', 'activo', NULL),
+(169, 'Roberto', 'Carlos', 'Fernández', 'Morales', '2017-12-11', 'M', 'V78901234', 'Venezolana', 'Urb. Santa Rosa', '04147890123', '04249876543', 'representante', 'B-', 'activo', 'roberto.fernandez@email.com'),
+(170, 'Patricia', 'Margarita', 'Torres', 'Rojas', '2020-12-11', 'F', 'V89012345', 'Venezolana', 'Sector La Floresta', '04148901234', NULL, 'representante', 'AB-', 'activo', 'patricia.torres@email.com'),
+(171, 'Jorge', 'Enrique', 'Silva', 'Vargas', '2015-12-11', 'M', 'V90123456', 'Venezolana', 'Av. Universidad', '04149012345', '04142348901', 'representante', 'O+', 'activo', NULL),
+(172, 'Marta', 'Lucía', 'Castro', 'Mendoza', '2016-12-11', 'F', 'V01234567', 'Venezolana', 'Calle 10 #90', '04140123456', NULL, 'representante', 'A+', 'activo', 'marta.castro@email.com'),
+(173, 'Sofía', NULL, 'González', 'Pérez', '2015-12-11', 'F', 'E10000001', 'Venezolana', 'Av. Principal #123', '04141000001', NULL, 'estudiante', 'O+', 'activo', NULL),
+(174, 'Mateo', 'Alejandro', 'González', 'Pérez', '2017-12-11', 'M', 'E10000002', 'Venezolana', 'Av. Principal #123', '04141000001', NULL, 'estudiante', 'O+', 'activo', NULL),
+(175, 'Valentina', NULL, 'Rodríguez', 'López', '2018-12-11', 'F', 'E10000003', 'Venezolana', 'Calle 5 #45', '04142000002', NULL, 'estudiante', 'A+', 'activo', NULL),
+(176, 'Sebastián', NULL, 'Rodríguez', 'López', '2020-12-11', 'M', 'E10000004', 'Venezolana', 'Calle 5 #45', '04142000002', NULL, 'estudiante', 'A+', 'activo', NULL),
+(177, 'Isabella', 'María', 'Martínez', 'García', '2016-12-11', 'F', 'E10000005', 'Venezolana', 'Urb. Las Acacias', '04143000003', NULL, 'estudiante', 'B+', 'activo', NULL),
+(178, 'Diego', NULL, 'Martínez', 'García', '2016-12-11', 'M', 'E10000006', 'Venezolana', 'Urb. Las Acacias', '04143000003', NULL, 'estudiante', 'B+', 'activo', NULL),
+(179, 'Camila', NULL, 'Pérez', 'Sánchez', '2017-12-11', 'F', 'E10000007', 'Venezolana', 'Sector El Valle', '04144000004', NULL, 'estudiante', 'AB+', 'activo', NULL),
+(180, 'Nicolás', NULL, 'Pérez', 'Sánchez', '2018-12-11', 'M', 'E10000008', 'Venezolana', 'Sector El Valle', '04144000004', NULL, 'estudiante', 'AB+', 'activo', NULL),
+(181, 'Lucía', NULL, 'Hernández', 'Díaz', '2018-12-11', 'F', 'E10000009', 'Venezolana', 'Av. Bolívar #78', '04145000005', NULL, 'estudiante', 'O-', 'activo', NULL),
+(182, 'Daniel', 'Andrés', 'Hernández', 'Díaz', '2016-12-11', 'M', 'E10000010', 'Venezolana', 'Av. Bolívar #78', '04145000005', NULL, 'estudiante', 'O-', 'activo', NULL),
+(183, 'Samuel', NULL, 'Gómez', 'Ramírez', '2019-12-11', 'M', 'E10000011', 'Venezolana', 'Carrera 8 #23', '04146000006', NULL, 'estudiante', 'A-', 'activo', NULL),
+(184, 'Mariana', NULL, 'Gómez', 'Ramírez', '2015-12-11', 'F', 'E10000012', 'Venezolana', 'Carrera 8 #23', '04146000006', NULL, 'estudiante', 'A-', 'activo', NULL),
+(185, 'Joaquín', NULL, 'Fernández', 'Morales', '2015-12-11', 'M', 'E10000013', 'Venezolana', 'Urb. Santa Rosa', '04147000007', NULL, 'estudiante', 'B-', 'activo', NULL),
+(186, 'Renata', NULL, 'Fernández', 'Morales', '2017-12-11', 'F', 'E10000014', 'Venezolana', 'Urb. Santa Rosa', '04147000007', NULL, 'estudiante', 'B-', 'activo', NULL),
+(187, 'Emilio', NULL, 'Torres', 'Rojas', '2014-12-11', 'M', 'E10000015', 'Venezolana', 'Sector La Floresta', '04148000008', NULL, 'estudiante', 'AB-', 'activo', NULL),
+(188, 'Antonella', NULL, 'Torres', 'Rojas', '2020-12-11', 'F', 'E10000016', 'Venezolana', 'Sector La Floresta', '04148000008', NULL, 'estudiante', 'AB-', 'activo', NULL),
+(189, 'Adrián', NULL, 'Silva', 'Vargas', '2017-12-11', 'M', 'E10000017', 'Venezolana', 'Av. Universidad', '04149000009', NULL, 'estudiante', 'O+', 'activo', NULL),
+(190, 'Victoria', NULL, 'Silva', 'Vargas', '2017-12-11', 'F', 'E10000018', 'Venezolana', 'Av. Universidad', '04149000009', NULL, 'estudiante', 'O+', 'activo', NULL),
+(191, 'Tomás', NULL, 'Castro', 'Mendoza', '2019-12-11', 'M', 'E10000019', 'Venezolana', 'Calle 10 #90', '04140000010', NULL, 'estudiante', 'A+', 'activo', NULL),
+(192, 'Florencia', NULL, 'Castro', 'Mendoza', '2017-12-11', 'F', 'E10000020', 'Venezolana', 'Calle 10 #90', '04140000010', NULL, 'estudiante', 'A+', 'activo', NULL),
+(193, 'Javier', NULL, 'González', 'Rodríguez', '2015-12-11', 'M', 'E10000021', 'Venezolana', 'Av. Nueva #50', '04141111111', NULL, 'estudiante', 'O+', 'activo', NULL),
+(194, 'Ximena', NULL, 'González', 'Rodríguez', '2018-12-11', 'F', 'E10000022', 'Venezolana', 'Av. Nueva #50', '04141111111', NULL, 'estudiante', 'O+', 'activo', NULL),
+(195, 'Luciano', NULL, 'López', 'Martínez', '2019-12-11', 'M', 'E10000023', 'Venezolana', 'Calle 20 #15', '04142222222', NULL, 'estudiante', 'A+', 'activo', NULL),
+(196, 'Catalina', NULL, 'López', 'Martínez', '2020-12-11', 'F', 'E10000024', 'Venezolana', 'Calle 20 #15', '04142222222', NULL, 'estudiante', 'A+', 'activo', NULL),
+(197, 'Maximiliano', NULL, 'Ramírez', 'Gómez', '2014-12-11', 'M', 'E10000025', 'Venezolana', 'Urb. El Paraíso', '04143333333', NULL, 'estudiante', 'B+', 'activo', NULL),
+(198, 'Martina', NULL, 'Ramírez', 'Gómez', '2019-12-11', 'F', 'E10000026', 'Venezolana', 'Urb. El Paraíso', '04143333333', NULL, 'estudiante', 'B+', 'activo', NULL),
+(199, 'Benjamín', NULL, 'Díaz', 'Fernández', '2020-12-11', 'M', 'E10000027', 'Venezolana', 'Sector Los Olivos', '04144444444', NULL, 'estudiante', 'AB+', 'activo', NULL),
+(200, 'Julieta', NULL, 'Díaz', 'Fernández', '2014-12-11', 'F', 'E10000028', 'Venezolana', 'Sector Los Olivos', '04144444444', NULL, 'estudiante', 'AB+', 'activo', NULL),
+(201, 'Thiago', NULL, 'Morales', 'Torres', '2016-12-11', 'M', 'E10000029', 'Venezolana', 'Av. Libertador', '04145555555', NULL, 'estudiante', 'O-', 'activo', NULL),
+(202, 'Mía', NULL, 'Morales', 'Torres', '2018-12-11', 'F', 'E10000030', 'Venezolana', 'Av. Libertador', '04145555555', NULL, 'estudiante', 'O-', 'activo', NULL);
 
 -- --------------------------------------------------------
 
@@ -1108,7 +1319,21 @@ CREATE TABLE `representantes` (
 INSERT INTO `representantes` (`id_representante`, `fk_persona`, `oficio`, `nivel_educativo`, `profesion`, `lugar_trabajo`) VALUES
 (10, 92, 'Ingeniero', 'Licenciatura', 'Ingeniero de Sistemas', 'Empresa Tecnológica XYZ'),
 (11, 93, 'Médico', 'Doctorado', 'Pediatra', 'Hospital Central'),
-(12, 94, 'Pensionado', 'Bachiller', 'Contador (Jubilado)', 'Casa');
+(12, 94, 'Pensionado', 'Bachiller', 'Contador (Jubilado)', 'Casa'),
+(13, 104, 'Contadora', 'Licenciatura', 'Contadora Pública', 'Consultoría Financiera ABC'),
+(14, 105, 'Ingeniero', 'Maestria', 'Ingeniero Civil', 'Constructora Nacional'),
+(15, 106, 'Abogada', 'Doctorado', 'Abogada Penalista', 'Bufete Legal XYZ'),
+(16, 107, 'Comerciante', 'Bachiller', 'Empresario', 'Tienda de Electrodomésticos'),
+(17, 154, 'Ingeniero', 'Licenciatura', 'Ingeniero Civil', 'Constructora Nacional'),
+(18, 155, 'Médico', 'Doctorado', 'Pediatra', 'Hospital Central'),
+(19, 156, 'Comerciante', 'Bachiller', 'Empresario', 'Tienda Propia'),
+(20, 157, 'Abogada', 'Maestria', 'Abogada', 'Bufete Legal'),
+(21, 158, 'Docente', 'Licenciatura', 'Profesor Universitario', 'Universidad Nacional'),
+(22, 159, 'Enfermera', 'TSU', 'Enfermera Jefe', 'Clínica Privada'),
+(23, 160, 'Arquitecto', 'Licenciatura', 'Arquitecto', 'Estudio de Arquitectura'),
+(24, 161, 'Contadora', 'Licenciatura', 'Contadora Pública', 'Consultoría Financiera'),
+(25, 162, 'Ingeniero', 'Maestria', 'Ingeniero de Sistemas', 'Empresa Tecnológica'),
+(26, 163, 'Psicóloga', 'Licenciatura', 'Psicóloga Clínica', 'Consultorio Privado');
 
 -- --------------------------------------------------------
 
@@ -1142,7 +1367,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(37, 1, '1cc82aa84d35881e01ade80f395eff422684bb52a484cb83edb0f5c20b0b12f1', '2025-12-10', '2025-12-11');
+(38, 1, '98e51b280a73d7e63b857e8d5e88ab64e7981f819a8bc87a228128f6e37c8eb3', '2025-12-11', '2025-12-12');
 
 -- --------------------------------------------------------
 
@@ -1255,7 +1480,7 @@ CREATE TABLE `usuarios` (
   `nombre_usuario` varchar(50) NOT NULL,
   `contrasena_hash` varchar(255) NOT NULL,
   `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
-  `rol` enum('Administrador','Director','Docente','Secretaria') DEFAULT NULL,
+  `rol` enum('Director','Docente','Secretaria') DEFAULT NULL,
   `ultimo_login` timestamp NULL DEFAULT NULL,
   `intentos_fallidos` int(11) DEFAULT 0,
   `fecha_bloqueo` timestamp NULL DEFAULT NULL
@@ -1266,7 +1491,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `fk_personal`, `nombre_usuario`, `contrasena_hash`, `estado`, `rol`, `ultimo_login`, `intentos_fallidos`, `fecha_bloqueo`) VALUES
-(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', 'Administrador', NULL, 0, NULL);
+(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', '', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1317,7 +1542,27 @@ CREATE TABLE `vacunas_estudiante` (
 
 INSERT INTO `vacunas_estudiante` (`id_vacuna_estudiante`, `fk_vacuna`, `fk_estudiante`, `fecha_aplicacion`, `refuerzos`) VALUES
 (5, 1, 49, '2011-09-15', 1),
-(6, 3, 49, '2011-10-20', 3);
+(6, 3, 49, '2011-10-20', 3),
+(7, 1, 28, '2020-05-10', 1),
+(8, 2, 28, '2020-06-15', 3),
+(9, 3, 29, '2019-08-20', 3),
+(10, 4, 30, '2020-03-12', 2),
+(11, 5, 32, '2020-09-05', 1),
+(12, 6, 34, '2019-11-18', 2),
+(13, 7, 37, '2020-01-25', 1),
+(14, 8, 39, '2020-10-30', 1),
+(15, 9, 42, '2021-03-15', 2),
+(16, 10, 45, '2020-07-22', 1),
+(17, 11, 47, '2020-04-08', 2),
+(18, 12, 49, '2020-08-14', 1),
+(19, 1, 52, '2019-12-10', 1),
+(20, 3, 55, '2020-02-28', 3),
+(21, 2, 48, '2010-06-10', 3),
+(22, 5, 50, '2012-04-15', 2),
+(23, 8, 51, '2010-11-30', 1),
+(24, 9, 53, '2021-08-20', 2),
+(25, 12, 55, '2011-03-12', 4),
+(26, 10, 56, '2012-05-25', 1);
 
 --
 -- Índices para tablas volcadas
@@ -1571,8 +1816,7 @@ ALTER TABLE `personal`
 --
 ALTER TABLE `personas`
   ADD PRIMARY KEY (`id_persona`),
-  ADD UNIQUE KEY `cedula` (`cedula`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `cedula` (`cedula`);
 
 --
 -- Indices de la tabla `planificaciones`
@@ -1731,13 +1975,13 @@ ALTER TABLE `componentes_aprendizaje`
 -- AUTO_INCREMENT de la tabla `condiciones_salud`
 --
 ALTER TABLE `condiciones_salud`
-  MODIFY `id_condicion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_condicion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `consultas_medicas`
 --
 ALTER TABLE `consultas_medicas`
-  MODIFY `id_consulta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_consulta` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `contenidos`
@@ -1755,13 +1999,13 @@ ALTER TABLE `contenido_indicador`
 -- AUTO_INCREMENT de la tabla `documentos_academicos`
 --
 ALTER TABLE `documentos_academicos`
-  MODIFY `id_documento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_documento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT de la tabla `evaluar`
@@ -1791,7 +2035,7 @@ ALTER TABLE `grupos_estudiantiles`
 -- AUTO_INCREMENT de la tabla `habilidades`
 --
 ALTER TABLE `habilidades`
-  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_habilidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT de la tabla `horarios`
@@ -1821,7 +2065,7 @@ ALTER TABLE `inscripciones`
 -- AUTO_INCREMENT de la tabla `lista_alergias`
 --
 ALTER TABLE `lista_alergias`
-  MODIFY `id_lista_alergia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_lista_alergia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de la tabla `literal`
@@ -1839,19 +2083,19 @@ ALTER TABLE `momentos`
 -- AUTO_INCREMENT de la tabla `parentesco`
 --
 ALTER TABLE `parentesco`
-  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -1881,7 +2125,7 @@ ALTER TABLE `preguntas`
 -- AUTO_INCREMENT de la tabla `representantes`
 --
 ALTER TABLE `representantes`
-  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_representante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `respaldos`
@@ -1893,7 +2137,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -1917,7 +2161,7 @@ ALTER TABLE `vacuna`
 -- AUTO_INCREMENT de la tabla `vacunas_estudiante`
 --
 ALTER TABLE `vacunas_estudiante`
-  MODIFY `id_vacuna_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_vacuna_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Restricciones para tablas volcadas

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
-  contenidosModalClasses,
   contenidosFormClasses,
   neutralButtonBase,
   helperTextBase,
 } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const CompetenciaFormModal = ({
   isOpen,
@@ -90,28 +90,15 @@ export const CompetenciaFormModal = ({
     modo === "editar" ? "Editar competencia" : "Registrar competencia";
 
   return (
-    <div className={contenidosModalClasses.overlay}>
-      <form
-        onSubmit={manejarSubmit}
-        className={`${contenidosModalClasses.content} max-h-[90vh] w-full max-w-3xl overflow-y-auto`}
-      >
-        <div className={contenidosModalClasses.header}>
-          <div>
-            <h2 className={contenidosModalClasses.title}>{titulo}</h2>
-            <p className={contenidosFormClasses.helper}>
-              Complete la informacion de la competencia seleccionada.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={contenidosModalClasses.closeButton}
-            aria-label="Cerrar formulario"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={titulo}
+      subtitle="Complete la informacion de la competencia seleccionada."
+      size="lg"
+      contentClassName="max-w-3xl"
+    >
+      <form onSubmit={manejarSubmit} className="space-y-6">
         <div className={contenidosFormClasses.grid}>
           <div className={contenidosFormClasses.fieldWrapper}>
             <label className={contenidosFormClasses.label}>
@@ -213,7 +200,7 @@ export const CompetenciaFormModal = ({
           </button>
         </div>
       </form>
-    </div>
+    </VentanaModal>
   );
 };
 

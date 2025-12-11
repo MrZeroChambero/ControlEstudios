@@ -11,6 +11,7 @@ import {
   cambioEstadoUsuario,
   solicitarPersonalParaSelect,
   obtenerUsuarioCompleto,
+  obtenerPreguntasSeguridad,
 } from "./usuariosService";
 import { contenidosLayout } from "../EstilosCliente/EstilosClientes";
 
@@ -26,9 +27,16 @@ export const Usuarios = () => {
     fk_personal: "",
     nombre_usuario: "",
     contrasena: "",
+    confirmacion_contrasena: "",
     rol: "",
   });
   const [personal, setPersonal] = useState([]);
+  const crearPreguntasIniciales = () => [
+    { pregunta: "", respuesta: "", confirmacion: "" },
+    { pregunta: "", respuesta: "", confirmacion: "" },
+    { pregunta: "", respuesta: "", confirmacion: "" },
+  ];
+  const [preguntas, setPreguntas] = useState(crearPreguntasIniciales());
 
   useEffect(() => {
     cargarDatos();
@@ -64,24 +72,79 @@ export const Usuarios = () => {
     });
   };
 
-  const openModal = (usuario = null, modo = "crear") => {
-    setCurrentUsuario(usuario);
+  const openModal = async (usuario = null, modo = "crear") => {
     setModoModal(modo);
+    setCurrentUsuario(usuario);
+
     if (usuario) {
       setFormData({
         fk_personal: usuario.fk_personal,
         nombre_usuario: usuario.nombre_usuario,
         contrasena: "",
+        confirmacion_contrasena: "",
         rol: usuario.rol,
       });
+
+      setPersonal((prev) => {
+        if (!Array.isArray(prev)) {
+          return prev;
+        }
+
+        const existe = prev.some(
+          (persona) =>
+            String(persona.id_personal) === String(usuario.fk_personal)
+        );
+
+        if (existe) {
+          return prev;
+        }
+
+        const nuevoRegistro = {
+          id_personal: usuario.fk_personal,
+          primer_nombre: usuario.primer_nombre ?? "",
+          segundo_nombre: usuario.segundo_nombre ?? "",
+          primer_apellido: usuario.primer_apellido ?? "",
+          segundo_apellido: usuario.segundo_apellido ?? "",
+          cedula: usuario.cedula ?? "",
+          nombre_cargo: usuario.nombre_cargo ?? "",
+          tipo_funcion: usuario.tipo_funcion ?? "",
+        };
+
+        return [...prev, nuevoRegistro];
+      });
+
+      try {
+        const preguntasServidor = await obtenerPreguntasSeguridad(
+          usuario.id_usuario,
+          Swal
+        );
+        if (preguntasServidor.length > 0) {
+          setPreguntas(
+            preguntasServidor.map((item) => ({
+              id: item.id,
+              pregunta: item.pregunta ?? "",
+              respuesta: "",
+              confirmacion: "",
+            }))
+          );
+        } else {
+          setPreguntas(crearPreguntasIniciales());
+        }
+      } catch (error) {
+        console.error("Error al cargar preguntas existentes:", error);
+        setPreguntas(crearPreguntasIniciales());
+      }
     } else {
       setFormData({
         fk_personal: "",
         nombre_usuario: "",
         contrasena: "",
+        confirmacion_contrasena: "",
         rol: "",
       });
+      setPreguntas(crearPreguntasIniciales());
     }
+
     setIsModalOpen(true);
   };
 
@@ -89,6 +152,14 @@ export const Usuarios = () => {
     setIsModalOpen(false);
     setCurrentUsuario(null);
     setModoModal("crear");
+    setFormData({
+      fk_personal: "",
+      nombre_usuario: "",
+      contrasena: "",
+      confirmacion_contrasena: "",
+      rol: "",
+    });
+    setPreguntas(crearPreguntasIniciales());
   };
 
   const openViewModal = async (usuario) => {
@@ -122,6 +193,34 @@ export const Usuarios = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const actualizarPregunta = (indice, campo, valor) => {
+    setPreguntas((prev) =>
+      prev.map((item, idx) =>
+        idx === indice ? { ...item, [campo]: valor } : item
+      )
+    );
+  };
+
+  const agregarPregunta = () => {
+    setPreguntas((prev) => [
+      ...prev,
+      { pregunta: "", respuesta: "", confirmacion: "" },
+    ]);
+  };
+
+  const eliminarPregunta = (indice) => {
+    if (preguntas.length <= 3) {
+      Swal.fire(
+        "Aviso",
+        "Cada usuario debe mantener al menos 3 preguntas de seguridad.",
+        "warning"
+      );
+      return;
+    }
+
+    setPreguntas((prev) => prev.filter((_, idx) => idx !== indice));
+  };
+
   const handleView = (usuario) => {
     openViewModal(usuario);
   };
@@ -135,7 +234,67 @@ export const Usuarios = () => {
   };
 
   const handleSubmit = (e) => {
-    enviarUsuario(e, formData, currentUsuario, closeModal, cargarDatos, Swal);
+    e.preventDefault();
+
+    if (
+      formData.contrasena &&
+      formData.contrasena !== formData.confirmacion_contrasena
+    ) {
+      Swal.fire(
+        "Contrasenas diferentes",
+        "La confirmacion de la contrasena no coincide.",
+        "warning"
+      );
+      return;
+    }
+
+    const preguntasPreparadas = preguntas.map((item) => ({
+      id: item.id,
+      pregunta: (item.pregunta || "").trim(),
+      respuesta: (item.respuesta || "").trim(),
+      confirmacion: (item.confirmacion || "").trim(),
+    }));
+
+    const preguntasCompletas = preguntasPreparadas.filter(
+      (item) => item.pregunta !== "" && item.respuesta !== ""
+    );
+
+    if (preguntasCompletas.length < 3) {
+      Swal.fire(
+        "Faltan preguntas",
+        "Debe registrar al menos 3 preguntas de seguridad completas (pregunta y respuesta).",
+        "warning"
+      );
+      return;
+    }
+
+    const preguntasValidadas = [];
+    for (const item of preguntasCompletas) {
+      if (item.respuesta !== item.confirmacion) {
+        Swal.fire(
+          "Respuestas diferentes",
+          "Cada respuesta debe coincidir con su confirmacion.",
+          "warning"
+        );
+        return;
+      }
+
+      preguntasValidadas.push({
+        id: item.id,
+        pregunta: item.pregunta,
+        respuesta: item.respuesta,
+      });
+    }
+
+    enviarUsuario(
+      e,
+      formData,
+      preguntasValidadas,
+      currentUsuario,
+      closeModal,
+      cargarDatos,
+      Swal
+    );
   };
 
   return (
@@ -174,6 +333,10 @@ export const Usuarios = () => {
         datosFormulario={datosFormulario}
         personal={personal}
         modo={modoModal}
+        preguntas={preguntas}
+        onPreguntaChange={actualizarPregunta}
+        onAgregarPregunta={agregarPregunta}
+        onEliminarPregunta={eliminarPregunta}
       />
 
       <UsuariosViewModal

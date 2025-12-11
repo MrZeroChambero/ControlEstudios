@@ -122,6 +122,7 @@ export const eliminarUsuario = async (id, cargarDatos, Swal) => {
 export const enviarUsuario = async (
   e,
   formData,
+  preguntas,
   currentUsuario,
   closeModal,
   cargarDatos,
@@ -130,17 +131,23 @@ export const enviarUsuario = async (
   e.preventDefault();
 
   try {
+    const { confirmacion_contrasena, ...datosUsuario } = formData;
+    const payload = {
+      ...datosUsuario,
+      preguntas,
+    };
+
     let response;
     if (currentUsuario) {
       response = await axios.put(
         `${API_URL}/${currentUsuario.id_usuario}`,
-        formData,
+        payload,
         {
           withCredentials: true,
         }
       );
     } else {
-      response = await axios.post(API_URL, formData, {
+      response = await axios.post(API_URL, payload, {
         withCredentials: true,
       });
     }
@@ -205,5 +212,38 @@ export const cambioEstadoUsuario = async (id, cargarDatos, Swal) => {
       "error"
     );
     throw error;
+  }
+};
+
+export const obtenerPreguntasSeguridad = async (id, Swal) => {
+  try {
+    const response = await axios.get(`${API_URL}/${id}/preguntas`, {
+      withCredentials: true,
+    });
+
+    if (response.data && response.data.back === true) {
+      return Array.isArray(response.data.data) ? response.data.data : [];
+    }
+    throw new Error("El backend no respondió correctamente");
+  } catch (error) {
+    console.error("Error al obtener preguntas de seguridad:", error);
+    const errorData = error.response?.data;
+
+    if (errorData && errorData.back === false) {
+      Swal.fire(
+        "Error",
+        errorData.message ||
+          "No se pudieron cargar las preguntas de seguridad.",
+        "error"
+      );
+    } else {
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar las preguntas de seguridad.",
+        "error"
+      );
+    }
+
+    return [];
   }
 };

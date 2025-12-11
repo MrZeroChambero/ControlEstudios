@@ -31,16 +31,23 @@ function registrarRutasLogin(AltoRouter $router)
       $pdo = Conexion::obtener();
       $login = new Login($pdo);
 
-      $userData = $login->iniciarSesion($username, $password);
+      $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+      $resultado = $login->iniciarSesion($username, $password, $ip);
 
-      if ($userData === false) {
-        http_response_code(401);
-        echo json_encode(['back' => false, 'msg' => 'Credenciales incorrectas.'], JSON_UNESCAPED_UNICODE);
+      if (empty($resultado['success'])) {
+        $codigo = $resultado['http_code'] ?? 401;
+        http_response_code($codigo);
+        echo json_encode([
+          'back' => false,
+          'msg' => $resultado['message'] ?? 'Credenciales incorrectas.',
+          'bloqueo' => $resultado['bloqueo'] ?? null,
+          'intentos' => $resultado['intentos'] ?? null,
+        ], JSON_UNESCAPED_UNICODE);
         return;
       }
 
       http_response_code(200);
-      $response = array_merge($userData, [
+      $response = array_merge($resultado['data'] ?? [], [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
         'token' => $_COOKIE['session_token'] ?? null
@@ -71,16 +78,23 @@ function registrarRutasLogin(AltoRouter $router)
       $pdo = Conexion::obtener();
       $login = new Login($pdo);
 
-      $userData = $login->iniciarSesion($username, $password);
+      $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+      $resultado = $login->iniciarSesion($username, $password, $ip);
 
-      if ($userData === false) {
-        http_response_code(401);
-        echo json_encode(['back' => false, 'msg' => 'Credenciales incorrectas.'], JSON_UNESCAPED_UNICODE);
+      if (empty($resultado['success'])) {
+        $codigo = $resultado['http_code'] ?? 401;
+        http_response_code($codigo);
+        echo json_encode([
+          'back' => false,
+          'msg' => $resultado['message'] ?? 'Credenciales incorrectas.',
+          'bloqueo' => $resultado['bloqueo'] ?? null,
+          'intentos' => $resultado['intentos'] ?? null,
+        ], JSON_UNESCAPED_UNICODE);
         return;
       }
 
       http_response_code(200);
-      $response = array_merge($userData, [
+      $response = array_merge($resultado['data'] ?? [], [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
         'token' => $_COOKIE['session_token'] ?? null
@@ -111,16 +125,23 @@ function registrarRutasLogin(AltoRouter $router)
       $pdo = Conexion::obtener();
       $login = new Login($pdo);
 
-      $userData = $login->iniciarSesion($username, $password);
+      $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+      $resultado = $login->iniciarSesion($username, $password, $ip);
 
-      if ($userData === false) {
-        http_response_code(401);
-        echo json_encode(['back' => false, 'msg' => 'Credenciales incorrectas.'], JSON_UNESCAPED_UNICODE);
+      if (empty($resultado['success'])) {
+        $codigo = $resultado['http_code'] ?? 401;
+        http_response_code($codigo);
+        echo json_encode([
+          'back' => false,
+          'msg' => $resultado['message'] ?? 'Credenciales incorrectas.',
+          'bloqueo' => $resultado['bloqueo'] ?? null,
+          'intentos' => $resultado['intentos'] ?? null,
+        ], JSON_UNESCAPED_UNICODE);
         return;
       }
 
       http_response_code(200);
-      $response = array_merge($userData, [
+      $response = array_merge($resultado['data'] ?? [], [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
         'token' => $_COOKIE['session_token'] ?? null

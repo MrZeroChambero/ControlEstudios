@@ -1,15 +1,18 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { Sidebar } from "./sidebar.jsx"; // Asegúrate de que el nombre de archivo Sidebar.jsx tenga la 'S' mayúscula
+import { Sidebar } from "./sidebar.jsx"; // Asegurate de que el nombre de archivo Sidebar.jsx tenga la 'S' mayuscula
 
 export const MenuPrincipal = ({ Formulario }) => {
   const location = useLocation();
-  // 2. Verificar si la ruta es '/login'
-  const isLoginPage = location.pathname === "/login";
+  const rutasSinDashboard = ["/login", "/recuperar-clave", "/server-error"];
+  const pathname = location.pathname.toLowerCase();
+  const ocultarDashboard = rutasSinDashboard.some(
+    (ruta) => ruta.toLowerCase() === pathname
+  );
 
   // Renderizado condicional
-  if (isLoginPage) {
-    // 3. Si es /login, solo renderiza el componente 'App' (FormularioComponente)
+  if (ocultarDashboard) {
+    // Si la ruta esta en la lista, solo renderiza el componente 'Formulario'
     return <Formulario />;
   }
   return (

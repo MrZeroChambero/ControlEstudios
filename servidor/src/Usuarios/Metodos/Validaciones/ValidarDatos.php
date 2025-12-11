@@ -56,7 +56,7 @@ trait ValidarDatos
         $v->rule('numeric', 'id_persona');
 
         // Lista defensiva de roles (puedes reemplazar por dinámica si tienes)
-        $allowedRoles = ['Administrador', 'Docente', 'Secretaria', 'Representante'];
+        $allowedRoles = ['Director', 'Docente', 'Secretaria'];
         if (is_array($allowedRoles) && !empty($allowedRoles)) {
             $v->rule('in', 'rol', $allowedRoles);
         }

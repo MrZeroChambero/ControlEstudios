@@ -3,6 +3,7 @@
 namespace Micodigo\Usuarios;
 
 use Micodigo\Config\Conexion;
+use Micodigo\PreguntasSeguridad\PreguntasSeguridad;
 use PDO;
 use Exception;
 
@@ -222,8 +223,8 @@ class Usuarios
   {
     try {
       $sql = "SELECT COUNT(*) as count 
-                    FROM usuarios 
-                    WHERE rol = 'Administrador' AND estado = 'activo'";
+                      FROM usuarios 
+                      WHERE rol = 'Director' AND estado = 'activo'";
       $stmt = $pdo->prepare($sql);
       $stmt->execute();
       $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -333,25 +334,31 @@ class Usuarios
 
       // Consultar estudiantes representados si es representante
       $sqlEstudiantes = "SELECT 
-                                est.id_estudiante,
-                                est_per.primer_nombre,
-                                est_per.segundo_nombre,
-                                est_per.primer_apellido,
-                                est_per.segundo_apellido,
-                                est_per.cedula,
-                                est.cedula_escolar,
-                                ins.grado,
-                                TIMESTAMPDIFF(YEAR, est_per.fecha_nacimiento, CURDATE()) as edad
-                            FROM parentesco par
-                            INNER JOIN representantes rep ON par.fk_representante = rep.id_representante
-                            INNER JOIN estudiantes est ON par.fk_estudiante = est.id_estudiante
-                            INNER JOIN personas est_per ON est.id_persona = est_per.id_persona
-                            LEFT JOIN inscripciones ins ON est.id_estudiante = ins.fk_estudiante 
-                                AND ins.estado_inscripcion = 'activo'
-                            WHERE rep.fk_persona = ?";
+                    est.id_estudiante,
+                    est_per.primer_nombre,
+                    est_per.segundo_nombre,
+                    est_per.primer_apellido,
+                    est_per.segundo_apellido,
+                    est_per.cedula,
+                    est.cedula_escolar,
+                    gs.grado,
+                    gs.seccion,
+                    TIMESTAMPDIFF(YEAR, est_per.fecha_nacimiento, CURDATE()) as edad
+                  FROM parentesco par
+                  INNER JOIN representantes rep ON par.fk_representante = rep.id_representante
+                  INNER JOIN estudiantes est ON par.fk_estudiante = est.id_estudiante
+                  INNER JOIN personas est_per ON est.id_persona = est_per.id_persona
+                  LEFT JOIN inscripciones ins ON est.id_estudiante = ins.fk_estudiante 
+                    AND ins.estado_inscripcion = 'activo'
+                  LEFT JOIN aula a ON ins.fk_aula = a.id_aula
+                  LEFT JOIN grado_seccion gs ON a.fk_grado_seccion = gs.id_grado_seccion
+                  WHERE rep.fk_persona = ?";
       $stmtEst = $pdo->prepare($sqlEstudiantes);
       $stmtEst->execute([$usuario['id_persona']]);
       $usuario['estudiantes_representados'] = $stmtEst->fetchAll(PDO::FETCH_ASSOC);
+
+      $preguntasSeguridad = new PreguntasSeguridad();
+      $usuario['preguntas_seguridad'] = $preguntasSeguridad->listarPorUsuario($pdo, (int) $usuario['id_usuario']);
 
       return $usuario;
     } catch (Exception $e) {

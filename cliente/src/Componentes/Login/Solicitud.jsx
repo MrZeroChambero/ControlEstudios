@@ -1,11 +1,21 @@
 import axios from "axios";
 import Swal from "sweetalert2";
+import {
+  formatAttemptMessage,
+  buildAttemptHtml,
+} from "../../utils/attemptMessages";
 
-export const Solicitud = async (e, username, password, navigate) => {
-  console.log("Solicitud function called");
+export const Solicitud = async (
+  e,
+  username,
+  password,
+  navigate,
+  onAttemptUpdate
+) => {
   e.preventDefault();
 
   if (username.trim() === "" || password.trim() === "") {
+    onAttemptUpdate?.(null);
     Swal.fire({
       icon: "warning",
       title: "Campos requeridos",
@@ -18,41 +28,48 @@ export const Solicitud = async (e, username, password, navigate) => {
     const response = await axios.post(
       "http://localhost:8080/controlestudios/servidor/iniciar-sesion",
       { username, password },
-      // Habilitamos el envío de credenciales (cookies) en las peticiones
       { withCredentials: true }
     );
 
-    // Manejo de respuesta exitosa (código 200)
     if (response.status === 200) {
+      onAttemptUpdate?.(null);
       RespuestaPositiva(response.data, navigate);
     }
   } catch (error) {
     if (error.response) {
-      console.log(error.response.data);
-      // El servidor respondió con un código de estado fuera del rango 2xx
+      const payload = error.response.data;
+      const detalleIntentos = formatAttemptMessage(payload);
+      onAttemptUpdate?.(detalleIntentos);
+
+      const baseMessage = payload?.msg;
+      const alertaConIntentos = (titulo, icono = "error") => {
+        Swal.fire({
+          icon: icono,
+          title: titulo,
+          html: buildAttemptHtml(baseMessage, detalleIntentos),
+        });
+      };
+
       switch (error.response.status) {
-        case 400: // Bad Request
+        case 400:
           Swal.fire({
             icon: "error",
             title: "Error en la solicitud",
-            text:
-              error.response.data.msg ||
-              "La solicitud no es válida. Revisa los datos.",
+            text: baseMessage || "La solicitud no es válida. Revisa los datos.",
           });
           break;
-        case 401: // Unauthorized
-          Swal.fire({
-            icon: "error",
-            title: "Credenciales incorrectas",
-            text: error.response.data.msg || "Usuario o contraseña inválidos.",
-          });
+        case 401:
+          alertaConIntentos("Credenciales incorrectas");
           break;
-        case 500: // Internal Server Error
+        case 423:
+          alertaConIntentos("Demasiados intentos", "warning");
+          break;
+        case 500:
           Swal.fire({
             icon: "error",
             title: "Error del servidor",
             text:
-              error.response.data.msg ||
+              baseMessage ||
               "Ocurrió un error en el servidor. Inténtalo de nuevo más tarde.",
           });
           break;
@@ -61,21 +78,20 @@ export const Solicitud = async (e, username, password, navigate) => {
             icon: "error",
             title: "Error",
             text:
-              error.response.data.msg ||
+              baseMessage ||
               `El servidor respondió con el código: ${error.response.status}`,
           });
           break;
       }
     } else if (error.request) {
-      // La solicitud fue hecha, pero no se recibió respuesta
+      onAttemptUpdate?.(null);
       Swal.fire({
         icon: "error",
         title: "Error de Conexión",
         text: "No se pudo conectar con el servidor. Verifica que el servidor (XAMPP) esté en ejecución y que la URL sea correcta.",
       });
     } else {
-      // Algo más causó el error
-      console.error("Error inesperado:", error);
+      onAttemptUpdate?.(null);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -95,7 +111,6 @@ export const RespuestaPositiva = (data, navigate) => {
     // Mantenemos los otros datos para la UI si es necesario.
     localStorage.setItem("usuario", nombre_usuario);
     localStorage.setItem("nivel", rol);
-    console.log(data);
     Swal.fire({
       icon: "success",
       title: "¡Éxito!",

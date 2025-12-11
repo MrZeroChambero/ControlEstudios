@@ -5,6 +5,7 @@ import {
   formatearFechaHoraCorta,
 } from "../../utilidades/formatoFechas";
 import { estudiantesViewModalClasses } from "../EstilosCliente/EstilosClientes";
+import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
   if (!isOpen || !estudiante) return null;
@@ -37,217 +38,213 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
   const edadTexto = edad === null ? "-" : `${edad} año${edad === 1 ? "" : "s"}`;
   const fechaIngreso = formatearFechaCorta(estudiante?.fecha_ingreso_escuela);
 
+  const modalSubtitle = [
+    persona.primer_nombre,
+    persona.segundo_nombre,
+    persona.primer_apellido,
+    persona.segundo_apellido,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={estudiantesViewModalClasses.overlay}>
-      <div className={estudiantesViewModalClasses.content}>
-        <div className={estudiantesViewModalClasses.header}>
-          <h2 className={estudiantesViewModalClasses.title}>
-            Detalle del Estudiante
-          </h2>
-          <button
-            onClick={onClose}
-            type="button"
-            className={estudiantesViewModalClasses.closeButton}
-            aria-label="Cerrar"
+    <VentanaModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Detalle del Estudiante"
+      subtitle={modalSubtitle || null}
+      size="xl"
+      contentClassName="max-w-5xl"
+      bodyClassName="space-y-6"
+      footer={
+        <button
+          onClick={onClose}
+          type="button"
+          className={estudiantesViewModalClasses.footerButton}
+        >
+          Cerrar
+        </button>
+      }
+    >
+      <Section title="Datos de Persona">
+        <Row
+          label="Nombre"
+          value={[
+            persona.primer_nombre,
+            persona.segundo_nombre,
+            persona.primer_apellido,
+            persona.segundo_apellido,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        />
+        <Row label="Cédula" value={persona.cedula} />
+        <Row label="Fecha de nacimiento" value={fechaNacimiento || "-"} />
+        <Row label="Edad" value={edadTexto} />
+        <Row label="Género" value={persona.genero} />
+        <Row label="Estado" value={persona.estado} />
+      </Section>
+
+      <Section title="Datos del Estudiante">
+        <Row label="Cédula escolar" value={estudiante.cedula_escolar} />
+        <Row label="Fecha ingreso" value={fechaIngreso || "-"} />
+        <Row label="Vive con padres" value={estudiante.vive_con_padres} />
+        <Row label="Orden nacimiento" value={estudiante.orden_nacimiento} />
+        <Row label="Semanas gestación" value={estudiante.tiempo_gestacion} />
+        <Row label="Embarazo deseado" value={estudiante.embarazo_deseado} />
+        <Row label="Tipo parto" value={estudiante.tipo_parto} />
+        <Row label="Control esfínteres" value={estudiante.control_esfinteres} />
+        <Row label="Control embarazo" value={estudiante.control_embarazo} />
+        <Row
+          label="Estado estudiante"
+          value={estudiante.estado_estudiante || estudiante.estado}
+        />
+      </Section>
+
+      <Section title="Documentos Académicos">
+        {docs.length === 0 && (
+          <div className={estudiantesViewModalClasses.empty}>
+            Sin documentos.
+          </div>
+        )}
+        {docs.map((d) => (
+          <div
+            key={
+              d.id_documento || `${d.tipo_documento}-${d.id || Math.random()}`
+            }
+            className={estudiantesViewModalClasses.card.container}
           >
-            ✕
-          </button>
-        </div>
-
-        <div className={estudiantesViewModalClasses.body}>
-          <Section title="Datos de Persona">
-            <Row
-              label="Nombre"
-              value={`${persona.primer_nombre} ${
-                persona.segundo_nombre || ""
-              } ${persona.primer_apellido} ${persona.segundo_apellido || ""}`}
-            />
-            <Row label="Cédula" value={persona.cedula} />
-            <Row label="Fecha de nacimiento" value={fechaNacimiento || "-"} />
-            <Row label="Edad" value={edadTexto} />
-            <Row label="Género" value={persona.genero} />
-            <Row label="Estado" value={persona.estado} />
-          </Section>
-
-          <Section title="Datos del Estudiante">
-            <Row label="Cédula escolar" value={estudiante.cedula_escolar} />
-            <Row label="Fecha ingreso" value={fechaIngreso || "-"} />
-            <Row label="Vive con padres" value={estudiante.vive_con_padres} />
-            <Row label="Orden nacimiento" value={estudiante.orden_nacimiento} />
-            <Row
-              label="Semanas gestación"
-              value={estudiante.tiempo_gestacion}
-            />
-            <Row label="Embarazo deseado" value={estudiante.embarazo_deseado} />
-            <Row label="Tipo parto" value={estudiante.tipo_parto} />
-            <Row
-              label="Control esfínteres"
-              value={estudiante.control_esfinteres}
-            />
-            <Row label="Control embarazo" value={estudiante.control_embarazo} />
-            <Row
-              label="Estado estudiante"
-              value={estudiante.estado_estudiante || estudiante.estado}
-            />
-          </Section>
-
-          <Section title="Documentos Académicos">
-            {docs.length === 0 && (
-              <div className={estudiantesViewModalClasses.empty}>
-                Sin documentos.
+            <div className={estudiantesViewModalClasses.card.title}>
+              {d.tipo_documento}
+            </div>
+            <div className={estudiantesViewModalClasses.card.text}>
+              Entregado: {d.entregado ? "Sí" : "No"}
+            </div>
+            {d.observaciones && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Obs.: {d.observaciones}
               </div>
             )}
-            {docs.map((d) => (
-              <div
-                key={
-                  d.id_documento ||
-                  `${d.tipo_documento}-${d.id || Math.random()}`
-                }
-                className={estudiantesViewModalClasses.card.container}
-              >
-                <div className={estudiantesViewModalClasses.card.title}>
-                  {d.tipo_documento}
-                </div>
-                <div className={estudiantesViewModalClasses.card.text}>
-                  Entregado: {d.entregado ? "Sí" : "No"}
-                </div>
-                {d.observaciones && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Obs.: {d.observaciones}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Section>
+          </div>
+        ))}
+      </Section>
 
-          <Section title="Alergias">
-            {alergias.length === 0 && (
-              <div className={estudiantesViewModalClasses.empty}>
-                Sin alergias registradas.
-              </div>
-            )}
-            {alergias.map((a) => (
-              <div
-                key={a.id_lista_alergia || a.id}
-                className={estudiantesViewModalClasses.card.container}
-              >
-                <div className={estudiantesViewModalClasses.card.title}>
-                  {a.nombre_alergia || a.nombre}
-                </div>
-                {a.observaciones && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Obs.: {a.observaciones}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Section>
-
-          <Section title="Condiciones de Salud / Patologías">
-            {condiciones.length === 0 && (
-              <div className={estudiantesViewModalClasses.empty}>
-                Sin condiciones registradas.
-              </div>
-            )}
-            {condiciones.map((c) => (
-              <div
-                key={c.id_condicion || c.id}
-                className={estudiantesViewModalClasses.card.container}
-              >
-                <div className={estudiantesViewModalClasses.card.title}>
-                  {c.nombre_patologia || c.patologia}
-                </div>
-                {c.tratamiento && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Tratamiento: {c.tratamiento}
-                  </div>
-                )}
-                {c.estado && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Estado: {c.estado}
-                  </div>
-                )}
-                {c.observaciones && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Obs.: {c.observaciones}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Section>
-
-          <Section title="Vacunas">
-            {vacunas.length === 0 && (
-              <div className={estudiantesViewModalClasses.empty}>
-                Sin vacunas registradas.
-              </div>
-            )}
-            {vacunas.map((v) => (
-              <div
-                key={v.id_vacuna_estudiante || v.id}
-                className={estudiantesViewModalClasses.card.container}
-              >
-                <div className={estudiantesViewModalClasses.card.title}>
-                  {v.nombre_vacuna || v.nombre}
-                </div>
-                {v.fecha_aplicacion && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Fecha: {formatearFechaCorta(v.fecha_aplicacion) || "-"}
-                  </div>
-                )}
-                {typeof v.refuerzos !== "undefined" && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Refuerzos: {v.refuerzos}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Section>
-
-          <Section title="Consultas Médicas">
-            {consultas.length === 0 && (
-              <div className={estudiantesViewModalClasses.empty}>
-                Sin consultas registradas.
-              </div>
-            )}
-            {consultas.map((cm) => (
-              <div
-                key={cm.id_consulta || cm.id}
-                className={estudiantesViewModalClasses.card.container}
-              >
-                <div className={estudiantesViewModalClasses.card.title}>
-                  {cm.tipo_consulta}
-                </div>
-                {cm.fecha && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Fecha: {formatearFechaHoraCorta(cm.fecha) || "-"}
-                  </div>
-                )}
-                {cm.descripcion && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Descripción: {cm.descripcion}
-                  </div>
-                )}
-                {cm.tratamiento && (
-                  <div className={estudiantesViewModalClasses.card.text}>
-                    Tratamiento: {cm.tratamiento}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Section>
-        </div>
-
-        <div className={estudiantesViewModalClasses.footer}>
-          <button
-            onClick={onClose}
-            type="button"
-            className={estudiantesViewModalClasses.footerButton}
+      <Section title="Alergias">
+        {alergias.length === 0 && (
+          <div className={estudiantesViewModalClasses.empty}>
+            Sin alergias registradas.
+          </div>
+        )}
+        {alergias.map((a) => (
+          <div
+            key={a.id_lista_alergia || a.id}
+            className={estudiantesViewModalClasses.card.container}
           >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+            <div className={estudiantesViewModalClasses.card.title}>
+              {a.nombre_alergia || a.nombre}
+            </div>
+            {a.observaciones && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Obs.: {a.observaciones}
+              </div>
+            )}
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Condiciones de Salud / Patologías">
+        {condiciones.length === 0 && (
+          <div className={estudiantesViewModalClasses.empty}>
+            Sin condiciones registradas.
+          </div>
+        )}
+        {condiciones.map((c) => (
+          <div
+            key={c.id_condicion || c.id}
+            className={estudiantesViewModalClasses.card.container}
+          >
+            <div className={estudiantesViewModalClasses.card.title}>
+              {c.nombre_patologia || c.patologia}
+            </div>
+            {c.tratamiento && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Tratamiento: {c.tratamiento}
+              </div>
+            )}
+            {c.estado && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Estado: {c.estado}
+              </div>
+            )}
+            {c.observaciones && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Obs.: {c.observaciones}
+              </div>
+            )}
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Vacunas">
+        {vacunas.length === 0 && (
+          <div className={estudiantesViewModalClasses.empty}>
+            Sin vacunas registradas.
+          </div>
+        )}
+        {vacunas.map((v) => (
+          <div
+            key={v.id_vacuna_estudiante || v.id}
+            className={estudiantesViewModalClasses.card.container}
+          >
+            <div className={estudiantesViewModalClasses.card.title}>
+              {v.nombre_vacuna || v.nombre}
+            </div>
+            {v.fecha_aplicacion && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Fecha: {formatearFechaCorta(v.fecha_aplicacion) || "-"}
+              </div>
+            )}
+            {typeof v.refuerzos !== "undefined" && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Refuerzos: {v.refuerzos}
+              </div>
+            )}
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Consultas Médicas">
+        {consultas.length === 0 && (
+          <div className={estudiantesViewModalClasses.empty}>
+            Sin consultas registradas.
+          </div>
+        )}
+        {consultas.map((cm) => (
+          <div
+            key={cm.id_consulta || cm.id}
+            className={estudiantesViewModalClasses.card.container}
+          >
+            <div className={estudiantesViewModalClasses.card.title}>
+              {cm.tipo_consulta}
+            </div>
+            {cm.fecha && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Fecha: {formatearFechaHoraCorta(cm.fecha) || "-"}
+              </div>
+            )}
+            {cm.descripcion && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Descripción: {cm.descripcion}
+              </div>
+            )}
+            {cm.tratamiento && (
+              <div className={estudiantesViewModalClasses.card.text}>
+                Tratamiento: {cm.tratamiento}
+              </div>
+            )}
+          </div>
+        ))}
+      </Section>
+    </VentanaModal>
   );
 };

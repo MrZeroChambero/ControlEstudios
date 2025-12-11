@@ -23,6 +23,7 @@ import { Competencias } from "./Componentes/Competencias/Competencias.jsx";
 import { Indicadores } from "./Componentes/Indicadores/Indicadores.jsx";
 import { GestionGradosSecciones } from "./Componentes/GestionGradosSecciones/GestionGradosSecciones.jsx";
 import Inscripcion from "./Componentes/Inscripcion/inscripcion.jsx";
+import { RecuperarClave } from "./Componentes/RecuperarClave/RecuperarClave.jsx";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
+      <Route path="/recuperar-clave" element={<RecuperarClave />} />
       <Route path="/server-error" element={<ServerErrorPage />} />
       <Route path="/personas" element={<Personas />} />
       <Route path="/usuarios" element={<Usuarios />} />

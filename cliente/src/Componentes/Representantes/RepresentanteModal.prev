@@ -5,6 +5,7 @@ import {
   FaUserPlus,
   FaArrowRight,
   FaArrowLeft,
+  FaTimes,
 } from "react-icons/fa";
 import {
   solicitarPersonasCandidatas,
@@ -18,7 +19,6 @@ import {
   contenidosFormClasses,
   representantesModalClasses,
 } from "../EstilosCliente/EstilosClientes";
-import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
   const [step, setStep] = useState(1); // 1 select/create person, 2 representante form, 3 habilidades
@@ -98,7 +98,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     if (!isOpen) return;
     reset();
     if (current) {
-      // Modo edicion: cargar datos persona y representante, iniciar en paso 1
+      // Modo edici+¦n: cargar datos persona y representante, iniciar en paso 1
       setStep(1);
       setSelectedPersona({
         id_persona: current.fk_persona || current.id_persona,
@@ -200,13 +200,13 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       "[Modal Representante] Persona pre-seleccionada:",
       p.id_persona
     );
-    // Ya no avanzamos automaticamente; el usuario confirma con el boton "Continuar"
+    // Ya no avanzamos autom+íticamente; usuario confirma con bot+¦n "Continuar"
   };
 
   const crearDesdeCero = () => {
     setSelectedPersona(null);
     setCreatingNewPersona(true);
-    console.log("[Modal Representante] Iniciando creacion de nueva persona");
+    console.log("[Modal Representante] Iniciando creaci+¦n de nueva persona");
   };
 
   const validatePersona = () => {
@@ -216,7 +216,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       newErr.primer_apellido = "Requerido";
     if (!personaData.cedula.trim()) newErr.cedula = "Requerido";
     if (personaData.cedula && !/^\d{6,10}$/.test(personaData.cedula))
-      newErr.cedula = "Debe ser numerica (6-10 digitos)";
+      newErr.cedula = "Debe ser num+®rica (6-10 d+¡gitos)";
     if (!personaData.fecha_nacimiento.trim())
       newErr.fecha_nacimiento = "Requerida";
     if (
@@ -224,9 +224,9 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       !/^\d{4}-\d{2}-\d{2}$/.test(personaData.fecha_nacimiento)
     )
       newErr.fecha_nacimiento = "Formato YYYY-MM-DD";
-    if (!personaData.genero.trim()) newErr.genero = "Seleccione genero";
+    if (!personaData.genero.trim()) newErr.genero = "Seleccione g+®nero";
     if (personaData.email && !/.+@.+\..+/.test(personaData.email))
-      newErr.email = "Email invalido";
+      newErr.email = "Email inv+ílido";
     setErrors(newErr);
     return Object.keys(newErr).length === 0;
   };
@@ -248,28 +248,28 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
         "Corrige los campos del formulario de persona",
         "error"
       );
-      console.log("[Modal Representante] Validacion persona fallo", errors);
+      console.log("[Modal Representante] Validaci+¦n persona fall+¦", errors);
       return;
     }
     if (!validateRep()) {
       Swal.fire("Error", "Corrige los campos de representante", "error");
       console.log(
-        "[Modal Representante] Validacion representante fallo",
+        "[Modal Representante] Validaci+¦n representante fall+¦",
         errors
       );
       return;
     }
     const payload = { ...personaData, ...repData };
-    console.log("[Modal Representante] Payload creacion combinado:", payload);
+    console.log("[Modal Representante] Payload creaci+¦n combinado:", payload);
     const res = await crearRepresentante(payload, Swal);
     if (res) {
       console.log(
-        "[Modal Representante] Creacion exitosa representante id:",
+        "[Modal Representante] Creaci+¦n exitosa representante id:",
         res.id_representante
       );
       setCreatedRep(res);
       setStep(3);
-      // No cerrar aun: se muestran las habilidades en paso 3 y al finalizar se disparara onSaved
+      // No cerrar a+¦n: se muestran las habilidades en paso 3 y al finalizar se disparar+í onSaved
     }
   };
 
@@ -281,20 +281,20 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     if (!validateRep()) {
       Swal.fire("Error", "Corrige los campos de representante", "error");
       console.log(
-        "[Modal Representante] Validacion representante fallo",
+        "[Modal Representante] Validaci+¦n representante fall+¦",
         errors
       );
       return;
     }
     const payload = { id_persona: selectedPersona.id_persona, ...repData };
     console.log(
-      "[Modal Representante] Payload creacion (persona existente):",
+      "[Modal Representante] Payload creaci+¦n (persona existente):",
       payload
     );
     const res = await crearRepresentante(payload, Swal);
     if (res) {
       console.log(
-        "[Modal Representante] Creacion exitosa representante id:",
+        "[Modal Representante] Creaci+¦n exitosa representante id:",
         res.id_representante
       );
       setCreatedRep(res);
@@ -311,7 +311,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       Swal
     );
     if (upd) {
-      Swal.fire("Exito", "Datos de representante actualizados", "success");
+      Swal.fire("+ëxito", "Datos de representante actualizados", "success");
     }
   };
 
@@ -326,7 +326,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       Swal
     );
     if (ok) {
-      Swal.fire("Exito", "Datos de persona actualizados", "success");
+      Swal.fire("+ëxito", "Datos de persona actualizados", "success");
     }
   };
 
@@ -342,10 +342,10 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
       Swal
     );
     if (updated)
-      Swal.fire("Exito", "Datos de personal actualizados", "success");
+      Swal.fire("+ëxito", "Datos de personal actualizados", "success");
   };
 
-  const totalSteps = current && current.personal ? 4 : 3; // anade paso de Personal si existe
+  const totalSteps = current && current.personal ? 4 : 3; // a+¦ade Personal si existe
 
   const finalizarEdicion = () => {
     onSaved?.();
@@ -369,14 +369,14 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     : step === 1
     ? "Vincula una persona existente o registra una nueva para continuar."
     : step === 2
-    ? "Completa la informacion del representante antes de agregar habilidades."
-    : "Registra las habilidades que se asociaran al representante.";
+    ? "Completa la informaci+¦n del representante antes de agregar habilidades."
+    : "Registra las habilidades que se asociar+ín al representante.";
 
   const renderStepMeta = () => {
     if (isEditMode) {
       return (
         <div className={modalClasses.meta}>
-          <span className={modalClasses.stepBadge}>Modo edicion</span>
+          <span className={modalClasses.stepBadge}>Modo edici+¦n</span>
         </div>
       );
     }
@@ -429,7 +429,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
             type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar persona (nombre, apellido, cedula)..."
+            placeholder="Buscar persona (nombre, apellido, c+®dula)..."
             className={modalClasses.searchInput}
           />
         </div>
@@ -483,11 +483,11 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
                         } ${p.segundo_apellido || ""}`.trim()}
                       </span>
                       <span className={modalClasses.listMeta}>
-                        Cedula: {p.cedula}
+                        C+®dula: {p.cedula}
                       </span>
                       <span className={modalClasses.listMeta}>
                         Estado: {p.estado || "-"}
-                        {p.edad ? ` - Edad: ${p.edad} anos` : ""}
+                        {p.edad ? ` ÔÇó Edad: ${p.edad} a+¦os` : ""}
                       </span>
                       {isSelected && (
                         <span className="text-xs font-semibold text-blue-600">
@@ -537,7 +537,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
         <div>
           <h3 className={modalClasses.sectionTitle}>Datos de la persona</h3>
           <p className="text-sm text-slate-500">
-            Completa la informacion basica para registrar a la persona.
+            Completa la informaci+¦n b+ísica para registrar a la persona.
           </p>
         </div>
 
@@ -593,7 +593,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
 
           <div className={formClasses.fieldWrapper}>
             <label className={formClasses.label} htmlFor="cedula">
-              Cedula *
+              C+®dula *
             </label>
             <input
               id="cedula"
@@ -612,7 +612,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
 
           <div className={formClasses.fieldWrapper}>
             <label className={formClasses.label} htmlFor="genero">
-              Genero *
+              G+®nero *
             </label>
             <select
               id="genero"
@@ -652,7 +652,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
 
           <div className={formClasses.fieldWrapper}>
             <label className={formClasses.label} htmlFor="telefono_principal">
-              Telefono principal
+              Tel+®fono principal
             </label>
             <input
               id="telefono_principal"
@@ -671,7 +671,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
 
           <div className={`${formClasses.fieldWrapper} md:col-span-2`}>
             <label className={formClasses.label} htmlFor="direccion">
-              Direccion
+              Direcci+¦n
             </label>
             <input
               id="direccion"
@@ -704,7 +704,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
             onClick={() => setCreatingNewPersona(false)}
             className={formClasses.ghostButton}
           >
-            <FaArrowLeft className="h-4 w-4" /> Atras
+            <FaArrowLeft className="h-4 w-4" /> Atr+ís
           </button>
         </div>
       </section>
@@ -734,11 +734,11 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
             { key: "segundo_nombre", label: "Segundo nombre" },
             { key: "primer_apellido", label: "Primer apellido" },
             { key: "segundo_apellido", label: "Segundo apellido" },
-            { key: "cedula", label: "Cedula" },
+            { key: "cedula", label: "C+®dula" },
             { key: "fecha_nacimiento", label: "Fecha de nacimiento" },
             { key: "email", label: "Email" },
-            { key: "telefono_principal", label: "Telefono principal" },
-            { key: "telefono_secundario", label: "Telefono secundario" },
+            { key: "telefono_principal", label: "Tel+®fono principal" },
+            { key: "telefono_secundario", label: "Tel+®fono secundario" },
           ].map(({ key, label }) => (
             <div key={key} className={formClasses.fieldWrapper}>
               <label className={formClasses.label}>{label}</label>
@@ -754,7 +754,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
           ))}
 
           <div className={formClasses.fieldWrapper}>
-            <label className={formClasses.label}>Genero</label>
+            <label className={formClasses.label}>G+®nero</label>
             <select
               value={personaData.genero || ""}
               onChange={(e) =>
@@ -769,7 +769,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
           </div>
 
           <div className={`${formClasses.fieldWrapper} md:col-span-2`}>
-            <label className={formClasses.label}>Direccion</label>
+            <label className={formClasses.label}>Direcci+¦n</label>
             <input
               type="text"
               value={personaData.direccion || ""}
@@ -838,7 +838,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
               </option>
               <option value="Secundaria completa">Secundaria completa</option>
               <option value="Bachiller">Bachiller</option>
-              <option value="Tecnico medio">Tecnico medio</option>
+              <option value="T+®cnico medio">T+®cnico medio</option>
               <option value="TSU">TSU</option>
               <option value="Universitario">Universitario</option>
               <option value="Postgrado">Postgrado</option>
@@ -847,7 +847,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
           </div>
 
           <div className={formClasses.fieldWrapper}>
-            <label className={formClasses.label}>Profesion *</label>
+            <label className={formClasses.label}>Profesi+¦n *</label>
             <input
               type="text"
               value={repData.profesion}
@@ -858,7 +858,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
                 setTouched((prev) => ({ ...prev, profesion: true }))
               }
               className={getInputClass("profesion")}
-              placeholder="Profesion principal"
+              placeholder="Profesi+¦n principal"
             />
             {renderFieldError("profesion")}
           </div>
@@ -895,7 +895,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
                 onClick={() => setStep(1)}
                 className={formClasses.ghostButton}
               >
-                <FaArrowLeft className="h-4 w-4" /> Atras
+                <FaArrowLeft className="h-4 w-4" /> Atr+ís
               </button>
               {selectedPersona && (
                 <span className="text-xs text-slate-500">
@@ -936,14 +936,14 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {[
-            { key: "fecha_contratacion", label: "Fecha de contratacion" },
-            { key: "nivel_academico", label: "Nivel academico" },
+            { key: "fecha_contratacion", label: "Fecha de contrataci+¦n" },
+            { key: "nivel_academico", label: "Nivel acad+®mico" },
             { key: "horas_trabajo", label: "Horas de trabajo" },
             { key: "rif", label: "RIF" },
-            { key: "etnia_religion", label: "Etnia / Religion" },
+            { key: "etnia_religion", label: "Etnia / Religi+¦n" },
             { key: "cantidad_hijas", label: "Cantidad hijas" },
             { key: "cantidad_hijos_varones", label: "Cantidad hijos varones" },
-            { key: "cod_dependencia", label: "Codigo dependencia" },
+            { key: "cod_dependencia", label: "C+¦digo dependencia" },
           ].map(({ key, label }) => (
             <div key={key} className={formClasses.fieldWrapper}>
               <label className={formClasses.label}>{label}</label>
@@ -958,7 +958,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
                   }
                   className={formClasses.select}
                 >
-                  <option value="">Seleccione nivel academico</option>
+                  <option value="">Seleccione nivel acad+®mico</option>
                   <option value="Sin estudios">Sin estudios</option>
                   <option value="Primaria incompleta">
                     Primaria incompleta
@@ -971,7 +971,7 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
                     Secundaria completa
                   </option>
                   <option value="Bachiller">Bachiller</option>
-                  <option value="Tecnico medio">Tecnico medio</option>
+                  <option value="T+®cnico medio">T+®cnico medio</option>
                   <option value="TSU">TSU</option>
                   <option value="Universitario">Universitario</option>
                   <option value="Postgrado">Postgrado</option>
@@ -1073,25 +1073,40 @@ export const RepresentanteModal = ({ isOpen, onClose, onSaved, current }) => {
     );
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <VentanaModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={modalTitle}
-      subtitle={modalSubtitle}
-      size="xl"
-      bodyClassName={modalClasses.body}
-      contentClassName="max-w-5xl"
-      headerSlot={renderStepMeta()}
-    >
-      <>
-        {renderPersonaSelection()}
-        {renderPersonaCreation()}
-        {renderPersonaEdit()}
-        {renderRepresentanteStep()}
-        {renderPersonalStep()}
-        {renderHabilidadesStep()}
-      </>
-    </VentanaModal>
+    <div className={modalClasses.overlay} role="dialog" aria-modal="true">
+      <div className={modalClasses.content}>
+        <header className={modalClasses.header}>
+          <div>
+            <h2 className={modalClasses.title}>{modalTitle}</h2>
+            <p className={modalClasses.subtitle}>{modalSubtitle}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {renderStepMeta()}
+            <button
+              type="button"
+              onClick={onClose}
+              className={modalClasses.closeButton}
+            >
+              <FaTimes className="h-4 w-4" />
+              <span>Cerrar</span>
+            </button>
+          </div>
+        </header>
+
+        <div className={modalClasses.body}>
+          {renderPersonaSelection()}
+          {renderPersonaCreation()}
+          {renderPersonaEdit()}
+          {renderRepresentanteStep()}
+          {renderPersonalStep()}
+          {renderHabilidadesStep()}
+        </div>
+      </div>
+    </div>
   );
 };

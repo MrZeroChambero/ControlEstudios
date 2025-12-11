@@ -5,6 +5,7 @@ namespace Micodigo\Login;
 use PDO;
 use Exception;
 use Micodigo\Config\Conexion;
+use Micodigo\Bloqueos\Bloqueos;
 
 class Login
 {
@@ -28,14 +29,50 @@ class Login
    * Inicia sesión para un usuario.
    * Retorna array con datos del usuario o lanza Exception en errores de BD.
    */
-  public function iniciarSesion(string $nombreUsuario, string $contrasena)
+  public function iniciarSesion(string $nombreUsuario, string $contrasena, ?string $ip = null): array
   {
+    $bloqueos = new Bloqueos();
+
+    if ($ip !== null) {
+      $estadoBloqueoIp = $bloqueos->verificarBloqueoIp($this->pdo, $ip, Bloqueos::TIPO_LOGIN);
+      if ($estadoBloqueoIp) {
+        $minutosIp = max(1, (int) $estadoBloqueoIp['duracion_minutos']);
+        return [
+          'success' => false,
+          'reason' => 'ip_bloqueada',
+          'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos($minutosIp) . '.',
+          'http_code' => 423,
+          'bloqueo' => $estadoBloqueoIp,
+        ];
+      }
+    }
+
     if (!$this->_validarNombreUsuario($nombreUsuario)) {
-      return false;
+      $registroIp = null;
+      if ($ip !== null) {
+        $registroIp = $bloqueos->registrarIntentoFallidoIp($this->pdo, $ip, Bloqueos::TIPO_LOGIN, 5);
+        if (!empty($registroIp['bloqueado'])) {
+          $minutosIp = max(1, (int) ($registroIp['duracion_minutos'] ?? 1));
+          return [
+            'success' => false,
+            'reason' => 'ip_bloqueada',
+            'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos($minutosIp) . '.',
+            'http_code' => 423,
+            'bloqueo' => $registroIp,
+          ];
+        }
+      }
+
+      return [
+        'success' => false,
+        'reason' => 'credenciales',
+        'message' => 'Credenciales incorrectas.',
+        'http_code' => 401,
+        'intentos' => $registroIp,
+      ];
     }
 
     try {
-      // Buscar usuario activo
       $sql = "SELECT id_usuario, contrasena_hash, rol, nombre_usuario FROM usuarios WHERE nombre_usuario = ? AND estado = 'activo' LIMIT 1";
       $stmt = $this->pdo->prepare($sql);
       if (!$stmt->execute([$nombreUsuario])) {
@@ -44,16 +81,86 @@ class Login
       }
 
       $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-      if (!$usuario || !password_verify($contrasena, $usuario['contrasena_hash'] ?? '')) {
-        // credenciales inválidas
-        return false;
+      if (!$usuario) {
+        $registroIp = null;
+        if ($ip !== null) {
+          $registroIp = $bloqueos->registrarIntentoFallidoIp($this->pdo, $ip, Bloqueos::TIPO_LOGIN, 5);
+          if (!empty($registroIp['bloqueado'])) {
+            $minutosIp = max(1, (int) ($registroIp['duracion_minutos'] ?? 1));
+            return [
+              'success' => false,
+              'reason' => 'ip_bloqueada',
+              'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos($minutosIp) . '.',
+              'http_code' => 423,
+              'bloqueo' => $registroIp,
+            ];
+          }
+        }
+
+        return [
+          'success' => false,
+          'reason' => 'credenciales',
+          'message' => 'Credenciales incorrectas.',
+          'http_code' => 401,
+          'intentos' => $registroIp,
+        ];
       }
 
-      // Generar hash de sesión
+      $estadoBloqueo = $bloqueos->verificarBloqueo($this->pdo, (int) $usuario['id_usuario'], Bloqueos::TIPO_LOGIN);
+      if ($estadoBloqueo) {
+        $minutos = max(1, (int) $estadoBloqueo['duracion_minutos']);
+        return [
+          'success' => false,
+          'reason' => 'bloqueado',
+          'message' => 'Demasiados intentos fallidos. Intenta nuevamente en ' . Bloqueos::formatearMinutos($minutos) . '.',
+          'http_code' => 423,
+          'bloqueo' => $estadoBloqueo,
+        ];
+      }
+
+      if (!password_verify($contrasena, $usuario['contrasena_hash'] ?? '')) {
+        $resultadoUsuario = $bloqueos->registrarIntentoFallido($this->pdo, (int) $usuario['id_usuario'], Bloqueos::TIPO_LOGIN);
+        $resultadoIp = null;
+        if ($ip !== null) {
+          $resultadoIp = $bloqueos->registrarIntentoFallidoIp($this->pdo, $ip, Bloqueos::TIPO_LOGIN, 5);
+        }
+
+        if (!empty($resultadoUsuario['bloqueado']) || (!empty($resultadoIp['bloqueado'] ?? false))) {
+          $duracion = !empty($resultadoUsuario['bloqueado'])
+            ? (int) ($resultadoUsuario['duracion_minutos'] ?? 1)
+            : (int) ($resultadoIp['duracion_minutos'] ?? 1);
+          $motivo = !empty($resultadoIp['bloqueado'] ?? false) ? 'ip_bloqueada' : 'bloqueado';
+          return [
+            'success' => false,
+            'reason' => $motivo,
+            'message' => 'Has agotado los intentos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, $duracion)) . '.',
+            'http_code' => 423,
+            'bloqueo' => !empty($resultadoIp['bloqueado'] ?? false) ? $resultadoIp : $resultadoUsuario,
+          ];
+        }
+
+        $restantesUsuario = (int) ($resultadoUsuario['intentos_restantes'] ?? 0);
+        $restantesIp = (int) ($resultadoIp['intentos_restantes'] ?? $restantesUsuario);
+        $restantes = min($restantesUsuario ?: $restantesIp, $restantesIp ?: $restantesUsuario);
+        $restantes = $restantes > 0 ? $restantes : max($restantesUsuario, $restantesIp);
+
+        return [
+          'success' => false,
+          'reason' => 'credenciales',
+          'message' => $restantes > 0
+            ? 'Credenciales incorrectas. Te quedan ' . $restantes . ' intentos antes del bloqueo.'
+            : 'Credenciales incorrectas.',
+          'http_code' => 401,
+          'intentos' => [
+            'usuario' => $resultadoUsuario,
+            'ip' => $resultadoIp,
+          ],
+        ];
+      }
+
       $hashSesion = bin2hex(random_bytes(32));
       $idUsuario = (int) $usuario['id_usuario'];
 
-      // Borrar sesiones previas del usuario (columna fk_usuario en sesiones_usuario)
       $sqlDelete = "DELETE FROM sesiones_usuario WHERE fk_usuario = ?";
       $stmtDelete = $this->pdo->prepare($sqlDelete);
       if ($stmtDelete === false || !$stmtDelete->execute([$idUsuario])) {
@@ -61,33 +168,37 @@ class Login
         throw new Exception("Error SQL delete sesiones: " . ($err[2] ?? json_encode($err)));
       }
 
-      // Insertar nueva sesión (tabla sesiones_usuario: fk_usuario, hash_sesion, fecha_inicio, fecha_vencimiento)
       $sqlInsert = "INSERT INTO sesiones_usuario (fk_usuario, hash_sesion, fecha_inicio, fecha_vencimiento) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))";
       $stmtInsert = $this->pdo->prepare($sqlInsert);
       if ($stmtInsert === false || !$stmtInsert->execute([$idUsuario, $hashSesion])) {
         $err = $stmtInsert->errorInfo();
-        throw new Exception("Error SQL insert sesión: " . ($err[2] ?? json_encode($err)));
+        throw new Exception("Error SQL insert sesion: " . ($err[2] ?? json_encode($err)));
       }
 
-      // Establecer cookie de sesión (para desarrollo: secure=false)
       $cookieOptions = [
         'expires' => time() + 86400,
         'path' => '/',
-        'domain' => '', // dejar vacío para localhost
+        'domain' => '',
         'secure' => false,
         'httponly' => true,
         'samesite' => 'Lax'
       ];
       setcookie('session_token', $hashSesion, $cookieOptions);
 
-      // Devolver datos sin hash
+      $bloqueos->limpiar($this->pdo, $idUsuario, Bloqueos::TIPO_LOGIN);
+      if ($ip !== null) {
+        $bloqueos->limpiarIp($this->pdo, $ip, Bloqueos::TIPO_LOGIN);
+      }
+
       return [
-        'id_usuario' => $idUsuario,
-        'nombre_usuario' => $usuario['nombre_usuario'],
-        'rol' => $usuario['rol'],
+        'success' => true,
+        'data' => [
+          'id_usuario' => $idUsuario,
+          'nombre_usuario' => $usuario['nombre_usuario'],
+          'rol' => $usuario['rol'],
+        ],
       ];
     } catch (Exception $e) {
-      // Lanzar excepción para que el router pueda devolver detalle en 500 (útil para depuración)
       throw new Exception("Login error: " . $e->getMessage());
     }
   }
@@ -182,7 +293,7 @@ class Login
   public function esAdministrador(string $hashSesion): bool
   {
     $usuario = $this->obtenerUsuarioPorHash($hashSesion);
-    return $usuario && (strtolower($usuario['rol']) === 'administrador' || $usuario['rol'] === 'Administrador');
+    return $usuario && (strtolower($usuario['rol']) === 'director' || $usuario['rol'] === 'Director');
   }
 
   public function esDocente(string $hashSesion): bool
