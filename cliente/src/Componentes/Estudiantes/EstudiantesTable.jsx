@@ -11,6 +11,7 @@ import {
   estudiantesTableClasses,
   contenidosIconClasses,
 } from "../EstilosCliente/EstilosClientes";
+import { calcularEdad } from "../../utilidades/formatoFechas";
 
 export const EstudiantesTable = ({
   estudiantes,
@@ -38,6 +39,12 @@ export const EstudiantesTable = ({
     );
   });
 
+  const obtenerEdad = (row) => {
+    const fecha = row.fecha_nacimiento || row.persona?.fecha_nacimiento || null;
+    const edad = calcularEdad(fecha);
+    return edad;
+  };
+
   const columns = [
     {
       name: "ID",
@@ -59,6 +66,20 @@ export const EstudiantesTable = ({
       selector: (row) => row.cedula,
       sortable: true,
       wrap: true,
+    },
+    {
+      name: "Edad",
+      selector: (row) => {
+        const edad = obtenerEdad(row);
+        return edad === null ? -1 : edad;
+      },
+      sortable: true,
+      width: "80px",
+      center: true,
+      cell: (row) => {
+        const edad = obtenerEdad(row);
+        return edad === null ? "-" : `${edad}`;
+      },
     },
     {
       name: "Grado/Sección",

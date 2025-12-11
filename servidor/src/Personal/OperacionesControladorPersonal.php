@@ -4,6 +4,7 @@ namespace Micodigo\Personal;
 
 use Micodigo\Config\Conexion;
 use Exception;
+use PDO;
 
 trait OperacionesControladorPersonal
 {
@@ -24,6 +25,7 @@ trait OperacionesControladorPersonal
       $pdo = Conexion::obtener();
 
       // Datos para personas (registro preliminar para luego completar personal)
+      $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
       $personaData = [
         'primer_nombre' => trim($data['primer_nombre']),
         'segundo_nombre' => $data['segundo_nombre'] ?? null,
@@ -36,7 +38,7 @@ trait OperacionesControladorPersonal
         'direccion' => $data['direccion'],
         'telefono_principal' => $data['telefono_principal'],
         'telefono_secundario' => $data['telefono_secundario'] ?? null,
-        'email' => $data['email'] ?? null,
+        'email' => $email === '' ? null : $email,
         'tipo_sangre' => $data['tipo_sangre'] ?? 'No sabe',
         'tipo_persona' => 'personal',
         'estado' => 'incompleto'
@@ -103,6 +105,7 @@ trait OperacionesControladorPersonal
       $pdo = Conexion::obtener();
       $personal = self::obtenerPersonalCompletoDatos($pdo, $id_personal);
       if ($personal) {
+        $personal = $this->adjuntarHabilidadesSiRepresentante($pdo, $personal);
         $personal['estado_persona_nombre'] = $this->nombreEstadoPersona($personal['estado_persona'] ?? null);
         $personal['estado_personal_nombre'] = $this->nombreEstadoPersonal($personal['estado_personal'] ?? null);
         $personal['estado'] = $personal['estado_persona']; // compatibilidad
@@ -162,6 +165,7 @@ trait OperacionesControladorPersonal
       self::actualizarEstadoPersona($pdo, $id_persona, 'activo');
       $personalCompleto = self::obtenerPersonalCompletoDatos($pdo, $id_personal);
       if ($personalCompleto) {
+        $personalCompleto = $this->adjuntarHabilidadesSiRepresentante($pdo, $personalCompleto);
         $personalCompleto['estado_persona_nombre'] = $this->nombreEstadoPersona($personalCompleto['estado_persona'] ?? null);
         $personalCompleto['estado_personal_nombre'] = $this->nombreEstadoPersonal($personalCompleto['estado_personal'] ?? null);
         $personalCompleto['estado'] = $personalCompleto['estado_persona'];
@@ -250,7 +254,9 @@ trait OperacionesControladorPersonal
           'direccion' => $data['direccion'],
           'telefono_principal' => $data['telefono_principal'],
           'telefono_secundario' => $data['telefono_secundario'] ?? $existente['telefono_secundario'],
-          'email' => $data['email'] ?? $existente['email'],
+          'email' => array_key_exists('email', $data)
+            ? (trim((string) $data['email']) === '' ? null : trim((string) $data['email']))
+            : $existente['email'],
           'tipo_sangre' => $data['tipo_sangre']
         ];
         $okPersona = self::actualizarPersona($pdo, $existente['fk_persona'], $personaData);
@@ -260,6 +266,7 @@ trait OperacionesControladorPersonal
       if ($okPersonal) {
         $actualizado = self::obtenerPersonalCompletoDatos($pdo, $id_personal);
         if ($actualizado) {
+          $actualizado = $this->adjuntarHabilidadesSiRepresentante($pdo, $actualizado);
           $actualizado['estado_persona_nombre'] = $this->nombreEstadoPersona($actualizado['estado_persona'] ?? null);
           $actualizado['estado_personal_nombre'] = $this->nombreEstadoPersonal($actualizado['estado_personal'] ?? null);
           $actualizado['estado'] = $actualizado['estado_persona'];
@@ -365,5 +372,27 @@ trait OperacionesControladorPersonal
       header('Content-Type: application/json');
       echo json_encode(['back' => false, 'message' => 'Error al eliminar personal.', 'error_details' => $e->getMessage()]);
     }
+  }
+
+  private function adjuntarHabilidadesSiRepresentante($pdo, array $personal): array
+  {
+    if (!isset($personal['fk_persona'])) {
+      $personal['habilidades'] = $personal['habilidades'] ?? [];
+      return $personal;
+    }
+
+    $stmtRep = $pdo->prepare('SELECT id_representante FROM representantes WHERE fk_persona = ? LIMIT 1');
+    $stmtRep->execute([(int) $personal['fk_persona']]);
+    $repRow = $stmtRep->fetch(PDO::FETCH_ASSOC);
+
+    if ($repRow) {
+      $stmtHab = $pdo->prepare('SELECT id_habilidad, nombre_habilidad FROM habilidades WHERE fk_representante = ? ORDER BY nombre_habilidad');
+      $stmtHab->execute([(int) $repRow['id_representante']]);
+      $personal['habilidades'] = $stmtHab->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    } else {
+      $personal['habilidades'] = [];
+    }
+
+    return $personal;
   }
 }

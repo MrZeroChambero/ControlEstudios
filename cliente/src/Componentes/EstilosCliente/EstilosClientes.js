@@ -110,17 +110,43 @@ const temasTableBase = {
 
 const modalOverlayBase =
   "fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 backdrop-blur-sm px-4 py-10 overflow-y-auto";
+const modalCloseDangerButton =
+  "inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-600 text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2";
+const modalFooterDangerButton = `${buttonBase} bg-rose-600 hover:bg-rose-700 focus:ring-rose-300/60`;
+const detailSectionTitleBase =
+  "text-lg font-semibold text-blue-600 border-b border-slate-200 pb-2";
+const detailSectionWrapper = "space-y-3";
+const detailLabelClass =
+  "text-xs font-semibold uppercase tracking-wide text-slate-500";
+const detailValueClass = "text-sm text-slate-900";
+const detailCardBase = {
+  container: "rounded-2xl border border-slate-200 bg-slate-50 p-4",
+  title: "text-sm font-semibold text-slate-800",
+  text: "text-xs text-slate-600",
+};
+
+const detailModalBase = {
+  overlay: modalOverlayBase,
+  content:
+    "flex w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[90vh]",
+  header:
+    "sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-100 bg-white/95 px-8 py-5 backdrop-blur",
+  title: "text-2xl font-semibold text-slate-900",
+  closeButton: modalCloseDangerButton,
+  body: "flex-1 overflow-y-auto px-8 py-6 space-y-6",
+  footer: "border-t border-slate-100 bg-white/95 px-8 py-5",
+  footerButton: modalFooterDangerButton,
+};
 
 // Contenidos
 export const contenidosLayout = createLayoutTokens("blue");
 
 export const contenidosModalClasses = {
-  overlay: modalOverlayBase,
-  content: "w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl",
-  header: "mb-6 flex items-center justify-between gap-4",
-  title: "text-2xl font-semibold text-slate-900",
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
+  ...detailModalBase,
+  content:
+    "flex w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[90vh]",
+  body: "flex-1 overflow-y-auto px-8 py-6",
+  footer: "border-t border-slate-100 px-8 py-5",
 };
 
 export const contenidosFormClasses = createFormTokens("blue");
@@ -312,28 +338,28 @@ export const componentesIconClasses = {
 };
 
 // Estudiantes
-export const estudiantesLayout = createLayoutTokens("indigo");
+export const estudiantesLayout = createLayoutTokens("blue");
 
 export const estudiantesFormClasses = {
-  ...createFormTokens("indigo"),
-  backButton: `${buttonBase} bg-transparent text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-200/60`,
+  ...createFormTokens("blue"),
+  backButton: `${buttonBase} bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-200/60`,
   cancelButton: `${buttonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300/60`,
 };
 
 export const estudiantesTableClasses = {
   ...tableBase,
   filterInputWide: `${filterInputBase} md:max-w-sm`,
-  viewButton: "text-indigo-600 hover:text-indigo-700",
-  editButton: "text-indigo-500 hover:text-indigo-600",
+  viewButton: "text-blue-600 hover:text-blue-700",
+  editButton: "text-blue-500 hover:text-blue-600",
   deleteButton: "text-rose-500 hover:text-rose-600",
   status: {
     base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
-    activo: "bg-indigo-100 text-indigo-700",
+    activo: "bg-blue-100 text-blue-700",
     incompleto: "bg-amber-100 text-amber-700",
     inactivo: "bg-rose-100 text-rose-700",
     desconocido: "bg-slate-200 text-slate-600",
   },
-  toggleOn: "text-indigo-600 hover:text-indigo-700",
+  toggleOn: "text-blue-600 hover:text-blue-700",
   toggleOff: "text-slate-400 hover:text-slate-500",
 };
 
@@ -341,7 +367,7 @@ export const estudiantesFichaClasses = {
   card: "rounded-3xl border border-slate-100 bg-white p-4 shadow-md",
   header: "mb-4 flex items-center gap-3",
   avatar:
-    "flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold",
+    "flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold",
   fieldLabel: "text-xs font-semibold uppercase tracking-wide text-slate-400",
   fieldValue: "text-sm font-medium text-slate-700",
   chip: "inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600",
@@ -355,14 +381,14 @@ export const estudiantesModalClasses = {
   title: "text-2xl font-semibold text-slate-900",
   subtitle: "text-sm text-slate-500",
   closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
   body: "space-y-6",
   footer: "mt-6 flex justify-end",
   footerButton: secondaryButton,
   stepper: {
     container: "flex flex-wrap items-center gap-3",
     item: "flex min-w-[160px] flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500",
-    active: "border-indigo-300 bg-indigo-50 text-indigo-600",
+    active: "border-blue-300 bg-blue-50 text-blue-600",
     bullet:
       "flex h-8 w-8 items-center justify-center rounded-full border border-current text-base font-bold",
     label: "flex-1 text-left",
@@ -372,12 +398,12 @@ export const estudiantesModalClasses = {
     title: "text-lg font-semibold text-slate-800",
     controls: "flex flex-col gap-3 md:flex-row md:items-center",
     input: filterInputBase,
-    button: `${primaryButtonBase} ${accentTokens.indigo}`,
+    button: `${primaryButtonBase} ${accentTokens.blue}`,
     list: "max-h-64 overflow-y-auto rounded-3xl border border-slate-200",
     item: "flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50",
     name: "text-sm font-semibold text-slate-800",
     meta: "text-xs text-slate-500",
-    selectButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+    selectButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
     empty: helperMessageBase,
   },
   form: {
@@ -385,7 +411,7 @@ export const estudiantesModalClasses = {
     actions: "flex justify-end gap-3",
     title: "text-lg font-semibold text-slate-800",
     secondaryButton: secondaryButton,
-    primaryButton: `${primaryButtonBase} ${accentTokens.indigo}`,
+    primaryButton: `${primaryButtonBase} ${accentTokens.blue}`,
   },
   sections: {
     grid: "grid grid-cols-1 gap-6 md:grid-cols-2",
@@ -399,12 +425,12 @@ export const estudiantesModalClasses = {
     title: "text-lg font-semibold text-slate-800",
     formGrid: "mb-3 grid grid-cols-1 gap-2 md:grid-cols-3",
     select:
-      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200",
+      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
     checkbox:
-      "inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200",
+      "inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200",
     input:
-      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200",
-    addButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
+    addButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
     list: "mt-3 space-y-2 max-h-56 overflow-y-auto",
     item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
     name: "text-sm font-semibold text-slate-800",
@@ -430,7 +456,7 @@ export const estudiantesModalClasses = {
     headline: "text-sm font-semibold text-slate-800",
     meta: "text-xs text-slate-500",
     deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
-    addButton: `${primaryButtonBase} ${accentTokens.indigo} px-3 py-1 text-xs`,
+    addButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
     empty: helperMessageBase,
   },
 };
@@ -488,58 +514,45 @@ export const inscripcionSummaryClasses = {
 };
 
 export const estudiantesViewModalClasses = {
-  overlay: modalOverlayBase,
-  content:
-    "w-full max-w-4xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
-  header: "mb-6 flex items-center justify-between gap-3",
-  title: "text-2xl font-semibold text-slate-900",
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2",
+  ...detailModalBase,
   section: {
-    wrapper: "mb-6",
-    title:
-      "mb-2 border-b border-slate-200 pb-2 text-xl font-semibold text-indigo-600",
-    body: "space-y-2",
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "space-y-3",
   },
   row: {
-    container: "mb-2 grid grid-cols-3 gap-2",
-    label: "text-sm font-semibold text-slate-600",
-    value: "col-span-2 text-sm text-slate-900",
+    container: "grid gap-1 md:grid-cols-[200px_1fr] md:items-start",
+    label: detailLabelClass,
+    value: detailValueClass,
   },
-  card: {
-    container: "mb-2 rounded-2xl border border-slate-200 bg-white p-3",
-    title: "text-sm font-semibold text-slate-800",
-    text: "text-xs text-slate-600",
-  },
+  card: detailCardBase,
   empty: helperMessageBase,
-  footer: "mt-4 flex justify-end",
-  footerButton: secondaryButton,
 };
 
 // Personal
-export const personalLayout = createLayoutTokens("amber");
+export const personalLayout = createLayoutTokens("blue");
 
 export const personalFormClasses = {
-  ...createFormTokens("amber"),
-  backButton: `${neutralButtonBase} bg-transparent text-amber-600 hover:bg-amber-50 focus:ring-amber-200/60`,
+  ...createFormTokens("blue"),
+  backButton: `${neutralButtonBase} bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-200/60`,
   cancelButton: `${neutralButtonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300/60`,
   infoCard:
     "rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700",
   highlightCard:
-    "rounded-3xl border border-amber-100 bg-amber-50/60 p-4 text-sm text-amber-800",
+    "rounded-3xl border border-blue-100 bg-blue-50/60 p-4 text-sm text-blue-800",
   sectionTitle: "text-lg font-semibold text-slate-800",
   sectionDivider: "mt-6 border-t border-slate-100",
 };
 
 export const personalTableClasses = {
   ...tableBase,
-  viewButton: "text-amber-600 hover:text-amber-700",
+  viewButton: "text-blue-600 hover:text-blue-700",
   rolePill:
-    "inline-flex items-center justify-center rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700",
+    "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
   typePill: {
     base: typePillBase,
-    administrativo: `${typePillBase} bg-amber-100 text-amber-700`,
-    docente: `${typePillBase} bg-indigo-100 text-indigo-700`,
+    administrativo: `${typePillBase} bg-blue-100 text-blue-700`,
+    docente: `${typePillBase} bg-blue-100 text-blue-700`,
     obrero: `${typePillBase} bg-emerald-100 text-emerald-700`,
     especialista: `${typePillBase} bg-sky-100 text-sky-700`,
     default: `${typePillBase} bg-slate-100 text-slate-600`,
@@ -559,11 +572,11 @@ export const personalModalClasses = {
   title: "text-2xl font-semibold text-slate-900",
   meta: "flex items-center gap-3 text-sm text-slate-500",
   stepBadge:
-    "inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700",
+    "inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
   stepDots: "flex items-center gap-2",
   stepDot: "h-2.5 w-2.5 rounded-full bg-slate-200",
-  stepDotActive: "bg-amber-500",
-  closeButton: `${buttonBase} bg-slate-100 text-slate-600 hover:bg-slate-200 focus:ring-slate-300/60`,
+  stepDotActive: "bg-blue-500",
+  closeButton: modalCloseDangerButton,
   subtitle: "mb-6 text-sm text-slate-500",
   actionBar: "mt-6 flex flex-wrap items-center justify-between gap-3",
   listWrapper: "max-h-96 overflow-y-auto rounded-3xl border border-slate-200",
@@ -571,20 +584,55 @@ export const personalModalClasses = {
     "flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600",
   listEmpty: helperMessageBase,
   listItem:
-    "flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-amber-50 cursor-pointer",
+    "flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50 cursor-pointer",
   listPerson: "flex flex-col gap-0.5",
   listName: "text-sm font-semibold text-slate-900",
   listMeta: "text-xs text-slate-500",
   listTag:
-    "inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700",
+    "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
   searchWrapper: "relative",
   searchIcon:
     "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400",
   searchInput: `${filterInputBase} pl-10`,
   bannerInfo:
-    "rounded-3xl border border-amber-100 bg-amber-50/60 p-4 text-sm text-amber-800",
+    "rounded-3xl border border-blue-100 bg-blue-50/60 p-4 text-sm text-blue-800",
   bannerWarning:
     "rounded-3xl border border-yellow-100 bg-yellow-50 p-4 text-sm text-yellow-800",
+};
+
+export const personalViewModalClasses = {
+  ...detailModalBase,
+  section: {
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "grid gap-4 md:grid-cols-2",
+  },
+  sectionStack: "space-y-2",
+  label: detailLabelClass,
+  value: detailValueClass,
+  statusChipBase:
+    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  statusChipVariants: {
+    activo: "bg-emerald-100 text-emerald-700",
+    incompleto: "bg-amber-100 text-amber-700",
+    inactivo: "bg-rose-100 text-rose-700",
+    licencia: "bg-sky-100 text-sky-700",
+    default: "bg-slate-200 text-slate-600",
+  },
+  typeChipVariants: {
+    Administrativo: "bg-purple-100 text-purple-700",
+    Docente: "bg-blue-100 text-blue-700",
+    Obrero: "bg-emerald-100 text-emerald-700",
+    Especialista: "bg-sky-100 text-sky-700",
+    default: "bg-slate-200 text-slate-600",
+  },
+  typeChipBase:
+    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  listGrid: "grid grid-cols-1 gap-2 md:grid-cols-2",
+  listItem:
+    "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700",
+  card: detailCardBase,
+  empty: helperMessageBase,
 };
 
 // Representantes
@@ -611,8 +659,7 @@ export const representantesModalClasses = {
   stepDots: "flex items-center gap-2",
   stepDot: "h-2.5 w-2.5 rounded-full bg-slate-200",
   stepDotActive: "bg-blue-500",
-  closeButton:
-    "inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200",
+  closeButton: modalCloseDangerButton,
   body: "space-y-6",
   listWrapper: "rounded-3xl border border-slate-200",
   listHeader:
@@ -633,6 +680,34 @@ export const representantesModalClasses = {
   sectionTitle: "text-sm font-semibold uppercase tracking-wide text-slate-400",
   sectionBody: "mt-2 grid gap-4 md:grid-cols-2",
   footer: "mt-6 flex justify-end",
+};
+
+export const representantesViewModalClasses = {
+  ...detailModalBase,
+  section: {
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "grid gap-4 md:grid-cols-2",
+  },
+  label: detailLabelClass,
+  value: detailValueClass,
+  listGrid: "grid grid-cols-1 gap-2 md:grid-cols-2",
+  listItem:
+    "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700",
+  chipBase:
+    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  chipVariants: {
+    activo: "bg-emerald-100 text-emerald-700",
+    incompleto: "bg-amber-100 text-amber-700",
+    inactivo: "bg-rose-100 text-rose-700",
+    default: "bg-slate-200 text-slate-600",
+  },
+  pillBlue:
+    "inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
+  pillGreen:
+    "inline-flex items-center justify-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700",
+  card: detailCardBase,
+  empty: helperMessageBase,
 };
 
 // Utilitarios compartidos

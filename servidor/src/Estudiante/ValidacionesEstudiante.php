@@ -9,8 +9,18 @@ trait ValidacionesEstudiante
 {
   private function crearValidadorPersonaEstudiante(array $data)
   {
+    $normalizados = $data;
+    if (array_key_exists('email', $normalizados)) {
+      $correo = trim((string) $normalizados['email']);
+      if ($correo === '') {
+        unset($normalizados['email']);
+      } else {
+        $normalizados['email'] = $correo;
+      }
+    }
+
     Validator::lang('es');
-    $v = new Validator($data);
+    $v = new Validator($normalizados);
     $v->rules([
       'required' => [
         ['primer_nombre'],

@@ -10,8 +10,20 @@ trait PersonaValidationTrait
 {
   private function _validarDatos(PDO $pdo)
   {
+    $payload = (array) $this;
+    if (array_key_exists('email', $payload)) {
+      $correo = trim((string) $payload['email']);
+      if ($correo === '') {
+        unset($payload['email']);
+        $this->email = null;
+      } else {
+        $payload['email'] = $correo;
+        $this->email = $correo;
+      }
+    }
+
     Validator::lang('es');
-    $v = new Validator((array) $this);
+    $v = new Validator($payload);
 
     Validator::addRule('uniqueCedula', function ($field, $value, array $params, array $fields) use ($pdo) {
       if (empty($value)) return true;

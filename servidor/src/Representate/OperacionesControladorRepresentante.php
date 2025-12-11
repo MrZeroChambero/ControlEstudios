@@ -4,6 +4,7 @@ namespace Micodigo\Representate;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Persona\Persona;
+use Micodigo\Estudiante\Estudiante as EstudianteModel;
 use Exception;
 use PDO;
 
@@ -55,6 +56,7 @@ trait OperacionesControladorRepresentante
       }
 
       // Crear persona nueva tipo representante con estado incompleto (se activará luego)
+      $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
       $personaData = [
         'primer_nombre' => $data['primer_nombre'] ?? null,
         'segundo_nombre' => $data['segundo_nombre'] ?? null,
@@ -67,7 +69,7 @@ trait OperacionesControladorRepresentante
         'direccion' => $data['direccion'] ?? null,
         'telefono_principal' => $data['telefono_principal'] ?? null,
         'telefono_secundario' => $data['telefono_secundario'] ?? null,
-        'email' => $data['email'] ?? null,
+        'email' => $email === '' ? null : $email,
         'tipo_persona' => 'representante',
         'tipo_sangre' => $data['tipo_sangre'] ?? null,
         'estado' => 'incompleto'
@@ -147,6 +149,12 @@ trait OperacionesControladorRepresentante
       $datos = self::obtenerRepresentantePorId($pdo, $id_representante);
       if ($datos) {
         $id_persona = (int)$datos['fk_persona'];
+
+        // Habilidades asociadas al representante
+        $stmtHab = $pdo->prepare('SELECT id_habilidad, nombre_habilidad FROM habilidades WHERE fk_representante = ? ORDER BY nombre_habilidad');
+        $stmtHab->execute([(int)$id_representante]);
+        $datos['habilidades'] = $stmtHab->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
         // Personal (si existe)
         $stmtPer = $pdo->prepare("SELECT per.*, c.nombre_cargo, fp.nombre AS nombre_funcion
                                    FROM personal per
@@ -158,28 +166,25 @@ trait OperacionesControladorRepresentante
         if ($personal) $datos['personal'] = $personal;
 
         // Estudiante (si existe)
-        $stmtEst = $pdo->prepare("SELECT e.*, TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad
-                                   FROM estudiantes e INNER JOIN personas p ON e.id_persona = p.id_persona
-                                   WHERE e.id_persona = ? LIMIT 1");
+        $stmtEst = $pdo->prepare('SELECT id_estudiante FROM estudiantes WHERE id_persona = ? LIMIT 1');
         $stmtEst->execute([$id_persona]);
-        $estudiante = $stmtEst->fetch(PDO::FETCH_ASSOC);
-        if ($estudiante) {
-          $datos['estudiante'] = $estudiante;
-          $id_est = (int)$estudiante['id_estudiante'];
-          // Alergias del estudiante
-          $stmtAle = $pdo->prepare("SELECT la.id_lista_alergia, a.nombre
-                                      FROM lista_alergias la INNER JOIN alergias a ON la.fk_alergia=a.id_alergia
-                                      WHERE la.fk_estudiante=? ORDER BY a.nombre");
-          $stmtAle->execute([$id_est]);
-          $alergias = $stmtAle->fetchAll(PDO::FETCH_ASSOC);
-          if ($alergias && count($alergias) > 0) $datos['alergias'] = $alergias;
-          // Vacunas del estudiante
-          $stmtVac = $pdo->prepare("SELECT ve.id_vacuna_estudiante, v.nombre, ve.fecha_aplicacion, ve.refuerzos
-                                      FROM vacunas_estudiante ve INNER JOIN vacuna v ON ve.fk_vacuna=v.id_vacuna
-                                      WHERE ve.fk_estudiante=? ORDER BY v.nombre");
-          $stmtVac->execute([$id_est]);
-          $vacunas = $stmtVac->fetchAll(PDO::FETCH_ASSOC);
-          if ($vacunas && count($vacunas) > 0) $datos['vacunas'] = $vacunas;
+        $estudianteRow = $stmtEst->fetch(PDO::FETCH_ASSOC);
+        if ($estudianteRow) {
+          $detallesEstudiante = EstudianteModel::consultarEstudiantePorId($pdo, (int)$estudianteRow['id_estudiante']);
+          if ($detallesEstudiante) {
+            $datos['estudiante'] = $detallesEstudiante;
+            $datos['alergias'] = $detallesEstudiante['alergias'] ?? [];
+            $datos['vacunas'] = $detallesEstudiante['vacunas'] ?? [];
+            $datos['documentos'] = $detallesEstudiante['documentos'] ?? [];
+            $datos['condiciones_salud'] = $detallesEstudiante['condiciones_salud'] ?? [];
+            $datos['consultas_medicas'] = $detallesEstudiante['consultas_medicas'] ?? [];
+          }
+        } else {
+          $datos['alergias'] = [];
+          $datos['vacunas'] = [];
+          $datos['documentos'] = [];
+          $datos['condiciones_salud'] = [];
+          $datos['consultas_medicas'] = [];
         }
 
         // Otros representantes asociados por parentesco (si existen estudiantes vinculados a este representante)

@@ -7,6 +7,7 @@ trait GestionEstudiante
   // Crear persona preliminar para estudiante (estado incompleto)
   public static function crearPersonaEstudiante($pdo, array $data)
   {
+    $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
     $sql = "INSERT INTO personas (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, genero, cedula, nacionalidad, direccion, telefono_principal, telefono_secundario, email, tipo_persona, tipo_sangre, estado)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     $stmt = $pdo->prepare($sql);
@@ -22,7 +23,7 @@ trait GestionEstudiante
       $data['direccion'],
       $data['telefono_principal'],
       $data['telefono_secundario'] ?? null,
-      $data['email'] ?? null,
+      $email === '' ? null : $email,
       'estudiante',
       $data['tipo_sangre'],
       'incompleto'

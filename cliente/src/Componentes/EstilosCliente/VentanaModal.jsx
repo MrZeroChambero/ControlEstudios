@@ -32,7 +32,8 @@ export const VentanaModal = ({
   const resolvedSizeClass = sizeMap[size] || sizeMap.md;
   const contentClasses =
     `${contenidosModalClasses.content} ${resolvedSizeClass} ${contentClassName}`.trim();
-  const bodyClasses = `${bodyBaseClass} ${bodyClassName}`.trim();
+  const bodyClasses =
+    `${contenidosModalClasses.body} ${bodyBaseClass} ${bodyClassName}`.trim();
 
   const subtitleNode = (() => {
     if (!subtitle) {
@@ -71,7 +72,9 @@ export const VentanaModal = ({
           </div>
         </div>
         <div className={bodyClasses}>{children}</div>
-        {footer ? <div className="mt-6">{footer}</div> : null}
+        {footer ? (
+          <div className={`${contenidosModalClasses.footer}`}>{footer}</div>
+        ) : null}
       </div>
     </div>
   );

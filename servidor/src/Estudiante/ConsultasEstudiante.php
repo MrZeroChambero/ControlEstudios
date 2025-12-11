@@ -91,6 +91,57 @@ trait ConsultasEstudiante
           WHERE e.id_estudiante = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$id_estudiante]);
-    return $stmt->fetch(\PDO::FETCH_ASSOC);
+    $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+    if (!$row) {
+      return $row;
+    }
+
+    $idEst = (int) ($row['id_estudiante'] ?? $id_estudiante);
+
+    // Documentos académicos
+    $stmtDocs = $pdo->prepare('SELECT id_documento, tipo_documento, entregado, observaciones FROM documentos_academicos WHERE fk_estudiante = ? ORDER BY tipo_documento');
+    $stmtDocs->execute([$idEst]);
+    $row['documentos'] = $stmtDocs->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    // Alergias asignadas
+    $stmtAlergias = $pdo->prepare('SELECT la.id_lista_alergia, la.fk_alergia, a.nombre AS nombre_alergia FROM lista_alergias la INNER JOIN alergias a ON la.fk_alergia = a.id_alergia WHERE la.fk_estudiante = ? ORDER BY a.nombre');
+    $stmtAlergias->execute([$idEst]);
+    $row['alergias'] = $stmtAlergias->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    // Condiciones de salud / patologías
+    $stmtPat = $pdo->prepare('SELECT c.id_condicion, c.fk_patologia, p.nombre_patologia, c.observaciones FROM condiciones_salud c LEFT JOIN patologias p ON p.id_patologia = c.fk_patologia WHERE c.fk_estudiante = ? ORDER BY c.id_condicion DESC');
+    $stmtPat->execute([$idEst]);
+    $row['condiciones_salud'] = $stmtPat->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    // Vacunas registradas
+    $stmtVac = $pdo->prepare('SELECT ve.id_vacuna_estudiante, ve.fk_vacuna, v.nombre AS nombre_vacuna, ve.fecha_aplicacion, ve.refuerzos FROM vacunas_estudiante ve INNER JOIN vacuna v ON ve.fk_vacuna = v.id_vacuna WHERE ve.fk_estudiante = ? ORDER BY v.nombre');
+    $stmtVac->execute([$idEst]);
+    $row['vacunas'] = $stmtVac->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    // Consultas médicas
+    $stmtCons = $pdo->prepare('SELECT id_consulta, fk_estudiante, tipo_consulta, fecha_consulta AS fecha, motivo AS descripcion, observaciones AS tratamiento FROM consultas_medicas WHERE fk_estudiante = ? ORDER BY fecha_consulta DESC, id_consulta DESC');
+    $stmtCons->execute([$idEst]);
+    $row['consultas_medicas'] = $stmtCons->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+    // Estructura auxiliar de persona (facilita al frontend)
+    $row['persona'] = [
+      'id_persona' => $row['fk_persona'] ?? null,
+      'primer_nombre' => $row['primer_nombre'] ?? null,
+      'segundo_nombre' => $row['segundo_nombre'] ?? null,
+      'primer_apellido' => $row['primer_apellido'] ?? null,
+      'segundo_apellido' => $row['segundo_apellido'] ?? null,
+      'fecha_nacimiento' => $row['fecha_nacimiento'] ?? null,
+      'genero' => $row['genero'] ?? null,
+      'cedula' => $row['cedula'] ?? null,
+      'nacionalidad' => $row['nacionalidad'] ?? null,
+      'direccion' => $row['direccion'] ?? null,
+      'telefono_principal' => $row['telefono_principal'] ?? null,
+      'telefono_secundario' => $row['telefono_secundario'] ?? null,
+      'email' => $row['email'] ?? null,
+      'tipo_sangre' => $row['tipo_sangre'] ?? null,
+      'estado' => $row['estado_persona'] ?? null,
+    ];
+
+    return $row;
   }
 }

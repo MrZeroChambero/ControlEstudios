@@ -30,6 +30,10 @@ import formPersona from "./forms/form_persona.json";
 import formEstudiante from "./forms/form_estudiante.json";
 import formDocs from "./forms/form_documentos.json";
 import formSalud from "./forms/form_salud.json";
+import {
+  formatearFechaCorta,
+  formatearFechaHoraCorta,
+} from "../../utilidades/formatoFechas";
 import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
 
 export const EstudianteModal = ({
@@ -801,55 +805,77 @@ export const EstudianteModal = ({
               </button>
               {/* Lista */}
               <div className={estudiantesModalClasses.salud.list}>
-                {items.map((item) => (
-                  <div
-                    key={
-                      item.id_lista_alergia ||
-                      item.id_condicion ||
-                      item.id_vacuna_estudiante ||
-                      item.id_consulta ||
-                      item.id
-                    }
-                    className={estudiantesModalClasses.salud.item}
-                  >
-                    <div className={estudiantesModalClasses.salud.details}>
-                      <span className={estudiantesModalClasses.salud.headline}>
-                        {isAlergias && (item.nombre_alergia || item.nombre)}
-                        {isPatologias &&
-                          (item.nombre_patologia || item.patologia)}
-                        {isVacunas && (item.nombre_vacuna || item.nombre)}
-                        {isConsultas && `${item.tipo_consulta} • ${item.fecha}`}
-                      </span>
-                      {isVacunas && item.fecha_aplicacion && (
-                        <span className={estudiantesModalClasses.salud.meta}>
-                          {item.fecha_aplicacion} • Ref.: {item.refuerzos ?? 0}
-                        </span>
-                      )}
-                      {isPatologias && (
-                        <span className={estudiantesModalClasses.salud.meta}>
-                          {item.tratamiento || "Sin tratamiento"} •{" "}
-                          {item.estado || ""}
-                        </span>
-                      )}
-                      {isConsultas && item.descripcion && (
-                        <span className={estudiantesModalClasses.salud.meta}>
-                          {item.descripcion}
-                        </span>
-                      )}
-                      {item.observaciones && (
-                        <span className={estudiantesModalClasses.salud.meta}>
-                          Obs.: {item.observaciones}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      className={estudiantesModalClasses.salud.deleteButton}
-                      onClick={() => handleRemove(item)}
+                {items.map((item) => {
+                  const clave =
+                    item.id_lista_alergia ||
+                    item.id_condicion ||
+                    item.id_vacuna_estudiante ||
+                    item.id_consulta ||
+                    item.id;
+
+                  const fechaVacuna = isVacunas
+                    ? formatearFechaCorta(item.fecha_aplicacion)
+                    : null;
+                  const fechaConsulta = isConsultas
+                    ? formatearFechaHoraCorta(item.fecha)
+                    : null;
+
+                  let encabezado = "";
+                  if (isAlergias) {
+                    encabezado = item.nombre_alergia || item.nombre || "";
+                  } else if (isPatologias) {
+                    encabezado = item.nombre_patologia || item.patologia || "";
+                  } else if (isVacunas) {
+                    encabezado = item.nombre_vacuna || item.nombre || "";
+                  } else if (isConsultas) {
+                    const tipo = item.tipo_consulta || "";
+                    encabezado = fechaConsulta
+                      ? `${tipo} • ${fechaConsulta}`
+                      : tipo;
+                  }
+
+                  return (
+                    <div
+                      key={clave}
+                      className={estudiantesModalClasses.salud.item}
                     >
-                      Quitar
-                    </button>
-                  </div>
-                ))}
+                      <div className={estudiantesModalClasses.salud.details}>
+                        <span
+                          className={estudiantesModalClasses.salud.headline}
+                        >
+                          {encabezado || "Sin información"}
+                        </span>
+                        {isVacunas && fechaVacuna && (
+                          <span className={estudiantesModalClasses.salud.meta}>
+                            {fechaVacuna} • Ref.: {item.refuerzos ?? 0}
+                          </span>
+                        )}
+                        {isPatologias && (
+                          <span className={estudiantesModalClasses.salud.meta}>
+                            {item.tratamiento || "Sin tratamiento"} •{" "}
+                            {item.estado || ""}
+                          </span>
+                        )}
+                        {isConsultas && item.descripcion && (
+                          <span className={estudiantesModalClasses.salud.meta}>
+                            {item.descripcion}
+                          </span>
+                        )}
+                        {item.observaciones && (
+                          <span className={estudiantesModalClasses.salud.meta}>
+                            Obs.: {item.observaciones}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        className={estudiantesModalClasses.salud.deleteButton}
+                        onClick={() => handleRemove(item)}
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  );
+                })}
                 {items.length === 0 && (
                   <div
                     className={estudiantesModalClasses.salud.empty}

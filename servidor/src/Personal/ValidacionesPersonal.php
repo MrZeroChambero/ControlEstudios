@@ -18,8 +18,18 @@ trait ValidacionesPersonal
 
   private function crearValidadorPersona(array $data, $id_persona = null)
   {
+    $normalizados = $data;
+    if (array_key_exists('email', $normalizados)) {
+      $correo = trim((string) $normalizados['email']);
+      if ($correo === '') {
+        unset($normalizados['email']);
+      } else {
+        $normalizados['email'] = $correo;
+      }
+    }
+
     Validator::lang('es');
-    $v = new Validator($data);
+    $v = new Validator($normalizados);
     Validator::addRule('uniqueCedula', function ($field, $value, array $params, array $fields) use ($id_persona) {
       if (empty($value)) return true;
       $pdo = \Micodigo\Config\Conexion::obtener();

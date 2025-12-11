@@ -176,3 +176,43 @@ export const formatearFechaHoraCorta = (valor) => {
     minute: "2-digit",
   });
 };
+
+const obtenerFechaReferencia = (valor) => {
+  if (valor instanceof Date && !Number.isNaN(valor.getTime())) {
+    return valor;
+  }
+
+  if (typeof valor === "number") {
+    const fecha = new Date(valor);
+    if (!Number.isNaN(fecha.getTime())) {
+      return fecha;
+    }
+  }
+
+  return new Date();
+};
+
+export const calcularEdad = (valor, referencia = new Date()) => {
+  const componentes = obtenerComponentesFecha(valor);
+  if (!componentes) {
+    return null;
+  }
+
+  const base = obtenerFechaReferencia(referencia);
+  if (Number.isNaN(base.getTime())) {
+    return null;
+  }
+
+  let edad = base.getUTCFullYear() - componentes.anio;
+  const mesRef = base.getUTCMonth() + 1;
+  const diaRef = base.getUTCDate();
+
+  if (
+    mesRef < componentes.mes ||
+    (mesRef === componentes.mes && diaRef < componentes.dia)
+  ) {
+    edad -= 1;
+  }
+
+  return edad >= 0 ? edad : 0;
+};

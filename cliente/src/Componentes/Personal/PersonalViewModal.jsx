@@ -1,231 +1,200 @@
 import React from "react";
 import { formatearFechaCorta } from "../../utilidades/formatoFechas";
+import { personalViewModalClasses } from "../EstilosCliente/EstilosClientes";
+
+const getDisplayValue = (value) => {
+  if (value === null || typeof value === "undefined" || value === "") {
+    return "No especificado";
+  }
+  return value;
+};
+
+const buildVariantClass = (base, variants, key) => {
+  const variant = variants?.[key] || variants?.default || "";
+  return `${base} ${variant}`.trim();
+};
 
 export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
   if (!isOpen || !personal) return null;
 
-  const formStyles = {
-    label: "block text-gray-700 text-sm font-bold mb-2",
-    value: "text-gray-900 text-lg",
-    sectionTitle: "text-xl font-bold mb-4 text-blue-600 border-b pb-2",
-  };
-
   const fechaNacimiento = formatearFechaCorta(personal.fecha_nacimiento);
   const fechaContratacion = formatearFechaCorta(personal.fecha_contratacion);
+  const nombreCompleto = `${personal.primer_nombre ?? ""} ${
+    personal.segundo_nombre ?? ""
+  } ${personal.primer_apellido ?? ""} ${personal.segundo_apellido ?? ""}`
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const Section = ({ title, children, bodyClass }) => (
+    <section className={personalViewModalClasses.section.wrapper}>
+      <h3 className={personalViewModalClasses.section.title}>{title}</h3>
+      <div className={bodyClass || personalViewModalClasses.section.body}>
+        {children}
+      </div>
+    </section>
+  );
+
+  const Field = ({ label, value, children }) => (
+    <div>
+      <span className={personalViewModalClasses.label}>{label}</span>
+      <p className={personalViewModalClasses.value}>
+        {children ?? getDisplayValue(value)}
+      </p>
+    </div>
+  );
+
+  const estadoPersonaClass = buildVariantClass(
+    personalViewModalClasses.statusChipBase,
+    personalViewModalClasses.statusChipVariants,
+    personal.estado_persona || personal.estado
+  );
+
+  const estadoPersonalClass = buildVariantClass(
+    personalViewModalClasses.statusChipBase,
+    personalViewModalClasses.statusChipVariants,
+    personal.estado_personal
+  );
+
+  const tipoCargoClass = buildVariantClass(
+    personalViewModalClasses.typeChipBase,
+    personalViewModalClasses.typeChipVariants,
+    personal.tipo_cargo
+  );
+
+  const tipoFuncionClass = buildVariantClass(
+    personalViewModalClasses.typeChipBase,
+    personalViewModalClasses.typeChipVariants,
+    personal.tipo_funcion
+  );
 
   return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex justify-center items-start z-50 overflow-y-auto py-10">
-      <div className="bg-white/90 backdrop-blur-lg p-8 rounded-lg shadow-2xl w-full max-w-4xl">
-        <h2 className="text-2xl font-bold mb-6">
-          Información Completa del Personal
-        </h2>
-
-        <div className="mb-8">
-          <h3 className={formStyles.sectionTitle}>Estados</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={formStyles.label}>Estado Persona</label>
-              <p className={formStyles.value}>
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    personal.estado === "activo"
-                      ? "bg-green-200 text-green-800"
-                      : personal.estado === "incompleto"
-                      ? "bg-yellow-200 text-yellow-800"
-                      : "bg-red-200 text-red-800"
-                  }`}
-                >
-                  {personal.estado_persona_nombre || personal.estado}
-                </span>
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Estado Personal</label>
-              <p className={formStyles.value}>
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    personal.estado_personal === "activo"
-                      ? "bg-green-200 text-green-800"
-                      : personal.estado_personal === "incompleto"
-                      ? "bg-yellow-200 text-yellow-800"
-                      : "bg-red-200 text-red-800"
-                  }`}
-                >
-                  {personal.estado_personal_nombre || personal.estado_personal}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Información Personal */}
-        <div className="mb-8">
-          <h3 className={formStyles.sectionTitle}>Información Personal</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={formStyles.label}>Nombre Completo</label>
-              <p className={formStyles.value}>
-                {personal.primer_nombre} {personal.segundo_nombre || ""}{" "}
-                {personal.primer_apellido} {personal.segundo_apellido || ""}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Cédula</label>
-              <p className={formStyles.value}>{personal.cedula}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Fecha de Nacimiento</label>
-              <p className={formStyles.value}>{fechaNacimiento || "-"}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Edad</label>
-              <p className={formStyles.value}>{personal.edad} años</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Género</label>
-              <p className={formStyles.value}>
-                {personal.genero === "M" ? "Masculino" : "Femenino"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Nacionalidad</label>
-              <p className={formStyles.value}>{personal.nacionalidad}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Tipo de Sangre</label>
-              <p className={formStyles.value}>{personal.tipo_sangre}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Información de Contacto */}
-        <div className="mb-8">
-          <h3 className={formStyles.sectionTitle}>Información de Contacto</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={formStyles.label}>Dirección</label>
-              <p className={formStyles.value}>{personal.direccion}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Teléfono Principal</label>
-              <p className={formStyles.value}>{personal.telefono_principal}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Teléfono Secundario</label>
-              <p className={formStyles.value}>
-                {personal.telefono_secundario || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Email</label>
-              <p className={formStyles.value}>
-                {personal.email || "No especificado"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Información Laboral */}
-        <div className="mb-8">
-          <h3 className={formStyles.sectionTitle}>Información Laboral</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={formStyles.label}>Cargo</label>
-              <p className={formStyles.value}>{personal.nombre_cargo}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Función</label>
-              <p className={formStyles.value}>{personal.nombre_funcion}</p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Tipo de Cargo</label>
-              <p className={formStyles.value}>
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    personal.tipo_cargo === "Administrativo"
-                      ? "bg-purple-200 text-purple-800"
-                      : personal.tipo_cargo === "Docente"
-                      ? "bg-blue-200 text-blue-800"
-                      : "bg-green-200 text-green-800"
-                  }`}
-                >
-                  {personal.tipo_cargo}
-                </span>
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Tipo de Función</label>
-              <p className={formStyles.value}>
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    personal.tipo_funcion === "Administrativo"
-                      ? "bg-purple-200 text-purple-800"
-                      : personal.tipo_funcion === "Docente"
-                      ? "bg-blue-200 text-blue-800"
-                      : "bg-green-200 text-green-800"
-                  }`}
-                >
-                  {personal.tipo_funcion}
-                </span>
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Fecha de Contratación</label>
-              <p className={formStyles.value}>
-                {fechaContratacion || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Nivel Académico</label>
-              <p className={formStyles.value}>
-                {personal.nivel_academico || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Horas de Trabajo</label>
-              <p className={formStyles.value}>
-                {personal.horas_trabajo || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>RIF</label>
-              <p className={formStyles.value}>
-                {personal.rif || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Etnia/Religión</label>
-              <p className={formStyles.value}>
-                {personal.etnia_religion || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Cantidad de Hijas</label>
-              <p className={formStyles.value}>
-                {personal.cantidad_hijas ?? "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>
-                Cantidad de Hijos Varones
-              </label>
-              <p className={formStyles.value}>
-                {personal.cantidad_hijos_varones ?? "No especificado"}
-              </p>
-            </div>
-            <div>
-              <label className={formStyles.label}>Código de Dependencia</label>
-              <p className={formStyles.value}>
-                {personal.cod_dependencia || "No especificado"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end mt-6">
+    <div className={personalViewModalClasses.overlay}>
+      <div className={personalViewModalClasses.content}>
+        <div className={personalViewModalClasses.header}>
+          <h2 className={personalViewModalClasses.title}>
+            Información Completa del Personal
+          </h2>
           <button
             onClick={onClose}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+            type="button"
+            className={personalViewModalClasses.closeButton}
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className={personalViewModalClasses.body}>
+          <Section title="Estados">
+            <Field label="Estado persona">
+              <span className={estadoPersonaClass}>
+                {personal.estado_persona_nombre || personal.estado || "-"}
+              </span>
+            </Field>
+            <Field label="Estado personal">
+              <span className={estadoPersonalClass}>
+                {personal.estado_personal_nombre ||
+                  personal.estado_personal ||
+                  "-"}
+              </span>
+            </Field>
+          </Section>
+
+          <Section title="Información personal">
+            <Field label="Nombre completo" value={nombreCompleto || "-"} />
+            <Field label="Cédula" value={personal.cedula} />
+            <Field
+              label="Fecha de nacimiento"
+              value={fechaNacimiento || "No especificado"}
+            />
+            <Field
+              label="Edad"
+              value={
+                personal.edad ? `${personal.edad} años` : "No especificado"
+              }
+            />
+            <Field
+              label="Género"
+              value={personal.genero === "M" ? "Masculino" : "Femenino"}
+            />
+            <Field label="Nacionalidad" value={personal.nacionalidad} />
+            <Field label="Tipo de sangre" value={personal.tipo_sangre} />
+          </Section>
+
+          <Section title="Información de contacto">
+            <Field label="Dirección" value={personal.direccion} />
+            <Field
+              label="Teléfono principal"
+              value={personal.telefono_principal}
+            />
+            <Field
+              label="Teléfono secundario"
+              value={personal.telefono_secundario}
+            />
+            <Field label="Email" value={personal.email} />
+          </Section>
+
+          <Section title="Información laboral">
+            <Field label="Cargo" value={personal.nombre_cargo} />
+            <Field label="Función" value={personal.nombre_funcion} />
+            <Field label="Tipo de cargo">
+              <span className={tipoCargoClass}>
+                {getDisplayValue(personal.tipo_cargo)}
+              </span>
+            </Field>
+            <Field label="Tipo de función">
+              <span className={tipoFuncionClass}>
+                {getDisplayValue(personal.tipo_funcion)}
+              </span>
+            </Field>
+            <Field
+              label="Fecha de contratación"
+              value={fechaContratacion || "No especificado"}
+            />
+            <Field label="Nivel académico" value={personal.nivel_academico} />
+            <Field label="Horas de trabajo" value={personal.horas_trabajo} />
+            <Field label="RIF" value={personal.rif} />
+            <Field label="Etnia / Religión" value={personal.etnia_religion} />
+            <Field label="Cantidad de hijas" value={personal.cantidad_hijas} />
+            <Field
+              label="Cantidad de hijos varones"
+              value={personal.cantidad_hijos_varones}
+            />
+            <Field
+              label="Código de dependencia"
+              value={personal.cod_dependencia}
+            />
+          </Section>
+
+          <Section
+            title="Habilidades"
+            bodyClass={personalViewModalClasses.sectionStack}
+          >
+            {Array.isArray(personal.habilidades) &&
+            personal.habilidades.length > 0 ? (
+              <ul className={personalViewModalClasses.listGrid}>
+                {personal.habilidades.map((hab) => (
+                  <li
+                    key={hab.id_habilidad || hab.id}
+                    className={personalViewModalClasses.listItem}
+                  >
+                    {hab.nombre_habilidad}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Sin habilidades registradas.
+              </p>
+            )}
+          </Section>
+        </div>
+
+        <div className={personalViewModalClasses.footer}>
+          <button
+            onClick={onClose}
+            type="button"
+            className={personalViewModalClasses.footerButton}
           >
             Cerrar
           </button>
