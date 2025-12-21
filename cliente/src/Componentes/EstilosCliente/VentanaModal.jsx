@@ -3,11 +3,11 @@ import PropTypes from "prop-types";
 import { contenidosModalClasses } from "./EstilosClientes";
 
 const sizeMap = {
-  sm: "max-w-md",
-  md: "max-w-xl",
-  lg: "max-w-3xl",
-  xl: "max-w-5xl",
-  full: "max-w-6xl",
+  sm: "max-w-lg",
+  md: "max-w-2xl",
+  lg: "max-w-4xl",
+  xl: "max-w-6xl",
+  full: "max-w-7xl",
 };
 
 const bodyBaseClass = "space-y-4";

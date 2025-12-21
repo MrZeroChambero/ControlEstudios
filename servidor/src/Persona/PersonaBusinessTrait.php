@@ -37,26 +37,21 @@ trait PersonaBusinessTrait
       return ['fecha_nacimiento' => ['Fecha de nacimiento inválida.']];
     }
 
-    // Parametrizar rangos
-    $rangos = [];
-    $minAnterior = 5; // grado 1 min
-    $maxAnterior = 6; // grado 1 max
-    $rangos[1] = [5, 6];
-    for ($g = 2; $g <= 6; $g++) {
-      $min = $minAnterior + 1;
-      $max = $maxAnterior + 2;
-      $rangos[$g] = [$min, $max];
-      $minAnterior = $min;
-      $maxAnterior = $max;
-    }
+    $minimo = 5 + ($grado - 1);
+    $recomendado = 6 + ($grado - 1);
+    $maximo = 7 + ($grado - 1);
 
-    [$minEdad, $maxEdad] = $rangos[$grado];
-    if ($edad < $minEdad || $edad > $maxEdad) {
-      return ['edad' => ["Edad ($edad) no válida para grado $grado. Debe estar entre $minEdad y $maxEdad años."]];
-    }
-    // Regla general adicional: edad mínima absoluta 6 salvo excepción de 5 en 1er grado.
-    if ($edad < 6 && !($grado === 1 && $edad === 5)) {
-      return ['edad' => ['Edad mínima general 6 años (5 solo permitido en 1er grado).']];
+    if ($edad < $minimo || $edad > $maximo) {
+      return ['edad' => [
+        sprintf(
+          'Edad (%d) fuera del rango permitido para %d° grado. Permitido: %d a %d años (recomendado %d).',
+          $edad,
+          $grado,
+          $minimo,
+          $maximo,
+          $recomendado
+        ),
+      ]];
     }
     return true;
   }

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   inscripcionFormClasses,
   inscripcionSummaryClasses,
 } from "../../EstilosCliente/EstilosClientes";
+import VentanaModal from "../../EstilosCliente/VentanaModal";
+import { textosInscripcion } from "../textosInscripcion";
 
 const traduccionTipo = (valor, catalogo) => {
   const encontrado = catalogo?.find((item) => item.valor === valor);
@@ -33,6 +35,28 @@ const toSlug = (valor) =>
     .trim()
     .replace(/\s+/g, "-");
 
+const gradoNumeroATexto = (valor) => {
+  if (valor === null || valor === undefined) return null;
+  if (typeof valor === "string" && valor.trim() !== "") {
+    return valor;
+  }
+
+  const numero = Number(valor);
+  if (Number.isNaN(numero)) return null;
+
+  const mapa = {
+    0: "Educ. Inicial",
+    1: "1.º grado",
+    2: "2.º grado",
+    3: "3.º grado",
+    4: "4.º grado",
+    5: "5.º grado",
+    6: "6.º grado",
+  };
+
+  return mapa[numero] || `${numero}.º grado`;
+};
+
 const DOCUMENTOS = [
   { id: "foto_estudiante", etiqueta: "Foto del estudiante" },
   { id: "foto_representante", etiqueta: "Foto del representante" },
@@ -40,20 +64,15 @@ const DOCUMENTOS = [
   { id: "cedula_representante", etiqueta: "Cédula del representante" },
 ];
 
-export const PasoResumen = ({ resumen, tiposInscripcion }) => {
-  if (!resumen) {
-    return (
-      <div
-        name="resumen-sin-datos"
-        className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700"
-      >
-        Completa los pasos anteriores para generar el resumen de inscripción.
-      </div>
-    );
-  }
-
+const DetalleResumen = ({ resumen, tiposInscripcion }) => {
   const { estudiante, representante, aula, datos, tipoInscripcion, resultado } =
     resumen;
+  const documentosPendientes = Array.isArray(resultado?.documentos_pendientes)
+    ? resultado.documentos_pendientes
+    : [];
+  const ajustesAplicados = Array.isArray(resultado?.ajustes)
+    ? resultado.ajustes
+    : [];
 
   const hogar = [
     { etiqueta: "Fecha de inscripción", valor: datos.fecha_inscripcion },
@@ -92,7 +111,7 @@ export const PasoResumen = ({ resumen, tiposInscripcion }) => {
   ];
 
   return (
-    <div name="contenedor-paso-resumen" className="space-y-6">
+    <div name="contenedor-detalle-resumen" className="space-y-6">
       {resultado ? (
         <div
           name="resumen-mensaje-exito"
@@ -282,6 +301,56 @@ export const PasoResumen = ({ resumen, tiposInscripcion }) => {
         </div>
       </section>
 
+      {documentosPendientes.length > 0 ? (
+        <section name="resumen-documentos-pendientes">
+          <h3 className="mb-3 text-base font-semibold text-amber-700">
+            Documentos pendientes para completar la inscripción
+          </h3>
+          <div className="space-y-3 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+            <p>
+              Aporta los documentos del grado anterior para finalizar el
+              proceso. Puedes hacerlo desde la ficha del estudiante.
+            </p>
+            <ul className="list-disc space-y-2 pl-5">
+              {documentosPendientes.map((item) => {
+                const requeridoTexto = gradoNumeroATexto(item.grado_requerido);
+                const disponibleTexto = gradoNumeroATexto(
+                  item.grado_disponible
+                );
+
+                return (
+                  <li key={`${item.documento}-${item.grado_requerido}`}>
+                    <span className="font-semibold">{item.documento}</span>
+                    {requeridoTexto
+                      ? ` | Grado requerido: ${requeridoTexto}`
+                      : ""}
+                    {disponibleTexto
+                      ? ` (último registrado: ${disponibleTexto})`
+                      : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {ajustesAplicados.length > 0 ? (
+        <section name="resumen-ajustes-aplicados">
+          <h3 className="mb-3 text-base font-semibold text-slate-800">
+            Ajustes aplicados al registro
+          </h3>
+          <ul className="space-y-2 rounded-3xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+            {ajustesAplicados.map((mensaje, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full bg-slate-400" />
+                <span>{mensaje}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {resultado ? (
         <div
           name="resumen-mensaje-final"
@@ -296,6 +365,114 @@ export const PasoResumen = ({ resumen, tiposInscripcion }) => {
           desde la ficha del estudiante.
         </p>
       )}
+    </div>
+  );
+};
+
+export const PasoResumen = ({
+  resumen,
+  tiposInscripcion,
+  mostrarAvisoIncompleto = true,
+}) => {
+  const [modalAbierto, setModalAbierto] = useState(false);
+
+  if (!resumen) {
+    if (!mostrarAvisoIncompleto) {
+      return null;
+    }
+    return (
+      <div
+        name="resumen-sin-datos"
+        className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700"
+      >
+        {textosInscripcion.resumenIncompleto}
+      </div>
+    );
+  }
+
+  const { resultado } = resumen;
+  const pendientesResumen = Array.isArray(resultado?.documentos_pendientes)
+    ? resultado.documentos_pendientes
+    : [];
+
+  return (
+    <div name="contenedor-paso-resumen" className="space-y-6">
+      <div
+        name="resumen-panel-inscripcion-estudiantil"
+        className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600"
+      >
+        <p className="mt-2 text-base font-semibold text-slate-800">
+          Revisa la información registrada antes de confirmar la inscripción.
+        </p>
+        <div
+          name="resumen-panel-acciones"
+          className="mt-4 flex flex-col gap-3 sm:flex-row"
+        >
+          <button
+            type="button"
+            onClick={() => setModalAbierto(true)}
+            className="rounded-3xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+          >
+            Detalle del resumen
+          </button>
+          <button
+            type="button"
+            disabled
+            className="rounded-3xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400 disabled:cursor-not-allowed"
+          >
+            Inscripción estudiantil
+          </button>
+        </div>
+      </div>
+
+      {pendientesResumen.length > 0 ? (
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-700">
+          <p className="font-semibold">
+            Inscripción en proceso: faltan documentos del grado anterior.
+          </p>
+          <p className="mt-2">
+            Completa la consignación de los siguientes documentos para activar
+            la inscripción:
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            {pendientesResumen.map((item) => {
+              const requeridoTexto = gradoNumeroATexto(item.grado_requerido);
+              return (
+                <li key={`${item.documento}-${item.grado_requerido}`}>
+                  <span className="font-semibold">{item.documento}</span>
+                  {requeridoTexto
+                    ? ` · Grado requerido: ${requeridoTexto}`
+                    : ""}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      {resultado ? (
+        <div
+          name="resumen-mensaje-exito"
+          className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-700"
+        >
+          <p className="font-semibold">Inscripción registrada correctamente.</p>
+          <p>
+            Revisa el detalle completo o descarga el comprobante desde el módulo
+            de reportes.
+          </p>
+        </div>
+      ) : null}
+
+      <VentanaModal
+        isOpen={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        title="Resumen de la inscripción"
+        size="xl"
+        bodyClassName="space-y-6"
+        contentClassName="max-w-5xl"
+      >
+        <DetalleResumen resumen={resumen} tiposInscripcion={tiposInscripcion} />
+      </VentanaModal>
     </div>
   );
 };

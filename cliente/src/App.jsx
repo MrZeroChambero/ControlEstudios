@@ -24,6 +24,8 @@ import { Indicadores } from "./Componentes/Indicadores/Indicadores.jsx";
 import { GestionGradosSecciones } from "./Componentes/GestionGradosSecciones/GestionGradosSecciones.jsx";
 import Inscripcion from "./Componentes/Inscripcion/inscripcion.jsx";
 import { RecuperarClave } from "./Componentes/RecuperarClave/RecuperarClave.jsx";
+import Respaldo from "./Componentes/Respaldo/Respaldo.jsx";
+import { Horarios } from "./Componentes/Horarios/Horarios.jsx";
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
       <Route path="Competencias" element={<Competencias />} />
       <Route path="Indicadores" element={<Indicadores />} />
       <Route path="Inscripcion" element={<Inscripcion />} />
+      <Route path="respaldos" element={<Respaldo />} />
+      <Route path="Horarios" element={<Horarios />} />
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />

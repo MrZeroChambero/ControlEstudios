@@ -1,0 +1,1536 @@
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+--
+-- Host: localhost    Database: escuela
+-- ------------------------------------------------------
+-- Server version	10.4.32-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Current Database: `escuela`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `escuela` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+
+USE `escuela`;
+
+--
+-- Table structure for table `alergias`
+--
+
+DROP TABLE IF EXISTS `alergias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `alergias` (
+  `id_alergia` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id_alergia`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `alergias`
+--
+
+LOCK TABLES `alergias` WRITE;
+/*!40000 ALTER TABLE `alergias` DISABLE KEYS */;
+INSERT INTO `alergias` VALUES (1,'Alergia al polen'),(2,'Alergia a los ácaros'),(3,'Alergia al gluten'),(4,'Alergia a la lactosa'),(5,'Alergia a los frutos secos'),(6,'Alergia al marisco'),(7,'Alergia al veneno de insectos'),(8,'Alergia al látex'),(9,'Alergia a algunos medicamentos'),(10,'Alergia al moho');
+/*!40000 ALTER TABLE `alergias` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `anios_escolares`
+--
+
+DROP TABLE IF EXISTS `anios_escolares`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `anios_escolares` (
+  `id_anio_escolar` int(11) NOT NULL AUTO_INCREMENT,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `limite_inscripcion` date NOT NULL,
+  `estado` enum('activo','inactivo','incompleto','finalizado') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_anio_escolar`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `anios_escolares`
+--
+
+LOCK TABLES `anios_escolares` WRITE;
+/*!40000 ALTER TABLE `anios_escolares` DISABLE KEYS */;
+INSERT INTO `anios_escolares` VALUES (1,'2025-09-01','2026-07-20','2026-05-13','activo');
+/*!40000 ALTER TABLE `anios_escolares` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `aprobo`
+--
+
+DROP TABLE IF EXISTS `aprobo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `aprobo` (
+  `id_aprobo` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `grado` varchar(50) DEFAULT NULL,
+  `fk_literal` int(11) DEFAULT NULL,
+  `paso` enum('si','no') DEFAULT 'si',
+  `observaciones` varchar(255) DEFAULT NULL,
+  `final` enum('si','no') DEFAULT 'no',
+  PRIMARY KEY (`id_aprobo`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_momento` (`fk_momento`),
+  KEY `fk_literal` (`fk_literal`),
+  CONSTRAINT `aprobo_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `aprobo_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `aprobo_ibfk_3` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `aprobo`
+--
+
+LOCK TABLES `aprobo` WRITE;
+/*!40000 ALTER TABLE `aprobo` DISABLE KEYS */;
+/*!40000 ALTER TABLE `aprobo` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `areas_aprendizaje`
+--
+
+DROP TABLE IF EXISTS `areas_aprendizaje`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `areas_aprendizaje` (
+  `id_area_aprendizaje` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_area` varchar(100) NOT NULL,
+  `estado_area` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_area_aprendizaje`)
+) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `areas_aprendizaje`
+--
+
+LOCK TABLES `areas_aprendizaje` WRITE;
+/*!40000 ALTER TABLE `areas_aprendizaje` DISABLE KEYS */;
+INSERT INTO `areas_aprendizaje` VALUES (1,'Lenguaje, Comunicación y Cultura','activo'),(2,'Matemática','activo'),(3,'Ciencias Naturales y Sociedad','activo'),(4,'Ciencias Sociales, Ciudadanía e Identidad','activo'),(5,'Educación Física, Deporte y Recreación','activo'),(6,'Arte y Patrimonio','activo'),(125,'area de prueba','activo');
+/*!40000 ALTER TABLE `areas_aprendizaje` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `asistencia`
+--
+
+DROP TABLE IF EXISTS `asistencia`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `asistencia` (
+  `id_asistencia` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `grado` enum('1','2','3','4','5','6') NOT NULL,
+  `asistencias` int(11) NOT NULL,
+  `inasistencias` int(11) NOT NULL,
+  `justificadas` int(11) NOT NULL,
+  PRIMARY KEY (`id_asistencia`),
+  KEY `fk_momento` (`fk_momento`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_componente` (`fk_componente`),
+  CONSTRAINT `asistencia_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `asistencia_ibfk_2` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `asistencia_ibfk_3` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `asistencia`
+--
+
+LOCK TABLES `asistencia` WRITE;
+/*!40000 ALTER TABLE `asistencia` DISABLE KEYS */;
+/*!40000 ALTER TABLE `asistencia` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `auditoria`
+--
+
+DROP TABLE IF EXISTS `auditoria`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `auditoria` (
+  `id_auditoria` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_usuario` int(11) NOT NULL,
+  `fecha_accion` datetime NOT NULL DEFAULT current_timestamp(),
+  `accion` varchar(100) NOT NULL,
+  `detalle` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_auditoria`),
+  KEY `fk_usuario` (`fk_usuario`),
+  CONSTRAINT `auditoria_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `auditoria`
+--
+
+LOCK TABLES `auditoria` WRITE;
+/*!40000 ALTER TABLE `auditoria` DISABLE KEYS */;
+/*!40000 ALTER TABLE `auditoria` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `aula`
+--
+
+DROP TABLE IF EXISTS `aula`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `aula` (
+  `id_aula` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_anio_escolar` int(11) NOT NULL,
+  `fk_grado_seccion` int(11) NOT NULL,
+  `cupos` int(11) DEFAULT NULL,
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_aula`),
+  KEY `fk_anio_escolar` (`fk_anio_escolar`),
+  KEY `fk_grado_seccion` (`fk_grado_seccion`),
+  CONSTRAINT `fk_aula_anio_escolar` FOREIGN KEY (`fk_anio_escolar`) REFERENCES `anios_escolares` (`id_anio_escolar`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_aula_grado_seccion` FOREIGN KEY (`fk_grado_seccion`) REFERENCES `grado_seccion` (`id_grado_seccion`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `aula`
+--
+
+LOCK TABLES `aula` WRITE;
+/*!40000 ALTER TABLE `aula` DISABLE KEYS */;
+INSERT INTO `aula` VALUES (1,1,1,37,'activo'),(2,1,4,37,'activo'),(3,1,7,37,'activo'),(4,1,10,37,'activo'),(5,1,13,37,'activo'),(6,1,16,37,'activo'),(7,1,2,37,'activo'),(8,1,3,37,'activo'),(9,1,5,37,'activo'),(10,1,6,37,'activo');
+/*!40000 ALTER TABLE `aula` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `bloqueos`
+--
+
+DROP TABLE IF EXISTS `bloqueos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bloqueos` (
+  `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_usuario` int(11) NOT NULL,
+  `intentos` int(1) NOT NULL,
+  `fecha_desbloqueo` datetime NOT NULL,
+  `bloqueos_seguidos` int(1) NOT NULL,
+  `fecha_ultimo_bloqueo` datetime NOT NULL,
+  `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL,
+  PRIMARY KEY (`id_bloqueo`),
+  KEY `fk_usuario` (`fk_usuario`),
+  CONSTRAINT `bloqueos_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bloqueos`
+--
+
+LOCK TABLES `bloqueos` WRITE;
+/*!40000 ALTER TABLE `bloqueos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bloqueos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `bloqueos_ip`
+--
+
+DROP TABLE IF EXISTS `bloqueos_ip`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `bloqueos_ip` (
+  `id_bloqueo_ip` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_hash` char(64) NOT NULL,
+  `intentos` int(3) NOT NULL,
+  `fecha_desbloqueo` datetime NOT NULL,
+  `bloqueos_seguidos` int(3) NOT NULL,
+  `fecha_ultimo_bloqueo` datetime NOT NULL,
+  `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL,
+  PRIMARY KEY (`id_bloqueo_ip`),
+  UNIQUE KEY `idx_bloqueos_ip_hash_tipo` (`ip_hash`,`tipo_bloqueo`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bloqueos_ip`
+--
+
+LOCK TABLES `bloqueos_ip` WRITE;
+/*!40000 ALTER TABLE `bloqueos_ip` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bloqueos_ip` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cargos`
+--
+
+DROP TABLE IF EXISTS `cargos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `cargos` (
+  `id_cargo` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_cargo` varchar(100) NOT NULL,
+  `tipo` enum('Docente','Administrativo','Obrero') NOT NULL DEFAULT 'Docente',
+  `codigo` varchar(15) NOT NULL,
+  PRIMARY KEY (`id_cargo`),
+  UNIQUE KEY `nombre_cargo` (`nombre_cargo`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cargos`
+--
+
+LOCK TABLES `cargos` WRITE;
+/*!40000 ALTER TABLE `cargos` DISABLE KEYS */;
+INSERT INTO `cargos` VALUES (1,'Docente Guía','Docente',''),(2,'Subdirector','Docente',''),(3,'Coordinador','Docente',''),(4,'Secretario','Docente',''),(5,'Obrero','Obrero',''),(6,'Administrativo','Administrativo',''),(7,'CBIT','Docente',''),(8,'CNAE','Docente',''),(9,'UPE','Docente',''),(10,'Director','Docente','DIR-001'),(11,'Psicólogo','Docente','PSI-001'),(12,'Enfermero','Docente','ENF-001'),(13,'Bibliotecario','Docente','BIB-001'),(14,'Coordinador Pedagógico','Docente','CP-001'),(15,'Docente Especial','Docente','DE-001');
+/*!40000 ALTER TABLE `cargos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `competencias`
+--
+
+DROP TABLE IF EXISTS `competencias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `competencias` (
+  `id_competencia` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_componente` int(11) NOT NULL,
+  `nombre_competencia` int(11) NOT NULL,
+  `descripcion_competencia` varchar(255) NOT NULL,
+  `reutilizable` enum('si','no') NOT NULL DEFAULT 'si',
+  PRIMARY KEY (`id_competencia`),
+  KEY `id_planificacion` (`fk_componente`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `competencias`
+--
+
+LOCK TABLES `competencias` WRITE;
+/*!40000 ALTER TABLE `competencias` DISABLE KEYS */;
+INSERT INTO `competencias` VALUES (1,1,1,'Desarrolla habilidades comunicativas para expresarse oralmente y por escrito de manera efectiva en diferentes contextos.','si'),(2,2,1,'Desarrolla habilidades básicas de comunicación en inglés para interactuar en situaciones cotidianas.','si'),(3,3,1,'Aplica conceptos y procedimientos matemáticos para resolver problemas de la vida cotidiana.','si'),(4,4,1,'Comprende los fenómenos naturales y desarrolla actitudes científicas para cuidar el medio ambiente.','si'),(5,5,1,'Analiza la realidad social y geográfica para comprender la organización de la sociedad.','si'),(6,6,1,'Desarrolla valores y actitudes para la convivencia democrática y el ejercicio ciudadano.','si'),(7,7,1,'Desarrolla habilidades motrices y hábitos para una vida saludable a través de la actividad física.','si'),(8,8,1,'Expresa ideas y emociones mediante diferentes técnicas y materiales artísticos.','si'),(9,9,1,'Desarrolla la sensibilidad artística y la expresión a través del lenguaje musical.','si'),(10,10,1,'Expresa sentimientos e ideas a través del movimiento corporal y la danza.','si'),(11,11,1,'Desarrolla la creatividad y la expresión a través de la dramatización y el teatro.','si'),(12,12,1,'Utiliza herramientas tecnológicas de manera responsable para el aprendizaje y la comunicación.','si'),(13,106,1,'Analiza procesos históricos y geográficos para comprender la realidad social actual.','si'),(14,11,0,'probar el sistema','si');
+/*!40000 ALTER TABLE `competencias` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `componentes_aprendizaje`
+--
+
+DROP TABLE IF EXISTS `componentes_aprendizaje`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `componentes_aprendizaje` (
+  `id_componente` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_area` int(11) NOT NULL,
+  `nombre_componente` varchar(100) NOT NULL,
+  `especialista` varchar(50) NOT NULL,
+  `evalua` enum('si','no') NOT NULL,
+  `estado_componente` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_componente`),
+  KEY `fk_area` (`fk_area`),
+  CONSTRAINT `componentes_aprendizaje_ibfk_1` FOREIGN KEY (`fk_area`) REFERENCES `areas_aprendizaje` (`id_area_aprendizaje`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `componentes_aprendizaje`
+--
+
+LOCK TABLES `componentes_aprendizaje` WRITE;
+/*!40000 ALTER TABLE `componentes_aprendizaje` DISABLE KEYS */;
+INSERT INTO `componentes_aprendizaje` VALUES (1,1,'Lengua y Literatura','Docente de aula','si','activo'),(2,1,'Inglés y otros Idiomas','Especialista en idiomas','si','activo'),(3,2,'Matemática','Docente de aula','si','activo'),(4,3,'Ciencias Naturales','Docente de aula','si','activo'),(5,4,'Ciencias Sociales','Docente de aula','si','activo'),(6,4,'Formación Ciudadana','Docente de aula','si','activo'),(7,5,'Educación Física','Especialista en educación física','si','activo'),(8,6,'Artes Plásticas','Especialista en artes','si','activo'),(9,6,'Música','Especialista en música','si','activo'),(10,6,'Danza y Expresión Corporal','Especialista en danza','si','activo'),(11,6,'Teatro y Dramatización','Especialista en teatro','si','activo'),(12,3,'Tecnología y Computación','Especialista CBIT/Informática','si','activo'),(106,4,'Ciencias Sociales','Docente de aula','si','activo');
+/*!40000 ALTER TABLE `componentes_aprendizaje` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `condiciones_salud`
+--
+
+DROP TABLE IF EXISTS `condiciones_salud`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `condiciones_salud` (
+  `id_condicion` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_patologia` int(11) NOT NULL,
+  `afectado` enum('estudiante','familiar','estudiante_y_familiar') NOT NULL DEFAULT 'estudiante',
+  `presente_en` enum('estudiante','familiar') NOT NULL,
+  `tipo_familiar` enum('madre','padre','hermano','abuelo','tio','otro') DEFAULT NULL,
+  `fecha_deteccion` date DEFAULT NULL,
+  `cronica` enum('si','no') DEFAULT NULL,
+  `impedimento_fisico` enum('si','no') DEFAULT NULL,
+  `observaciones` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_condicion`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_patologia` (`fk_patologia`),
+  CONSTRAINT `condiciones_salud_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `condiciones_salud_ibfk_2` FOREIGN KEY (`fk_patologia`) REFERENCES `patologias` (`id_patologia`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `condiciones_salud`
+--
+
+LOCK TABLES `condiciones_salud` WRITE;
+/*!40000 ALTER TABLE `condiciones_salud` DISABLE KEYS */;
+INSERT INTO `condiciones_salud` VALUES (3,50,1,'estudiante','estudiante',NULL,'2020-05-10','si','no','Asma controlado con inhalador'),(4,28,1,'estudiante','estudiante',NULL,'2022-03-15','si','no','Asma leve, controlado con inhalador'),(5,30,6,'estudiante','estudiante',NULL,'2023-01-20','si','no','TDAH, en tratamiento'),(6,32,2,'familiar','familiar','madre','2018-05-10','si','no','Diabetes tipo 2 en la madre'),(7,34,4,'estudiante','estudiante',NULL,'2021-11-08','si','no','Epilepsia controlada con medicación'),(8,37,5,'estudiante','estudiante',NULL,'2022-09-14','si','no','Dermatitis atópica, cuidados especiales de piel'),(9,39,3,'familiar','familiar','padre','2019-07-30','si','no','Hipertensión en el padre'),(10,42,7,'estudiante_y_familiar','estudiante',NULL,'2020-12-05','si','no','Trastorno del espectro autista'),(11,45,8,'estudiante','estudiante',NULL,'2021-04-18','si','si','Cardiopatía congénita, limitación para ejercicio intenso'),(12,47,9,'estudiante','estudiante',NULL,'2023-02-22','no','no','Anemia por deficiencia de hierro, en tratamiento'),(13,49,10,'estudiante','estudiante',NULL,'2022-06-10','si','no','Alergia alimentaria a frutos secos'),(14,52,1,'familiar','familiar','hermano','2021-08-25','si','no','Asma en hermano menor'),(15,55,6,'estudiante','estudiante',NULL,'2023-03-12','si','no','TDAH, seguimiento por psicopedagogo'),(16,49,5,'estudiante','estudiante',NULL,'2020-03-15','si','no','Dermatitis leve, controlada con cremas'),(17,51,9,'estudiante','estudiante',NULL,'2021-07-10','si','no','Anemia ferropénica, suplementación con hierro'),(18,52,4,'familiar','familiar','padre','2015-02-20','si','no','Epilepsia controlada con medicación'),(19,54,10,'estudiante_y_familiar','estudiante','madre','2018-05-30','si','no','Alergia alimentaria compartida con la madre'),(20,56,3,'familiar','familiar','abuelo','2010-11-05','si','si','Hipertensión arterial del abuelo paterno'),(21,53,2,'estudiante','estudiante',NULL,NULL,NULL,NULL,'sdad');
+/*!40000 ALTER TABLE `condiciones_salud` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `consultas_medicas`
+--
+
+DROP TABLE IF EXISTS `consultas_medicas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `consultas_medicas` (
+  `id_consulta` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `tipo_consulta` enum('psicologo','psicopedagogo','neurologo','terapista_lenguaje','orientador','otro') NOT NULL,
+  `motivo` varchar(255) DEFAULT NULL,
+  `tiene_informe_medico` enum('si','no') DEFAULT NULL,
+  `fecha_consulta` date DEFAULT NULL,
+  `observaciones` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_consulta`),
+  KEY `fk_consultas_estudiante` (`fk_estudiante`),
+  CONSTRAINT `fk_consultas_estudiante` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `consultas_medicas`
+--
+
+LOCK TABLES `consultas_medicas` WRITE;
+/*!40000 ALTER TABLE `consultas_medicas` DISABLE KEYS */;
+INSERT INTO `consultas_medicas` VALUES (3,48,'psicologo','Evaluación inicial','si','2025-09-10','Seguimiento mensual recomendado'),(4,28,'psicologo','Evaluación por problemas de atención','si','2024-02-10','Se recomienda seguimiento mensual'),(5,30,'neurologo','Control de epilepsia','si','2024-01-15','Medicación ajustada correctamente'),(6,34,'terapista_lenguaje','Retraso en el desarrollo del lenguaje','si','2024-03-05','Mejoría notable, continuar terapia'),(7,39,'psicopedagogo','Dificultades de aprendizaje','si','2024-02-20','Necesita adaptación curricular'),(8,42,'orientador','Orientación vocacional','no','2024-01-30','Intereses definidos hacia áreas técnicas'),(9,47,'psicologo','Ansiedad escolar','si','2024-03-12','En tratamiento cognitivo-conductual'),(10,49,'psicologo','Evaluación por comportamiento en el aula','si','2025-10-15','Se recomienda seguimiento trimestral'),(11,51,'terapista_lenguaje','Dificultades en pronunciación','si','2025-09-20','Sesiones semanales recomendadas'),(12,53,'orientador','Orientación vocacional temprana','no','2025-10-05','Interés en áreas científicas identificado'),(13,55,'neurologo','Evaluación por déficit de atención','si','2025-08-15','Requiere evaluación complementaria'),(14,53,'','psicologo','','2025-12-08','sdasd');
+/*!40000 ALTER TABLE `consultas_medicas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `contenido_indicador`
+--
+
+DROP TABLE IF EXISTS `contenido_indicador`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `contenido_indicador` (
+  `id_contenido_indicador` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_contenido` int(11) NOT NULL,
+  `fk_indicador` int(11) NOT NULL,
+  PRIMARY KEY (`id_contenido_indicador`),
+  KEY `fk_contenido` (`fk_contenido`),
+  KEY `fk_indicador` (`fk_indicador`),
+  CONSTRAINT `contenido_indicador_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `contenido_indicador_ibfk_2` FOREIGN KEY (`fk_contenido`) REFERENCES `contenidos` (`id_contenido`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contenido_indicador`
+--
+
+LOCK TABLES `contenido_indicador` WRITE;
+/*!40000 ALTER TABLE `contenido_indicador` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contenido_indicador` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `contenidos`
+--
+
+DROP TABLE IF EXISTS `contenidos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `contenidos` (
+  `id_contenido` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_contenido` varchar(255) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `grado` enum('1','2','3','4','5','6','general') NOT NULL DEFAULT 'general',
+  `descripcion` varchar(255) DEFAULT NULL,
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_contenido`),
+  KEY `fk_componente` (`fk_componente`),
+  CONSTRAINT `contenidos_ibfk_1` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=731 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contenidos`
+--
+
+LOCK TABLES `contenidos` WRITE;
+/*!40000 ALTER TABLE `contenidos` DISABLE KEYS */;
+INSERT INTO `contenidos` VALUES (707,'Comprensión Lectora',1,'general','Desarrollo de habilidades para comprender y analizar textos escritos','activo'),(708,'Expresión Escrita',1,'general','Desarrollo de habilidades para redactar textos coherentes y cohesionados','activo'),(709,'Vocabulario Básico en Inglés',2,'1','Aprendizaje de vocabulario básico para comunicación inicial','activo'),(710,'Gramática Inglesa Básica',2,'general','Estructuras gramaticales fundamentales del inglés','activo'),(711,'Operaciones Aritméticas Básicas',3,'general','Fundamentos de las operaciones matemáticas básicas','activo'),(712,'Geometría Básica',3,'general','Conceptos fundamentales de formas y espacios','activo'),(713,'Los Seres Vivos',4,'general','Características y clasificación de los seres vivos','activo'),(714,'El Cuerpo Humano',4,'general','Estructura y funcionamiento del cuerpo humano','activo'),(715,'Historia y Geografía Local',5,'general','Conocimiento del entorno histórico y geográfico local','activo'),(716,'Valores y Convivencia Ciudadana',6,'general','Desarrollo de valores para la convivencia social','activo'),(717,'Desarrollo de Habilidades Motoras',7,'general','Desarrollo de capacidades físicas básicas','activo'),(718,'Expresión y Creación Plástica',8,'general','Desarrollo de la creatividad a través de las artes plásticas','activo'),(719,'Educación Musical Básica',9,'general','Introducción a los elementos fundamentales de la música','activo'),(720,'Expresión Corporal y Danza',10,'general','Desarrollo de la expresión a través del movimiento','activo'),(721,'Expresión Dramática y Teatro',11,'general','Desarrollo de habilidades de expresión a través del teatro','activo'),(722,'Alfabetización Digital Básica',12,'general','Introducción al uso de la tecnología y computadoras','activo'),(723,'Herramientas Ofimáticas Básicas',12,'general','Introducción a programas de oficina básicos','activo'),(724,'Lectura de Sílabas y Palabras Cortas',1,'1','Iniciación a la lectura de sílabas y palabras simples','activo'),(725,'Números del 1 al 100',3,'1','Reconocimiento y escritura de números del 1 al 100','activo'),(726,'El Entorno Natural Inmediato',4,'1','Observación y descripción del entorno natural cercano','activo'),(727,'Análisis de Textos Literarios',1,'6','Análisis y comprensión de textos literarios complejos','activo'),(728,'Álgebra Básica',3,'6','Introducción a conceptos algebraicos elementales','activo'),(729,'Sistema Solar y Universo',4,'6','Estudio del sistema solar y elementos del universo','activo');
+/*!40000 ALTER TABLE `contenidos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `documentos_academicos`
+--
+
+DROP TABLE IF EXISTS `documentos_academicos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `documentos_academicos` (
+  `id_documento` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `tipo_documento` enum('Tarjeta Vacunación','Carta Residencia','Partida Nacimiento','Boleta','Constancia Prosecución','Certificado Aprendizaje') NOT NULL,
+  `grado` enum('Educ. Inicial','1','2','3','4','5','6','') DEFAULT NULL,
+  `entregado` enum('si','no') NOT NULL DEFAULT 'no',
+  `observaciones` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_documento`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  CONSTRAINT `documentos_academicos_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `documentos_academicos`
+--
+
+LOCK TABLES `documentos_academicos` WRITE;
+/*!40000 ALTER TABLE `documentos_academicos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `documentos_academicos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `estudiantes`
+--
+
+DROP TABLE IF EXISTS `estudiantes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `estudiantes` (
+  `id_estudiante` int(11) NOT NULL AUTO_INCREMENT,
+  `id_persona` int(11) NOT NULL,
+  `cedula_escolar` varchar(20) NOT NULL,
+  `fecha_ingreso_escuela` date NOT NULL,
+  `vive_con_padres` enum('si','no') DEFAULT 'si',
+  `orden_nacimiento` int(11) NOT NULL,
+  `tiempo_gestacion` int(11) NOT NULL,
+  `embarazo_deseado` enum('si','no') NOT NULL DEFAULT 'si',
+  `tipo_parto` enum('cesaria','normal') NOT NULL,
+  `control_esfinteres` enum('si','no') NOT NULL,
+  `control_embarazo` enum('si','no') NOT NULL DEFAULT 'si',
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_estudiante`),
+  UNIQUE KEY `id_persona` (`id_persona`),
+  UNIQUE KEY `codigo_estudiantil` (`cedula_escolar`),
+  CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `estudiantes`
+--
+
+LOCK TABLES `estudiantes` WRITE;
+/*!40000 ALTER TABLE `estudiantes` DISABLE KEYS */;
+INSERT INTO `estudiantes` VALUES (48,86,'2025-30123456','2025-09-01','si',1,9,'si','normal','si','si','activo'),(49,87,'2025-31234567','2025-09-01','si',2,8,'si','cesaria','si','si','activo'),(50,88,'2025-32345678','2025-09-01','no',3,9,'no','normal','si','si','activo'),(51,95,'2025-33456789','2025-09-01','si',1,9,'si','normal','si','si','activo'),(52,96,'2025-34567890','2025-09-01','si',2,8,'si','cesaria','si','si','activo'),(53,97,'2025-35678901','2025-09-01','si',1,9,'si','normal','si','si','activo'),(54,98,'2025-36789012','2025-09-01','no',1,9,'si','normal','si','si','activo'),(55,99,'2025-37890123','2025-09-01','si',3,7,'no','normal','si','no','activo'),(56,100,'2025-38901234','2025-09-01','si',1,9,'si','cesaria','si','si','activo'),(57,144,'2025-00000001','2025-09-01','si',1,9,'si','normal','si','si','activo'),(58,145,'2025-00000002','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(59,146,'2025-00000003','2025-09-01','si',1,8,'si','normal','si','si','activo'),(60,147,'2025-00000004','2025-09-01','si',2,9,'si','normal','si','si','activo'),(61,148,'2025-00000005','2025-09-01','si',1,9,'si','cesaria','si','si','activo'),(62,149,'2025-00000006','2025-09-01','si',2,8,'si','normal','si','si','activo'),(63,150,'2025-00000007','2025-09-01','si',1,9,'si','normal','si','si','activo'),(64,151,'2025-00000008','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(65,152,'2025-00000009','2025-09-01','si',1,8,'si','normal','si','si','activo'),(66,153,'2025-00000010','2025-09-01','si',2,9,'si','normal','si','si','activo'),(67,154,'2025-00000011','2025-09-01','si',1,9,'si','normal','si','si','activo'),(68,155,'2025-00000012','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(69,156,'2025-00000013','2025-09-01','si',1,8,'si','normal','si','si','activo'),(70,157,'2025-00000014','2025-09-01','si',2,9,'si','normal','si','si','activo'),(71,158,'2025-00000015','2025-09-01','si',1,9,'si','cesaria','si','si','activo'),(72,159,'2025-00000016','2025-09-01','si',2,8,'si','normal','si','si','activo'),(73,160,'2025-00000017','2025-09-01','si',1,9,'si','normal','si','si','activo'),(74,161,'2025-00000018','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(75,162,'2025-00000019','2025-09-01','si',1,8,'si','normal','si','si','activo'),(76,163,'2025-00000020','2025-09-01','si',2,9,'si','normal','si','si','activo'),(77,164,'2025-00000021','2025-09-01','si',1,9,'si','normal','si','si','activo'),(78,165,'2025-00000022','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(79,166,'2025-00000023','2025-09-01','si',1,8,'si','normal','si','si','activo'),(80,167,'2025-00000024','2025-09-01','si',2,9,'si','normal','si','si','activo'),(81,168,'2025-00000025','2025-09-01','si',1,9,'si','cesaria','si','si','activo'),(82,169,'2025-00000026','2025-09-01','si',2,8,'si','normal','si','si','activo'),(83,170,'2025-00000027','2025-09-01','si',1,9,'si','normal','si','si','activo'),(84,171,'2025-00000028','2025-09-01','si',2,9,'si','cesaria','si','si','activo'),(85,172,'2025-00000029','2025-09-01','si',1,8,'si','normal','si','si','activo'),(86,173,'2025-00000030','2025-09-01','si',2,9,'si','normal','si','si','activo'),(87,224,'2025-00000224','2026-01-06','si',1,38,'si','normal','si','si','activo'),(88,225,'2025-00000225','2025-12-12','si',1,38,'si','normal','si','si','activo'),(89,226,'2025-00000226','2025-12-11','si',1,38,'si','normal','si','si','activo');
+/*!40000 ALTER TABLE `estudiantes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `evaluar`
+--
+
+DROP TABLE IF EXISTS `evaluar`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `evaluar` (
+  `id_evaluar` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_indicador` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_literal` int(11) NOT NULL,
+  PRIMARY KEY (`id_evaluar`),
+  KEY `fk_indicador` (`fk_indicador`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_literal` (`fk_literal`),
+  CONSTRAINT `evaluar_ibfk_1` FOREIGN KEY (`fk_indicador`) REFERENCES `indicadores` (`id_indicador`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `evaluar_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `evaluar_ibfk_3` FOREIGN KEY (`fk_literal`) REFERENCES `literal` (`id_literal`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `evaluar`
+--
+
+LOCK TABLES `evaluar` WRITE;
+/*!40000 ALTER TABLE `evaluar` DISABLE KEYS */;
+/*!40000 ALTER TABLE `evaluar` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `funcion_personal`
+--
+
+DROP TABLE IF EXISTS `funcion_personal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `funcion_personal` (
+  `id_funcion_personal` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(40) NOT NULL,
+  `tipo` enum('Docente','Obrero','Administrativo','Especialista') NOT NULL,
+  PRIMARY KEY (`id_funcion_personal`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `funcion_personal`
+--
+
+LOCK TABLES `funcion_personal` WRITE;
+/*!40000 ALTER TABLE `funcion_personal` DISABLE KEYS */;
+INSERT INTO `funcion_personal` VALUES (1,'Docente Guía','Docente'),(2,'Docente de Aula','Docente'),(3,'Docente Integral','Docente'),(4,'Docente Especialista','Docente'),(5,'Educación Física','Especialista'),(6,'CBIT - Tecnología','Especialista'),(7,'Cultura','Especialista'),(8,'Artes Plásticas','Especialista'),(9,'Música','Especialista'),(10,'Teatro','Especialista'),(11,'Danza','Especialista'),(12,'Inglés','Especialista'),(13,'Deportes','Especialista'),(14,'Computación','Especialista'),(15,'Obrero de Mantenimiento','Obrero'),(16,'Obrero de Limpieza','Obrero'),(17,'Jardinero','Obrero'),(18,'Vigilante','Obrero'),(19,'Conserje','Obrero'),(20,'Aseador','Obrero'),(21,'Secretaria','Administrativo'),(22,'Director','Administrativo'),(23,'Subdirector','Administrativo'),(24,'Coordinador Académico','Administrativo'),(25,'Coordinador de Disciplina','Administrativo'),(26,'Bibliotecario','Administrativo'),(27,'Contador','Administrativo'),(28,'Recepcionista','Administrativo'),(29,'Psicólogo','Especialista'),(30,'Psicopedagogo','Especialista'),(31,'Terapista de Lenguaje','Especialista'),(32,'Orientador','Especialista'),(33,'Trabajador Social','Especialista'),(34,'Enfermero','Especialista'),(35,'Cocinero','Obrero'),(36,'Ayudante de Cocina','Obrero'),(37,'Nutricionista','Especialista'),(38,'Técnico en Informática','Especialista'),(39,'Técnico en Electricidad','Obrero'),(40,'Técnico en Plomería','Obrero');
+/*!40000 ALTER TABLE `funcion_personal` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `grado_seccion`
+--
+
+DROP TABLE IF EXISTS `grado_seccion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `grado_seccion` (
+  `id_grado_seccion` int(11) NOT NULL AUTO_INCREMENT,
+  `grado` enum('1','2','3','4','5','6') NOT NULL,
+  `seccion` enum('A','B','C') NOT NULL,
+  PRIMARY KEY (`id_grado_seccion`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `grado_seccion`
+--
+
+LOCK TABLES `grado_seccion` WRITE;
+/*!40000 ALTER TABLE `grado_seccion` DISABLE KEYS */;
+INSERT INTO `grado_seccion` VALUES (1,'1','A'),(2,'1','B'),(3,'1','C'),(4,'2','A'),(5,'2','B'),(6,'2','C'),(7,'3','A'),(8,'3','B'),(9,'3','C'),(10,'4','A'),(11,'4','B'),(12,'4','C'),(13,'5','A'),(14,'5','B'),(15,'5','C'),(16,'6','A'),(17,'6','B'),(18,'6','C');
+/*!40000 ALTER TABLE `grado_seccion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `grupos_estudiantiles`
+--
+
+DROP TABLE IF EXISTS `grupos_estudiantiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `grupos_estudiantiles` (
+  `id_grupos_estudiantiles` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_horario` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  PRIMARY KEY (`id_grupos_estudiantiles`),
+  KEY `fk_horario` (`fk_horario`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  CONSTRAINT `fk_grupos_horario` FOREIGN KEY (`fk_horario`) REFERENCES `horarios` (`id_horario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `grupos_estudiantiles_ibfk_1` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `grupos_estudiantiles`
+--
+
+LOCK TABLES `grupos_estudiantiles` WRITE;
+/*!40000 ALTER TABLE `grupos_estudiantiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `grupos_estudiantiles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `habilidades`
+--
+
+DROP TABLE IF EXISTS `habilidades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `habilidades` (
+  `id_habilidad` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_representante` int(11) NOT NULL,
+  `nombre_habilidad` varchar(100) NOT NULL,
+  PRIMARY KEY (`id_habilidad`),
+  KEY `fk_representante` (`fk_representante`),
+  CONSTRAINT `habilidades_ibfk_1` FOREIGN KEY (`fk_representante`) REFERENCES `representantes` (`id_representante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `habilidades`
+--
+
+LOCK TABLES `habilidades` WRITE;
+/*!40000 ALTER TABLE `habilidades` DISABLE KEYS */;
+INSERT INTO `habilidades` VALUES (11,10,'Manejo de herramientas tecnológicas'),(12,10,'Primeros auxilios'),(13,8,'Primeros auxilios'),(14,8,'Carpintería básica'),(15,9,'Idiomas (inglés avanzado)'),(16,10,'Contabilidad'),(17,11,'Mediación de conflictos'),(18,12,'Tutoría académica'),(19,13,'Cuidado de pacientes'),(20,14,'Dibujo técnico'),(21,15,'Planificación financiera'),(22,16,'Programación'),(23,16,'Redes informáticas'),(24,17,'Terapia cognitivo-conductual'),(25,11,'Primeros auxilios avanzados'),(26,11,'Conocimientos en nutrición infantil'),(27,12,'Cuidado de niños'),(28,12,'Manejo de situaciones de emergencia'),(29,13,'Gestión administrativa'),(30,14,'Planificación de proyectos'),(31,15,'Mediación y resolución de conflictos'),(34,28,'enseñar');
+/*!40000 ALTER TABLE `habilidades` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `horarios`
+--
+
+DROP TABLE IF EXISTS `horarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `horarios` (
+  `id_horario` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_aula` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `fk_personal` int(11) NOT NULL,
+  `grupo` enum('completo','subgrupo') NOT NULL,
+  `dia_semana` enum('lunes','martes','miercoles','jueves','viernes') NOT NULL,
+  `hora_inicio` float NOT NULL,
+  `hora_fin` float NOT NULL,
+  PRIMARY KEY (`id_horario`),
+  KEY `fk_aula` (`fk_aula`),
+  KEY `fk_momento` (`fk_momento`),
+  KEY `fk_personal` (`fk_personal`),
+  KEY `fk_componente` (`fk_componente`),
+  CONSTRAINT `horarios_ibfk_1` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `horarios_ibfk_3` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `horarios_ibfk_4` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `horarios_ibfk_5` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `horarios`
+--
+
+LOCK TABLES `horarios` WRITE;
+/*!40000 ALTER TABLE `horarios` DISABLE KEYS */;
+INSERT INTO `horarios` VALUES (1,7,11,106,30,'completo','martes',7.5,8.16667),(2,7,11,4,30,'completo','martes',8.18333,8.85),(3,8,11,4,39,'completo','lunes',7.5,8.16667),(4,8,11,6,39,'completo','lunes',8.18333,8.85);
+/*!40000 ALTER TABLE `horarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `imparte`
+--
+
+DROP TABLE IF EXISTS `imparte`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `imparte` (
+  `id_imparte` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_aula` int(11) NOT NULL,
+  `fk_personal` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `tipo_docente` enum('aula','Especialista') NOT NULL,
+  `clases_totales` int(2) DEFAULT NULL,
+  PRIMARY KEY (`id_imparte`),
+  KEY `fk_momento` (`fk_momento`),
+  KEY `fk_componente` (`fk_componente`),
+  KEY `fk_personal` (`fk_personal`),
+  KEY `fk_aula` (`fk_aula`),
+  CONSTRAINT `imparte_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `imparte_ibfk_2` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `imparte_ibfk_4` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `imparte_ibfk_5` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=296 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `imparte`
+--
+
+LOCK TABLES `imparte` WRITE;
+/*!40000 ALTER TABLE `imparte` DISABLE KEYS */;
+INSERT INTO `imparte` VALUES (80,2,15,11,4,'aula',NULL),(81,2,15,12,4,'aula',NULL),(82,2,15,13,4,'aula',NULL),(83,2,15,11,5,'aula',NULL),(84,2,15,12,5,'aula',NULL),(85,2,15,13,5,'aula',NULL),(86,2,15,11,106,'aula',NULL),(87,2,15,12,106,'aula',NULL),(88,2,15,13,106,'aula',NULL),(89,2,15,11,6,'aula',NULL),(90,2,15,12,6,'aula',NULL),(91,2,15,13,6,'aula',NULL),(92,2,15,11,1,'aula',NULL),(93,2,15,12,1,'aula',NULL),(94,2,15,13,1,'aula',NULL),(95,2,15,11,3,'aula',NULL),(96,2,15,12,3,'aula',NULL),(97,2,15,13,3,'aula',NULL),(98,3,17,11,4,'aula',NULL),(99,3,17,12,4,'aula',NULL),(100,3,17,13,4,'aula',NULL),(101,3,17,11,5,'aula',NULL),(102,3,17,12,5,'aula',NULL),(103,3,17,13,5,'aula',NULL),(104,3,17,11,106,'aula',NULL),(105,3,17,12,106,'aula',NULL),(106,3,17,13,106,'aula',NULL),(107,3,17,11,6,'aula',NULL),(108,3,17,12,6,'aula',NULL),(109,3,17,13,6,'aula',NULL),(110,3,17,11,1,'aula',NULL),(111,3,17,12,1,'aula',NULL),(112,3,17,13,1,'aula',NULL),(113,3,17,11,3,'aula',NULL),(114,3,17,12,3,'aula',NULL),(115,3,17,13,3,'aula',NULL),(116,4,21,11,4,'aula',NULL),(117,4,21,12,4,'aula',NULL),(118,4,21,13,4,'aula',NULL),(119,4,21,11,5,'aula',NULL),(120,4,21,12,5,'aula',NULL),(121,4,21,13,5,'aula',NULL),(122,4,21,11,106,'aula',NULL),(123,4,21,12,106,'aula',NULL),(124,4,21,13,106,'aula',NULL),(125,4,21,11,6,'aula',NULL),(126,4,21,12,6,'aula',NULL),(127,4,21,13,6,'aula',NULL),(128,4,21,11,1,'aula',NULL),(129,4,21,12,1,'aula',NULL),(130,4,21,13,1,'aula',NULL),(131,4,21,11,3,'aula',NULL),(132,4,21,12,3,'aula',NULL),(133,4,21,13,3,'aula',NULL),(134,5,35,11,4,'aula',NULL),(135,5,35,12,4,'aula',NULL),(136,5,35,13,4,'aula',NULL),(137,5,35,11,5,'aula',NULL),(138,5,35,12,5,'aula',NULL),(139,5,35,13,5,'aula',NULL),(140,5,35,11,106,'aula',NULL),(141,5,35,12,106,'aula',NULL),(142,5,35,13,106,'aula',NULL),(143,5,35,11,6,'aula',NULL),(144,5,35,12,6,'aula',NULL),(145,5,35,13,6,'aula',NULL),(146,5,35,11,1,'aula',NULL),(147,5,35,12,1,'aula',NULL),(148,5,35,13,1,'aula',NULL),(149,5,35,11,3,'aula',NULL),(150,5,35,12,3,'aula',NULL),(151,5,35,13,3,'aula',NULL),(152,6,38,11,4,'aula',NULL),(153,6,38,12,4,'aula',NULL),(154,6,38,13,4,'aula',NULL),(155,6,38,11,5,'aula',NULL),(156,6,38,12,5,'aula',NULL),(157,6,38,13,5,'aula',NULL),(158,6,38,11,106,'aula',NULL),(159,6,38,12,106,'aula',NULL),(160,6,38,13,106,'aula',NULL),(161,6,38,11,6,'aula',NULL),(162,6,38,12,6,'aula',NULL),(163,6,38,13,6,'aula',NULL),(164,6,38,11,1,'aula',NULL),(165,6,38,12,1,'aula',NULL),(166,6,38,13,1,'aula',NULL),(167,6,38,11,3,'aula',NULL),(168,6,38,12,3,'aula',NULL),(169,6,38,13,3,'aula',NULL),(170,7,30,11,4,'aula',NULL),(171,7,30,12,4,'aula',NULL),(172,7,30,13,4,'aula',NULL),(173,7,30,11,5,'aula',NULL),(174,7,30,12,5,'aula',NULL),(175,7,30,13,5,'aula',NULL),(176,7,30,11,106,'aula',NULL),(177,7,30,12,106,'aula',NULL),(178,7,30,13,106,'aula',NULL),(179,7,30,11,6,'aula',NULL),(180,7,30,12,6,'aula',NULL),(181,7,30,13,6,'aula',NULL),(182,7,30,11,1,'aula',NULL),(183,7,30,12,1,'aula',NULL),(184,7,30,13,1,'aula',NULL),(185,7,30,11,3,'aula',NULL),(186,7,30,12,3,'aula',NULL),(187,7,30,13,3,'aula',NULL),(188,8,39,11,4,'aula',NULL),(189,8,39,12,4,'aula',NULL),(190,8,39,13,4,'aula',NULL),(191,8,39,11,5,'aula',NULL),(192,8,39,12,5,'aula',NULL),(193,8,39,13,5,'aula',NULL),(194,8,39,11,106,'aula',NULL),(195,8,39,12,106,'aula',NULL),(196,8,39,13,106,'aula',NULL),(197,8,39,11,6,'aula',NULL),(198,8,39,12,6,'aula',NULL),(199,8,39,13,6,'aula',NULL),(200,8,39,11,1,'aula',NULL),(201,8,39,12,1,'aula',NULL),(202,8,39,13,1,'aula',NULL),(203,8,39,11,3,'aula',NULL),(204,8,39,12,3,'aula',NULL),(205,8,39,13,3,'aula',NULL),(206,1,1,11,10,'Especialista',NULL),(207,1,1,12,10,'Especialista',NULL),(208,1,1,13,10,'Especialista',NULL),(209,1,1,11,8,'Especialista',NULL),(210,1,1,12,8,'Especialista',NULL),(211,1,1,13,8,'Especialista',NULL),(212,1,18,11,9,'Especialista',NULL),(213,1,18,12,9,'Especialista',NULL),(214,1,18,13,9,'Especialista',NULL),(215,1,16,11,11,'Especialista',NULL),(216,1,16,12,11,'Especialista',NULL),(217,1,16,13,11,'Especialista',NULL),(218,1,18,11,12,'Especialista',NULL),(219,1,18,12,12,'Especialista',NULL),(220,1,18,13,12,'Especialista',NULL),(239,9,37,11,4,'aula',NULL),(240,9,37,12,4,'aula',NULL),(241,9,37,13,4,'aula',NULL),(242,9,37,11,5,'aula',NULL),(243,9,37,12,5,'aula',NULL),(244,9,37,13,5,'aula',NULL),(245,9,37,11,106,'aula',NULL),(246,9,37,12,106,'aula',NULL),(247,9,37,13,106,'aula',NULL),(248,9,37,11,6,'aula',NULL),(249,9,37,12,6,'aula',NULL),(250,9,37,13,6,'aula',NULL),(251,9,37,11,1,'aula',NULL),(252,9,37,12,1,'aula',NULL),(253,9,37,13,1,'aula',NULL),(254,9,37,11,3,'aula',NULL),(255,9,37,12,3,'aula',NULL),(256,9,37,13,3,'aula',NULL),(260,1,32,11,4,'aula',NULL),(261,1,32,12,4,'aula',NULL),(262,1,32,13,4,'aula',NULL),(263,1,32,11,5,'aula',NULL),(264,1,32,12,5,'aula',NULL),(265,1,32,13,5,'aula',NULL),(266,1,32,11,106,'aula',NULL),(267,1,32,12,106,'aula',NULL),(268,1,32,13,106,'aula',NULL),(269,1,32,11,6,'aula',NULL),(270,1,32,12,6,'aula',NULL),(271,1,32,13,6,'aula',NULL),(272,1,32,11,1,'aula',NULL),(273,1,32,12,1,'aula',NULL),(274,1,32,13,1,'aula',NULL),(275,1,32,11,3,'aula',NULL),(276,1,32,12,3,'aula',NULL),(277,1,32,13,3,'aula',NULL),(278,10,14,11,4,'aula',NULL),(279,10,14,12,4,'aula',NULL),(280,10,14,13,4,'aula',NULL),(281,10,14,11,5,'aula',NULL),(282,10,14,12,5,'aula',NULL),(283,10,14,13,5,'aula',NULL),(284,10,14,11,106,'aula',NULL),(285,10,14,12,106,'aula',NULL),(286,10,14,13,106,'aula',NULL),(287,10,14,11,6,'aula',NULL),(288,10,14,12,6,'aula',NULL),(289,10,14,13,6,'aula',NULL),(290,10,14,11,1,'aula',NULL),(291,10,14,12,1,'aula',NULL),(292,10,14,13,1,'aula',NULL),(293,10,14,11,3,'aula',NULL),(294,10,14,12,3,'aula',NULL),(295,10,14,13,3,'aula',NULL);
+/*!40000 ALTER TABLE `imparte` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `indicadores`
+--
+
+DROP TABLE IF EXISTS `indicadores`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `indicadores` (
+  `id_indicador` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_competencia` int(11) NOT NULL,
+  `nombre_indicador` varchar(255) NOT NULL,
+  `aspecto` enum('ser','hacer','conocer','convivir') NOT NULL,
+  `orden` int(3) NOT NULL,
+  `ocultar` enum('si','no') NOT NULL DEFAULT 'no',
+  PRIMARY KEY (`id_indicador`),
+  KEY `fk_competencia` (`fk_competencia`),
+  CONSTRAINT `indicadores_ibfk_1` FOREIGN KEY (`fk_competencia`) REFERENCES `competencias` (`id_competencia`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `indicadores`
+--
+
+LOCK TABLES `indicadores` WRITE;
+/*!40000 ALTER TABLE `indicadores` DISABLE KEYS */;
+INSERT INTO `indicadores` VALUES (1,1,'Muestra respeto por las ideas de los demás durante intercambios comunicativos.','ser',1,'no'),(2,1,'Redacta textos cortos aplicando normas gramaticales básicas.','hacer',2,'no'),(3,1,'Identifica la estructura básica de diferentes tipos de textos.','conocer',3,'no'),(4,1,'Participa en discusiones grupales escuchando activamente a sus compañeros.','convivir',4,'no'),(5,2,'Muestra interés por conocer otras culturas a través del idioma.','ser',1,'no'),(6,2,'Utiliza vocabulario básico para saludar y presentarse en inglés.','hacer',2,'no'),(7,2,'Reconoce palabras y frases comunes en inglés relacionadas con su entorno.','conocer',3,'no'),(8,2,'Colabora en actividades grupales para practicar el idioma.','convivir',4,'no'),(9,3,'Muestra perseverancia al resolver problemas matemáticos.','ser',1,'no'),(10,3,'Aplica operaciones aritméticas básicas en situaciones cotidianas.','hacer',2,'no'),(11,3,'Identifica formas geométricas en su entorno inmediato.','conocer',3,'no'),(12,3,'Trabaja en equipo para resolver problemas matemáticos.','convivir',4,'no'),(13,4,'Muestra curiosidad por explorar fenómenos naturales.','ser',1,'no'),(14,4,'Realiza observaciones sencillas de seres vivos de su entorno.','hacer',2,'no'),(15,4,'Describe las partes básicas del cuerpo humano y su función.','conocer',3,'no'),(16,4,'Participa en actividades grupales de cuidado del medio ambiente.','convivir',4,'no'),(17,5,'Valora el patrimonio cultural y natural de su localidad.','ser',1,'no'),(18,5,'Elabora representaciones sencillas del espacio geográfico.','hacer',2,'no'),(19,5,'Identifica características principales de su comunidad.','conocer',3,'no'),(20,5,'Respeta las normas de convivencia en su entorno escolar y familiar.','convivir',4,'no'),(21,6,'Demuestra honestidad en sus acciones cotidianas.','ser',1,'no'),(22,6,'Cumple con sus responsabilidades escolares y familiares.','hacer',2,'no'),(23,6,'Reconoce sus derechos y deberes como niño/a.','conocer',3,'no'),(24,6,'Participa en actividades de grupo respetando las diferencias.','convivir',4,'no'),(25,7,'Muestra entusiasmo por participar en actividades físicas.','ser',1,'no'),(26,7,'Realiza ejercicios de coordinación y equilibrio básicos.','hacer',2,'no'),(27,7,'Identifica los beneficios de la actividad física para la salud.','conocer',3,'no'),(28,7,'Trabaja en equipo durante juegos y actividades deportivas.','convivir',4,'no'),(29,8,'Expresa sus emociones a través del uso del color y la forma.','ser',1,'no'),(30,8,'Utiliza diferentes materiales para crear composiciones artísticas.','hacer',2,'no'),(31,8,'Reconoce elementos básicos del lenguaje visual.','conocer',3,'no'),(32,8,'Comparte sus producciones artísticas con sus compañeros.','convivir',4,'no'),(33,9,'Muestra sensibilidad al escuchar diferentes tipos de música.','ser',1,'no'),(34,9,'Reproduce ritmos sencillos con percusión corporal o instrumentos.','hacer',2,'no'),(35,9,'Identifica elementos básicos de la música (ritmo, melodía).','conocer',3,'no'),(36,9,'Participa en actividades musicales grupales.','convivir',4,'no'),(37,10,'Se expresa con confianza a través del movimiento corporal.','ser',1,'no'),(38,10,'Realiza movimientos corporales coordinados siguiendo ritmos.','hacer',2,'no'),(39,10,'Reconoce las posibilidades expresivas de su cuerpo.','conocer',3,'no'),(40,10,'Colabora en la creación de coreografías grupales.','convivir',4,'no'),(41,11,'Se desinhibe al representar personajes y situaciones.','ser',1,'no'),(42,11,'Improvisa escenas cortas a partir de consignas dadas.','hacer',2,'no'),(43,11,'Reconoce elementos básicos de una obra teatral.','conocer',3,'no'),(44,11,'Trabaja en equipo para la preparación de una dramatización.','convivir',4,'no'),(45,12,'Muestra responsabilidad en el uso de equipos tecnológicos.','ser',1,'no'),(46,12,'Utiliza programas básicos para crear documentos digitales.','hacer',2,'no'),(47,12,'Identifica las partes principales de una computadora.','conocer',3,'no'),(48,12,'Comparte información digital de manera respetuosa.','convivir',4,'no'),(49,13,'Valora la diversidad cultural de su país.','ser',1,'no'),(50,13,'Elabora líneas de tiempo sencillas con hechos históricos.','hacer',2,'no'),(51,13,'Describe características geográficas de su región.','conocer',3,'no'),(52,13,'Participa en actividades que promueven la identidad nacional.','convivir',4,'no'),(54,4,'sadsa','ser',12,'no');
+/*!40000 ALTER TABLE `indicadores` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inscripciones`
+--
+
+DROP TABLE IF EXISTS `inscripciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inscripciones` (
+  `id_inscripcion` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_estudiante` int(11) NOT NULL,
+  `fk_representante` int(11) DEFAULT NULL,
+  `fk_personal` int(11) NOT NULL,
+  `fk_aula` int(11) NOT NULL,
+  `fecha_inscripcion` date NOT NULL,
+  `vive_con` varchar(200) DEFAULT NULL,
+  `altura` float NOT NULL,
+  `talla_zapatos` int(11) NOT NULL,
+  `talla_camisa` int(11) NOT NULL,
+  `talla_pantalon` int(11) NOT NULL,
+  `peso` float NOT NULL,
+  `estado_inscripcion` enum('activo','retirado','en_proceso') NOT NULL,
+  `foto_estudiante` enum('si','no') DEFAULT 'no',
+  `foto_representante` enum('si','no') DEFAULT 'no',
+  `cedula_estudiante` enum('si','no') DEFAULT 'no',
+  `cedula_representante` enum('si','no') DEFAULT 'no',
+  `fecha_retiro` date DEFAULT NULL,
+  `motivo_retiro` varchar(255) DEFAULT NULL,
+  `tipo_vivienda` varchar(60) NOT NULL,
+  `zona_vivienda` varchar(60) NOT NULL,
+  `tenencia_viviencia` varchar(60) NOT NULL,
+  `ingreso_familiar` float NOT NULL,
+  `miembros_familia` int(2) NOT NULL,
+  `tareas_comunitarias` enum('si','no') NOT NULL,
+  `participar_comite` enum('si','no') NOT NULL,
+  `detalles_participacion` varchar(60) NOT NULL,
+  `tipo_inscripcion` enum('regular','nuevo_ingreso','traslado','no_escolarizados') NOT NULL DEFAULT 'nuevo_ingreso',
+  PRIMARY KEY (`id_inscripcion`),
+  KEY `fk_personal` (`fk_personal`),
+  KEY `fk_representante` (`fk_representante`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_aula` (`fk_aula`),
+  CONSTRAINT `inscripciones_ibfk_1` FOREIGN KEY (`fk_representante`) REFERENCES `representantes` (`id_representante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `inscripciones_ibfk_2` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `inscripciones_ibfk_3` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `inscripciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inscripciones`
+--
+
+LOCK TABLES `inscripciones` WRITE;
+/*!40000 ALTER TABLE `inscripciones` DISABLE KEYS */;
+INSERT INTO `inscripciones` VALUES (2,56,14,30,7,'2025-12-12','sus padres',1.3,12,12,20,40,'activo','si','si','si','si',NULL,NULL,'rancho','barrio','adjudicada',15,2,'no','no','','no_escolarizados'),(3,52,15,37,9,'2025-12-12','padres',1.3,12,12,12,40,'en_proceso','si','si','si','si',NULL,NULL,'casa','urb','adjucada',150,2,'no','no','','traslado');
+/*!40000 ALTER TABLE `inscripciones` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `lista_alergias`
+--
+
+DROP TABLE IF EXISTS `lista_alergias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `lista_alergias` (
+  `id_lista_alergia` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_alergia` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  PRIMARY KEY (`id_lista_alergia`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  KEY `fk_alergia` (`fk_alergia`),
+  CONSTRAINT `lista_alergias_ibfk_1` FOREIGN KEY (`fk_alergia`) REFERENCES `alergias` (`id_alergia`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `lista_alergias_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `lista_alergias`
+--
+
+LOCK TABLES `lista_alergias` WRITE;
+/*!40000 ALTER TABLE `lista_alergias` DISABLE KEYS */;
+INSERT INTO `lista_alergias` VALUES (5,1,48),(6,5,48),(7,1,28),(8,3,28),(9,5,30),(10,4,32),(11,6,34),(12,2,37),(13,8,39),(14,9,42),(15,10,45),(16,1,47),(17,5,49),(18,3,52),(19,6,55),(20,2,49),(21,4,51),(22,6,52),(23,8,54),(24,10,56),(25,2,54);
+/*!40000 ALTER TABLE `lista_alergias` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `literal`
+--
+
+DROP TABLE IF EXISTS `literal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `literal` (
+  `id_literal` int(11) NOT NULL AUTO_INCREMENT,
+  `literal` enum('A1','A2','A3','B1','B2','B3','C1','C2','C3','D1','D2','D3','E1','E2','E3') NOT NULL,
+  `descripcion` varchar(255) NOT NULL,
+  PRIMARY KEY (`id_literal`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `literal`
+--
+
+LOCK TABLES `literal` WRITE;
+/*!40000 ALTER TABLE `literal` DISABLE KEYS */;
+/*!40000 ALTER TABLE `literal` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `momentos`
+--
+
+DROP TABLE IF EXISTS `momentos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `momentos` (
+  `id_momento` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_anio_escolar` int(11) NOT NULL,
+  `nombre_momento` enum('1','2','3') NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `estado_momento` enum('activo','finalizado') NOT NULL,
+  PRIMARY KEY (`id_momento`),
+  KEY `fk_anio_escolar` (`fk_anio_escolar`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `momentos`
+--
+
+LOCK TABLES `momentos` WRITE;
+/*!40000 ALTER TABLE `momentos` DISABLE KEYS */;
+INSERT INTO `momentos` VALUES (11,1,'1','2025-09-01','2025-12-20','activo'),(12,1,'2','2026-01-10','2026-03-29','activo'),(13,1,'3','2026-04-12','2026-07-20','activo');
+/*!40000 ALTER TABLE `momentos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `parentesco`
+--
+
+DROP TABLE IF EXISTS `parentesco`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `parentesco` (
+  `id_parentesco` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_representante` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  `tipo_parentesco` enum('madre','padre','abuelo','tio','hermano','otro','abuela','hermana','tia') NOT NULL,
+  PRIMARY KEY (`id_parentesco`),
+  KEY `fk_representante` (`fk_representante`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  CONSTRAINT `parentesco_ibfk_1` FOREIGN KEY (`fk_representante`) REFERENCES `representantes` (`id_representante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `parentesco_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `parentesco`
+--
+
+LOCK TABLES `parentesco` WRITE;
+/*!40000 ALTER TABLE `parentesco` DISABLE KEYS */;
+INSERT INTO `parentesco` VALUES (26,10,48,'padre'),(27,11,48,'madre'),(28,10,49,'padre'),(29,11,49,'madre'),(30,12,50,'abuelo'),(31,13,51,'madre'),(32,14,52,'padre'),(33,15,53,'madre'),(34,16,54,'tio'),(35,13,55,'madre'),(36,14,56,'padre'),(37,8,28,'padre'),(38,9,28,'madre'),(39,8,29,'padre'),(40,9,29,'madre'),(41,10,30,'padre'),(42,11,30,'madre'),(43,10,31,'padre'),(44,11,31,'madre'),(45,12,32,'padre'),(46,13,32,'madre'),(47,12,33,'padre'),(48,13,33,'madre'),(49,14,34,'padre'),(50,15,34,'madre'),(51,14,35,'padre'),(52,15,35,'madre'),(53,16,36,'padre'),(54,17,36,'madre'),(55,16,37,'padre'),(56,17,37,'madre'),(57,8,38,'padre'),(58,9,39,'madre'),(59,10,40,'padre'),(60,11,41,'madre'),(61,12,42,'padre'),(62,13,43,'madre'),(63,14,44,'padre'),(64,15,45,'madre'),(65,16,46,'padre'),(66,17,47,'madre'),(67,8,48,'tio'),(68,9,49,'abuela'),(69,10,50,'hermano'),(70,11,51,'tia'),(71,12,52,'abuelo'),(72,13,53,'hermana'),(73,14,54,'otro'),(74,15,55,'otro'),(75,16,56,'tio'),(76,17,57,'abuela'),(77,10,50,'padre'),(78,12,51,'padre'),(79,16,53,'padre'),(80,18,54,'padre'),(81,10,55,'padre'),(82,14,57,'padre'),(83,16,58,'padre'),(84,18,59,'padre'),(85,10,60,'padre'),(86,12,61,'padre'),(87,14,62,'padre'),(88,16,63,'padre'),(89,18,64,'padre'),(90,10,65,'padre'),(91,12,66,'padre'),(92,14,67,'padre'),(93,16,68,'padre'),(94,18,69,'padre'),(95,10,70,'padre'),(96,12,71,'padre'),(97,14,72,'padre'),(98,16,73,'padre'),(99,18,74,'padre'),(100,10,75,'padre'),(101,12,76,'padre'),(102,14,77,'padre'),(103,16,78,'padre'),(104,18,79,'padre'),(105,10,80,'padre'),(106,12,81,'padre'),(107,14,82,'padre'),(108,16,83,'padre'),(109,18,84,'padre'),(110,10,85,'padre'),(111,12,86,'padre'),(140,11,50,'madre'),(141,15,52,'madre'),(142,19,54,'madre'),(143,13,56,'madre'),(144,15,57,'madre'),(145,17,58,'madre'),(146,19,59,'madre'),(147,11,60,'madre'),(148,13,61,'madre'),(149,15,62,'madre'),(150,17,63,'madre'),(151,19,64,'madre'),(152,11,65,'madre'),(153,13,66,'madre'),(154,15,67,'madre'),(155,17,68,'madre'),(156,19,69,'madre'),(157,11,70,'madre'),(158,13,71,'madre'),(159,15,72,'madre'),(160,17,73,'madre'),(161,19,74,'madre'),(162,11,75,'madre'),(163,13,76,'madre'),(164,15,77,'madre'),(165,17,78,'madre'),(166,19,79,'madre'),(167,11,80,'madre'),(168,13,81,'madre'),(169,15,82,'madre'),(170,17,83,'madre'),(171,19,84,'madre'),(172,11,85,'madre'),(173,13,86,'madre');
+/*!40000 ALTER TABLE `parentesco` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `patologias`
+--
+
+DROP TABLE IF EXISTS `patologias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `patologias` (
+  `id_patologia` int(11) NOT NULL,
+  `nombre_patologia` varchar(100) NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_patologia`),
+  UNIQUE KEY `nombre_enfermedad` (`nombre_patologia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `patologias`
+--
+
+LOCK TABLES `patologias` WRITE;
+/*!40000 ALTER TABLE `patologias` DISABLE KEYS */;
+INSERT INTO `patologias` VALUES (1,'Asma','Enfermedad crónica de las vías respiratorias'),(2,'Diabetes','Alteración del metabolismo de la glucosa'),(3,'Hipertensión','Presión arterial elevada de forma continua'),(4,'Epilepsia','Trastorno neurológico crónico'),(5,'Dermatitis atópica','Enfermedad inflamatoria crónica de la piel'),(6,'Trastorno por déficit de atención','Dificultad para mantener la atención'),(7,'Autismo','Trastorno del desarrollo neurológico'),(8,'Cardiopatía congénita','Malformación del corazón al nacer'),(9,'Anemia','Déficit de glóbulos rojos o hemoglobina'),(10,'Alergia alimentaria','Reacción adversa a ciertos alimentos');
+/*!40000 ALTER TABLE `patologias` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `personal`
+--
+
+DROP TABLE IF EXISTS `personal`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `personal` (
+  `id_personal` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_persona` int(11) NOT NULL,
+  `fk_funcion` int(11) NOT NULL,
+  `fecha_contratacion` date NOT NULL,
+  `nivel_academico` varchar(100) DEFAULT NULL,
+  `horas_trabajo` float DEFAULT NULL,
+  `rif` varchar(20) DEFAULT NULL,
+  `etnia_religion` varchar(100) DEFAULT NULL,
+  `cantidad_hijas` int(11) DEFAULT NULL,
+  `cantidad_hijos_varones` int(11) DEFAULT NULL,
+  `estado` enum('activo','inactivo','suspendido','jubilado') NOT NULL DEFAULT 'activo',
+  `fk_cargo` int(11) DEFAULT NULL,
+  `cod_dependencia` varchar(20) NOT NULL,
+  PRIMARY KEY (`id_personal`),
+  UNIQUE KEY `rif` (`rif`),
+  KEY `fk_cargo` (`fk_cargo`),
+  KEY `fk_persona` (`fk_persona`),
+  KEY `fk_funcion` (`fk_funcion`),
+  CONSTRAINT `personal_ibfk_1` FOREIGN KEY (`fk_cargo`) REFERENCES `cargos` (`id_cargo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `personal_ibfk_2` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `personal_ibfk_3` FOREIGN KEY (`fk_funcion`) REFERENCES `funcion_personal` (`id_funcion_personal`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `personal`
+--
+
+LOCK TABLES `personal` WRITE;
+/*!40000 ALTER TABLE `personal` DISABLE KEYS */;
+INSERT INTO `personal` VALUES (1,35,8,'2025-11-11','dsadsadas',NULL,NULL,'sdsadsa',4,2,'activo',2,''),(14,89,1,'2020-09-01','Licenciatura en Educación',44,'','Católica',2,0,'activo',1,'DOC-001dsada'),(15,90,4,'2015-09-01','Maestría en Matemáticas',40,NULL,'Sin preferencia',1,1,'activo',2,'DOC-002'),(16,91,5,'2018-09-01','Licenciatura en Educación Física',36,NULL,'Cristiana',0,0,'activo',15,'ESP-001'),(17,101,2,'2018-09-01','Licenciatura en Educación Integral',44,NULL,'Católica',1,1,'activo',1,'DOC-003'),(18,102,12,'2020-09-01','Licenciatura en Idiomas Modernos',36,NULL,'Cristiana',0,0,'activo',7,'ESP-002'),(19,103,5,'2019-09-01','Licenciatura en Educación Física',36,NULL,'Sin preferencia',0,2,'activo',15,'ESP-003'),(20,203,2,'2015-09-01','Licenciatura en Educación Integral',44,'J-12345678-9','Católica',2,0,'activo',1,'DOC-101'),(21,204,2,'2010-09-01','Maestría en Educación',44,'J-23456789-0','Católico',1,2,'activo',1,'DOC-102'),(22,206,2,'2015-09-01','Licenciatura en Educación Integral',44,'J-28000001-9','Católica',2,0,'activo',1,'DOC-101'),(30,213,2,'2010-09-01','Licenciatura en Educación Integral',44,'J-32098765-1','Católica',1,1,'activo',1,'DOC-008'),(31,214,2,'2008-09-01','Licenciatura en Educación Mención Primaria',44,'J-32109876-2','Cristiana Evangélica',0,2,'activo',1,'DOC-009'),(32,215,2,'2012-09-01','Licenciatura en Educación Integral',44,'J-32210987-3','Católica',2,0,'activo',1,'DOC-010'),(33,216,2,'2009-09-01','Licenciatura en Educación Mención Matemática',44,'J-32321098-4','Ateo',1,1,'activo',1,'DOC-011'),(34,217,2,'2005-09-01','Licenciatura en Educación Mención Ciencias',44,'J-32432109-5','Católica',3,0,'activo',1,'DOC-012'),(35,218,2,'2011-09-01','Licenciatura en Educación Integral',44,'J-32543210-6','Cristiana Evangélica',0,1,'activo',1,'DOC-013'),(36,219,2,'2016-09-01','Licenciatura en Educación Preescolar',44,'J-32654321-7','Católica',1,0,'activo',1,'DOC-014'),(37,220,2,'2013-09-01','Licenciatura en Educación Integral',44,'J-32765432-8','Sin preferencia',2,2,'activo',1,'DOC-015'),(38,221,2,'2007-09-01','Licenciatura en Educación Mención Lengua',44,'J-32876543-9','Católica',0,3,'activo',1,'DOC-016'),(39,222,2,'2014-09-01','Licenciatura en Educación Integral',44,'J-32987654-0','Cristiana Evangélica',1,1,'activo',1,'DOC-017'),(40,92,6,'2025-03-12','tsu',40,'J-17345678-9','nada',1,1,'activo',7,'doc-12312'),(41,104,14,'2024-06-17','',40,'J-12345678-7','ninguna',1,2,'activo',13,'adssadas');
+/*!40000 ALTER TABLE `personal` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `personas`
+--
+
+DROP TABLE IF EXISTS `personas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `personas` (
+  `id_persona` int(11) NOT NULL AUTO_INCREMENT,
+  `primer_nombre` varchar(50) NOT NULL,
+  `segundo_nombre` varchar(50) DEFAULT NULL,
+  `primer_apellido` varchar(50) NOT NULL,
+  `segundo_apellido` varchar(50) DEFAULT NULL,
+  `fecha_nacimiento` date NOT NULL,
+  `genero` enum('M','F') NOT NULL,
+  `cedula` varchar(20) DEFAULT NULL,
+  `nacionalidad` varchar(50) NOT NULL,
+  `direccion` varchar(255) NOT NULL,
+  `telefono_principal` varchar(20) NOT NULL,
+  `telefono_secundario` varchar(20) DEFAULT NULL,
+  `tipo_persona` enum('estudiante','representante','personal') DEFAULT NULL,
+  `tipo_sangre` enum('No sabe','O-','O+','A-','A+','B-','B+','AB-','AB+') NOT NULL,
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
+  `email` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id_persona`),
+  UNIQUE KEY `cedula` (`cedula`)
+) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `personas`
+--
+
+LOCK TABLES `personas` WRITE;
+/*!40000 ALTER TABLE `personas` DISABLE KEYS */;
+INSERT INTO `personas` VALUES (35,'Adriana','Lucía','Yépez','Chacón','2016-12-11','F','50050607','Venezolana','Carrera 5, Edif. Amarillo','04245005060','02812109875','estudiante','O-','activo',''),(86,'Juan','Carlos','Pérez','González','2020-12-11','M','30123456','Venezolana','Av. Principal, Los Rosales, Caracas','04141234567',NULL,'estudiante','O+','activo',''),(87,'María','Gabriela','Rodríguez','López','2019-12-11','F','31234567','Venezolana','Calle 12, El Valle, Caracas','04147654321',NULL,'estudiante','A+','activo',''),(88,'Carlos','Andrés','García','Martínez','2016-12-11','M','32345678','Venezolana','Urb. Las Acacias, Calle 5, Casa 12, Caracas','04241122334',NULL,'estudiante','B+','activo',''),(89,'Ana','María','López','Pérez','1985-08-20','F','43456789','Venezolana','Urb. El Paraíso, Calle 5, Casa 10, Caracas','04247654321','','personal','A+','activo',NULL),(90,'Luis','Alberto','González','Ramírez','1978-11-15','M','44567890','Venezolana','Av. Bolívar, Edif. Las Torres, Apto 5B, Caracas','04149876543',NULL,'personal','O+','activo',''),(91,'María','Fernanda','Hernández','Castro','1990-04-25','F','45678901','Venezolana','Calle Los Manguitos, Quinta Luz, Caracas','04245678901',NULL,'personal','AB+','activo',''),(92,'Pedro','José','Pérez','González','1975-03-10','M','56789012','Venezolana','Av. Principal, Los Rosales, Caracas','04141112233',NULL,'representante','B+','activo',''),(93,'Laura','Beatriz','Rodríguez','López','1978-07-18','F','57890123','Venezolana','Calle 12, El Valle, Caracas','04244455566',NULL,'representante','A-','activo',''),(94,'José','Gregorio','García','Pérez','1950-12-05','M','58901234','Venezolana','Urb. Las Acacias, Calle 5, Casa 12, Caracas','04167788899',NULL,'representante','O+','activo',''),(95,'Laura','Isabel','Fernández','Morales','2014-12-11','F','33456789','Venezolana','Calle 15, Urb. El Paraíso, Caracas','04149998877',NULL,'estudiante','O+','activo',''),(96,'José','Miguel','Martínez','Gutiérrez','2017-12-11','M','34567890','Venezolana','Av. Libertador, Edif. Las Flores, Apto 3A, Caracas','04243332211',NULL,'estudiante','A-','activo',''),(97,'Ana','Sofía','Pérez','Rodríguez','2016-12-11','F','35678901','Venezolana','Urb. Santa Mónica, Calle 8, Casa 15, Caracas','04145556677',NULL,'estudiante','B+','activo',''),(98,'Diego','Alejandro','Hernández','López','2015-12-11','M','36789012','Venezolana','Carrera 12, El Rosal, Caracas','04248889900',NULL,'estudiante','AB+','activo',''),(99,'Valentina','Carolina','González','Sánchez','2014-12-11','F','37890123','Venezolana','Av. Páez, Quinta Los Álamos, Caracas','04141112233',NULL,'estudiante','O-','activo',''),(100,'Andrés','Felipe','Díaz','Ramírez','2017-12-11','M','38901234','Venezolana','Calle Los Jardines, Urb. La Floresta, Caracas','04244445555',NULL,'estudiante','A+','activo',''),(101,'Carlos','Enrique','Rojas','Vargas','1982-03-15','M','46789012','Venezolana','Av. Universidad, Edif. El Mirador, Apto 7C, Caracas','04161234567',NULL,'personal','B+','activo',''),(102,'Gabriela','Elena','Castro','Mendoza','1992-06-22','F','47890123','Venezolana','Calle Los Pinos, Urb. La Paz, Caracas','04269876543',NULL,'personal','O+','activo',''),(103,'Roberto','José','Silva','Paredes','1988-11-30','M','48901234','Venezolana','Urb. Los Chaguaramos, Calle 10, Casa 22, Caracas','04172345678',NULL,'personal','AB-','activo',''),(104,'Marta','Lucía','Morales','Pérez','1979-04-18','F','59012345','Venezolana','Calle 15, Urb. El Paraíso, Caracas','04260011223',NULL,'representante','A+','activo',''),(105,'Alberto','Juan','Gutiérrez','Fernández','1976-09-25','M','60123456','Venezolana','Av. Libertador, Edif. Las Flores, Apto 3A, Caracas','04174445566',NULL,'representante','O+','activo',''),(106,'Isabel','Carmen','Rodríguez','Martínez','1980-12-10','F','61234567','Venezolana','Urb. Santa Mónica, Calle 8, Casa 15, Caracas','04267778899',NULL,'representante','B-','activo',''),(107,'Ricardo','Antonio','López','Hernández','1968-05-03','M','62345678','Venezolana','Carrera 12, El Rosal, Caracas','04189990011',NULL,'representante','AB+','activo',''),(163,'Carlos','Alberto','González','Pérez','2018-12-11','M','V12345678','Venezolana','Av. Principal #123','04141234567','04149876543','representante','O+','activo','carlos.gonzalez@email.com'),(164,'María','Isabel','Rodríguez','López','2015-12-11','F','V23456789','Venezolana','Calle 5 #45','04142345678',NULL,'representante','A+','activo','maria.rodriguez@email.com'),(165,'José','Luis','Martínez','García','2018-12-11','M','V34567890','Venezolana','Urb. Las Acacias','04143456789','04241234567',NULL,'B+','activo',NULL),(166,'Ana','Gabriela','Pérez','Sánchez','2015-12-11','F','V45678901','Venezolana','Sector El Valle','04144567890',NULL,'representante','AB+','activo','ana.perez@email.com'),(167,'Luis','Miguel','Hernández','Díaz','2016-12-11','M','V56789012','Venezolana','Av. Bolívar #78','04145678901','04141237890','representante','O-','activo','luis.hernandez@email.com'),(168,'Carmen','Elena','Gómez','Ramírez','2014-12-11','F','V67890123','Venezolana','Carrera 8 #23','04146789012',NULL,'representante','A-','activo',NULL),(169,'Roberto','Carlos','Fernández','Morales','2017-12-11','M','V78901234','Venezolana','Urb. Santa Rosa','04147890123','04249876543','representante','B-','activo','roberto.fernandez@email.com'),(170,'Patricia','Margarita','Torres','Rojas','2020-12-11','F','V89012345','Venezolana','Sector La Floresta','04148901234',NULL,'representante','AB-','activo','patricia.torres@email.com'),(171,'Jorge','Enrique','Silva','Vargas','2015-12-11','M','V90123456','Venezolana','Av. Universidad','04149012345','04142348901','representante','O+','activo',NULL),(172,'Marta','Lucía','Castro','Mendoza','2016-12-11','F','V01234567','Venezolana','Calle 10 #90','04140123456',NULL,'representante','A+','activo','marta.castro@email.com'),(173,'Sofía',NULL,'González','Pérez','2015-12-11','F','E10000001','Venezolana','Av. Principal #123','04141000001',NULL,'estudiante','O+','activo',NULL),(174,'Mateo','Alejandro','González','Pérez','2017-12-11','M','E10000002','Venezolana','Av. Principal #123','04141000001',NULL,'estudiante','O+','activo',NULL),(175,'Valentina',NULL,'Rodríguez','López','2018-12-11','F','E10000003','Venezolana','Calle 5 #45','04142000002',NULL,'estudiante','A+','activo',NULL),(176,'Sebastián',NULL,'Rodríguez','López','2020-12-11','M','E10000004','Venezolana','Calle 5 #45','04142000002',NULL,'estudiante','A+','activo',NULL),(177,'Isabella','María','Martínez','García','2016-12-11','F','E10000005','Venezolana','Urb. Las Acacias','04143000003',NULL,'estudiante','B+','activo',NULL),(178,'Diego',NULL,'Martínez','García','2016-12-11','M','E10000006','Venezolana','Urb. Las Acacias','04143000003',NULL,'estudiante','B+','activo',NULL),(179,'Camila',NULL,'Pérez','Sánchez','2017-12-11','F','E10000007','Venezolana','Sector El Valle','04144000004',NULL,'estudiante','AB+','activo',NULL),(180,'Nicolás',NULL,'Pérez','Sánchez','2018-12-11','M','E10000008','Venezolana','Sector El Valle','04144000004',NULL,'estudiante','AB+','activo',NULL),(181,'Lucía',NULL,'Hernández','Díaz','2018-12-11','F','E10000009','Venezolana','Av. Bolívar #78','04145000005',NULL,'estudiante','O-','activo',NULL),(182,'Daniel','Andrés','Hernández','Díaz','2016-12-11','M','E10000010','Venezolana','Av. Bolívar #78','04145000005',NULL,'estudiante','O-','activo',NULL),(183,'Samuel',NULL,'Gómez','Ramírez','2019-12-11','M','E10000011','Venezolana','Carrera 8 #23','04146000006',NULL,'estudiante','A-','activo',NULL),(184,'Mariana',NULL,'Gómez','Ramírez','2015-12-11','F','E10000012','Venezolana','Carrera 8 #23','04146000006',NULL,'estudiante','A-','activo',NULL),(185,'Joaquín',NULL,'Fernández','Morales','2015-12-11','M','E10000013','Venezolana','Urb. Santa Rosa','04147000007',NULL,'estudiante','B-','activo',NULL),(186,'Renata',NULL,'Fernández','Morales','2017-12-11','F','E10000014','Venezolana','Urb. Santa Rosa','04147000007',NULL,'estudiante','B-','activo',NULL),(187,'Emilio',NULL,'Torres','Rojas','2014-12-11','M','E10000015','Venezolana','Sector La Floresta','04148000008',NULL,'estudiante','AB-','activo',NULL),(188,'Antonella',NULL,'Torres','Rojas','2020-12-11','F','E10000016','Venezolana','Sector La Floresta','04148000008',NULL,'estudiante','AB-','activo',NULL),(189,'Adrián',NULL,'Silva','Vargas','2017-12-11','M','E10000017','Venezolana','Av. Universidad','04149000009',NULL,'estudiante','O+','activo',NULL),(190,'Victoria',NULL,'Silva','Vargas','2017-12-11','F','E10000018','Venezolana','Av. Universidad','04149000009',NULL,'estudiante','O+','activo',NULL),(191,'Tomás',NULL,'Castro','Mendoza','2019-12-11','M','E10000019','Venezolana','Calle 10 #90','04140000010',NULL,'estudiante','A+','activo',NULL),(192,'Florencia',NULL,'Castro','Mendoza','2017-12-11','F','E10000020','Venezolana','Calle 10 #90','04140000010',NULL,'estudiante','A+','activo',NULL),(193,'Javier',NULL,'González','Rodríguez','2015-12-11','M','E10000021','Venezolana','Av. Nueva #50','04141111111',NULL,'estudiante','O+','activo',NULL),(194,'Ximena',NULL,'González','Rodríguez','2018-12-11','F','E10000022','Venezolana','Av. Nueva #50','04141111111',NULL,'estudiante','O+','activo',NULL),(195,'Luciano',NULL,'López','Martínez','2019-12-11','M','E10000023','Venezolana','Calle 20 #15','04142222222',NULL,'estudiante','A+','activo',NULL),(196,'Catalina',NULL,'López','Martínez','2020-12-11','F','E10000024','Venezolana','Calle 20 #15','04142222222',NULL,'estudiante','A+','activo',NULL),(197,'Maximiliano',NULL,'Ramírez','Gómez','2014-12-11','M','E10000025','Venezolana','Urb. El Paraíso','04143333333',NULL,'estudiante','B+','activo',NULL),(198,'Martina',NULL,'Ramírez','Gómez','2019-12-11','F','E10000026','Venezolana','Urb. El Paraíso','04143333333',NULL,'estudiante','B+','activo',NULL),(199,'Benjamín',NULL,'Díaz','Fernández','2020-12-11','M','E10000027','Venezolana','Sector Los Olivos','04144444444',NULL,'estudiante','AB+','activo',NULL),(200,'Julieta',NULL,'Díaz','Fernández','2014-12-11','F','E10000028','Venezolana','Sector Los Olivos','04144444444',NULL,'estudiante','AB+','activo',NULL),(201,'Thiago',NULL,'Morales','Torres','2016-12-11','M','E10000029','Venezolana','Av. Libertador','04145555555',NULL,'estudiante','O-','activo',NULL),(202,'Mía',NULL,'Morales','Torres','2018-12-11','F','E10000030','Venezolana','Av. Libertador','04145555555',NULL,'estudiante','O-','activo',NULL),(203,'María','Elena','Rodríguez','Pérez','1985-03-15','F','12345678','Venezolana','Av. Principal #123, Caracas','04141234567','02121234567','personal','A+','activo','maria.rodriguez@escuela.edu'),(204,'Carlos','Alberto','González','Martínez','1978-07-22','M','23456789','Venezolana','Calle 10 #45, Caracas','04142345678','02122345678','personal','O+','activo','carlos.gonzalez@escuela.edu'),(206,'María','Elena','Rodríguez','Pérez','1985-03-15','F','28000001','Venezolana','Av. Principal #123, Caracas','04141234567','02121234567','personal','A+','activo','maria.rodriguez@escuela.edu'),(213,'Carmen','Elena','Rojas','Mendoza','1983-08-12','F','V-12345678','Venezolana','Av. Bolívar, Edif. Las Torres, Apt 8B, Caracas','04121234567','02127778888','personal','O+','activo','carmen.rojas@escuela.edu.ve'),(214,'Pedro','Luis','Gutiérrez','Pérez','1979-11-05','M','V-13456789','Venezolana','Calle Los Manguitos, Quinta Sol, Caracas','04241234567',NULL,'personal','A+','activo','pedro.gutierrez@escuela.edu.ve'),(215,'Lucía','María','Díaz','Fernández','1986-03-22','F','V-14567890','Venezolana','Urb. Santa Rosa, Calle 3, Casa 15, Caracas','04132345678','02128887777','personal','B+','activo','lucia.diaz@escuela.edu.ve'),(216,'Ramón','José','Castro','González','1980-07-18','M','V-15678901','Venezolana','Sector El Valle, Av. Principal, Edif. Montecarlo, Apt 5C','04243456789',NULL,'personal','AB+','activo','ramon.castro@escuela.edu.ve'),(217,'Teresa','Margarita','Vargas','Rodríguez','1975-12-30','F','V-16789012','Venezolana','Urb. El Paraíso, Calle 10, Casa 8, Caracas','04144567890','02129996666','personal','O-','activo','teresa.vargas@escuela.edu.ve'),(218,'Alberto','Jesús','Silva','Morales','1982-04-15','M','V-17890123','Venezolana','Carrera 8, Residencias Los Pinos, Apt 12D','04245678901',NULL,'personal','A-','activo','alberto.silva@escuela.edu.ve'),(219,'Rosa','Isabel','Paredes','Hernández','1988-09-28','F','V-18901234','Venezolana','Av. Universidad, Edif. El Mirador, Apt 7A','04146789012','02121112222','personal','B-','activo','rosa.paredes@escuela.edu.ve'),(220,'Miguel','Ángel','Torres','Sánchez','1984-01-10','M','V-19012345','Venezolana','Calle Los Girasoles, Quinta La Esperanza, Caracas','04247890123',NULL,'personal','AB-','activo','miguel.torres@escuela.edu.ve'),(221,'Gladys','Carolina','Mendoza','López','1978-06-08','F','V-20123456','Venezolana','Sector Los Chorros, Av. Principal, Casa 22','04148901234','02123334444','personal','O+','activo','gladys.mendoza@escuela.edu.ve'),(222,'Héctor','Manuel','Gómez','Ramírez','1981-10-25','M','V-21234567','Venezolana','Urb. La Florida, Calle 5, Edif. Las Margaritas, Apt 9B','04249012345',NULL,'personal','A+','activo','hector.gomez@escuela.edu.ve'),(223,'alejandro','perez','rodriguez',NULL,'2025-12-24','M','545554545','Venezolana','dsadsadsadas','0415000000000',NULL,'estudiante','No sabe','activo',NULL),(224,'jose','miranda','rodrigues','alvarado','2019-07-12','M','','Venezolana','sdsadsadsasad','04220000000000',NULL,'estudiante','No sabe','activo',NULL),(225,'maria jose','jose','rodrguez',NULL,'2019-03-12','F','2121212121212','Venezolana','casasdadsa','0412215151515',NULL,'estudiante','No sabe','activo',NULL),(226,'jose grabriel','pepe','asdsad','asdasd','2019-08-12','M',NULL,'Venezolana','sdsadsa','04120000000000',NULL,'estudiante','No sabe','activo',NULL);
+/*!40000 ALTER TABLE `personas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `plan_competencias`
+--
+
+DROP TABLE IF EXISTS `plan_competencias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `plan_competencias` (
+  `id_plan_com` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_competencias` int(11) NOT NULL,
+  `fk_planificacion` int(11) NOT NULL,
+  PRIMARY KEY (`id_plan_com`),
+  KEY `fk_competencias` (`fk_competencias`),
+  KEY `fk_planificacion` (`fk_planificacion`),
+  CONSTRAINT `plan_competencias_ibfk_1` FOREIGN KEY (`fk_competencias`) REFERENCES `competencias` (`id_competencia`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `plan_competencias_ibfk_2` FOREIGN KEY (`fk_planificacion`) REFERENCES `planificaciones` (`id_planificacion`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `plan_competencias`
+--
+
+LOCK TABLES `plan_competencias` WRITE;
+/*!40000 ALTER TABLE `plan_competencias` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plan_competencias` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `planificaciones`
+--
+
+DROP TABLE IF EXISTS `planificaciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `planificaciones` (
+  `id_planificacion` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_personal` int(11) NOT NULL,
+  `fk_aula` int(11) NOT NULL,
+  `fk_componente` int(11) NOT NULL,
+  `fk_momento` int(11) NOT NULL,
+  `tipo` enum('individual','aula') NOT NULL DEFAULT 'aula',
+  `estado` enum('inactivo','activo') NOT NULL DEFAULT 'activo',
+  `reutilizable` enum('si','no') DEFAULT NULL,
+  PRIMARY KEY (`id_planificacion`),
+  KEY `fk_momento` (`fk_momento`),
+  KEY `fk_personal` (`fk_personal`),
+  KEY `fk_aula` (`fk_aula`),
+  KEY `fk_componente` (`fk_componente`),
+  CONSTRAINT `planificaciones_ibfk_1` FOREIGN KEY (`fk_momento`) REFERENCES `momentos` (`id_momento`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `planificaciones_ibfk_2` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `planificaciones_ibfk_4` FOREIGN KEY (`fk_aula`) REFERENCES `aula` (`id_aula`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `planificaciones_ibfk_5` FOREIGN KEY (`fk_componente`) REFERENCES `componentes_aprendizaje` (`id_componente`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `planificaciones`
+--
+
+LOCK TABLES `planificaciones` WRITE;
+/*!40000 ALTER TABLE `planificaciones` DISABLE KEYS */;
+/*!40000 ALTER TABLE `planificaciones` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `planificaciones_individuales`
+--
+
+DROP TABLE IF EXISTS `planificaciones_individuales`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `planificaciones_individuales` (
+  `id_planificaciones_individuales` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_planificacion` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  PRIMARY KEY (`id_planificaciones_individuales`),
+  KEY `fk_planificacion` (`fk_planificacion`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  CONSTRAINT `planificaciones_individuales_ibfk_1` FOREIGN KEY (`fk_planificacion`) REFERENCES `planificaciones` (`id_planificacion`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `planificaciones_individuales_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `inscripciones` (`id_inscripcion`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `planificaciones_individuales`
+--
+
+LOCK TABLES `planificaciones_individuales` WRITE;
+/*!40000 ALTER TABLE `planificaciones_individuales` DISABLE KEYS */;
+/*!40000 ALTER TABLE `planificaciones_individuales` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `preguntas`
+--
+
+DROP TABLE IF EXISTS `preguntas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `preguntas` (
+  `id_preguntas` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_usuario` int(11) NOT NULL,
+  `pregunta` varchar(50) NOT NULL,
+  `respuesta` varchar(255) NOT NULL,
+  PRIMARY KEY (`id_preguntas`),
+  KEY `preguntas_ibfk_1` (`fk_usuario`),
+  CONSTRAINT `preguntas_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `preguntas`
+--
+
+LOCK TABLES `preguntas` WRITE;
+/*!40000 ALTER TABLE `preguntas` DISABLE KEYS */;
+INSERT INTO `preguntas` VALUES (4,43,'hola12345678','$2y$10$Lu5W4gkDLDrGN/7F1.vtROL/0oHltteeuISJjWKJCIP7IlKZK3dqW'),(5,43,'hola12345671','$2y$10$V1PbtugPP8Md9PF4JDkKEOfDEzItT.BCJ0gspkQ/Qsmihh.y5FaI6'),(6,43,'hola12345677','$2y$10$.Xx5Tc8zZfY1GUCDBW6c4uNyMN0r.8OVsNiDgNXQp6pid0Txu1CSW'),(7,1,'hola12345673','$2y$10$Q9O.gCLQn5/2EzYBywoUu.QggKA4QohJda6El1xmJoDnQ3mJJHpgu'),(8,1,'hola12345672','$2y$10$PKcPupagDkllz0DwoyIt7e5/MWJ.9OCgT6NeC4P5K6KZexcmmdkYK'),(9,1,'hola12345671','$2y$10$TH2yuzI94/dXnKs79QdBcOWozNSzDJRZsoMynjxx4/S61oEQLhhjW');
+/*!40000 ALTER TABLE `preguntas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `representantes`
+--
+
+DROP TABLE IF EXISTS `representantes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `representantes` (
+  `id_representante` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_persona` int(11) NOT NULL,
+  `oficio` varchar(100) DEFAULT NULL,
+  `nivel_educativo` enum('Primaria','Bachiller','TSU','Licenciatura','Maestria','Doctorado') DEFAULT NULL,
+  `profesion` varchar(100) NOT NULL,
+  `lugar_trabajo` varchar(100) NOT NULL,
+  PRIMARY KEY (`id_representante`),
+  UNIQUE KEY `id_persona` (`fk_persona`),
+  CONSTRAINT `representantes_ibfk_1` FOREIGN KEY (`fk_persona`) REFERENCES `personas` (`id_persona`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `representantes`
+--
+
+LOCK TABLES `representantes` WRITE;
+/*!40000 ALTER TABLE `representantes` DISABLE KEYS */;
+INSERT INTO `representantes` VALUES (10,92,'Ingeniero','Licenciatura','Ingeniero de Sistemas','Empresa Tecnológica XYZ'),(11,93,'Médico','Doctorado','Pediatra','Hospital Central'),(12,94,'Pensionado','Bachiller','Contador (Jubilado)','Casa'),(13,104,'Contadora','Licenciatura','Contadora Pública','Consultoría Financiera ABC'),(14,105,'Ingeniero','Maestria','Ingeniero Civil','Constructora Nacional'),(15,106,'Abogada','Doctorado','Abogada Penalista','Bufete Legal XYZ'),(16,107,'Comerciante','Bachiller','Empresario','Tienda de Electrodomésticos'),(17,154,'Ingeniero','Licenciatura','Ingeniero Civil','Constructora Nacional'),(18,155,'Médico','Doctorado','Pediatra','Hospital Central'),(19,156,'Comerciante','Bachiller','Empresario','Tienda Propia'),(20,157,'Abogada','Maestria','Abogada','Bufete Legal'),(21,158,'Docente','Licenciatura','Profesor Universitario','Universidad Nacional'),(22,159,'Enfermera','TSU','Enfermera Jefe','Clínica Privada'),(23,160,'Arquitecto','Licenciatura','Arquitecto','Estudio de Arquitectura'),(24,161,'Contadora','Licenciatura','Contadora Pública','Consultoría Financiera'),(25,162,'Ingeniero','Maestria','Ingeniero de Sistemas','Empresa Tecnológica'),(26,163,'Psicóloga','Licenciatura','Psicóloga Clínica','Consultorio Privado'),(27,216,'docente','','profesor','ebnb robert serra'),(28,218,'docente','','asdsad','ebnb robert serra');
+/*!40000 ALTER TABLE `representantes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sesiones_usuario`
+--
+
+DROP TABLE IF EXISTS `sesiones_usuario`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sesiones_usuario` (
+  `id` int(20) NOT NULL AUTO_INCREMENT,
+  `fk_usuario` int(11) NOT NULL,
+  `hash_sesion` varchar(255) NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_vencimiento` date NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_usuario` (`fk_usuario`),
+  CONSTRAINT `sesiones_usuario_ibfk_1` FOREIGN KEY (`fk_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sesiones_usuario`
+--
+
+LOCK TABLES `sesiones_usuario` WRITE;
+/*!40000 ALTER TABLE `sesiones_usuario` DISABLE KEYS */;
+INSERT INTO `sesiones_usuario` VALUES (53,1,'d911bff87bcaea9698208f5d5aaeeb42d2734774d4eaf07efe7e12f2ebfcb337','2025-12-12','2025-12-13');
+/*!40000 ALTER TABLE `sesiones_usuario` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `temas`
+--
+
+DROP TABLE IF EXISTS `temas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `temas` (
+  `id_tema` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_contenido` int(11) NOT NULL,
+  `nombre_tema` varchar(255) NOT NULL,
+  `estado` enum('activo','inactivo') NOT NULL DEFAULT 'activo',
+  PRIMARY KEY (`id_tema`),
+  KEY `fk_contenido` (`fk_contenido`),
+  CONSTRAINT `temas_ibfk_1` FOREIGN KEY (`fk_contenido`) REFERENCES `contenidos` (`id_contenido`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `temas`
+--
+
+LOCK TABLES `temas` WRITE;
+/*!40000 ALTER TABLE `temas` DISABLE KEYS */;
+INSERT INTO `temas` VALUES (59,707,'Identificación de ideas principales y secundarias','activo'),(60,707,'Inferencia y deducción de información implícita','activo'),(61,707,'Análisis de estructura textual','activo'),(62,707,'Comprensión de vocabulario en contexto','activo'),(63,708,'Redacción de párrafos coherentes','activo'),(64,708,'Uso adecuado de signos de puntuación','activo'),(65,708,'Cohesión y coherencia textual','activo'),(66,708,'Diferentes tipos de textos (narrativo, descriptivo, argumentativo)','activo'),(67,709,'Saludos y presentaciones','activo'),(68,709,'Números y colores','activo'),(69,709,'Familia y partes del cuerpo','activo'),(70,709,'Animales y objetos comunes','activo'),(71,710,'Verbo To Be (ser/estar)','activo'),(72,710,'Presente simple','activo'),(73,710,'Pronombres personales y posesivos','activo'),(74,710,'Artículos definidos e indefinidos','activo'),(75,711,'Suma y resta','activo'),(76,711,'Multiplicación y división','activo'),(77,711,'Propiedades de las operaciones','activo'),(78,711,'Resolución de problemas aritméticos','activo'),(79,712,'Figuras geométricas planas','activo'),(80,712,'Cuerpos geométricos','activo'),(81,712,'Perímetro y área','activo'),(82,712,'Sistema de coordenadas básico','activo'),(83,713,'Características de los seres vivos','activo'),(84,713,'Clasificación de animales y plantas','activo'),(85,713,'Ecosistemas y hábitats','activo'),(86,713,'Cadena alimenticia','activo'),(87,714,'Sistemas del cuerpo humano','activo'),(88,714,'Órganos y sus funciones','activo'),(89,714,'Cuidado de la salud','activo'),(90,714,'Nutrición y alimentación saludable','activo'),(91,715,'Fundación de la localidad','activo'),(92,715,'Personajes históricos locales','activo'),(93,715,'Geografía física del entorno','activo'),(94,715,'Tradiciones y costumbres','activo'),(95,716,'Respeto y tolerancia','activo'),(96,716,'Responsabilidad y honestidad','activo'),(97,716,'Participación ciudadana','activo'),(98,716,'Derechos y deberes','activo'),(99,717,'Coordinación y equilibrio','activo'),(100,717,'Fuerza y resistencia','activo'),(101,717,'Flexibilidad y agilidad','activo'),(102,717,'Juegos predeportivos','activo'),(103,718,'Técnicas de dibujo básico','activo'),(104,718,'Uso del color y la forma','activo'),(105,718,'Modelado con diferentes materiales','activo'),(106,718,'Composición y diseño','activo'),(107,719,'Ritmo y percusión corporal','activo'),(108,719,'Melodía y entonación','activo'),(109,719,'Instrumentos musicales básicos','activo'),(110,719,'Canto y expresión vocal','activo'),(111,720,'Movimiento y espacio','activo'),(112,720,'Coordinación rítmica','activo'),(113,720,'Juegos de expresión corporal','activo'),(114,720,'Coreografías básicas','activo'),(115,721,'Juegos dramáticos','activo'),(116,721,'Improvisación teatral','activo'),(117,721,'Creación de personajes','activo'),(118,721,'Representación de situaciones','activo'),(119,722,'Partes de la computadora','activo'),(120,722,'Uso básico del teclado y mouse','activo'),(121,722,'Programas educativos','activo'),(122,722,'Navegación segura en internet','activo'),(123,723,'Procesador de texto básico','activo'),(124,723,'Presentaciones digitales simples','activo'),(125,723,'Hojas de cálculo elementales','activo'),(126,723,'Creación de gráficos sencillos','activo'),(127,722,'Vocales y consonantes básicas','activo'),(128,722,'Formación de sílabas simples','activo'),(129,723,'Conteo y agrupación de objetos','activo'),(130,723,'Relación número-cantidad','activo'),(131,724,'Animales y plantas del entorno','activo'),(132,724,'Estaciones del año y clima','activo'),(133,725,'Géneros literarios','activo'),(134,725,'Figuras literarias básicas','activo'),(135,726,'Expresiones algebraicas simples','activo'),(136,726,'Ecuaciones de primer grado','activo'),(137,727,'Planetas del sistema solar','activo'),(138,727,'Movimientos de la Tierra','activo');
+/*!40000 ALTER TABLE `temas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `usuarios` (
+  `id_usuario` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_personal` int(11) DEFAULT NULL,
+  `nombre_usuario` varchar(50) NOT NULL,
+  `contrasena_hash` varchar(255) NOT NULL,
+  `estado` enum('activo','inactivo','incompleto') NOT NULL DEFAULT 'activo',
+  `rol` enum('Director','Docente','Secretaria') DEFAULT NULL,
+  `ultimo_login` timestamp NULL DEFAULT NULL,
+  `intentos_fallidos` int(11) DEFAULT 0,
+  `fecha_bloqueo` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_usuario`),
+  UNIQUE KEY `nombre_usuario` (`nombre_usuario`),
+  KEY `fk_personal` (`fk_personal`),
+  CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`fk_personal`) REFERENCES `personal` (`id_personal`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+LOCK TABLES `usuarios` WRITE;
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (1,1,'usuario','$2y$10$R5m8k3eNNTdx7oiT5/lkmOFbqLXJ40dDXtrVM6G2/pIIYsUdXZYoe','activo','Director',NULL,0,NULL),(43,14,'el pepe','$2y$10$FwfiPBJcd/TUHpkol6zLMOlONM4z3BAkwnilk8AwnwYktpGKqcH52','activo','Director',NULL,0,NULL),(44,20,'mrodriguez','$2y$10$TuHashDeContraseñaAquí1','activo','Docente',NULL,0,NULL),(45,21,'cgonzalez','$2y$10$TuHashDeContraseñaAquí2','activo','Docente',NULL,0,NULL);
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `vacuna`
+--
+
+DROP TABLE IF EXISTS `vacuna`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `vacuna` (
+  `id_vacuna` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) NOT NULL,
+  PRIMARY KEY (`id_vacuna`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vacuna`
+--
+
+LOCK TABLES `vacuna` WRITE;
+/*!40000 ALTER TABLE `vacuna` DISABLE KEYS */;
+INSERT INTO `vacuna` VALUES (1,'BCG (Tuberculosis)'),(2,'Hepatitis B'),(3,'Pentavalente'),(4,'Polio'),(5,'SRP (Sarampión, Rubéola, Paperas)'),(6,'DPT (Difteria, Tosferina, Tétanos)'),(7,'Fiebre Amarilla'),(8,'Influenza'),(9,'COVID-19'),(10,'Varicela'),(11,'Rotavirus'),(12,'Neumococo');
+/*!40000 ALTER TABLE `vacuna` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `vacunas_estudiante`
+--
+
+DROP TABLE IF EXISTS `vacunas_estudiante`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `vacunas_estudiante` (
+  `id_vacuna_estudiante` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_vacuna` int(11) NOT NULL,
+  `fk_estudiante` int(11) NOT NULL,
+  `fecha_aplicacion` date DEFAULT NULL,
+  `refuerzos` int(1) NOT NULL,
+  PRIMARY KEY (`id_vacuna_estudiante`),
+  KEY `fk_vacuna` (`fk_vacuna`),
+  KEY `fk_estudiante` (`fk_estudiante`),
+  CONSTRAINT `vacunas_estudiante_ibfk_1` FOREIGN KEY (`fk_vacuna`) REFERENCES `vacuna` (`id_vacuna`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `vacunas_estudiante_ibfk_2` FOREIGN KEY (`fk_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `vacunas_estudiante`
+--
+
+LOCK TABLES `vacunas_estudiante` WRITE;
+/*!40000 ALTER TABLE `vacunas_estudiante` DISABLE KEYS */;
+INSERT INTO `vacunas_estudiante` VALUES (5,1,49,'2011-09-15',1),(6,3,49,'2011-10-20',3),(7,1,28,'2020-05-10',1),(8,2,28,'2020-06-15',3),(9,3,29,'2019-08-20',3),(10,4,30,'2020-03-12',2),(11,5,32,'2020-09-05',1),(12,6,34,'2019-11-18',2),(13,7,37,'2020-01-25',1),(14,8,39,'2020-10-30',1),(15,9,42,'2021-03-15',2),(16,10,45,'2020-07-22',1),(17,11,47,'2020-04-08',2),(18,12,49,'2020-08-14',1),(19,1,52,'2019-12-10',1),(20,3,55,'2020-02-28',3),(21,2,48,'2010-06-10',3),(22,5,50,'2012-04-15',2),(23,8,51,'2010-11-30',1),(25,12,55,'2011-03-12',4),(26,10,56,'2012-05-25',1),(27,6,53,'2025-12-11',0);
+/*!40000 ALTER TABLE `vacunas_estudiante` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping events for database 'escuela'
+--
+
+--
+-- Dumping routines for database 'escuela'
+--
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `add_fk_if_not_exists` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_fk_if_not_exists`(IN `tbl_name` VARCHAR(64), IN `fk_name` VARCHAR(64), IN `fk_sql` TEXT)
+BEGIN
+  DECLARE cnt INT DEFAULT 0;
+  SELECT COUNT(*) INTO cnt
+    FROM information_schema.table_constraints
+    WHERE constraint_schema = DATABASE()
+      AND table_name = tbl_name
+      AND constraint_name = fk_name
+      AND constraint_type = 'FOREIGN KEY';
+  IF cnt = 0 THEN
+    SET @s = fk_sql;
+    PREPARE stmt FROM @s;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `add_fk_safe` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_fk_safe`(IN `p_table_name` VARCHAR(64), IN `p_fk_name` VARCHAR(64), IN `p_col_name` VARCHAR(64), IN `p_ref_table` VARCHAR(64), IN `p_ref_col` VARCHAR(64), IN `p_fk_sql` TEXT)
+BEGIN
+  DECLARE cnt_fk INT DEFAULT 0;
+  DECLARE cnt_table_col INT DEFAULT 0;
+  DECLARE cnt_ref_table_col INT DEFAULT 0;
+
+  SELECT COUNT(*) INTO cnt_fk
+    FROM information_schema.table_constraints
+    WHERE constraint_schema = DATABASE()
+      AND table_name = p_table_name
+      AND constraint_name = p_fk_name
+      AND constraint_type = 'FOREIGN KEY';
+
+  IF cnt_fk = 0 THEN
+    SELECT COUNT(*) INTO cnt_table_col
+      FROM information_schema.columns
+      WHERE table_schema = DATABASE()
+        AND table_name = p_table_name
+        AND column_name = p_col_name;
+
+    SELECT COUNT(*) INTO cnt_ref_table_col
+      FROM information_schema.columns
+      WHERE table_schema = DATABASE()
+        AND table_name = p_ref_table
+        AND column_name = p_ref_col;
+
+    IF cnt_table_col = 1 AND cnt_ref_table_col = 1 THEN
+      SET @s = p_fk_sql;
+      PREPARE stmt FROM @s;
+      EXECUTE stmt;
+      DEALLOCATE PREPARE stmt;
+    END IF;
+  END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `count_orphans` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `count_orphans`(IN `p_table` VARCHAR(64), IN `p_child_col` VARCHAR(64), IN `p_ref_table` VARCHAR(64), IN `p_ref_col` VARCHAR(64))
+BEGIN
+  SET @s = CONCAT(
+    'SELECT COUNT(*) INTO @cnt FROM `', p_table, '` t ',
+    'LEFT JOIN `', p_ref_table, '` r ON t.`', p_child_col, '` = r.`', p_ref_col, '` ',
+    'WHERE r.`', p_ref_col, '` IS NULL;'
+  );
+  PREPARE stmt FROM @s;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+  SELECT @cnt AS orphan_count;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `drop_fk_if_exists` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `drop_fk_if_exists`(IN `p_table` VARCHAR(64), IN `p_fk` VARCHAR(64))
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema = DATABASE()
+      AND table_name = p_table
+      AND constraint_name = p_fk
+      AND constraint_type = 'FOREIGN KEY'
+  ) THEN
+    SET @s = CONCAT('ALTER TABLE `', p_table, '` DROP FOREIGN KEY `', p_fk, '`;');
+    PREPARE stmt FROM @s;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-12-12 19:52:10

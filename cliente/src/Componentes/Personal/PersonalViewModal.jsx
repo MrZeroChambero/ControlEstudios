@@ -20,12 +20,6 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
 
   const fechaNacimiento = formatearFechaCorta(personal.fecha_nacimiento);
   const fechaContratacion = formatearFechaCorta(personal.fecha_contratacion);
-  const nombreCompleto = `${personal.primer_nombre ?? ""} ${
-    personal.segundo_nombre ?? ""
-  } ${personal.primer_apellido ?? ""} ${personal.segundo_apellido ?? ""}`
-    .replace(/\s+/g, " ")
-    .trim();
-
   const Section = ({ title, children, bodyClass }) => (
     <section className={personalViewModalClasses.section.wrapper}>
       <h3 className={personalViewModalClasses.section.title}>{title}</h3>

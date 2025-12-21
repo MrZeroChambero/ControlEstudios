@@ -46,6 +46,29 @@ export const EstudiantesTable = ({
     return edad;
   };
 
+  const obtenerEtiquetaGradoSeccion = (row) => {
+    const limpiarCampo = (valor) => {
+      const texto = (valor ?? "").toString().trim();
+      if (texto === "") return "";
+      return texto.toLowerCase() === "sin asignar" ? "" : texto;
+    };
+
+    const grado = limpiarCampo(row.grado);
+    const seccion = limpiarCampo(row.seccion);
+    const tieneGrado = grado !== "";
+    const tieneSeccion = seccion !== "";
+
+    if (!tieneGrado && !tieneSeccion) {
+      return "Sin asignar";
+    }
+
+    if (tieneGrado && tieneSeccion) {
+      return `${grado} - ${seccion}`;
+    }
+
+    return tieneGrado ? grado : seccion;
+  };
+
   const columns = [
     {
       name: "Nombre Completo",
@@ -78,11 +101,15 @@ export const EstudiantesTable = ({
     },
     {
       name: "Grado/Sección",
-      selector: (row) =>
-        `${row.grado || "sin asignar"}-${row.seccion || "sin asignar"}`,
+      selector: (row) => obtenerEtiquetaGradoSeccion(row).toLowerCase(),
       sortable: true,
       wrap: true,
       width: "160px",
+      cell: (row) => (
+        <span className="whitespace-pre-line">
+          {obtenerEtiquetaGradoSeccion(row)}
+        </span>
+      ),
     },
     {
       name: "Estado Persona",

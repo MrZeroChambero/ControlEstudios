@@ -65,7 +65,12 @@ trait OperacionesControladorEstudiante
         $this->sendJson(400, 'error', 'La persona no es candidata válida.');
         return;
       }
-      $id_est = self::registrarEstudiante($pdo, $id_persona, $data);
+      try {
+        $id_est = self::registrarEstudiante($pdo, $id_persona, $data);
+      } catch (\RuntimeException $e) {
+        $this->sendJson(400, 'error', $e->getMessage());
+        return;
+      }
       $est = self::consultarEstudiantePorId($pdo, $id_est);
       $this->sendJson(201, 'success', 'Estudiante registrado exitosamente.', $est);
     } catch (Exception $e) {

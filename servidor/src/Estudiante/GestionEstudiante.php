@@ -38,17 +38,54 @@ trait GestionEstudiante
     $stmtP = $pdo->prepare('UPDATE personas SET estado = ? WHERE id_persona = ?');
     $stmtP->execute(['activo', $id_persona]);
 
-    // Placeholder generación cédula escolar (por ahora null)
-    $cedulaEscolar = self::generarCedulaEscolar($pdo, $id_persona);
-    $fechaIngreso = $data['fecha_ingreso_escuela'] ?? date('Y-m-d');
-    // Valores por defecto si no llegan (la tabla parece tener NOT NULL)
-    $vive_con_padres    = $data['vive_con_padres'] ?? 'si';
-    $orden_nacimiento   = $data['orden_nacimiento'] ?? 1;
-    $tiempo_gestacion   = $data['tiempo_gestacion'] ?? 38;
-    $embarazo_deseado   = $data['embarazo_deseado'] ?? 'si';
-    $tipo_parto         = $data['tipo_parto'] ?? 'normal';
+    // Determinar cédula escolar final (usa la recibida o genera una nueva)
+    $cedulaEscolar = self::generarCedulaEscolar($pdo, $id_persona, $data);
+    $fechaIngreso = array_key_exists('fecha_ingreso_escuela', $data)
+      ? trim((string) $data['fecha_ingreso_escuela'])
+      : '';
+    if ($fechaIngreso === '') {
+      $fechaIngreso = date('Y-m-d');
+    }
+
+    // Asegurar valores válidos para columnas NOT NULL
+    $vive_con_padres = $data['vive_con_padres'] ?? 'si';
+    if (!in_array($vive_con_padres, ['si', 'no'], true)) {
+      $vive_con_padres = 'si';
+    }
+
+    $orden_nacimiento = isset($data['orden_nacimiento']) && $data['orden_nacimiento'] !== ''
+      ? (int) $data['orden_nacimiento']
+      : 1;
+    if ($orden_nacimiento < 1) {
+      $orden_nacimiento = 1;
+    }
+
+    $tiempo_gestacion = isset($data['tiempo_gestacion']) && $data['tiempo_gestacion'] !== ''
+      ? (int) $data['tiempo_gestacion']
+      : 38;
+    if ($tiempo_gestacion < 1) {
+      $tiempo_gestacion = 38;
+    }
+
+    $embarazo_deseado = $data['embarazo_deseado'] ?? 'si';
+    if (!in_array($embarazo_deseado, ['si', 'no'], true)) {
+      $embarazo_deseado = 'si';
+    }
+
+    $tipo_parto = $data['tipo_parto'] ?? 'normal';
+    if (!in_array($tipo_parto, ['cesaria', 'normal'], true)) {
+      $tipo_parto = 'normal';
+    }
+
     $control_esfinteres = $data['control_esfinteres'] ?? 'si';
-    $control_embarazo   = $data['control_embarazo'] ?? 'si';
+    if (!in_array($control_esfinteres, ['si', 'no'], true)) {
+      $control_esfinteres = 'si';
+    }
+
+    $control_embarazo = $data['control_embarazo'] ?? 'si';
+    if (!in_array($control_embarazo, ['si', 'no'], true)) {
+      $control_embarazo = 'si';
+    }
 
     $sql = "INSERT INTO estudiantes (id_persona, cedula_escolar, fecha_ingreso_escuela, vive_con_padres, orden_nacimiento, tiempo_gestacion, embarazo_deseado, tipo_parto, control_esfinteres, control_embarazo, estado) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
     $stmt = $pdo->prepare($sql);
@@ -86,8 +123,17 @@ trait GestionEstudiante
     $vals = [];
     foreach ($permitidos as $c) {
       if (array_key_exists($c, $data)) {
+        if ($c === 'cedula_escolar') {
+          $normalizada = trim((string) $data[$c]);
+          if ($normalizada === '') {
+            continue;
+          }
+          $valor = $normalizada;
+        } else {
+          $valor = $data[$c] === '' ? null : $data[$c];
+        }
         $sets[] = "$c = ?";
-        $vals[] = $data[$c] === '' ? null : $data[$c];
+        $vals[] = $valor;
       }
     }
     if (empty($sets)) return true; // nada que actualizar
@@ -115,8 +161,42 @@ trait GestionEstudiante
   }
 
   // Método placeholder para futura lógica de generación de cédula escolar
-  public static function generarCedulaEscolar($pdo, $id_persona)
+  public static function generarCedulaEscolar($pdo, $id_persona, array $data = [])
   {
-    return null; // Implementar futura lógica
+    $proporcionada = null;
+    if (array_key_exists('cedula_escolar', $data)) {
+      $valor = trim((string) $data['cedula_escolar']);
+      if ($valor !== '') {
+        $proporcionada = $valor;
+      }
+    }
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM estudiantes WHERE cedula_escolar = ?');
+
+    if ($proporcionada !== null) {
+      $stmt->execute([$proporcionada]);
+      if ((int) $stmt->fetchColumn() > 0) {
+        throw new \RuntimeException('La cédula escolar proporcionada ya está registrada.');
+      }
+      return $proporcionada;
+    }
+
+    $year = date('Y');
+    $base = $year . '-' . str_pad((string) $id_persona, 8, '0', STR_PAD_LEFT);
+    $candidato = $base;
+    $intentos = 0;
+
+    while (true) {
+      $stmt->execute([$candidato]);
+      if ((int) $stmt->fetchColumn() === 0) {
+        return $candidato;
+      }
+
+      $intentos += 1;
+      if ($intentos > 999) {
+        throw new \RuntimeException('No se pudo generar una cédula escolar única.');
+      }
+      $candidato = sprintf('%s-%03d', $base, $intentos);
+    }
   }
 }

@@ -4,14 +4,6 @@ import SwalLib from "sweetalert2";
 const API_BASE = "http://localhost:8080/controlestudios/servidor";
 const API_INSCRIPCIONES = `${API_BASE}/inscripciones`;
 
-const escapeHtml = (texto = "") =>
-  String(texto)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
 const extraerDebug = (payload) => {
   if (!payload || typeof payload !== "object") return null;
   if (payload.debug && typeof payload.debug === "object") {
@@ -59,93 +51,6 @@ const guardarResumenInscripcion = (seccion, mensaje, debug) => {
     mensaje: mensaje || "",
     debug: debug ? clonarDebug(debug) : null,
     timestamp: new Date().toISOString(),
-  };
-};
-
-const anexarDebugSeccion = (destino, fuente, etiqueta) => {
-  if (!fuente || typeof fuente !== "object") {
-    return;
-  }
-
-  const mensajes = Array.isArray(fuente.mensajes)
-    ? fuente.mensajes.filter(
-        (item) => typeof item === "string" && item.trim().length > 0
-      )
-    : [];
-
-  mensajes.forEach((texto) => {
-    destino.mensajes.push(`[${etiqueta}] ${texto}`);
-  });
-
-  const sqlEntradas =
-    fuente.sql && typeof fuente.sql === "object"
-      ? Object.entries(fuente.sql)
-      : [];
-
-  sqlEntradas.forEach(([clave, info]) => {
-    const claveDestino = destino.sql[clave]
-      ? `${etiqueta.toLowerCase()}::${clave}`
-      : clave;
-    destino.sql[claveDestino] =
-      info && typeof info === "object" ? { ...info } : {};
-  });
-};
-
-const generarResumenInscripcion = (mensajeAulas, debugAulas) => {
-  const debugCombinado = { mensajes: [], sql: {} };
-
-  const agregarSeccion = (etiqueta, mensaje, debug, extras = []) => {
-    if (mensaje) {
-      debugCombinado.mensajes.push(`[${etiqueta}] ${mensaje}`);
-    }
-    extras
-      .filter((item) => typeof item === "string" && item.trim().length > 0)
-      .forEach((item) => {
-        debugCombinado.mensajes.push(`[${etiqueta}] ${item}`);
-      });
-    anexarDebugSeccion(debugCombinado, debug, etiqueta);
-  };
-
-  if (resumenInscripcion.precondiciones) {
-    agregarSeccion(
-      "Precondiciones",
-      resumenInscripcion.precondiciones.mensaje ||
-        "Precondiciones verificadas.",
-      resumenInscripcion.precondiciones.debug
-    );
-  }
-
-  if (resumenInscripcion.estudiantes) {
-    const extrasEstudiantes = [];
-    if (typeof ultimoDebugEstudiantes?.total === "number") {
-      extrasEstudiantes.push(
-        `Total recibidos: ${ultimoDebugEstudiantes.total}`
-      );
-    }
-    agregarSeccion(
-      "Estudiantes",
-      resumenInscripcion.estudiantes.mensaje ||
-        "Estudiantes elegibles consultados.",
-      resumenInscripcion.estudiantes.debug,
-      extrasEstudiantes
-    );
-  }
-
-  agregarSeccion(
-    "Aulas",
-    mensajeAulas || "Aulas disponibles consultadas.",
-    debugAulas
-  );
-
-  if (debugCombinado.mensajes.length === 0) {
-    debugCombinado.mensajes.push(
-      `[Aulas] ${mensajeAulas || "Consulta realizada sin detalles."}`
-    );
-  }
-
-  return {
-    mensaje: "Resumen de la verificación de inscripción.",
-    debug: debugCombinado,
   };
 };
 
@@ -224,6 +129,108 @@ const combinarDebugConUltimosEstudiantes = (debugEntrada) => {
   return { debug: resultado, combinado: true };
 };
 
+const generarResumenInscripcion = (mensajeAulas, debugAulas) => {
+  const partesMensaje = [];
+
+  const anexarTextoResumen = (titulo, registro, respaldo) => {
+    if (!registro) {
+      return;
+    }
+    const texto = (registro.mensaje || respaldo || "").trim();
+    if (texto.length > 0) {
+      partesMensaje.push(`${titulo}: ${texto}`);
+    }
+  };
+
+  anexarTextoResumen(
+    "Precondiciones",
+    resumenInscripcion.precondiciones,
+    "Verificación ejecutada."
+  );
+  anexarTextoResumen(
+    "Estudiantes",
+    resumenInscripcion.estudiantes,
+    "Estudiantes elegibles consultados."
+  );
+
+  const textoAulas = (mensajeAulas || "Aulas disponibles consultadas.").trim();
+  if (textoAulas.length > 0) {
+    partesMensaje.push(`Aulas: ${textoAulas}`);
+  }
+
+  const combinado = combinarDebugConUltimosEstudiantes(debugAulas);
+  const debugBase = combinado?.debug ||
+    clonarDebug(debugAulas) || {
+      mensajes: [],
+      sql: {},
+    };
+
+  if (!Array.isArray(debugBase.mensajes)) {
+    debugBase.mensajes = [];
+  }
+  if (!debugBase.sql || typeof debugBase.sql !== "object") {
+    debugBase.sql = {};
+  }
+
+  const anexarDetalle = (titulo, registro, respaldo) => {
+    if (!registro) {
+      return;
+    }
+    const texto = (registro.mensaje || respaldo || "").trim();
+    if (texto.length > 0) {
+      debugBase.mensajes.push(`[${titulo}] ${texto}`);
+    }
+
+    const mensajesExtra = registro.debug?.mensajes;
+    if (Array.isArray(mensajesExtra)) {
+      mensajesExtra
+        .filter((item) => typeof item === "string" && item.trim().length > 0)
+        .forEach((item) => {
+          debugBase.mensajes.push(`[${titulo}] ${item}`);
+        });
+    }
+
+    if (registro.debug?.sql && typeof registro.debug.sql === "object") {
+      debugBase.sql = { ...debugBase.sql, ...registro.debug.sql };
+    }
+  };
+
+  anexarDetalle(
+    "Precondiciones",
+    resumenInscripcion.precondiciones,
+    "Verificación ejecutada."
+  );
+  anexarDetalle(
+    "Estudiantes",
+    resumenInscripcion.estudiantes,
+    "Estudiantes elegibles consultados."
+  );
+
+  if (Array.isArray(debugAulas?.mensajes)) {
+    debugAulas.mensajes
+      .filter((item) => typeof item === "string" && item.trim().length > 0)
+      .forEach((item) => {
+        debugBase.mensajes.push(`[Aulas] ${item}`);
+      });
+  } else if (textoAulas.length > 0) {
+    debugBase.mensajes.push(`[Aulas] ${textoAulas}`);
+  }
+
+  if (debugAulas?.sql && typeof debugAulas.sql === "object") {
+    debugBase.sql = { ...debugBase.sql, ...debugAulas.sql };
+  }
+
+  const mensajeResumen =
+    partesMensaje.length > 0
+      ? partesMensaje.join(" ")
+      : "Resumen de la verificación de inscripción.";
+
+  return {
+    mensaje: mensajeResumen,
+    debug: debugBase,
+  };
+};
+
 const mostrarDetalleBackend = (
   Swal,
   titulo,
@@ -235,80 +242,26 @@ const mostrarDetalleBackend = (
 
   if (!swalInstance) {
     console.info([`[${titulo}] Mensaje`, mensaje]);
-    if (debug) {
-      console.info([`[${titulo}] Mensajes backend`, debug.mensajes || []]);
-      console.info([`[${titulo}] SQL ejecutado`, debug.sql || {}]);
+    if (Array.isArray(debug?.mensajes)) {
+      console.info([`[${titulo}] Mensajes backend`, debug.mensajes]);
     }
     return;
   }
 
-  const mensajes = Array.isArray(debug?.mensajes)
-    ? debug.mensajes.filter((item) => typeof item === "string" && item.trim())
+  const mensajesAdicionales = Array.isArray(debug?.mensajes)
+    ? debug.mensajes.filter(
+        (item) => typeof item === "string" && item.trim().length > 0
+      )
     : [];
-  const sqlEntradas =
-    debug?.sql && typeof debug.sql === "object"
-      ? Object.entries(debug.sql)
-      : [];
 
-  const partes = [];
-  if (mensaje) {
-    partes.push(`<p style="margin-bottom:8px;">${escapeHtml(mensaje)}</p>`);
-  }
-
-  if (mensajes.length > 0) {
-    const lista = mensajes
-      .map((item) => `<li>${escapeHtml(item)}</li>`)
-      .join("");
-    partes.push(
-      `<div style="text-align:left; margin-bottom:12px;"><strong>Detalle:</strong><ul style="padding-left:18px; margin:4px 0;">${lista}</ul></div>`
-    );
-  }
-
-  if (sqlEntradas.length > 0) {
-    // Mostrar el SQL de estudiantes primero si existe
-    sqlEntradas.sort(([claveA], [claveB]) => {
-      if (claveA === "estudiantes_elegibles") return -1;
-      if (claveB === "estudiantes_elegibles") return 1;
-      return claveA.localeCompare(claveB);
-    });
-
-    const bloques = sqlEntradas
-      .map(([clave, info]) => {
-        const sql = escapeHtml(info?.sql || "");
-        const parametros =
-          info?.parametros && typeof info.parametros === "object"
-            ? escapeHtml(JSON.stringify(info.parametros, null, 2))
-            : null;
-
-        const parrafoParametros =
-          parametros !== null
-            ? `<pre style="background:#1f2937; color:#e5e7eb; padding:8px; border-radius:4px; white-space:pre-wrap;">${parametros}</pre>`
-            : "";
-
-        const etiqueta =
-          clave === "estudiantes_elegibles"
-            ? `${escapeHtml(clave)} (consulta principal)`
-            : escapeHtml(clave);
-
-        return `
-          <div style="margin-bottom:12px; text-align:left;">
-            <div style="font-weight:600; margin-bottom:4px;">${etiqueta}</div>
-            <pre style="background:#0f172a; color:#f8fafc; padding:8px; border-radius:4px; overflow:auto; white-space:pre-wrap;">${sql}</pre>
-            ${parrafoParametros}
-          </div>`;
-      })
-      .join("");
-
-    partes.push(
-      `<div style="text-align:left;"><strong>Consultas SQL ejecutadas:</strong>${bloques}</div>`
-    );
-  }
+  const texto = [mensaje, ...mensajesAdicionales]
+    .filter((fragmento) => typeof fragmento === "string" && fragmento.trim())
+    .join("\n\n");
 
   swalInstance.fire({
     title: titulo,
-    html: partes.join("") || escapeHtml(mensaje || ""),
+    text: texto || mensaje || "",
     icon: icono,
-    width: 800,
   });
 };
 
@@ -318,30 +271,18 @@ const showError = (Swal, error, mensajeDefecto) => {
   const status = error?.response?.status;
 
   if (errorData?.errors) {
-    const errores = Object.entries(errorData.errors).map(([campo, detalle]) => {
-      const valor = Array.isArray(detalle) ? detalle.join(", ") : detalle;
-      return `${campo}: ${valor}`;
+    const errores = Object.entries(errorData.errors)
+      .map(([campo, detalle]) => {
+        const valor = Array.isArray(detalle) ? detalle.join(", ") : detalle;
+        return `${campo}: ${valor}`;
+      })
+      .join("\n");
+
+    swalInstance.fire({
+      title: "Error de validación",
+      text: errores || mensajeDefecto,
+      icon: "error",
     });
-    const { debug: debugConEstudiantes, combinado } =
-      combinarDebugConUltimosEstudiantes({
-        mensajes: errores,
-        sql: {},
-      });
-
-    if (combinado && ultimoDebugEstudiantes?.timestamp) {
-      console.log([
-        "[Errores de validación] SQL estudiantes anexado",
-        ultimoDebugEstudiantes.timestamp,
-      ]);
-    }
-
-    mostrarDetalleBackend(
-      swalInstance,
-      "Error de validación",
-      "Se encontraron errores de validación en el formulario.",
-      debugConEstudiantes,
-      "error"
-    );
     return;
   }
 
@@ -358,24 +299,11 @@ const showError = (Swal, error, mensajeDefecto) => {
 
   const titulo = status === 428 ? "Inscripcion no disponible" : "Error";
   const icono = status === 428 ? "info" : "error";
-  const debug = extraerDebug(errorData?.data);
-  const { debug: debugConEstudiantes, combinado } =
-    combinarDebugConUltimosEstudiantes(debug);
-
-  if (combinado && ultimoDebugEstudiantes?.timestamp) {
-    console.log([
-      `[${titulo}] SQL estudiantes anexado`,
-      ultimoDebugEstudiantes.timestamp,
-    ]);
-  }
-
-  mostrarDetalleBackend(
-    swalInstance,
-    titulo,
-    descripcion,
-    debugConEstudiantes,
-    icono
-  );
+  swalInstance.fire({
+    title: titulo,
+    text: descripcion,
+    icon: icono,
+  });
 };
 
 export const verificarPrecondicionesInscripcion = async (Swal) => {
@@ -520,6 +448,39 @@ export const listarAulasDisponibles = async (Swal) => {
   }
 };
 
+export const listarResumenInscripciones = async (Swal) => {
+  const swalInstance = obtenerInstanciaSwal(Swal);
+  try {
+    const respuesta = await axios.get(`${API_INSCRIPCIONES}/resumen`, {
+      withCredentials: true,
+    });
+
+    if (respuesta.data?.back === true) {
+      const debug = extraerDebug(respuesta.data?.data);
+      logRespuesta("Resumen inscripciones", respuesta.data, debug);
+      mostrarDetalleBackend(
+        swalInstance,
+        "Resumen de inscripciones",
+        respuesta.data?.message,
+        debug,
+        "info"
+      );
+      return respuesta.data.data;
+    }
+
+    throw new Error(
+      respuesta.data?.message || "Respuesta inválida del servidor."
+    );
+  } catch (error) {
+    showError(
+      swalInstance,
+      error,
+      "No se pudo cargar el resumen de inscripciones."
+    );
+    return null;
+  }
+};
+
 export const listarRepresentantesPorEstudiante = async (estudianteId, Swal) => {
   const swalInstance = obtenerInstanciaSwal(Swal);
   try {
@@ -577,6 +538,43 @@ export const registrarInscripcion = async (payload, Swal) => {
     );
   } catch (error) {
     showError(swalInstance, error, "No se pudo registrar la inscripción.");
+    return null;
+  }
+};
+
+export const retirarInscripcion = async (idInscripcion, datos, Swal) => {
+  const swalInstance = obtenerInstanciaSwal(Swal);
+  try {
+    const respuesta = await axios.patch(
+      `${API_INSCRIPCIONES}/${idInscripcion}/retiro`,
+      datos,
+      {
+        withCredentials: true,
+      }
+    );
+
+    if (respuesta.data?.back === true) {
+      const debug = extraerDebug(respuesta.data?.data);
+      logRespuesta("Retiro de inscripción", respuesta.data, debug);
+      mostrarDetalleBackend(
+        swalInstance,
+        "Retiro de inscripción",
+        respuesta.data?.message,
+        debug,
+        "success"
+      );
+      return respuesta.data.data;
+    }
+
+    throw new Error(
+      respuesta.data?.message || "Respuesta inválida del servidor."
+    );
+  } catch (error) {
+    showError(
+      swalInstance,
+      error,
+      "No se pudo completar el retiro de la inscripción."
+    );
     return null;
   }
 };

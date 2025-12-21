@@ -11,22 +11,37 @@
         "type": "select",
         "required": true,
         "options": [
+          { "value": "Tarjeta Vacunación", "label": "Tarjeta de vacunación" },
+          { "value": "Carta Residencia", "label": "Carta de residencia" },
+          { "value": "Partida Nacimiento", "label": "Partida de nacimiento" },
           {
-            "value": "constancia_nacimiento",
-            "label": "Constancia de nacimiento"
+            "value": "Constancia Act. Extracurricular",
+            "label": "Constancia de actividad extracurricular"
           },
-          { "value": "cedula_estudiante", "label": "Cédula del estudiante" },
+          { "value": "Boleta", "label": "Boleta de promoción" },
           {
-            "value": "cedula_representante",
-            "label": "Cédula del representante"
+            "value": "Constancia Prosecución",
+            "label": "Constancia de prosecución"
           },
-          { "value": "boletin", "label": "Boletín" },
           {
-            "value": "carta_buena_conducta",
-            "label": "Carta de buena conducta"
-          },
-          { "value": "fotos", "label": "Fotos" },
-          { "value": "notas_certificadas", "label": "Notas certificadas" }
+            "value": "Certificado Aprendizaje",
+            "label": "Certificado de aprendizaje"
+          }
+        ]
+      },
+      {
+        "name": "grado",
+        "label": "Grado asociado",
+        "type": "select",
+        "required": false,
+        "options": [
+          { "value": "Educ. Inicial", "label": "Educación inicial" },
+          { "value": "Primero", "label": "1.º grado" },
+          { "value": "Segundo", "label": "2.º grado" },
+          { "value": "Tercero", "label": "3.º grado" },
+          { "value": "Cuarto", "label": "4.º grado" },
+          { "value": "Quinto", "label": "5.º grado" },
+          { "value": "Sexto", "label": "6.º grado" }
         ]
       },
       {

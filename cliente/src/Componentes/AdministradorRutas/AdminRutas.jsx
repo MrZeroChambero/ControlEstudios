@@ -62,6 +62,12 @@ export const AdminRutas = () => {
         >
           Volver a Login
         </button>
+        <button
+          onClick={() => handleNavigation("/respaldos")}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          Gestión de respaldos
+        </button>
       </div>
     </div>
   );

@@ -302,6 +302,30 @@ trait OperacionesControladorPersonal
         echo json_encode(['back' => false, 'message' => 'Personal no encontrado.']);
         return;
       }
+
+      $estadoSolicitado = strtolower(trim((string) $data['estado']));
+      if ($estadoSolicitado === 'inactivo') {
+        $sqlAsignacion = 'SELECT 1
+                          FROM imparte imp
+                          INNER JOIN aula a ON a.id_aula = imp.fk_aula
+                          INNER JOIN anios_escolares an ON an.id_anio_escolar = a.fk_anio_escolar
+                          WHERE imp.fk_personal = ?
+                            AND imp.tipo_docente = "aula"
+                            AND a.estado = "activo"
+                            AND an.estado IN ("activo", "incompleto")
+                          LIMIT 1';
+        $stmtAsignacion = $pdo->prepare($sqlAsignacion);
+        $stmtAsignacion->execute([$id_personal]);
+        if ($stmtAsignacion->fetchColumn()) {
+          http_response_code(409);
+          header('Content-Type: application/json');
+          echo json_encode([
+            'back' => false,
+            'message' => 'No se puede desactivar al docente porque tiene aulas activas asignadas.',
+          ]);
+          return;
+        }
+      }
       // Cambiar SOLO estado de persona (personas.estado)
       $actualizado = self::cambiarEstadoPersona($pdo, $personal['fk_persona'], $data['estado']);
       if ($actualizado) {

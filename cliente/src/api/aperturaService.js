@@ -13,7 +13,7 @@ export const solicitarAulas = async (setAulas, Swal) => {
   }
 };
 
-export const actualizarAula = async (id, payload, Swal) => {
+export const actualizarAula = async (id, payload) => {
   try {
     const res = await axios.put(`${BASE}/aulas/${id}`, payload, {
       withCredentials: true,

@@ -2,6 +2,9 @@
 
 namespace Micodigo\Estudiante;
 
+use DateTimeImmutable;
+use Micodigo\Persona\Persona;
+
 trait ConsultasEstudiante
 {
   // Listar estudiantes (JOIN personas)
@@ -98,6 +101,13 @@ trait ConsultasEstudiante
 
     $idEst = (int) ($row['id_estudiante'] ?? $id_estudiante);
 
+    $fechaReferencia = self::obtenerFechaReferenciaAcademica($pdo);
+    $row['fecha_referencia_edad'] = $fechaReferencia ? $fechaReferencia->format('Y-m-d') : null;
+    $row['grados_permitidos'] = self::calcularGradosPermitidosPorEdad(
+      $row['fecha_nacimiento'] ?? null,
+      $fechaReferencia
+    );
+
     // Documentos académicos
     $stmtDocs = $pdo->prepare('SELECT id_documento, tipo_documento, entregado, observaciones FROM documentos_academicos WHERE fk_estudiante = ? ORDER BY tipo_documento');
     $stmtDocs->execute([$idEst]);
@@ -143,5 +153,48 @@ trait ConsultasEstudiante
     ];
 
     return $row;
+  }
+
+  private static function obtenerFechaReferenciaAcademica($pdo): ?DateTimeImmutable
+  {
+    $sql = 'SELECT fecha_inicio
+            FROM anios_escolares
+            WHERE estado IN ("activo", "incompleto")
+            ORDER BY fecha_inicio DESC
+            LIMIT 1';
+
+    $stmt = $pdo->query($sql);
+    if (!$stmt) {
+      return null;
+    }
+
+    $fecha = $stmt->fetchColumn();
+    if ($fecha === false || $fecha === null) {
+      return null;
+    }
+
+    $referencia = DateTimeImmutable::createFromFormat('Y-m-d', (string) $fecha);
+
+    return $referencia ?: null;
+  }
+
+  private static function calcularGradosPermitidosPorEdad(?string $fechaNacimiento, ?DateTimeImmutable $referencia = null): array
+  {
+    if ($fechaNacimiento === null || trim($fechaNacimiento) === '') {
+      return [];
+    }
+
+    $persona = new Persona();
+    $fechaReferencia = $referencia ?? new DateTimeImmutable();
+    $permitidos = [];
+
+    for ($grado = 1; $grado <= 6; $grado++) {
+      $resultado = $persona->validarEdadPorGrado($fechaNacimiento, $grado, $fechaReferencia);
+      if ($resultado === true) {
+        $permitidos[] = $grado;
+      }
+    }
+
+    return $permitidos;
   }
 }

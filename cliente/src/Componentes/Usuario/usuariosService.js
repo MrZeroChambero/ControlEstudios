@@ -131,7 +131,7 @@ export const enviarUsuario = async (
   e.preventDefault();
 
   try {
-    const { confirmacion_contrasena, ...datosUsuario } = formData;
+    const { confirmacion_contrasena: _CONFIRMAR, ...datosUsuario } = formData;
     const payload = {
       ...datosUsuario,
       preguntas,

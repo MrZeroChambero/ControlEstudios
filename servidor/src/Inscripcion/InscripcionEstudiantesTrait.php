@@ -2,6 +2,7 @@
 
 namespace Micodigo\Inscripcion;
 
+use DateTimeImmutable;
 use DateTimeInterface;
 use Micodigo\Persona\Persona;
 use PDO;
@@ -93,6 +94,12 @@ trait InscripcionEstudiantesTrait
 
   private function validarEstudianteSeleccion(PDO $conexion, int $estudianteId, int $grado, int $anioId, ?array &$debugSql = null, ?array &$debugMensajes = null): array
   {
+    $anioSeleccionado = $this->obtenerAnioEscolarPorId($conexion, $anioId, $debugSql);
+    $fechaReferencia = null;
+    if ($anioSeleccionado !== null && !empty($anioSeleccionado['fecha_inicio'])) {
+      $fechaReferencia = DateTimeImmutable::createFromFormat('Y-m-d', $anioSeleccionado['fecha_inicio']) ?: null;
+    }
+
     $estudiante = $this->obtenerEstudianteActivoPorId($conexion, $estudianteId, $debugSql);
     if ($estudiante === null) {
       $this->agregarMensajeDebug($debugMensajes, 'El estudiante no existe o no está activo.');
@@ -125,8 +132,20 @@ trait InscripcionEstudiantesTrait
       ];
     }
 
+    $historial = $this->construirResumenHistorialEstudiante(
+      $conexion,
+      $estudianteId,
+      array_merge(['id' => $anioId], $anioSeleccionado ?? []),
+      $debugSql,
+      $debugMensajes
+    );
+
+    $gradoObjetivo = (int) $grado;
     $persona = $this->obtenerPersonaUtil();
-    $validacionEdad = $persona->validarEdadPorGrado($estudiante['fecha_nacimiento'], $grado);
+    if ($fechaReferencia instanceof DateTimeInterface) {
+      $estudiante['edad'] = $persona->calcularEdad($estudiante['fecha_nacimiento'], $fechaReferencia);
+    }
+    $validacionEdad = $persona->validarEdadPorGrado($estudiante['fecha_nacimiento'], $gradoObjetivo, $fechaReferencia);
     if ($validacionEdad !== true) {
       $this->agregarMensajeDebug($debugMensajes, 'La edad del estudiante no coincide con el grado solicitado.');
       return [
@@ -135,12 +154,61 @@ trait InscripcionEstudiantesTrait
       ];
     }
 
-    $estudiante['grados_permitidos'] = $this->calcularGradosPermitidos($estudiante['fecha_nacimiento']);
+    $gradoUltimo = $historial['grado_ultimo'] ?? null;
+    if ($gradoUltimo !== null && $gradoObjetivo < $gradoUltimo) {
+      $this->agregarMensajeDebug(
+        $debugMensajes,
+        sprintf(
+          'Se intentó inscribir al estudiante en un grado inferior al último cursado (%d).',
+          $gradoUltimo
+        )
+      );
+      return [
+        'valido' => false,
+        'errores' => ['grado' => ['No es posible inscribir al estudiante en un grado inferior al último cursado.']],
+      ];
+    }
+
+    $maxGradoAprobado = $historial['max_grado_aprobado'];
+    if ($maxGradoAprobado !== null && $gradoObjetivo <= $maxGradoAprobado) {
+      $this->agregarMensajeDebug(
+        $debugMensajes,
+        sprintf(
+          'El estudiante ya posee aprobación registrada hasta %d grado, por lo que no puede cursar %d.',
+          $maxGradoAprobado,
+          $gradoObjetivo
+        )
+      );
+      return [
+        'valido' => false,
+        'errores' => ['grado' => ['Existen aprobaciones registradas que impiden repetir o retroceder de grado.']],
+      ];
+    }
+
+    $maxGradoDocumentado = $historial['max_grado_documentado'];
+    if ($maxGradoDocumentado !== null && $gradoObjetivo <= $maxGradoDocumentado) {
+      $this->agregarMensajeDebug(
+        $debugMensajes,
+        sprintf(
+          'La documentación académica disponible acredita al estudiante hasta el grado %d.',
+          $maxGradoDocumentado
+        )
+      );
+      return [
+        'valido' => false,
+        'errores' => ['grado' => ['No se permite inscribir un grado ya respaldado por documentos aprobatorios.']],
+      ];
+    }
+
+    $estudiante['grados_permitidos'] = $this->calcularGradosPermitidos($estudiante['fecha_nacimiento'], $fechaReferencia);
+    $historial['esta_repitiendo'] = $gradoUltimo !== null && $gradoObjetivo === $gradoUltimo;
+    $historial['grado_objetivo'] = $gradoObjetivo;
 
     $this->agregarMensajeDebug($debugMensajes, 'El estudiante cumple las validaciones de selección.');
     return [
       'valido' => true,
       'estudiante' => $estudiante,
+      'historial' => $historial,
     ];
   }
 

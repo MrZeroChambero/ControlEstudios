@@ -168,6 +168,10 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Temas/RutasTemas.php';
   registrarRutasTemas($router);
 
+  // Incluye y registra las rutas de respaldos de base de datos
+  require_once __DIR__ . '/Respaldo/RutasRespaldo.php';
+  registrarRutasRespaldo($router, $mapAuthenticated);
+
   // require_once __DIR__ . '/mostrar.php';
   // rutasMostrar($router);
   // Incluye y registra las rutas de temas
@@ -209,6 +213,10 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de momentos académicos
   require_once __DIR__ . '/MomentoAcademico/RutasMomentoAcademico.php';
   registrarRutasMomentoAcademico($router);
+
+  // Incluye y registra las rutas de horarios
+  require_once __DIR__ . '/Horarios/RutasHorarios.php';
+  registrarRutasHorarios($router, $mapAuthenticated);
 
   return $router;
 }

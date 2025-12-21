@@ -31,12 +31,12 @@ export const menuSections = {
       path: "GradosYSecciones",
     },
     { name: "Inscripción", path: "inscripcion" },
+    { name: "Gestión de horarios", path: "Horarios" },
     { name: "Planificación Académica", path: "planificacion-academica" },
     {
       name: "Gestión de rendimiento académico",
       path: "gestion-de-rendimiento-academico",
     },
-    { name: "Gestión de horarios", path: "gestion-de-horarios" },
   ],
   Salidas: [
     {
@@ -81,10 +81,9 @@ export const menuSections = {
     { name: "Planificación Académica", path: "planificacion-academica" },
   ],
   Servicios: [
-    { name: "Copias de seguridad", path: "copias-de-seguridad" },
     {
-      name: "Restauración de base de datos",
-      path: "restauracion-de-base-de-datos",
+      name: "Respaldos de base de datos",
+      path: "respaldos",
     },
     { name: "Usuarios", path: "usuarios" },
     { name: "Auditoría", path: "auditoria" },

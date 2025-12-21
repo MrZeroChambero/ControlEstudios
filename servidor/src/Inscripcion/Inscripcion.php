@@ -5,6 +5,7 @@ namespace Micodigo\Inscripcion;
 use DateTimeImmutable;
 use Exception;
 use Micodigo\Config\Conexion;
+use Micodigo\Login\Login;
 use PDO;
 use RuntimeException;
 use Valitron\Validator;
@@ -16,6 +17,8 @@ require_once __DIR__ . '/InscripcionCuposTrait.php';
 require_once __DIR__ . '/InscripcionRepresentantesTrait.php';
 require_once __DIR__ . '/InscripcionProcesadorTrait.php';
 require_once __DIR__ . '/InscripcionDebugTrait.php';
+require_once __DIR__ . '/InscripcionHistorialTrait.php';
+require_once __DIR__ . '/../Login/Login.php';
 
 class InscripcionValidacionException extends RuntimeException
 {
@@ -45,6 +48,7 @@ class Inscripcion
   use InscripcionCuposTrait;
   use InscripcionRepresentantesTrait;
   use InscripcionProcesadorTrait;
+  use InscripcionHistorialTrait;
 
   public function __construct()
   {
@@ -63,16 +67,15 @@ class Inscripcion
         ? 'El sistema de inscripción está listo para usarse.'
         : 'El sistema de inscripción no está disponible hasta completar los requisitos.';
 
-      $this->responder(200, true, $mensaje, [
+      $datos = [
         'listo' => $resultado['valido'],
         'anio' => $resultado['anio'],
         'faltantes_docentes' => $resultado['faltantes_docentes'],
         'motivos' => $resultado['motivos'],
-        'debug' => [
-          'mensajes' => $debugMensajes,
-          'sql' => $debugSql,
-        ],
-      ]);
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(200, true, $mensaje, $datos);
     } catch (Exception $e) {
       $this->responder(500, false, 'Error interno al verificar las precondiciones.', null, [
         'detalle' => [$e->getMessage()],
@@ -88,17 +91,18 @@ class Inscripcion
       $debugMensajes = [];
       $resultado = $this->validarAnioEscolar($conexion, $debugSql, $debugMensajes);
       if (!$resultado['valido']) {
-        $this->responder(428, false, 'No es posible listar estudiantes hasta cumplir las precondiciones.', [
+        $datos = [
           'motivos' => $resultado['motivos'],
-          'debug' => [
-            'mensajes' => $debugMensajes,
-            'sql' => $debugSql,
-          ],
-        ]);
+        ];
+        $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+        $this->responder(428, false, 'No es posible listar estudiantes hasta cumplir las precondiciones.', $datos);
         return;
       }
 
-      $referencia = new DateTimeImmutable();
+      $referencia = isset($resultado['anio']['fecha_inicio'])
+        ? (DateTimeImmutable::createFromFormat('Y-m-d', $resultado['anio']['fecha_inicio']) ?: new DateTimeImmutable())
+        : new DateTimeImmutable();
       $fechaReferencia = $_GET['fecha_referencia'] ?? null;
       if ($fechaReferencia !== null) {
         $fechaReferencia = trim((string) $fechaReferencia);
@@ -124,15 +128,14 @@ class Inscripcion
         $debugMensajes
       );
 
-      $this->responder(200, true, 'Estudiantes elegibles cargados correctamente.', [
+      $datos = [
         'anio' => $resultado['anio'],
         'fecha_referencia' => $referencia->format('Y-m-d'),
         'estudiantes' => $lista,
-        'debug' => [
-          'mensajes' => $debugMensajes,
-          'sql' => $debugSql,
-        ],
-      ]);
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(200, true, 'Estudiantes elegibles cargados correctamente.', $datos);
     } catch (Exception $e) {
       $this->responder(500, false, 'Error al obtener los estudiantes elegibles.', null, [
         'detalle' => [$e->getMessage()],
@@ -148,13 +151,12 @@ class Inscripcion
       $debugMensajes = [];
       $resultado = $this->validarAnioEscolar($conexion, $debugSql, $debugMensajes);
       if (!$resultado['valido']) {
-        $this->responder(428, false, 'No es posible listar aulas hasta cumplir las precondiciones.', [
+        $datos = [
           'motivos' => $resultado['motivos'],
-          'debug' => [
-            'mensajes' => $debugMensajes,
-            'sql' => $debugSql,
-          ],
-        ]);
+        ];
+        $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+        $this->responder(428, false, 'No es posible listar aulas hasta cumplir las precondiciones.', $datos);
         return;
       }
 
@@ -168,16 +170,156 @@ class Inscripcion
 
       $this->agregarMensajeDebug($debugMensajes, sprintf('Se encontraron %d aulas con disponibilidad y docente asignado.', count($disponibles)));
 
-      $this->responder(200, true, 'Aulas disponibles cargadas correctamente.', [
+      $datos = [
         'anio' => $resultado['anio'],
         'aulas' => $disponibles,
-        'debug' => [
-          'mensajes' => $debugMensajes,
-          'sql' => $debugSql,
-        ],
-      ]);
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(200, true, 'Aulas disponibles cargadas correctamente.', $datos);
     } catch (Exception $e) {
       $this->responder(500, false, 'Error al obtener las aulas disponibles.', null, [
+        'detalle' => [$e->getMessage()],
+      ]);
+    }
+  }
+
+  public function listarResumenInscripciones(): void
+  {
+    try {
+      $conexion = $this->obtenerConexion();
+      $debugSql = [];
+      $debugMensajes = [];
+      $resultado = $this->validarAnioEscolar($conexion, $debugSql, $debugMensajes);
+      if (!$resultado['valido']) {
+        $datos = [
+          'motivos' => $resultado['motivos'],
+        ];
+        $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+        $this->responder(428, false, 'No es posible generar el resumen hasta cumplir las precondiciones.', $datos);
+        return;
+      }
+
+      $anioId = $resultado['anio']['id'];
+      $aulas = $this->listarAulasConDisponibilidad($conexion, $anioId, $debugSql);
+      $this->agregarMensajeDebug($debugMensajes, sprintf('Se encontraron %d aulas activas para el año escolar.', count($aulas)));
+
+      $sql = 'SELECT i.id_inscripcion,
+            i.fk_aula,
+            i.fecha_inscripcion,
+            i.estado_inscripcion,
+            est.id_estudiante,
+            est.cedula_escolar,
+            perEst.cedula AS cedula_estudiante,
+            perEst.primer_nombre AS est_primer_nombre,
+            perEst.segundo_nombre AS est_segundo_nombre,
+            perEst.primer_apellido AS est_primer_apellido,
+            perEst.segundo_apellido AS est_segundo_apellido,
+            rep.id_representante,
+            perRep.cedula AS cedula_representante,
+            perRep.primer_nombre AS rep_primer_nombre,
+            perRep.segundo_nombre AS rep_segundo_nombre,
+            perRep.primer_apellido AS rep_primer_apellido,
+            perRep.segundo_apellido AS rep_segundo_apellido
+          FROM inscripciones i
+          INNER JOIN aula a ON a.id_aula = i.fk_aula
+          INNER JOIN estudiantes est ON est.id_estudiante = i.fk_estudiante
+          INNER JOIN personas perEst ON perEst.id_persona = est.id_persona
+          INNER JOIN representantes rep ON rep.id_representante = i.fk_representante
+          INNER JOIN personas perRep ON perRep.id_persona = rep.fk_persona
+              WHERE a.fk_anio_escolar = ?
+                AND i.estado_inscripcion IN ("activo", "en_proceso")
+              ORDER BY a.id_aula, perEst.primer_nombre, perEst.primer_apellido';
+
+      $this->agregarSqlDebug($debugSql, 'inscripciones_por_aula', $sql, ['anio_escolar_id' => $anioId]);
+
+      $consulta = $conexion->prepare($sql);
+      $consulta->execute([$anioId]);
+      $registros = $consulta->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+      $mapaEstudiantes = [];
+      foreach ($registros as $fila) {
+        $aulaId = (int) $fila['fk_aula'];
+        if (!isset($mapaEstudiantes[$aulaId])) {
+          $mapaEstudiantes[$aulaId] = [];
+        }
+
+        $mapaEstudiantes[$aulaId][] = [
+          'id_inscripcion' => (int) $fila['id_inscripcion'],
+          'fecha_inscripcion' => $fila['fecha_inscripcion'],
+          'estado' => $fila['estado_inscripcion'],
+          'estudiante' => [
+            'id' => (int) $fila['id_estudiante'],
+            'cedula' => $fila['cedula_estudiante'],
+            'cedula_escolar' => $fila['cedula_escolar'],
+            'nombre_completo' => $this->construirNombreCompleto([
+              'primer_nombre' => $fila['est_primer_nombre'],
+              'segundo_nombre' => $fila['est_segundo_nombre'],
+              'primer_apellido' => $fila['est_primer_apellido'],
+              'segundo_apellido' => $fila['est_segundo_apellido'],
+            ]),
+          ],
+          'representante' => [
+            'id' => (int) $fila['id_representante'],
+            'cedula' => $fila['cedula_representante'],
+            'nombre_completo' => $this->construirNombreCompleto([
+              'primer_nombre' => $fila['rep_primer_nombre'],
+              'segundo_nombre' => $fila['rep_segundo_nombre'],
+              'primer_apellido' => $fila['rep_primer_apellido'],
+              'segundo_apellido' => $fila['rep_segundo_apellido'],
+            ]),
+          ],
+        ];
+      }
+
+      $secciones = [];
+      foreach ($aulas as $aula) {
+        $idAula = (int) $aula['id_aula'];
+        $estudiantes = $mapaEstudiantes[$idAula] ?? [];
+
+        $secciones[] = [
+          'aula_id' => $idAula,
+          'grado' => (int) $aula['grado'],
+          'seccion' => $aula['seccion'],
+          'cupos' => (int) $aula['cupos'],
+          'ocupados' => (int) $aula['ocupados'],
+          'disponibles' => (int) $aula['disponibles'],
+          'docente' => $aula['docente'],
+          'estudiantes' => $estudiantes,
+        ];
+      }
+
+      $totalInscripciones = array_reduce(
+        $secciones,
+        fn(int $carry, array $seccion): int => $carry + count($seccion['estudiantes']),
+        0
+      );
+      $seccionesConInscripciones = array_reduce(
+        $secciones,
+        fn(int $carry, array $seccion): int => $carry + (count($seccion['estudiantes']) > 0 ? 1 : 0),
+        0
+      );
+
+      $this->agregarMensajeDebug(
+        $debugMensajes,
+        sprintf(
+          'Se contabilizaron %d inscripciones activas distribuidas en %d secciones.',
+          $totalInscripciones,
+          $seccionesConInscripciones
+        )
+      );
+
+      $datos = [
+        'anio' => $resultado['anio'],
+        'total' => $totalInscripciones,
+        'secciones' => $secciones,
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(200, true, 'Resumen de inscripciones generado correctamente.', $datos);
+    } catch (Exception $e) {
+      $this->responder(500, false, 'Error al generar el resumen de inscripciones.', null, [
         'detalle' => [$e->getMessage()],
       ]);
     }
@@ -191,13 +333,12 @@ class Inscripcion
       $debugMensajes = [];
       $resultado = $this->validarAnioEscolar($conexion, $debugSql, $debugMensajes);
       if (!$resultado['valido']) {
-        $this->responder(428, false, 'No es posible listar representantes hasta cumplir las precondiciones.', [
+        $datos = [
           'motivos' => $resultado['motivos'],
-          'debug' => [
-            'mensajes' => $debugMensajes,
-            'sql' => $debugSql,
-          ],
-        ]);
+        ];
+        $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+        $this->responder(428, false, 'No es posible listar representantes hasta cumplir las precondiciones.', $datos);
         return;
       }
 
@@ -222,14 +363,13 @@ class Inscripcion
 
       $this->agregarMensajeDebug($debugMensajes, sprintf('Se encontraron %d representantes activos asociados al estudiante.', count($lista)));
 
-      $this->responder(200, true, 'Representantes asociados cargados correctamente.', [
+      $datos = [
         'estudiante' => $estudiante,
         'representantes' => $lista,
-        'debug' => [
-          'mensajes' => $debugMensajes,
-          'sql' => $debugSql,
-        ],
-      ]);
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(200, true, 'Representantes asociados cargados correctamente.', $datos);
     } catch (Exception $e) {
       $this->responder(500, false, 'Error al obtener los representantes disponibles.', null, [
         'detalle' => [$e->getMessage()],
@@ -245,7 +385,8 @@ class Inscripcion
       $estudianteId = isset($entrada['estudiante_id']) ? (int) $entrada['estudiante_id'] : 0;
       $aulaId = isset($entrada['aula_id']) ? (int) $entrada['aula_id'] : 0;
       $representanteId = isset($entrada['representante_id']) ? (int) $entrada['representante_id'] : 0;
-      $tipoInscripcion = $entrada['tipo_inscripcion'] ?? null;
+      $tipoInscripcionEntrada = $entrada['tipo_inscripcion'] ?? null;
+      $tipoInscripcion = $this->normalizarTipoInscripcionEntrada($tipoInscripcionEntrada);
       $datosFormulario = $entrada['datos'] ?? null;
 
       $errores = [];
@@ -259,7 +400,7 @@ class Inscripcion
         $errores['representante'][] = 'Debe seleccionar un representante válido.';
       }
 
-      $tiposPermitidos = ['regular', 'nuevo_ingreso', 'traslado', 'educado_en_casa'];
+      $tiposPermitidos = ['regular', 'nuevo_ingreso', 'traslado', 'no_escolarizados'];
       if (!is_string($tipoInscripcion) || !in_array($tipoInscripcion, $tiposPermitidos, true)) {
         $errores['tipo_inscripcion'][] = 'Debe seleccionar un tipo de inscripción válido.';
       }
@@ -278,13 +419,12 @@ class Inscripcion
       $debugMensajes = [];
       $resultadoAnio = $this->validarAnioEscolar($conexion, $debugSql, $debugMensajes);
       if (!$resultadoAnio['valido']) {
-        $this->responder(428, false, 'No es posible registrar la inscripción hasta cumplir las precondiciones.', [
+        $datos = [
           'motivos' => $resultadoAnio['motivos'],
-          'debug' => [
-            'mensajes' => $debugMensajes,
-            'sql' => $debugSql,
-          ],
-        ]);
+        ];
+        $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+        $this->responder(428, false, 'No es posible registrar la inscripción hasta cumplir las precondiciones.', $datos);
         return;
       }
 
@@ -335,6 +475,8 @@ class Inscripcion
         'estudiante' => $validacionEstudiante['estudiante'],
         'representante' => $validacionRepresentante['representante'],
         'tipo_inscripcion' => $tipoInscripcion,
+        'tipo_original' => $tipoInscripcionEntrada,
+        'historial' => $validacionEstudiante['historial'] ?? [],
       ];
 
       $resultado = $this->registrarProcesoDeInscripcion(
@@ -347,13 +489,12 @@ class Inscripcion
 
       $this->agregarMensajeDebug($debugMensajes, 'Inscripción registrada exitosamente en la base de datos.');
 
-      $this->responder(201, true, 'Inscripción registrada correctamente.', [
+      $datos = [
         'inscripcion' => $resultado,
-        'debug' => [
-          'mensajes' => $debugMensajes,
-          'sql' => $debugSql,
-        ],
-      ]);
+      ];
+      $this->adjuntarDebug($datos, $debugMensajes, $debugSql);
+
+      $this->responder(201, true, 'Inscripción registrada correctamente.', $datos);
     } catch (InscripcionValidacionException $e) {
       $this->responder(422, false, $e->getMessage(), null, $e->obtenerErrores());
     } catch (RuntimeException $e) {
@@ -362,6 +503,118 @@ class Inscripcion
       ]);
     } catch (Exception $e) {
       $this->responder(500, false, 'Ocurrió un error al registrar la inscripción.', null, [
+        'detalle' => [$e->getMessage()],
+      ]);
+    }
+  }
+
+  public function retirarInscripcion(int $idInscripcion): void
+  {
+    try {
+      $identificador = (int) $idInscripcion;
+      if ($identificador <= 0) {
+        $this->responder(422, false, 'Identificador de inscripción inválido.', null, [
+          'id' => ['Debe indicar una inscripción válida.'],
+        ]);
+        return;
+      }
+
+      $entrada = $this->leerEntradaJson();
+      $clave = isset($entrada['clave']) ? trim((string) $entrada['clave']) : '';
+      $motivo = isset($entrada['motivo']) ? trim((string) $entrada['motivo']) : '';
+      if ($clave === '') {
+        $this->responder(422, false, 'Debe confirmar la acción con su contraseña.', null, [
+          'clave' => ['La contraseña es obligatoria para retirar una inscripción.'],
+        ]);
+        return;
+      }
+
+      $motivo = $motivo !== '' ? mb_substr($motivo, 0, 255) : null;
+
+      $token = $_COOKIE['session_token'] ?? null;
+      if ($token === null) {
+        $this->responder(403, false, 'Sesión no válida.', null, [
+          'sesion' => ['Debes iniciar sesión nuevamente.'],
+        ]);
+        return;
+      }
+
+      $conexion = $this->obtenerConexion();
+      $login = new Login($conexion);
+      $usuario = $login->obtenerUsuarioPorHash($token);
+      if (!$usuario) {
+        $this->responder(403, false, 'Sesión inválida.', null, [
+          'sesion' => ['Debes iniciar sesión nuevamente.'],
+        ]);
+        return;
+      }
+
+      $stmtClave = $conexion->prepare('SELECT contrasena_hash FROM usuarios WHERE id_usuario = ? LIMIT 1');
+      $stmtClave->execute([(int) $usuario['id_usuario']]);
+      $hash = $stmtClave->fetchColumn();
+      if (!$hash || !password_verify($clave, $hash)) {
+        $this->responder(401, false, 'Contraseña incorrecta.', null, [
+          'clave' => ['La contraseña no coincide con el usuario autenticado.'],
+        ]);
+        return;
+      }
+
+      $sqlDetalle = 'SELECT i.id_inscripcion,
+                            i.estado_inscripcion,
+                            i.fk_estudiante,
+                            e.id_persona,
+                            p.estado AS estado_persona
+                     FROM inscripciones i
+                     INNER JOIN estudiantes e ON e.id_estudiante = i.fk_estudiante
+                     INNER JOIN personas p ON p.id_persona = e.id_persona
+                     WHERE i.id_inscripcion = ?
+                     LIMIT 1';
+
+      $stmtDetalle = $conexion->prepare($sqlDetalle);
+      $stmtDetalle->execute([$identificador]);
+      $detalle = $stmtDetalle->fetch(PDO::FETCH_ASSOC);
+
+      if (!$detalle) {
+        $this->responder(404, false, 'La inscripción indicada no existe.', null, [
+          'id' => ['No se encontró la inscripción solicitada.'],
+        ]);
+        return;
+      }
+
+      if ($detalle['estado_inscripcion'] === 'retirado') {
+        $this->responder(409, false, 'La inscripción ya fue retirada con anterioridad.', null, [
+          'estado' => ['La inscripción ya se encuentra marcada como retirada.'],
+        ]);
+        return;
+      }
+
+      $conexion->beginTransaction();
+
+      $sqlRetiro = 'UPDATE inscripciones
+                    SET estado_inscripcion = "retirado",
+                        fecha_retiro = CURDATE(),
+                        motivo_retiro = ?
+                    WHERE id_inscripcion = ?';
+      $stmtRetiro = $conexion->prepare($sqlRetiro);
+      $stmtRetiro->execute([$motivo, $identificador]);
+
+      $sqlPersona = 'UPDATE personas SET estado = "inactivo" WHERE id_persona = ?';
+      $stmtPersona = $conexion->prepare($sqlPersona);
+      $stmtPersona->execute([(int) $detalle['id_persona']]);
+
+      $conexion->commit();
+
+      $this->responder(200, true, 'Inscripción retirada correctamente.', [
+        'id_inscripcion' => $identificador,
+        'estado_inscripcion' => 'retirado',
+        'motivo_retiro' => $motivo,
+        'fecha_retiro' => (new DateTimeImmutable())->format('Y-m-d'),
+      ]);
+    } catch (Exception $e) {
+      if (isset($conexion) && $conexion->inTransaction()) {
+        $conexion->rollBack();
+      }
+      $this->responder(500, false, 'Ocurrió un error al retirar la inscripción.', null, [
         'detalle' => [$e->getMessage()],
       ]);
     }
@@ -411,5 +664,61 @@ class Inscripcion
     }
 
     echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+  }
+
+  private function construirDebugRespuesta(?array $mensajes, ?array $sql): ?array
+  {
+    if (!is_array($mensajes) && !is_array($sql)) {
+      return null;
+    }
+
+    $limpios = [];
+    if (is_array($mensajes)) {
+      foreach ($mensajes as $mensaje) {
+        if (is_string($mensaje)) {
+          $texto = trim($mensaje);
+          if ($texto !== '') {
+            $limpios[] = $texto;
+          }
+        }
+      }
+    }
+
+    if (empty($limpios)) {
+      return null;
+    }
+
+    return ['mensajes' => $limpios];
+  }
+
+  private function adjuntarDebug(array &$datos, ?array $mensajes, ?array $sql): void
+  {
+    $debug = $this->construirDebugRespuesta($mensajes, $sql);
+    if ($debug !== null) {
+      $datos['debug'] = $debug;
+    }
+  }
+
+  private function normalizarTipoInscripcionEntrada(mixed $tipo): ?string
+  {
+    if (!is_string($tipo)) {
+      return null;
+    }
+
+    $valor = strtolower(trim($tipo));
+
+    if ($valor === '') {
+      return null;
+    }
+
+    if ($valor === 'educado_en_casa' || $valor === 'educado-en-casa') {
+      return 'no_escolarizados';
+    }
+
+    if ($valor === 'no_escolarizado') {
+      return 'no_escolarizados';
+    }
+
+    return $valor;
   }
 }

@@ -140,6 +140,24 @@ trait GestionPersonal
   public static function cambiarEstadoPersonal($pdo, $id_personal, $estado)
   {
     try {
+      $estadoNormalizado = strtolower(trim((string) $estado));
+      if ($estadoNormalizado === 'inactivo') {
+        $sqlAsignacion = 'SELECT 1
+                          FROM imparte imp
+                          INNER JOIN aula a ON a.id_aula = imp.fk_aula
+                          INNER JOIN anios_escolares an ON an.id_anio_escolar = a.fk_anio_escolar
+                          WHERE imp.fk_personal = ?
+                            AND imp.tipo_docente = "aula"
+                            AND a.estado = "activo"
+                            AND an.estado IN ("activo", "incompleto")
+                          LIMIT 1';
+        $stmtAsignacion = $pdo->prepare($sqlAsignacion);
+        $stmtAsignacion->execute([$id_personal]);
+        if ($stmtAsignacion->fetchColumn()) {
+          throw new Exception('No se puede desactivar al personal porque tiene aulas activas asignadas.');
+        }
+      }
+
       $sql = "UPDATE personal SET estado = ? WHERE id_personal = ?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([$estado, $id_personal]);

@@ -3,6 +3,7 @@
 namespace Micodigo\Inscripcion;
 
 use DateTime;
+use DateTimeImmutable;
 use Exception;
 use PDO;
 use RuntimeException;
@@ -14,6 +15,20 @@ trait InscripcionProcesadorTrait
   {
     $this->agregarMensajeDebug($debugMensajes, 'Se inicia el proceso de registro de inscripción.');
     $datosValidados = $this->validarDatosDeInscripcion($datosFormulario, $contexto['anio']);
+
+    $evaluacion = $this->evaluarCondicionesFinalesInscripcion(
+      $conexion,
+      $contexto,
+      $datosValidados,
+      $debugSql,
+      $debugMensajes
+    );
+
+    $contexto['tipo_inscripcion'] = $evaluacion['tipo'];
+    $contexto['estado_inscripcion'] = $evaluacion['estado'];
+    $contexto['documentos_pendientes'] = $evaluacion['faltantes_documentos'];
+    $contexto['requiere_documentos'] = $evaluacion['requiere_documentos'];
+    $contexto['evaluacion'] = $evaluacion;
 
     $conexion->beginTransaction();
 
@@ -38,10 +53,15 @@ trait InscripcionProcesadorTrait
 
       $this->agregarMensajeDebug($debugMensajes, 'Transacción confirmada correctamente.');
 
+      $tipoSalida = $this->formatearTipoInscripcionSalida($contexto['tipo_inscripcion']);
+
       return [
         'id_inscripcion' => $idInscripcion,
         'fecha_inscripcion' => $datosValidados['fecha_inscripcion'],
-        'tipo_inscripcion' => $contexto['tipo_inscripcion'],
+        'tipo_inscripcion' => $tipoSalida,
+        'estado_inscripcion' => $contexto['estado_inscripcion'],
+        'documentos_pendientes' => $contexto['documentos_pendientes'],
+        'requiere_documentos' => $contexto['requiere_documentos'],
         'anio' => $contexto['anio'],
         'estudiante' => [
           'id' => $contexto['estudiante']['id'],
@@ -54,6 +74,11 @@ trait InscripcionProcesadorTrait
           'cedula' => $contexto['representante']['cedula'],
           'parentesco' => $contexto['representante']['tipo_parentesco'],
         ],
+        'ajustes' => [
+          'tipo_original' => $contexto['tipo_original'] ?? null,
+          'tipo_interno' => $contexto['tipo_inscripcion'],
+          'detalle' => $contexto['evaluacion']['ajustes'] ?? [],
+        ],
         'aula' => [
           'id_aula' => $contexto['aula']['id_aula'],
           'grado' => $contexto['aula']['grado'],
@@ -64,6 +89,7 @@ trait InscripcionProcesadorTrait
           ],
           'cupos_restantes' => max(0, $disponibilidad['disponibles'] - 1),
         ],
+        'evaluacion' => array_merge($contexto['evaluacion'], ['tipo_publico' => $tipoSalida]),
       ];
     } catch (Exception $e) {
       $this->agregarMensajeDebug($debugMensajes, 'Se revierte la transacción por una excepción: ' . $e->getMessage());
@@ -110,7 +136,6 @@ trait InscripcionProcesadorTrait
       'tenencia_viviencia',
       'ingreso_familiar',
       'miembros_familia',
-      'detalles_participacion',
     ]);
     $validator->rule('date', 'fecha_inscripcion');
     $validator->rule('lengthMax', 'vive_con', 200);
@@ -171,7 +196,201 @@ trait InscripcionProcesadorTrait
       );
     }
 
+    $anioInicio = (int) $inicio->format('Y');
+    $mesInicio = (int) $inicio->format('m');
+    $anioLimite = $mesInicio > 5 ? $anioInicio + 1 : $anioInicio;
+    $limiteAutomatico = DateTime::createFromFormat('Y-m-d', sprintf('%04d-05-31', $anioLimite));
+    $limiteConfigurado = DateTime::createFromFormat('Y-m-d', $anio['fecha_limite_inscripcion'] ?? '');
+    $limiteComparacion = $limiteAutomatico;
+    if ($limiteConfigurado instanceof DateTime && $limiteConfigurado < $limiteComparacion) {
+      $limiteComparacion = $limiteConfigurado;
+    }
+
+    if ($limiteComparacion instanceof DateTime && $fechaInscripcion > $limiteComparacion) {
+      throw new InscripcionValidacionException(
+        'Las inscripciones para este año escolar cerraron a finales de mayo.',
+        ['fecha_inscripcion' => ['El registro se encuentra cerrado desde el 31 de mayo.']]
+      );
+    }
+
     return $datos;
+  }
+
+  private function evaluarCondicionesFinalesInscripcion(
+    PDO $conexion,
+    array $contexto,
+    array $datos,
+    ?array &$debugSql = null,
+    ?array &$debugMensajes = null
+  ): array {
+    $gradoObjetivo = (int) ($contexto['aula']['grado'] ?? 0);
+    $tipoActual = $contexto['tipo_inscripcion'] ?? 'nuevo_ingreso';
+    $tipoOriginal = $contexto['tipo_original'] ?? $tipoActual;
+    $historial = $contexto['historial'] ?? [];
+    $ajustes = [];
+
+    $fechaTexto = $datos['fecha_inscripcion'] ?? null;
+    $fechaInscripcion = null;
+    if (is_string($fechaTexto) && $fechaTexto !== '') {
+      $fechaInscripcion = DateTimeImmutable::createFromFormat('Y-m-d', $fechaTexto) ?: null;
+      if ($fechaInscripcion === null) {
+        try {
+          $fechaInscripcion = new DateTimeImmutable($fechaTexto);
+        } catch (Exception) {
+          $fechaInscripcion = null;
+        }
+      }
+    }
+
+    $cursoAnterior = (bool) ($historial['curso_anio_anterior'] ?? false);
+    $aprobadoUltimo = (bool) ($historial['aprobado_ultimo'] ?? false);
+    $estaRepitiendo = (bool) ($historial['esta_repitiendo'] ?? false);
+    $inactividadProlongada = (bool) ($historial['inactividad_prolongada'] ?? false);
+    $gradoUltimo = $historial['grado_ultimo'] ?? null;
+    $sinHistorial = $gradoUltimo === null;
+    $esReingreso = !$cursoAnterior && !$sinHistorial;
+    $esProgresionRegular = $cursoAnterior && $aprobadoUltimo && $gradoUltimo !== null && $gradoObjetivo === $gradoUltimo + 1;
+
+    $tipoEvaluado = $tipoActual;
+
+    if ($tipoOriginal === 'no_escolarizado') {
+      $tipoEvaluado = 'no_escolarizados';
+      $ajustes[] = 'Se normaliza el tipo "no escolarizado" a la clave interna "no_escolarizados".';
+    }
+
+    if ($gradoObjetivo === 1 && $tipoEvaluado !== 'no_escolarizados') {
+      $primerMomento = $this->obtenerPrimerMomentoAnio($conexion, $contexto['anio']['id'], $debugSql);
+      $tipoEvaluado = 'nuevo_ingreso';
+      if ($primerMomento !== null && $fechaInscripcion instanceof DateTimeImmutable) {
+        $fechaFinMomento = isset($primerMomento['fecha_fin']) && $primerMomento['fecha_fin'] !== null
+          ? DateTimeImmutable::createFromFormat('Y-m-d', $primerMomento['fecha_fin'])
+          : null;
+        if ($fechaFinMomento instanceof DateTimeImmutable && $fechaInscripcion > $fechaFinMomento) {
+          $tipoEvaluado = 'traslado';
+          $ajustes[] = 'Primer grado con primer momento finalizado: la inscripción se marca como traslado.';
+        } else {
+          $ajustes[] = 'Primer grado dentro del primer momento: la inscripción se marca como nuevo ingreso.';
+        }
+      } else {
+        $ajustes[] = 'Primer grado sin información de momentos: la inscripción se maneja como nuevo ingreso.';
+      }
+    } else {
+      if ($esProgresionRegular) {
+        $tipoEvaluado = 'regular';
+        $ajustes[] = 'El estudiante aprobó el año inmediato anterior; se asigna tipo regular.';
+      } elseif ($estaRepitiendo && $cursoAnterior) {
+        $ajustes[] = 'El estudiante repetirá el mismo grado cursado el año anterior.';
+      } elseif ($tipoEvaluado === 'regular') {
+        if ($sinHistorial || $inactividadProlongada || $esReingreso) {
+          $tipoEvaluado = $esReingreso ? 'traslado' : 'nuevo_ingreso';
+          $ajustes[] = 'No se cumple con los criterios de continuidad; se ajusta el tipo de inscripción.';
+        }
+      }
+    }
+
+    $permitidos = ['regular', 'nuevo_ingreso', 'traslado', 'no_escolarizados'];
+    if (!in_array($tipoEvaluado, $permitidos, true)) {
+      throw new InscripcionValidacionException(
+        'El tipo de inscripción calculado es inválido.',
+        ['tipo_inscripcion' => ['No se pudo determinar un tipo de inscripción válido para el estudiante.']]
+      );
+    }
+
+    $requiereDocumentos = in_array($tipoEvaluado, ['nuevo_ingreso', 'traslado'], true)
+      && !$estaRepitiendo
+      && $tipoEvaluado !== 'no_escolarizados';
+
+    $faltantes = $requiereDocumentos
+      ? $this->verificarDocumentosRequeridos($historial['documentos'] ?? [], $gradoObjetivo)
+      : [];
+
+    $estado = !empty($faltantes) ? 'en_proceso' : 'activo';
+
+    if ($tipoEvaluado === 'no_escolarizados') {
+      $estado = 'activo';
+      $ajustes[] = 'La modalidad "no escolarizados" no requiere documentación previa.';
+    }
+
+    if (!empty($faltantes)) {
+      $nombresFaltantes = array_map(fn(array $item): string => $item['documento'], $faltantes);
+      $this->agregarMensajeDebug(
+        $debugMensajes,
+        'Documentos pendientes para completar la inscripción: ' . implode(', ', $nombresFaltantes)
+      );
+    }
+
+    foreach ($ajustes as $detalle) {
+      $this->agregarMensajeDebug($debugMensajes, $detalle);
+    }
+
+    return [
+      'tipo' => $tipoEvaluado,
+      'estado' => $estado,
+      'faltantes_documentos' => $faltantes,
+      'requiere_documentos' => $requiereDocumentos,
+      'ajustes' => $ajustes,
+      'es_regular' => $tipoEvaluado === 'regular',
+      'es_reingreso' => $esReingreso,
+      'esta_repitiendo' => $estaRepitiendo,
+    ];
+  }
+
+  private function verificarDocumentosRequeridos(array $documentos, int $gradoObjetivo): array
+  {
+    $gradoRequerido = max(0, $gradoObjetivo - 1);
+    $requeridos = [
+      'constancia_prosecucion' => 'Constancia de prosecución',
+      'certificado_aprendizaje' => 'Certificado de aprendizaje',
+      'boleta_promocion' => 'Boleta de promoción',
+    ];
+
+    $faltantes = [];
+    foreach ($requeridos as $clave => $etiqueta) {
+      $gradoDisponible = $documentos[$clave] ?? null;
+      if ($gradoDisponible === null || $gradoDisponible < $gradoRequerido) {
+        $faltantes[$clave] = [
+          'documento' => $etiqueta,
+          'grado_requerido' => $gradoRequerido,
+          'grado_disponible' => $gradoDisponible,
+        ];
+      }
+    }
+
+    return $faltantes;
+  }
+
+  private function obtenerPrimerMomentoAnio(PDO $conexion, int $anioId, ?array &$debugSql = null): ?array
+  {
+    $sql = 'SELECT id_momento,
+                   nombre_momento,
+                   fecha_inicio,
+                   fecha_fin
+            FROM momentos
+            WHERE fk_anio_escolar = ?
+            ORDER BY CAST(nombre_momento AS UNSIGNED), fecha_inicio
+            LIMIT 1';
+
+    $this->agregarSqlDebug($debugSql, 'primer_momento_anio', $sql, ['anio_escolar_id' => $anioId]);
+
+    $sentencia = $conexion->prepare($sql);
+    $sentencia->execute([$anioId]);
+    $fila = $sentencia->fetch(PDO::FETCH_ASSOC);
+
+    if (!$fila) {
+      return null;
+    }
+
+    return [
+      'id' => (int) $fila['id_momento'],
+      'nombre' => $fila['nombre_momento'],
+      'fecha_inicio' => $fila['fecha_inicio'],
+      'fecha_fin' => $fila['fecha_fin'],
+    ];
+  }
+
+  private function formatearTipoInscripcionSalida(string $tipo): string
+  {
+    return $tipo === 'no_escolarizados' ? 'no_escolarizado' : $tipo;
   }
 
   private function insertarInscripcionEnBase(PDO $conexion, array $contexto, array $datos, array $disponibilidad, ?array &$debugSql = null): int
@@ -204,12 +423,15 @@ trait InscripcionProcesadorTrait
               detalles_participacion
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
 
+    $estadoInscripcion = $contexto['estado_inscripcion'] ?? 'activo';
+
     $this->agregarSqlDebug($debugSql, 'insertar_inscripcion', $sql, [
       'estudiante_id' => $contexto['estudiante']['id'],
       'representante_id' => $contexto['representante']['id'],
       'docente_id' => $disponibilidad['docente_id'],
       'aula_id' => $contexto['aula']['id_aula'],
       'tipo_inscripcion' => $contexto['tipo_inscripcion'],
+      'estado_inscripcion' => $estadoInscripcion,
     ]);
 
     $sentencia = $conexion->prepare($sql);
@@ -225,7 +447,7 @@ trait InscripcionProcesadorTrait
       $datos['talla_camisa'],
       $datos['talla_pantalon'],
       $datos['peso'],
-      'activo',
+      $estadoInscripcion,
       $contexto['tipo_inscripcion'],
       $datos['foto_estudiante'],
       $datos['foto_representante'],

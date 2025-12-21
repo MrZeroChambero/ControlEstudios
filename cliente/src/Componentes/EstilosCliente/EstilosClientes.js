@@ -28,6 +28,13 @@ const helperMessageBase = "py-6 text-center text-sm text-slate-500";
 const typePillBase =
   "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide";
 
+const estudiantesFieldBase =
+  "w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
+const estudiantesFieldValid =
+  "w-full rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
+const estudiantesFieldInvalid =
+  "w-full rounded-2xl border border-rose-400 bg-rose-50 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200";
+
 const accentTokens = {
   blue: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-300/60",
   emerald: "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-300/60",
@@ -177,9 +184,9 @@ export const contenidosLayout = createLayoutTokens("blue");
 export const contenidosModalClasses = {
   ...detailModalBase,
   content:
-    "flex w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[90vh]",
-  body: "flex-1 overflow-y-auto px-8 py-6",
-  footer: "border-t border-slate-100 px-8 py-5",
+    "flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[92vh]",
+  body: "flex-1 overflow-y-auto px-10 py-8",
+  footer: "border-t border-slate-100 px-10 py-6",
 };
 
 export const contenidosFormClasses = createFormTokens("blue");
@@ -215,7 +222,7 @@ export const temasTableClasses = temasTableBase;
 
 export const temaFormClasses = {
   overlay: modalOverlayBase,
-  content: "w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl",
+  content: "w-full max-w-lg rounded-3xl bg-white px-8 py-6 shadow-2xl",
   header: "mb-6 flex items-center justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
   closeButton:
@@ -325,8 +332,8 @@ export const areasBadgeClasses = {
 
 export const areasModalClasses = {
   overlay: modalOverlayBase,
-  content: "w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl",
-  contentWide: "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl",
+  content: "w-full max-w-2xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
+  contentWide: "w-full max-w-5xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
   title: "mb-6 text-center text-2xl font-semibold text-slate-900",
   footer: "mt-6 flex justify-end",
   closeButton: secondaryButton,
@@ -347,7 +354,7 @@ export const componentesFormClasses = {
 
 export const componentesModalClasses = {
   overlay: modalOverlayBase,
-  content: "w-full max-w-xl rounded-3xl bg-white p-8 shadow-2xl",
+  content: "w-full max-w-2xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
   header: "mb-6 flex items-center justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
   closeButton:
@@ -371,6 +378,14 @@ export const estudiantesLayout = createLayoutTokens("blue");
 
 export const estudiantesFormClasses = {
   ...createFormTokens("blue"),
+  input: estudiantesFieldBase,
+  inputValid: estudiantesFieldValid,
+  inputInvalid: estudiantesFieldInvalid,
+  select: estudiantesFieldBase,
+  selectInvalid: estudiantesFieldInvalid,
+  textArea: estudiantesFieldBase,
+  textAreaInvalid: estudiantesFieldInvalid,
+  textAreaAuto: "min-h-[112px]",
   backButton: `${buttonBase} bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-200/60`,
   cancelButton: `${buttonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300/60`,
 };
@@ -737,6 +752,28 @@ export const personalViewModalClasses = {
   card: detailCardBase,
   empty: helperMessageBase,
 };
+
+// Horarios
+export const horariosLayout = createLayoutTokens("blue");
+
+export const horariosFormClasses = createFormTokens("blue");
+
+export const horariosTableClasses = {
+  ...tableBase,
+  actionGroup: actionGroupBase,
+  actionButton: actionButtonBase,
+  viewButton: tableBase.viewButton,
+  editButton: tableBase.editButton,
+  deleteButton: tableBase.deleteButton,
+};
+
+export const horariosStatusClasses = {
+  ...baseStatusPills,
+  completo: "bg-blue-100 text-blue-700",
+  subgrupo: "bg-purple-100 text-purple-700",
+};
+
+export const horariosIconClasses = contenidosIconClasses;
 
 // Representantes
 export const representantesLayout = createLayoutTokens("blue");

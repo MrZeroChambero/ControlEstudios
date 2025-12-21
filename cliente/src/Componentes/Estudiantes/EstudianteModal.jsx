@@ -33,9 +33,92 @@ import formSalud from "./forms/form_salud.json";
 import {
   formatearFechaCorta,
   formatearFechaHoraCorta,
+  calcularEdad,
 } from "../../utilidades/formatoFechas";
 import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+
+const DOCUMENTOS_CRITICOS = new Set([
+  "Boleta",
+  "Constancia Prosecución",
+  "Certificado Aprendizaje",
+]);
+
+const GRADO_ETIQUETAS_POR_NUMERO = {
+  0: "Educ. Inicial",
+  1: "Primero",
+  2: "Segundo",
+  3: "Tercero",
+  4: "Cuarto",
+  5: "Quinto",
+  6: "Sexto",
+};
+
+const gradoNumeroATexto = (valor) => {
+  if (valor === null || valor === undefined) return null;
+  const numero = Number(valor);
+  if (!Number.isFinite(numero)) return null;
+  return GRADO_ETIQUETAS_POR_NUMERO[numero] || null;
+};
+
+const normalizarTexto = (valor) =>
+  typeof valor === "string"
+    ? valor.trim()
+    : valor === null || valor === undefined
+    ? ""
+    : String(valor).trim();
+
+const limpiarClaveGrado = (valor) => {
+  const base = normalizarTexto(valor);
+  if (!base) return "";
+  return base
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[\.\u00ba\u00b0]/g, "")
+    .replace(/\bgrados?\b/g, "")
+    .replace(/\beducacion\b/g, "educ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const GRADO_ORDEN_POR_TEXTO = (() => {
+  const mapa = new Map();
+  Object.entries(GRADO_ETIQUETAS_POR_NUMERO).forEach(([numero, etiqueta]) => {
+    const indice = Number(numero);
+    mapa.set(limpiarClaveGrado(etiqueta), indice);
+  });
+
+  for (let i = 0; i <= 12; i += 1) {
+    mapa.set(String(i), i);
+  }
+
+  return mapa;
+})();
+
+const obtenerIndiceGrado = (valor) => {
+  if (valor === null || valor === undefined) return null;
+  if (typeof valor === "number" && !Number.isNaN(valor)) return valor;
+
+  const clave = limpiarClaveGrado(valor);
+  if (!clave) return null;
+
+  if (GRADO_ORDEN_POR_TEXTO.has(clave)) {
+    return GRADO_ORDEN_POR_TEXTO.get(clave);
+  }
+
+  if (/^\d+$/.test(clave)) {
+    return Number(clave);
+  }
+
+  const numeroEnTexto = clave.match(/\d+/);
+  if (numeroEnTexto) {
+    const numeroNormalizado = Number(numeroEnTexto[0]);
+    return Number.isNaN(numeroNormalizado) ? null : numeroNormalizado;
+  }
+
+  return null;
+};
 
 export const EstudianteModal = ({
   isOpen,
@@ -78,6 +161,7 @@ export const EstudianteModal = ({
   const [documentosEst, setDocumentosEst] = useState([]);
   const [nuevoDocumento, setNuevoDocumento] = useState({
     tipo_documento: "",
+    grado: "",
     entregado: false,
     observaciones: "",
   });
@@ -335,17 +419,252 @@ export const EstudianteModal = ({
   };
 
   // Documentos: agregar / eliminar
+  const opcionesTipoDocumento = useMemo(() => {
+    const campos = formDocs.repeatable?.fields || [];
+    const campoTipo = campos.find((campo) => campo.name === "tipo_documento");
+    return Array.isArray(campoTipo?.options) ? campoTipo.options : [];
+  }, []);
+
+  const opcionesGradoDocumento = useMemo(() => {
+    const campos = formDocs.repeatable?.fields || [];
+    const campoGrado = campos.find((campo) => campo.name === "grado");
+    return Array.isArray(campoGrado?.options) ? campoGrado.options : [];
+  }, []);
+
+  const gradoActualEtiqueta = useMemo(() => {
+    const candidatos = [
+      currentEstudiante?.grado_actual,
+      currentEstudiante?.grado,
+      currentEstudiante?.grado_asignado,
+    ];
+
+    for (const candidato of candidatos) {
+      if (candidato === null || candidato === undefined) {
+        continue;
+      }
+
+      if (typeof candidato === "number") {
+        return GRADO_ETIQUETAS_POR_NUMERO[candidato] || String(candidato);
+      }
+
+      const texto = normalizarTexto(candidato);
+      if (texto === "") {
+        continue;
+      }
+
+      if (/^\d+$/.test(texto)) {
+        const numero = Number(texto);
+        return GRADO_ETIQUETAS_POR_NUMERO[numero] || texto;
+      }
+
+      const coincidencia = Object.values(GRADO_ETIQUETAS_POR_NUMERO).find(
+        (etiqueta) => etiqueta.toLowerCase() === texto.toLowerCase()
+      );
+      return coincidencia || texto;
+    }
+
+    return "";
+  }, [currentEstudiante]);
+
+  const gradosPermitidosEdicion = currentEstudiante?.grados_permitidos;
+  const fechaNacimientoReferencia =
+    formPersonaData.fecha_nacimiento ||
+    currentEstudiante?.fecha_nacimiento ||
+    currentEstudiante?.persona?.fecha_nacimiento ||
+    "";
+  const fechaReferenciaEdad =
+    formEstudianteData.fecha_ingreso_escuela ||
+    currentEstudiante?.fecha_ingreso_escuela ||
+    currentEstudiante?.fecha_referencia_edad ||
+    "";
+
+  const referenciaEdadCalculada = useMemo(() => {
+    if (!fechaReferenciaEdad) {
+      return null;
+    }
+    const base = new Date(`${fechaReferenciaEdad}T00:00:00`);
+    return Number.isNaN(base.getTime()) ? null : base;
+  }, [fechaReferenciaEdad]);
+
+  const gradosPermitidosPorEdad = useMemo(() => {
+    if (
+      Array.isArray(gradosPermitidosEdicion) &&
+      gradosPermitidosEdicion.length > 0
+    ) {
+      const numerosOrdenados = Array.from(
+        new Set(
+          gradosPermitidosEdicion
+            .map((valor) => Number(valor))
+            .filter((valor) => Number.isFinite(valor))
+        )
+      ).sort((a, b) => a - b);
+      if (numerosOrdenados.length > 0) {
+        return numerosOrdenados;
+      }
+    }
+
+    if (!fechaNacimientoReferencia) {
+      return [];
+    }
+
+    const edad = calcularEdad(
+      fechaNacimientoReferencia,
+      referenciaEdadCalculada ?? new Date()
+    );
+    if (edad === null) {
+      return [];
+    }
+
+    const permitidos = [];
+    for (let grado = 1; grado <= 6; grado += 1) {
+      const minimo = 5 + (grado - 1);
+      const maximo = 7 + (grado - 1);
+      if (edad >= minimo && edad <= maximo) {
+        permitidos.push(grado);
+      }
+    }
+
+    return permitidos;
+  }, [
+    gradosPermitidosEdicion,
+    fechaNacimientoReferencia,
+    referenciaEdadCalculada,
+  ]);
+
+  const gradosPermitidosPorEdadSet = useMemo(
+    () => new Set(gradosPermitidosPorEdad),
+    [gradosPermitidosPorEdad]
+  );
+
+  const etiquetasGradosPermitidos = useMemo(
+    () =>
+      gradosPermitidosPorEdad.map(
+        (grado) => gradoNumeroATexto(grado) || `${grado}.º grado`
+      ),
+    [gradosPermitidosPorEdad]
+  );
+
+  const documentoCriticoPorTipo = useMemo(() => {
+    const mapa = new Map();
+    documentosEst.forEach((doc) => {
+      const tipo = normalizarTexto(doc?.tipo_documento);
+      if (!tipo) return;
+      const claveTipo = opcionesTipoDocumento.find(
+        (opt) => opt.value === doc?.tipo_documento
+      )
+        ? doc?.tipo_documento
+        : tipo;
+
+      if (!DOCUMENTOS_CRITICOS.has(doc?.tipo_documento || tipo)) {
+        return;
+      }
+
+      const gradoDoc = normalizarTexto(doc?.grado);
+      if (!mapa.has(claveTipo)) {
+        mapa.set(claveTipo, new Set());
+      }
+      if (gradoDoc) {
+        mapa.get(claveTipo).add(gradoDoc);
+      }
+    });
+    return mapa;
+  }, [documentosEst, opcionesTipoDocumento]);
+
+  const esDocumentoCriticoSeleccionado = DOCUMENTOS_CRITICOS.has(
+    nuevoDocumento.tipo_documento
+  );
+
+  useEffect(() => {
+    if (!esDocumentoCriticoSeleccionado && nuevoDocumento.grado) {
+      setNuevoDocumento((prev) => ({ ...prev, grado: "" }));
+    }
+  }, [esDocumentoCriticoSeleccionado, nuevoDocumento.grado]);
+
   const agregarDocumento = async () => {
     if (!idEstudiante) return;
+
     if (!nuevoDocumento.tipo_documento) {
       Swal.fire("Falta tipo", "Selecciona el tipo de documento.", "warning");
       return;
     }
-    const payload = { fk_estudiante: idEstudiante, ...nuevoDocumento };
+
+    const gradoSeleccionado = normalizarTexto(nuevoDocumento.grado);
+    const indiceSeleccionado = obtenerIndiceGrado(gradoSeleccionado);
+
+    if (indiceSeleccionado !== null && indiceSeleccionado >= 1) {
+      if (gradosPermitidosPorEdadSet.size === 0) {
+        Swal.fire(
+          "Datos incompletos",
+          "No se pudo determinar los grados permitidos según la edad registrada. Verifica la fecha de nacimiento del estudiante y el año escolar activo.",
+          "warning"
+        );
+        return;
+      }
+
+      if (!gradosPermitidosPorEdadSet.has(indiceSeleccionado)) {
+        const permitidosTexto =
+          etiquetasGradosPermitidos.length > 0
+            ? etiquetasGradosPermitidos.join(", ")
+            : "sin determinar";
+        Swal.fire(
+          "Grado no permitido",
+          `Según la edad del estudiante solo puedes asociar documentos a: ${permitidosTexto}.`,
+          "info"
+        );
+        return;
+      }
+    }
+
+    if (esDocumentoCriticoSeleccionado) {
+      if (!gradoSeleccionado) {
+        Swal.fire(
+          "Grado requerido",
+          "Selecciona el grado al que corresponde el documento crítico.",
+          "warning"
+        );
+        return;
+      }
+
+      if (
+        gradoActualEtiqueta &&
+        gradoSeleccionado.toLowerCase() === gradoActualEtiqueta.toLowerCase()
+      ) {
+        Swal.fire(
+          "Grado no permitido",
+          "No puedes cargar documentos críticos del grado que el estudiante está cursando actualmente.",
+          "info"
+        );
+        return;
+      }
+
+      const gradosOcupados = documentoCriticoPorTipo.get(
+        nuevoDocumento.tipo_documento
+      );
+      if (gradosOcupados && gradosOcupados.has(gradoSeleccionado)) {
+        Swal.fire(
+          "Documento duplicado",
+          "Ya existe un documento crítico asociado a ese grado.",
+          "info"
+        );
+        return;
+      }
+    }
+
+    const observaciones = normalizarTexto(nuevoDocumento.observaciones);
+
+    const payload = {
+      fk_estudiante: idEstudiante,
+      tipo_documento: nuevoDocumento.tipo_documento,
+      grado: gradoSeleccionado || null,
+      entregado: nuevoDocumento.entregado ? "si" : "no",
+      observaciones: observaciones || null,
+    };
+
     const created = await crearDocumento(payload, Swal);
     if (created) {
       setNuevoDocumento({
         tipo_documento: "",
+        grado: "",
         entregado: false,
         observaciones: "",
       });
@@ -489,36 +808,44 @@ export const EstudianteModal = ({
   const renderEdicion = () => (
     <div className={estudiantesModalClasses.body}>
       <div className={estudiantesModalClasses.sections.grid}>
-        <div className={estudiantesModalClasses.sections.card}>
+        <div
+          className={`${estudiantesModalClasses.sections.card} md:col-span-2`}
+        >
           <h3 className={estudiantesModalClasses.sections.title}>
-            Datos de Persona
-          </h3>
-          <div className={estudiantesModalClasses.sections.body}>
-            <DynamicForm
-              schema={formPersona}
-              formData={formPersonaData}
-              onChange={onChangePersona}
-              errors={errorsPersona}
-              disabledFields={["tipo", "estado"]}
-            />
-          </div>
-        </div>
-        <div className={estudiantesModalClasses.sections.card}>
-          <h3 className={estudiantesModalClasses.sections.title}>
-            Datos del Estudiante
+            Datos personales
           </h3>
           <form
             onSubmit={handleActualizarEstudiante}
-            className={estudiantesModalClasses.form.wrapper}
+            className={`${estudiantesModalClasses.form.wrapper} space-y-6`}
             autoComplete="off"
           >
-            <DynamicForm
-              schema={formEstudiante}
-              formData={formEstudianteData}
-              onChange={onChangeEstudiante}
-              errors={errorsEstudiante}
-              disabledFields={["estado"]}
-            />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <section className="space-y-4">
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Información de la persona
+                </h4>
+                <DynamicForm
+                  schema={formPersona}
+                  formData={formPersonaData}
+                  onChange={onChangePersona}
+                  errors={errorsPersona}
+                  disabledFields={["tipo", "estado"]}
+                />
+              </section>
+              <section className="space-y-4">
+                <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Información académica del estudiante
+                </h4>
+                <DynamicForm
+                  schema={formEstudiante}
+                  formData={formEstudianteData}
+                  onChange={onChangeEstudiante}
+                  errors={errorsEstudiante}
+                  disabledFields={["estado"]}
+                />
+              </section>
+            </div>
+
             <div className={estudiantesModalClasses.form.actions}>
               <button
                 type="submit"
@@ -537,6 +864,24 @@ export const EstudianteModal = ({
           <h4 className={estudiantesModalClasses.documents.title}>
             Documentos académicos
           </h4>
+          {gradoActualEtiqueta ? (
+            <p className="mb-3 text-xs text-slate-500">
+              Actualmente el estudiante está asignado a{" "}
+              <strong>{gradoActualEtiqueta}</strong>. Los documentos críticos
+              deben corresponder al grado anterior.
+            </p>
+          ) : (
+            <p className="mb-3 text-xs text-slate-500">
+              Los documentos críticos requieren indicar el grado cursado.
+            </p>
+          )}
+          <p className="mb-3 text-xs text-blue-600">
+            {gradosPermitidosPorEdad.length > 0
+              ? `Según la edad del estudiante puedes asociar documentos a: ${etiquetasGradosPermitidos.join(
+                  ", "
+                )}.`
+              : "Actualiza la fecha de nacimiento o selecciona el año escolar para determinar los grados permitidos."}
+          </p>
           <div className={estudiantesModalClasses.documents.formGrid}>
             <select
               className={estudiantesModalClasses.documents.select}
@@ -546,11 +891,60 @@ export const EstudianteModal = ({
               }
             >
               <option value="">Tipo de documento...</option>
-              {(formDocs.repeatable?.fields?.[0]?.options || []).map((opt) => (
+              {opcionesTipoDocumento.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
               ))}
+            </select>
+            <select
+              className={estudiantesModalClasses.documents.select}
+              value={nuevoDocumento.grado}
+              onChange={(e) => onChangeNuevoDocumento("grado", e.target.value)}
+              disabled={!esDocumentoCriticoSeleccionado}
+            >
+              <option value="">
+                {esDocumentoCriticoSeleccionado
+                  ? "Selecciona el grado"
+                  : "No requiere grado"}
+              </option>
+              {opcionesGradoDocumento.map((opt) => {
+                const valor = opt.value;
+                const valorNormalizado = normalizarTexto(valor);
+                const setGrados = documentoCriticoPorTipo.get(
+                  nuevoDocumento.tipo_documento
+                );
+                const yaRegistrado = Boolean(setGrados?.has(valorNormalizado));
+                const gradoBloqueado =
+                  esDocumentoCriticoSeleccionado &&
+                  ((gradoActualEtiqueta &&
+                    gradoActualEtiqueta.toLowerCase() ===
+                      valorNormalizado.toLowerCase()) ||
+                    yaRegistrado);
+                const indiceOpcion = obtenerIndiceGrado(valor);
+                const excedeEdad =
+                  indiceOpcion !== null &&
+                  indiceOpcion >= 1 &&
+                  gradosPermitidosPorEdadSet.size > 0 &&
+                  !gradosPermitidosPorEdadSet.has(indiceOpcion);
+                const opcionDeshabilitada = gradoBloqueado || excedeEdad;
+                const tituloOpcion = excedeEdad
+                  ? "No disponible: el grado no está permitido según la edad del estudiante."
+                  : gradoBloqueado
+                  ? "No disponible: coincide con el grado activo o ya está documentado."
+                  : undefined;
+
+                return (
+                  <option
+                    key={valor}
+                    value={valor}
+                    disabled={opcionDeshabilitada}
+                    title={tituloOpcion}
+                  >
+                    {opt.label}
+                  </option>
+                );
+              })}
             </select>
             <label className={estudiantesModalClasses.documents.checkbox}>
               <input
@@ -590,7 +984,7 @@ export const EstudianteModal = ({
                     {d.tipo_documento}
                   </div>
                   <div className={estudiantesModalClasses.documents.meta}>
-                    {d.entregado ? (
+                    {d.entregado === true || d.entregado === "si" ? (
                       <span
                         className={estudiantesModalClasses.documents.delivered}
                       >
@@ -604,6 +998,16 @@ export const EstudianteModal = ({
                       </span>
                     )}
                   </div>
+                  <div className={estudiantesModalClasses.documents.meta}>
+                    {d.grado
+                      ? `Grado asociado: ${d.grado}`
+                      : "Sin grado asociado"}
+                  </div>
+                  {DOCUMENTOS_CRITICOS.has(d.tipo_documento) ? (
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-600">
+                      Documento crítico
+                    </div>
+                  ) : null}
                   {d.observaciones && (
                     <div className={estudiantesModalClasses.documents.meta}>
                       Obs.: {d.observaciones}

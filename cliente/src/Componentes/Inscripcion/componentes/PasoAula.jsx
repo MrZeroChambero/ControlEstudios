@@ -65,8 +65,34 @@ const estilosTabla = {
   },
 };
 
-export const PasoAula = ({ aulas, cargando, seleccionado, onSeleccionar }) => {
+export const PasoAula = ({
+  aulas = [],
+  cargando,
+  seleccionado,
+  onSeleccionar,
+  estudiante,
+}) => {
   const [busqueda, setBusqueda] = useState("");
+
+  const gradosPermitidos = useMemo(() => {
+    if (!estudiante || !Array.isArray(estudiante.grados_permitidos)) {
+      return [];
+    }
+    return estudiante.grados_permitidos;
+  }, [estudiante]);
+
+  const descripcionGradosPermitidos = useMemo(() => {
+    if (gradosPermitidos.length === 0) return "";
+    return gradosPermitidos
+      .map((grado) => {
+        if (typeof grado === "number") {
+          if (grado === 0) return "Educ. Inicial";
+          return `${grado}.º`;
+        }
+        return String(grado);
+      })
+      .join(", ");
+  }, [gradosPermitidos]);
 
   const datosFiltrados = useMemo(() => {
     if (!busqueda) return aulas;
@@ -92,6 +118,9 @@ export const PasoAula = ({ aulas, cargando, seleccionado, onSeleccionar }) => {
     }
   };
 
+  const sinResultadosBusqueda =
+    !cargando && datosFiltrados.length === 0 && aulas.length > 0;
+  const sinAulasDisponibles = !cargando && aulas.length === 0;
   return (
     <div
       name="contenedor-paso-aula"
@@ -105,8 +134,12 @@ export const PasoAula = ({ aulas, cargando, seleccionado, onSeleccionar }) => {
             Grados y secciones con disponibilidad ({datosFiltrados.length})
           </h2>
           <p className="text-sm text-slate-500">
-            Solo se muestran las secciones activas con docente titular asignado
-            y cupos disponibles.
+            {estudiante
+              ? `Se muestran únicamente las secciones compatibles con la edad del estudiante seleccionado.` +
+                (descripcionGradosPermitidos
+                  ? ` Grados habilitados: ${descripcionGradosPermitidos}.`
+                  : "")
+              : "Selecciona un estudiante para filtrar por edad las secciones con docente titular y cupos disponibles."}
           </p>
         </div>
         <input
@@ -131,7 +164,11 @@ export const PasoAula = ({ aulas, cargando, seleccionado, onSeleccionar }) => {
             <p className={inscripcionTableClasses.helperText}>
               {cargando
                 ? "Cargando secciones..."
-                : "No hay secciones disponibles con los criterios actuales."}
+                : sinResultadosBusqueda
+                ? "No se encontraron secciones que coincidan con la búsqueda."
+                : estudiante
+                ? "No hay secciones compatibles con la edad del estudiante o no quedan cupos disponibles. Revisa la documentación del grado anterior y la disponibilidad de aulas."
+                : "Selecciona un estudiante para ver las secciones disponibles."}
             </p>
           }
           customStyles={estilosTabla}
@@ -157,6 +194,12 @@ export const PasoAula = ({ aulas, cargando, seleccionado, onSeleccionar }) => {
           </strong>
           . Docente: <strong>{seleccionado.docente?.nombre}</strong>.
         </div>
+      ) : null}
+      {sinAulasDisponibles && estudiante ? (
+        <p className="text-xs text-amber-600">
+          No quedan aulas disponibles para los grados permitidos. Completa la
+          documentación requerida o habilita nuevos cupos.
+        </p>
       ) : null}
     </div>
   );

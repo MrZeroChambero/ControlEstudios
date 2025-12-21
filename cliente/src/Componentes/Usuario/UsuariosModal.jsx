@@ -20,7 +20,6 @@ export const UsuariosModal = ({
   formData,
   datosFormulario,
   personal,
-  modo,
   preguntas,
   onPreguntaChange,
   onAgregarPregunta,

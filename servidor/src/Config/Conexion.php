@@ -15,11 +15,11 @@ class Conexion
       return self::$pdo;
     }
 
-    // Datos de conexión
-    $host = 'localhost';
-    $dbname = 'escuela';
-    $username = 'root';
-    $password = '';
+    $parametros = self::obtenerParametros();
+    $host = $parametros['host'];
+    $dbname = $parametros['dbname'];
+    $username = $parametros['username'];
+    $password = $parametros['password'];
 
     try {
       $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
@@ -37,5 +37,15 @@ class Conexion
       echo json_encode(['msg' => 'Error de conexión a la base de datos: ' . $e->getMessage()]);
       exit;
     }
+  }
+
+  public static function obtenerParametros(): array
+  {
+    return [
+      'host' => 'localhost',
+      'dbname' => 'escuela',
+      'username' => 'root',
+      'password' => '',
+    ];
   }
 }

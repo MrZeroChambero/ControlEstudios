@@ -15,7 +15,6 @@ import {
 import {
   obtenerGestionDocentes,
   asignarDocenteTitular,
-  eliminarDocenteTitular,
   asignarEspecialista,
   eliminarEspecialista,
 } from "../../api/gestionAulasService";
@@ -252,6 +251,7 @@ export const GestionGradosSecciones = () => {
         "success"
       );
     } catch (error) {
+      console.error("Activar año escolar", error);
       Swal.fire(
         "Error",
         "Ocurrio un error al intentar activar el anio escolar.",
@@ -712,39 +712,6 @@ export const GestionGradosSecciones = () => {
         );
       }
       throw err;
-    }
-  };
-
-  const quitarDocenteTitular = async (aula) => {
-    if (!aula?.id) {
-      return;
-    }
-
-    const confirmacion = await Swal.fire({
-      title: "¿Quitar docente titular?",
-      text: "La asignacion para esta aula se eliminara.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Si, quitar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6b7280",
-    });
-
-    if (!confirmacion.isConfirmed) {
-      return;
-    }
-
-    try {
-      const datos = await eliminarDocenteTitular(aula.id);
-      setResumen(datos ?? crearResumenVacio());
-      Swal.fire("Hecho", "Docente titular removido correctamente.", "success");
-    } catch (err) {
-      Swal.fire(
-        "Error",
-        err?.message ?? "No fue posible quitar al docente titular.",
-        "error"
-      );
     }
   };
 

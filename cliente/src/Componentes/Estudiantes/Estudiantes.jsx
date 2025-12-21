@@ -54,8 +54,8 @@ export const Estudiantes = () => {
     });
   };
 
-  const openModal = (est = null) => {
-    setCurrentEstudiante(est);
+  const openCreateModal = () => {
+    setCurrentEstudiante(null);
     setIsModalOpen(true);
   };
 
@@ -84,7 +84,24 @@ export const Estudiantes = () => {
   };
 
   const handleView = (est) => openViewModal(est);
-  const handleEdit = (est) => openModal(est);
+  const handleEdit = async (est) => {
+    if (!est) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const data = await obtenerEstudianteCompleto(
+        est.id_estudiante ?? est.id,
+        Swal
+      );
+      if (data) {
+        setCurrentEstudiante(data);
+        setIsModalOpen(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSuccess = () => {
     cargarDatos();
@@ -97,7 +114,7 @@ export const Estudiantes = () => {
         <div className={estudiantesLayout.header}>
           <h2 className={estudiantesLayout.title}>Gestión de Estudiantes</h2>
           <button
-            onClick={() => openModal()}
+            onClick={openCreateModal}
             className={estudiantesLayout.addButton}
           >
             <FaPlus className={contenidosIconClasses.base} />

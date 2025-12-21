@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import {
   aulasLayout,
@@ -49,15 +49,15 @@ export const Aulas = () => {
 
   const hayAnioDisponible = useMemo(() => anio !== null, [anio]);
 
-  const actualizarEstadoResumen = (datos) => {
+  const actualizarEstadoResumen = useCallback((datos) => {
     const gradosRespuesta = datos?.grados ?? [];
     setAnio(datos?.anio ?? null);
     setGrados(gradosRespuesta);
     setAulas(datos?.aulas ?? []);
     setConfiguracion(construirConfiguracionInicial(gradosRespuesta));
-  };
+  }, []);
 
-  const cargarResumen = async () => {
+  const cargarResumen = useCallback(async () => {
     setIsLoading(true);
     const respuesta = await obtenerResumenAulas();
 
@@ -69,11 +69,11 @@ export const Aulas = () => {
 
     actualizarEstadoResumen(respuesta.data);
     setIsLoading(false);
-  };
+  }, [actualizarEstadoResumen]);
 
   useEffect(() => {
     cargarResumen();
-  }, []);
+  }, [cargarResumen]);
 
   const manejarCambioConfiguracion = (grado, valor) => {
     setConfiguracion((previo) => ({

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-12-2025 a las 17:21:33
+-- Tiempo de generación: 12-12-2025 a las 16:57:35
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -150,7 +150,7 @@ CREATE TABLE `anios_escolares` (
 --
 
 INSERT INTO `anios_escolares` (`id_anio_escolar`, `fecha_inicio`, `fecha_fin`, `limite_inscripcion`, `estado`) VALUES
-(1, '2025-09-01', '2026-07-20', '2025-09-01', 'activo');
+(1, '2025-09-01', '2026-07-20', '2026-05-13', 'activo');
 
 -- --------------------------------------------------------
 
@@ -250,7 +250,7 @@ INSERT INTO `aula` (`id_aula`, `fk_anio_escolar`, `fk_grado_seccion`, `cupos`, `
 (5, 1, 13, 37, 'activo'),
 (6, 1, 16, 37, 'activo'),
 (7, 1, 2, 37, 'activo'),
-(8, 1, 3, 37, 'inactivo');
+(8, 1, 3, 37, 'activo');
 
 -- --------------------------------------------------------
 
@@ -267,6 +267,29 @@ CREATE TABLE `bloqueos` (
   `fecha_ultimo_bloqueo` datetime NOT NULL,
   `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `bloqueos_ip`
+--
+
+CREATE TABLE `bloqueos_ip` (
+  `id_bloqueo_ip` int(11) NOT NULL,
+  `ip_hash` char(64) NOT NULL,
+  `intentos` int(3) NOT NULL,
+  `fecha_desbloqueo` datetime NOT NULL,
+  `bloqueos_seguidos` int(3) NOT NULL,
+  `fecha_ultimo_bloqueo` datetime NOT NULL,
+  `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `bloqueos_ip`
+--
+
+INSERT INTO `bloqueos_ip` (`id_bloqueo_ip`, `ip_hash`, `intentos`, `fecha_desbloqueo`, `bloqueos_seguidos`, `fecha_ultimo_bloqueo`, `tipo_bloqueo`) VALUES
+(1, 'eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3', 0, '2025-12-11 19:24:37', 1, '2025-12-11 19:19:37', 'preguntas_de_seguridad');
 
 -- --------------------------------------------------------
 
@@ -510,26 +533,11 @@ CREATE TABLE `contenido_indicador` (
 CREATE TABLE `documentos_academicos` (
   `id_documento` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
-  `tipo_documento` enum('Tarjeta Vacunación','Carta Residencia','Partida Nacimiento','Constancia Act. Extracurricular','Boleta','Constancia Prosecución','Certificado Aprendizaje') NOT NULL,
-  `grado` enum('Educ. Inicial','Primero','Segundo','Tercero','Cuarto','Quinto','Sexto') DEFAULT NULL,
+  `tipo_documento` enum('Tarjeta Vacunación','Carta Residencia','Partida Nacimiento','Boleta','Constancia Prosecución','Certificado Aprendizaje') NOT NULL,
+  `grado` enum('Educ. Inicial','1','2','3','4','5','6','') DEFAULT NULL,
   `entregado` enum('si','no') NOT NULL DEFAULT 'no',
   `observaciones` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `documentos_academicos`
---
-
-INSERT INTO `documentos_academicos` (`id_documento`, `fk_estudiante`, `tipo_documento`, `grado`, `entregado`, `observaciones`) VALUES
-(3, 48, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
-(4, 28, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
-(5, 28, 'Tarjeta Vacunación', 'Primero', 'si', 'Completa'),
-(6, 30, 'Partida Nacimiento', 'Tercero', 'si', 'Copia legalizada'),
-(7, 32, 'Carta Residencia', 'Quinto', 'si', 'Con sellos correspondientes'),
-(8, 34, 'Constancia Act. Extracurricular', 'Segundo', 'no', 'Pendiente de entrega'),
-(9, 39, 'Boleta', 'Cuarto', 'si', 'Año anterior'),
-(10, 42, 'Certificado Aprendizaje', 'Sexto', 'si', 'Promovido'),
-(11, 47, 'Constancia Prosecución', 'Quinto', 'si', 'Para trámite bancario');
 
 -- --------------------------------------------------------
 
@@ -829,7 +837,130 @@ INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk
 (94, 2, 15, 13, 1, 'aula', NULL),
 (95, 2, 15, 11, 3, 'aula', NULL),
 (96, 2, 15, 12, 3, 'aula', NULL),
-(97, 2, 15, 13, 3, 'aula', NULL);
+(97, 2, 15, 13, 3, 'aula', NULL),
+(98, 3, 17, 11, 4, 'aula', NULL),
+(99, 3, 17, 12, 4, 'aula', NULL),
+(100, 3, 17, 13, 4, 'aula', NULL),
+(101, 3, 17, 11, 5, 'aula', NULL),
+(102, 3, 17, 12, 5, 'aula', NULL),
+(103, 3, 17, 13, 5, 'aula', NULL),
+(104, 3, 17, 11, 106, 'aula', NULL),
+(105, 3, 17, 12, 106, 'aula', NULL),
+(106, 3, 17, 13, 106, 'aula', NULL),
+(107, 3, 17, 11, 6, 'aula', NULL),
+(108, 3, 17, 12, 6, 'aula', NULL),
+(109, 3, 17, 13, 6, 'aula', NULL),
+(110, 3, 17, 11, 1, 'aula', NULL),
+(111, 3, 17, 12, 1, 'aula', NULL),
+(112, 3, 17, 13, 1, 'aula', NULL),
+(113, 3, 17, 11, 3, 'aula', NULL),
+(114, 3, 17, 12, 3, 'aula', NULL),
+(115, 3, 17, 13, 3, 'aula', NULL),
+(116, 4, 21, 11, 4, 'aula', NULL),
+(117, 4, 21, 12, 4, 'aula', NULL),
+(118, 4, 21, 13, 4, 'aula', NULL),
+(119, 4, 21, 11, 5, 'aula', NULL),
+(120, 4, 21, 12, 5, 'aula', NULL),
+(121, 4, 21, 13, 5, 'aula', NULL),
+(122, 4, 21, 11, 106, 'aula', NULL),
+(123, 4, 21, 12, 106, 'aula', NULL),
+(124, 4, 21, 13, 106, 'aula', NULL),
+(125, 4, 21, 11, 6, 'aula', NULL),
+(126, 4, 21, 12, 6, 'aula', NULL),
+(127, 4, 21, 13, 6, 'aula', NULL),
+(128, 4, 21, 11, 1, 'aula', NULL),
+(129, 4, 21, 12, 1, 'aula', NULL),
+(130, 4, 21, 13, 1, 'aula', NULL),
+(131, 4, 21, 11, 3, 'aula', NULL),
+(132, 4, 21, 12, 3, 'aula', NULL),
+(133, 4, 21, 13, 3, 'aula', NULL),
+(134, 5, 35, 11, 4, 'aula', NULL),
+(135, 5, 35, 12, 4, 'aula', NULL),
+(136, 5, 35, 13, 4, 'aula', NULL),
+(137, 5, 35, 11, 5, 'aula', NULL),
+(138, 5, 35, 12, 5, 'aula', NULL),
+(139, 5, 35, 13, 5, 'aula', NULL),
+(140, 5, 35, 11, 106, 'aula', NULL),
+(141, 5, 35, 12, 106, 'aula', NULL),
+(142, 5, 35, 13, 106, 'aula', NULL),
+(143, 5, 35, 11, 6, 'aula', NULL),
+(144, 5, 35, 12, 6, 'aula', NULL),
+(145, 5, 35, 13, 6, 'aula', NULL),
+(146, 5, 35, 11, 1, 'aula', NULL),
+(147, 5, 35, 12, 1, 'aula', NULL),
+(148, 5, 35, 13, 1, 'aula', NULL),
+(149, 5, 35, 11, 3, 'aula', NULL),
+(150, 5, 35, 12, 3, 'aula', NULL),
+(151, 5, 35, 13, 3, 'aula', NULL),
+(152, 6, 38, 11, 4, 'aula', NULL),
+(153, 6, 38, 12, 4, 'aula', NULL),
+(154, 6, 38, 13, 4, 'aula', NULL),
+(155, 6, 38, 11, 5, 'aula', NULL),
+(156, 6, 38, 12, 5, 'aula', NULL),
+(157, 6, 38, 13, 5, 'aula', NULL),
+(158, 6, 38, 11, 106, 'aula', NULL),
+(159, 6, 38, 12, 106, 'aula', NULL),
+(160, 6, 38, 13, 106, 'aula', NULL),
+(161, 6, 38, 11, 6, 'aula', NULL),
+(162, 6, 38, 12, 6, 'aula', NULL),
+(163, 6, 38, 13, 6, 'aula', NULL),
+(164, 6, 38, 11, 1, 'aula', NULL),
+(165, 6, 38, 12, 1, 'aula', NULL),
+(166, 6, 38, 13, 1, 'aula', NULL),
+(167, 6, 38, 11, 3, 'aula', NULL),
+(168, 6, 38, 12, 3, 'aula', NULL),
+(169, 6, 38, 13, 3, 'aula', NULL),
+(170, 7, 30, 11, 4, 'aula', NULL),
+(171, 7, 30, 12, 4, 'aula', NULL),
+(172, 7, 30, 13, 4, 'aula', NULL),
+(173, 7, 30, 11, 5, 'aula', NULL),
+(174, 7, 30, 12, 5, 'aula', NULL),
+(175, 7, 30, 13, 5, 'aula', NULL),
+(176, 7, 30, 11, 106, 'aula', NULL),
+(177, 7, 30, 12, 106, 'aula', NULL),
+(178, 7, 30, 13, 106, 'aula', NULL),
+(179, 7, 30, 11, 6, 'aula', NULL),
+(180, 7, 30, 12, 6, 'aula', NULL),
+(181, 7, 30, 13, 6, 'aula', NULL),
+(182, 7, 30, 11, 1, 'aula', NULL),
+(183, 7, 30, 12, 1, 'aula', NULL),
+(184, 7, 30, 13, 1, 'aula', NULL),
+(185, 7, 30, 11, 3, 'aula', NULL),
+(186, 7, 30, 12, 3, 'aula', NULL),
+(187, 7, 30, 13, 3, 'aula', NULL),
+(188, 8, 39, 11, 4, 'aula', NULL),
+(189, 8, 39, 12, 4, 'aula', NULL),
+(190, 8, 39, 13, 4, 'aula', NULL),
+(191, 8, 39, 11, 5, 'aula', NULL),
+(192, 8, 39, 12, 5, 'aula', NULL),
+(193, 8, 39, 13, 5, 'aula', NULL),
+(194, 8, 39, 11, 106, 'aula', NULL),
+(195, 8, 39, 12, 106, 'aula', NULL),
+(196, 8, 39, 13, 106, 'aula', NULL),
+(197, 8, 39, 11, 6, 'aula', NULL),
+(198, 8, 39, 12, 6, 'aula', NULL),
+(199, 8, 39, 13, 6, 'aula', NULL),
+(200, 8, 39, 11, 1, 'aula', NULL),
+(201, 8, 39, 12, 1, 'aula', NULL),
+(202, 8, 39, 13, 1, 'aula', NULL),
+(203, 8, 39, 11, 3, 'aula', NULL),
+(204, 8, 39, 12, 3, 'aula', NULL),
+(205, 8, 39, 13, 3, 'aula', NULL),
+(206, 1, 1, 11, 10, 'Especialista', NULL),
+(207, 1, 1, 12, 10, 'Especialista', NULL),
+(208, 1, 1, 13, 10, 'Especialista', NULL),
+(209, 1, 1, 11, 8, 'Especialista', NULL),
+(210, 1, 1, 12, 8, 'Especialista', NULL),
+(211, 1, 1, 13, 8, 'Especialista', NULL),
+(212, 1, 18, 11, 9, 'Especialista', NULL),
+(213, 1, 18, 12, 9, 'Especialista', NULL),
+(214, 1, 18, 13, 9, 'Especialista', NULL),
+(215, 1, 16, 11, 11, 'Especialista', NULL),
+(216, 1, 16, 12, 11, 'Especialista', NULL),
+(217, 1, 16, 13, 11, 'Especialista', NULL),
+(218, 1, 18, 11, 12, 'Especialista', NULL),
+(219, 1, 18, 12, 12, 'Especialista', NULL),
+(220, 1, 18, 13, 12, 'Especialista', NULL);
 
 -- --------------------------------------------------------
 
@@ -938,8 +1069,15 @@ CREATE TABLE `inscripciones` (
   `tareas_comunitarias` enum('si','no') NOT NULL,
   `participar_comite` enum('si','no') NOT NULL,
   `detalles_participacion` varchar(60) NOT NULL,
-  `tipo_inscripcion` enum('regular','nuevo_ingreso','traslado','educado_en_casa') NOT NULL DEFAULT 'regular'
+  `tipo_inscripcion` enum('regular','nuevo_ingreso','traslado','no_escolarizados') NOT NULL DEFAULT 'nuevo_ingreso'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `inscripciones`
+--
+
+INSERT INTO `inscripciones` (`id_inscripcion`, `fk_estudiante`, `fk_representante`, `fk_personal`, `fk_aula`, `fecha_inscripcion`, `vive_con`, `altura`, `talla_zapatos`, `talla_camisa`, `talla_pantalon`, `peso`, `estado_inscripcion`, `foto_estudiante`, `foto_representante`, `cedula_estudiante`, `cedula_representante`, `fecha_retiro`, `motivo_retiro`, `tipo_vivienda`, `zona_vivienda`, `tenencia_viviencia`, `ingreso_familiar`, `miembros_familia`, `tareas_comunitarias`, `participar_comite`, `detalles_participacion`, `tipo_inscripcion`) VALUES
+(1, 53, 15, 21, 4, '2025-12-11', 'su papa', 1.3, 40, 12, 29, 40, 'activo', 'si', 'si', 'si', 'si', NULL, NULL, 'casa', 'barrio', 'la debo', 150, 4, 'no', 'no', 'dssad', 'nuevo_ingreso');
 
 -- --------------------------------------------------------
 
@@ -1084,7 +1222,76 @@ INSERT INTO `parentesco` (`id_parentesco`, `fk_representante`, `fk_estudiante`, 
 (73, 14, 54, 'otro'),
 (74, 15, 55, 'otro'),
 (75, 16, 56, 'tio'),
-(76, 17, 57, 'abuela');
+(76, 17, 57, 'abuela'),
+(77, 10, 50, 'padre'),
+(78, 12, 51, 'padre'),
+(79, 16, 53, 'padre'),
+(80, 18, 54, 'padre'),
+(81, 10, 55, 'padre'),
+(82, 14, 57, 'padre'),
+(83, 16, 58, 'padre'),
+(84, 18, 59, 'padre'),
+(85, 10, 60, 'padre'),
+(86, 12, 61, 'padre'),
+(87, 14, 62, 'padre'),
+(88, 16, 63, 'padre'),
+(89, 18, 64, 'padre'),
+(90, 10, 65, 'padre'),
+(91, 12, 66, 'padre'),
+(92, 14, 67, 'padre'),
+(93, 16, 68, 'padre'),
+(94, 18, 69, 'padre'),
+(95, 10, 70, 'padre'),
+(96, 12, 71, 'padre'),
+(97, 14, 72, 'padre'),
+(98, 16, 73, 'padre'),
+(99, 18, 74, 'padre'),
+(100, 10, 75, 'padre'),
+(101, 12, 76, 'padre'),
+(102, 14, 77, 'padre'),
+(103, 16, 78, 'padre'),
+(104, 18, 79, 'padre'),
+(105, 10, 80, 'padre'),
+(106, 12, 81, 'padre'),
+(107, 14, 82, 'padre'),
+(108, 16, 83, 'padre'),
+(109, 18, 84, 'padre'),
+(110, 10, 85, 'padre'),
+(111, 12, 86, 'padre'),
+(140, 11, 50, 'madre'),
+(141, 15, 52, 'madre'),
+(142, 19, 54, 'madre'),
+(143, 13, 56, 'madre'),
+(144, 15, 57, 'madre'),
+(145, 17, 58, 'madre'),
+(146, 19, 59, 'madre'),
+(147, 11, 60, 'madre'),
+(148, 13, 61, 'madre'),
+(149, 15, 62, 'madre'),
+(150, 17, 63, 'madre'),
+(151, 19, 64, 'madre'),
+(152, 11, 65, 'madre'),
+(153, 13, 66, 'madre'),
+(154, 15, 67, 'madre'),
+(155, 17, 68, 'madre'),
+(156, 19, 69, 'madre'),
+(157, 11, 70, 'madre'),
+(158, 13, 71, 'madre'),
+(159, 15, 72, 'madre'),
+(160, 17, 73, 'madre'),
+(161, 19, 74, 'madre'),
+(162, 11, 75, 'madre'),
+(163, 13, 76, 'madre'),
+(164, 15, 77, 'madre'),
+(165, 17, 78, 'madre'),
+(166, 19, 79, 'madre'),
+(167, 11, 80, 'madre'),
+(168, 13, 81, 'madre'),
+(169, 15, 82, 'madre'),
+(170, 17, 83, 'madre'),
+(171, 19, 84, 'madre'),
+(172, 11, 85, 'madre'),
+(173, 13, 86, 'madre');
 
 -- --------------------------------------------------------
 
@@ -1147,7 +1354,20 @@ INSERT INTO `personal` (`id_personal`, `fk_persona`, `fk_funcion`, `fecha_contra
 (16, 91, 5, '2018-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Cristiana', 0, 0, 'activo', 15, 'ESP-001'),
 (17, 101, 2, '2018-09-01', 'Licenciatura en Educación Integral', 44, NULL, 'Católica', 1, 1, 'activo', 1, 'DOC-003'),
 (18, 102, 12, '2020-09-01', 'Licenciatura en Idiomas Modernos', 36, NULL, 'Cristiana', 0, 0, 'activo', 7, 'ESP-002'),
-(19, 103, 5, '2019-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Sin preferencia', 0, 2, 'activo', 15, 'ESP-003');
+(19, 103, 5, '2019-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Sin preferencia', 0, 2, 'activo', 15, 'ESP-003'),
+(20, 203, 2, '2015-09-01', 'Licenciatura en Educación Integral', 44, 'J-12345678-9', 'Católica', 2, 0, 'activo', 1, 'DOC-101'),
+(21, 204, 2, '2010-09-01', 'Maestría en Educación', 44, 'J-23456789-0', 'Católico', 1, 2, 'activo', 1, 'DOC-102'),
+(22, 206, 2, '2015-09-01', 'Licenciatura en Educación Integral', 44, 'J-28000001-9', 'Católica', 2, 0, 'activo', 1, 'DOC-101'),
+(30, 213, 2, '2010-09-01', 'Licenciatura en Educación Integral', 44, 'J-32098765-1', 'Católica', 1, 1, 'activo', 1, 'DOC-008'),
+(31, 214, 2, '2008-09-01', 'Licenciatura en Educación Mención Primaria', 44, 'J-32109876-2', 'Cristiana Evangélica', 0, 2, 'activo', 1, 'DOC-009'),
+(32, 215, 2, '2012-09-01', 'Licenciatura en Educación Integral', 44, 'J-32210987-3', 'Católica', 2, 0, 'activo', 1, 'DOC-010'),
+(33, 216, 2, '2009-09-01', 'Licenciatura en Educación Mención Matemática', 44, 'J-32321098-4', 'Ateo', 1, 1, 'activo', 1, 'DOC-011'),
+(34, 217, 2, '2005-09-01', 'Licenciatura en Educación Mención Ciencias', 44, 'J-32432109-5', 'Católica', 3, 0, 'activo', 1, 'DOC-012'),
+(35, 218, 2, '2011-09-01', 'Licenciatura en Educación Integral', 44, 'J-32543210-6', 'Cristiana Evangélica', 0, 1, 'activo', 1, 'DOC-013'),
+(36, 219, 2, '2016-09-01', 'Licenciatura en Educación Preescolar', 44, 'J-32654321-7', 'Católica', 1, 0, 'activo', 1, 'DOC-014'),
+(37, 220, 2, '2013-09-01', 'Licenciatura en Educación Integral', 44, 'J-32765432-8', 'Sin preferencia', 2, 2, 'activo', 1, 'DOC-015'),
+(38, 221, 2, '2007-09-01', 'Licenciatura en Educación Mención Lengua', 44, 'J-32876543-9', 'Católica', 0, 3, 'activo', 1, 'DOC-016'),
+(39, 222, 2, '2014-09-01', 'Licenciatura en Educación Integral', 44, 'J-32987654-0', 'Cristiana Evangélica', 1, 1, 'activo', 1, 'DOC-017');
 
 -- --------------------------------------------------------
 
@@ -1241,7 +1461,20 @@ INSERT INTO `personas` (`id_persona`, `primer_nombre`, `segundo_nombre`, `primer
 (199, 'Benjamín', NULL, 'Díaz', 'Fernández', '2020-12-11', 'M', 'E10000027', 'Venezolana', 'Sector Los Olivos', '04144444444', NULL, 'estudiante', 'AB+', 'activo', NULL),
 (200, 'Julieta', NULL, 'Díaz', 'Fernández', '2014-12-11', 'F', 'E10000028', 'Venezolana', 'Sector Los Olivos', '04144444444', NULL, 'estudiante', 'AB+', 'activo', NULL),
 (201, 'Thiago', NULL, 'Morales', 'Torres', '2016-12-11', 'M', 'E10000029', 'Venezolana', 'Av. Libertador', '04145555555', NULL, 'estudiante', 'O-', 'activo', NULL),
-(202, 'Mía', NULL, 'Morales', 'Torres', '2018-12-11', 'F', 'E10000030', 'Venezolana', 'Av. Libertador', '04145555555', NULL, 'estudiante', 'O-', 'activo', NULL);
+(202, 'Mía', NULL, 'Morales', 'Torres', '2018-12-11', 'F', 'E10000030', 'Venezolana', 'Av. Libertador', '04145555555', NULL, 'estudiante', 'O-', 'activo', NULL),
+(203, 'María', 'Elena', 'Rodríguez', 'Pérez', '1985-03-15', 'F', '12345678', 'Venezolana', 'Av. Principal #123, Caracas', '04141234567', '02121234567', 'personal', 'A+', 'activo', 'maria.rodriguez@escuela.edu'),
+(204, 'Carlos', 'Alberto', 'González', 'Martínez', '1978-07-22', 'M', '23456789', 'Venezolana', 'Calle 10 #45, Caracas', '04142345678', '02122345678', 'personal', 'O+', 'activo', 'carlos.gonzalez@escuela.edu'),
+(206, 'María', 'Elena', 'Rodríguez', 'Pérez', '1985-03-15', 'F', '28000001', 'Venezolana', 'Av. Principal #123, Caracas', '04141234567', '02121234567', 'personal', 'A+', 'activo', 'maria.rodriguez@escuela.edu'),
+(213, 'Carmen', 'Elena', 'Rojas', 'Mendoza', '1983-08-12', 'F', 'V-12345678', 'Venezolana', 'Av. Bolívar, Edif. Las Torres, Apt 8B, Caracas', '04121234567', '02127778888', 'personal', 'O+', 'activo', 'carmen.rojas@escuela.edu.ve'),
+(214, 'Pedro', 'Luis', 'Gutiérrez', 'Pérez', '1979-11-05', 'M', 'V-13456789', 'Venezolana', 'Calle Los Manguitos, Quinta Sol, Caracas', '04241234567', NULL, 'personal', 'A+', 'activo', 'pedro.gutierrez@escuela.edu.ve'),
+(215, 'Lucía', 'María', 'Díaz', 'Fernández', '1986-03-22', 'F', 'V-14567890', 'Venezolana', 'Urb. Santa Rosa, Calle 3, Casa 15, Caracas', '04132345678', '02128887777', 'personal', 'B+', 'activo', 'lucia.diaz@escuela.edu.ve'),
+(216, 'Ramón', 'José', 'Castro', 'González', '1980-07-18', 'M', 'V-15678901', 'Venezolana', 'Sector El Valle, Av. Principal, Edif. Montecarlo, Apt 5C', '04243456789', NULL, 'personal', 'AB+', 'activo', 'ramon.castro@escuela.edu.ve'),
+(217, 'Teresa', 'Margarita', 'Vargas', 'Rodríguez', '1975-12-30', 'F', 'V-16789012', 'Venezolana', 'Urb. El Paraíso, Calle 10, Casa 8, Caracas', '04144567890', '02129996666', 'personal', 'O-', 'activo', 'teresa.vargas@escuela.edu.ve'),
+(218, 'Alberto', 'Jesús', 'Silva', 'Morales', '1982-04-15', 'M', 'V-17890123', 'Venezolana', 'Carrera 8, Residencias Los Pinos, Apt 12D', '04245678901', NULL, 'personal', 'A-', 'activo', 'alberto.silva@escuela.edu.ve'),
+(219, 'Rosa', 'Isabel', 'Paredes', 'Hernández', '1988-09-28', 'F', 'V-18901234', 'Venezolana', 'Av. Universidad, Edif. El Mirador, Apt 7A', '04146789012', '02121112222', 'personal', 'B-', 'activo', 'rosa.paredes@escuela.edu.ve'),
+(220, 'Miguel', 'Ángel', 'Torres', 'Sánchez', '1984-01-10', 'M', 'V-19012345', 'Venezolana', 'Calle Los Girasoles, Quinta La Esperanza, Caracas', '04247890123', NULL, 'personal', 'AB-', 'activo', 'miguel.torres@escuela.edu.ve'),
+(221, 'Gladys', 'Carolina', 'Mendoza', 'López', '1978-06-08', 'F', 'V-20123456', 'Venezolana', 'Sector Los Chorros, Av. Principal, Casa 22', '04148901234', '02123334444', 'personal', 'O+', 'activo', 'gladys.mendoza@escuela.edu.ve'),
+(222, 'Héctor', 'Manuel', 'Gómez', 'Ramírez', '1981-10-25', 'M', 'V-21234567', 'Venezolana', 'Urb. La Florida, Calle 5, Edif. Las Margaritas, Apt 9B', '04249012345', NULL, 'personal', 'A+', 'activo', 'hector.gomez@escuela.edu.ve');
 
 -- --------------------------------------------------------
 
@@ -1297,6 +1530,18 @@ CREATE TABLE `preguntas` (
   `respuesta` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `preguntas`
+--
+
+INSERT INTO `preguntas` (`id_preguntas`, `fk_usuario`, `pregunta`, `respuesta`) VALUES
+(1, 1, 'hola12345673', '$2y$10$D1LdBo2FHujXNU1qF.mmg.hQMsPF0ImLgzWs8z1FujxcFQHmlKqfq'),
+(2, 1, 'hola12345674', '$2y$10$V0Wvh6saWFxCVqhZpeAS7e2f/EoF70rUrOk0sW4XsY4GyECqrtGRi'),
+(3, 1, 'hola12345679', '$2y$10$vXPTxw13RizfVYj1LZRHqOPrRCuRhvcWSNXUS4aMKiMVd2WJGqpca'),
+(4, 43, 'hola12345678', '$2y$10$Lu5W4gkDLDrGN/7F1.vtROL/0oHltteeuISJjWKJCIP7IlKZK3dqW'),
+(5, 43, 'hola12345671', '$2y$10$V1PbtugPP8Md9PF4JDkKEOfDEzItT.BCJ0gspkQ/Qsmihh.y5FaI6'),
+(6, 43, 'hola12345677', '$2y$10$.Xx5Tc8zZfY1GUCDBW6c4uNyMN0r.8OVsNiDgNXQp6pid0Txu1CSW');
+
 -- --------------------------------------------------------
 
 --
@@ -1348,6 +1593,13 @@ CREATE TABLE `respaldos` (
   `fk_usuario` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `respaldos`
+--
+
+INSERT INTO `respaldos` (`id_respaldos`, `direccion`, `fecha`, `fk_usuario`) VALUES
+(1, '12-12-2025_04-55-35.sql', '2025-12-12', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -1367,7 +1619,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(38, 1, '98e51b280a73d7e63b857e8d5e88ab64e7981f819a8bc87a228128f6e37c8eb3', '2025-12-11', '2025-12-12');
+(47, 1, 'ec37337c2a9b774b3979a2dc8a28cf90b6b9e4b4065654cc9bd206ed849e04ee', '2025-12-12', '2025-12-13');
 
 -- --------------------------------------------------------
 
@@ -1491,7 +1743,10 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `fk_personal`, `nombre_usuario`, `contrasena_hash`, `estado`, `rol`, `ultimo_login`, `intentos_fallidos`, `fecha_bloqueo`) VALUES
-(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', '', NULL, 0, NULL);
+(1, 1, 'usuario', '$2y$10$9qQDpCH5pvRJ.dWocshMtONhwF4RhhLATmb3ZKEophNlsR6g7/S4S', 'activo', 'Director', NULL, 0, NULL),
+(43, 14, 'el pepe', '$2y$10$FwfiPBJcd/TUHpkol6zLMOlONM4z3BAkwnilk8AwnwYktpGKqcH52', 'activo', 'Director', NULL, 0, NULL),
+(44, 20, 'mrodriguez', '$2y$10$TuHashDeContraseñaAquí1', 'activo', 'Docente', NULL, 0, NULL),
+(45, 21, 'cgonzalez', '$2y$10$TuHashDeContraseñaAquí2', 'activo', 'Docente', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1625,6 +1880,13 @@ ALTER TABLE `aula`
 ALTER TABLE `bloqueos`
   ADD PRIMARY KEY (`id_bloqueo`),
   ADD KEY `fk_usuario` (`fk_usuario`);
+
+--
+-- Indices de la tabla `bloqueos_ip`
+--
+ALTER TABLE `bloqueos_ip`
+  ADD PRIMARY KEY (`id_bloqueo_ip`),
+  ADD UNIQUE KEY `idx_bloqueos_ip_hash_tipo` (`ip_hash`,`tipo_bloqueo`);
 
 --
 -- Indices de la tabla `cargos`
@@ -1951,7 +2213,13 @@ ALTER TABLE `aula`
 -- AUTO_INCREMENT de la tabla `bloqueos`
 --
 ALTER TABLE `bloqueos`
-  MODIFY `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `bloqueos_ip`
+--
+ALTER TABLE `bloqueos_ip`
+  MODIFY `id_bloqueo_ip` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `cargos`
@@ -2047,7 +2315,7 @@ ALTER TABLE `horarios`
 -- AUTO_INCREMENT de la tabla `imparte`
 --
 ALTER TABLE `imparte`
-  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=221;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
@@ -2059,7 +2327,7 @@ ALTER TABLE `indicadores`
 -- AUTO_INCREMENT de la tabla `inscripciones`
 --
 ALTER TABLE `inscripciones`
-  MODIFY `id_inscripcion` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_inscripcion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `lista_alergias`
@@ -2083,19 +2351,19 @@ ALTER TABLE `momentos`
 -- AUTO_INCREMENT de la tabla `parentesco`
 --
 ALTER TABLE `parentesco`
-  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id_parentesco` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
 --
 ALTER TABLE `personas`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=223;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones`
@@ -2119,7 +2387,7 @@ ALTER TABLE `plan_competencias`
 -- AUTO_INCREMENT de la tabla `preguntas`
 --
 ALTER TABLE `preguntas`
-  MODIFY `id_preguntas` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_preguntas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `representantes`
@@ -2131,13 +2399,13 @@ ALTER TABLE `representantes`
 -- AUTO_INCREMENT de la tabla `respaldos`
 --
 ALTER TABLE `respaldos`
-  MODIFY `id_respaldos` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_respaldos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
@@ -2149,7 +2417,7 @@ ALTER TABLE `temas`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT de la tabla `vacuna`

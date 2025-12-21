@@ -1,6 +1,7 @@
 import React from "react";
 import { formatearFechaCorta } from "../../../utilidades/formatoFechas";
 import { inscripcionLayout } from "../../EstilosCliente/EstilosClientes";
+import { textosInscripcion } from "../textosInscripcion";
 
 export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
   if (cargando) {
@@ -50,7 +51,9 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
     <div name="contenedor-precondiciones" className="space-y-4">
       <header className={inscripcionLayout.header}>
         <div name="precondiciones-descripcion">
-          <h2 className={inscripcionLayout.title}>Estado de precondiciones</h2>
+          <h2 className={inscripcionLayout.title}>
+            {textosInscripcion.tituloPrecondiciones}
+          </h2>
           <p className={inscripcionLayout.description}>
             {listo
               ? "Todo está configurado para iniciar la inscripción estudiantil."

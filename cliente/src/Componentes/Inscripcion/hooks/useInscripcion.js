@@ -41,7 +41,7 @@ const tiposInscripcion = [
   { valor: "regular", etiqueta: "Regular" },
   { valor: "nuevo_ingreso", etiqueta: "Nuevo ingreso" },
   { valor: "traslado", etiqueta: "Traslado" },
-  { valor: "educado_en_casa", etiqueta: "Educado en casa" },
+  { valor: "no_escolarizado", etiqueta: "No escolarizado" },
 ];
 
 const camposObligatoriosGenerales = [
@@ -85,7 +85,6 @@ const estadoInicialSeccionesFamilia = {
 };
 
 export const useInscripcion = () => {
-  const [pasoActual, setPasoActual] = useState(0);
   const [precondiciones, setPrecondiciones] = useState(null);
   const [cargandoPrecondiciones, setCargandoPrecondiciones] = useState(false);
 
@@ -105,15 +104,15 @@ export const useInscripcion = () => {
   const [tipoInscripcion, setTipoInscripcion] = useState(
     tiposInscripcion[0].valor
   );
-  const [datosFormulario, setDatosFormulario] = useState(datosIniciales);
+  const [datosFormulario, setDatosFormulario] = useState(() => ({
+    ...datosIniciales,
+  }));
   const [erroresFormulario, setErroresFormulario] = useState({});
   const [estadoSeccionesFamilia, setEstadoSeccionesFamilia] = useState(
     estadoInicialSeccionesFamilia
   );
   const [guardando, setGuardando] = useState(false);
   const [resultadoRegistro, setResultadoRegistro] = useState(null);
-
-  const totalPasos = 7;
 
   const cargarPrecondiciones = useCallback(async () => {
     setCargandoPrecondiciones(true);
@@ -160,17 +159,24 @@ export const useInscripcion = () => {
   const cargarRepresentantes = useCallback(async (estudianteId) => {
     if (!estudianteId) {
       setRepresentantes([]);
+      setCargandoRepresentantes(false);
       return;
     }
+
     setCargandoRepresentantes(true);
-    const respuesta = await listarRepresentantesPorEstudiante(
-      estudianteId,
-      Swal
-    );
-    setRepresentantes(
-      Array.isArray(respuesta?.representantes) ? respuesta.representantes : []
-    );
-    setCargandoRepresentantes(false);
+    try {
+      const respuesta = await listarRepresentantesPorEstudiante(
+        estudianteId,
+        Swal
+      );
+      setRepresentantes(
+        Array.isArray(respuesta?.representantes) ? respuesta.representantes : []
+      );
+    } catch {
+      setRepresentantes([]);
+    } finally {
+      setCargandoRepresentantes(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -185,17 +191,25 @@ export const useInscripcion = () => {
   }, [precondiciones, cargarEstudiantes, cargarAulas]);
 
   useEffect(() => {
-    if (pasoActual === 3 && estudianteSeleccionado) {
-      cargarRepresentantes(estudianteSeleccionado.id);
+    if (!estudianteSeleccionado?.id) {
+      setRepresentantes([]);
+      setRepresentanteSeleccionado(null);
+      return;
     }
-  }, [pasoActual, estudianteSeleccionado, cargarRepresentantes]);
+
+    setRepresentanteSeleccionado(null);
+    cargarRepresentantes(estudianteSeleccionado.id);
+  }, [estudianteSeleccionado, cargarRepresentantes]);
 
   const reiniciar = useCallback(() => {
-    setPasoActual(0);
+    setPrecondiciones(null);
+    setEstudiantes([]);
+    setAulas([]);
+    setRepresentantes([]);
     setEstudianteSeleccionado(null);
     setAulaSeleccionada(null);
     setRepresentanteSeleccionado(null);
-    setDatosFormulario(datosIniciales);
+    setDatosFormulario({ ...datosIniciales });
     setErroresFormulario({});
     setResultadoRegistro(null);
     setTipoInscripcion(tiposInscripcion[0].valor);
@@ -203,8 +217,30 @@ export const useInscripcion = () => {
     cargarPrecondiciones();
   }, [cargarPrecondiciones]);
 
+  const seleccionarEstudiante = useCallback((estudiante) => {
+    setEstudianteSeleccionado(estudiante || null);
+    setResultadoRegistro(null);
+  }, []);
+
+  const seleccionarAula = useCallback((aula) => {
+    setAulaSeleccionada(aula || null);
+    setResultadoRegistro(null);
+  }, []);
+
+  const seleccionarRepresentante = useCallback((representante) => {
+    setRepresentanteSeleccionado(representante || null);
+    setResultadoRegistro(null);
+  }, []);
+
   const actualizarDato = useCallback((campo, valor) => {
-    setDatosFormulario((prev) => ({ ...prev, [campo]: valor }));
+    setDatosFormulario((prev) => {
+      if (prev[campo] === valor) {
+        return prev;
+      }
+      return { ...prev, [campo]: valor };
+    });
+    setResultadoRegistro(null);
+
     setErroresFormulario((prev) => {
       if (!prev[campo]) {
         return prev;
@@ -230,210 +266,151 @@ export const useInscripcion = () => {
       ...prev,
       [campo]: prev[campo] === "si" ? "no" : "si",
     }));
+    setResultadoRegistro(null);
   }, []);
 
   const actualizarTipoInscripcion = useCallback((valor) => {
     setTipoInscripcion(valor);
+    setResultadoRegistro(null);
     setEstadoSeccionesFamilia((prev) => ({
       ...prev,
       tipo: valor ? "neutral" : "error",
     }));
   }, []);
 
-  const validarPasoActual = useCallback(() => {
-    switch (pasoActual) {
-      case 0:
-        if (!precondiciones?.listo) {
-          Swal.fire(
-            "Sistema no disponible",
-            "Debes completar los requisitos del año escolar antes de inscribir.",
-            "warning"
-          );
-          return false;
-        }
-        return true;
-      case 1:
-        if (!estudianteSeleccionado) {
-          Swal.fire(
-            "Selecciona un estudiante",
-            "Debes elegir un estudiante para continuar.",
-            "info"
-          );
-          return false;
-        }
-        return true;
-      case 2:
-        if (!aulaSeleccionada) {
-          Swal.fire(
-            "Selecciona la sección",
-            "Debes elegir un grado y sección con cupo disponible.",
-            "info"
-          );
-          return false;
-        }
-        return true;
-      case 3:
-        if (!representanteSeleccionado) {
-          Swal.fire(
-            "Selecciona un representante",
-            "El estudiante debe tener un representante autorizado para continuar.",
-            "info"
-          );
-          return false;
-        }
-        return true;
-      case 4: {
-        const nuevosErrores = {};
+  const validarDatosFamilia = useCallback(() => {
+    const nuevosErrores = {};
 
-        let generalesValidos = true;
-        camposObligatoriosGenerales.forEach((campo) => {
-          const valor = datosFormulario[campo];
-          if (valor === undefined || valor === null) {
-            nuevosErrores[campo] = "Este campo es obligatorio.";
-            generalesValidos = false;
-            return;
-          }
-          if (String(valor).trim() === "") {
-            nuevosErrores[campo] = "Este campo es obligatorio.";
-            generalesValidos = false;
-          }
-        });
-
-        let indicadoresValidos = true;
-        camposObligatoriosIndicadores.forEach((campo) => {
-          const valor = datosFormulario[campo];
-          if (
-            valor === undefined ||
-            valor === null ||
-            String(valor).trim() === ""
-          ) {
-            nuevosErrores[campo] = "Este campo es obligatorio.";
-            indicadoresValidos = false;
-            return;
-          }
-
-          const numero = Number(valor);
-          const esNumeroValido = !Number.isNaN(numero);
-          if (!esNumeroValido || numero < 0) {
-            nuevosErrores[campo] = "Debe ser un número válido.";
-            indicadoresValidos = false;
-          }
-          if (campo === "miembros_familia" && numero < 1) {
-            nuevosErrores[campo] = "Debe registrar al menos un miembro.";
-            indicadoresValidos = false;
-          }
-        });
-
-        const tipoValido = Boolean(tipoInscripcion);
-
-        const hayErrores =
-          !tipoValido ||
-          !generalesValidos ||
-          !indicadoresValidos ||
-          Object.keys(nuevosErrores).length > 0;
-
-        setErroresFormulario(hayErrores ? nuevosErrores : {});
-        setEstadoSeccionesFamilia({
-          tipo: tipoValido ? "success" : "error",
-          generales: generalesValidos ? "success" : "error",
-          indicadores: indicadoresValidos ? "success" : "error",
-        });
-
-        if (hayErrores) {
-          const seccionesPendientes = [];
-          if (!tipoValido) seccionesPendientes.push("Tipo de inscripción");
-          if (!generalesValidos)
-            seccionesPendientes.push("Datos generales del hogar");
-          if (!indicadoresValidos)
-            seccionesPendientes.push("Indicadores socioeconómicos");
-
-          const detalle =
-            seccionesPendientes.length > 0
-              ? `Completa o corrige: ${seccionesPendientes.join(", ")}.`
-              : "Revisa los campos resaltados en rojo.";
-
-          Swal.fire(
-            "Información incompleta",
-            `${detalle}\nLos campos obligatorios están resaltados para tu revisión.`,
-            "warning"
-          );
-          return false;
-        }
-
-        return true;
+    let generalesValidos = true;
+    camposObligatoriosGenerales.forEach((campo) => {
+      const valor = datosFormulario[campo];
+      if (valor === undefined || valor === null) {
+        nuevosErrores[campo] = "Este campo es obligatorio.";
+        generalesValidos = false;
+        return;
       }
-      default:
-        return true;
-    }
-  }, [
-    pasoActual,
-    precondiciones,
-    estudianteSeleccionado,
-    aulaSeleccionada,
-    representanteSeleccionado,
-    datosFormulario,
-    tipoInscripcion,
-  ]);
+      if (String(valor).trim() === "") {
+        nuevosErrores[campo] = "Este campo es obligatorio.";
+        generalesValidos = false;
+      }
+    });
 
-  const avanzar = useCallback(() => {
-    if (!validarPasoActual()) {
-      return;
-    }
-    setPasoActual((prev) => Math.min(prev + 1, totalPasos - 1));
-  }, [validarPasoActual]);
+    let indicadoresValidos = true;
+    camposObligatoriosIndicadores.forEach((campo) => {
+      const valor = datosFormulario[campo];
+      if (
+        valor === undefined ||
+        valor === null ||
+        String(valor).trim() === ""
+      ) {
+        nuevosErrores[campo] = "Este campo es obligatorio.";
+        indicadoresValidos = false;
+        return;
+      }
 
-  const retroceder = useCallback(() => {
-    setPasoActual((prev) => Math.max(prev - 1, 0));
-  }, []);
+      const numero = Number(valor);
+      const esNumeroValido = !Number.isNaN(numero);
+      if (!esNumeroValido || numero < 0) {
+        nuevosErrores[campo] = "Debe ser un número válido.";
+        indicadoresValidos = false;
+      }
+      if (campo === "miembros_familia" && numero < 1) {
+        nuevosErrores[campo] = "Debe registrar al menos un miembro.";
+        indicadoresValidos = false;
+      }
+    });
 
-  const puedeAvanzar = useMemo(() => {
-    if (pasoActual === totalPasos - 1) {
+    const tipoValido = Boolean(tipoInscripcion);
+
+    const hayErrores =
+      !tipoValido ||
+      !generalesValidos ||
+      !indicadoresValidos ||
+      Object.keys(nuevosErrores).length > 0;
+
+    setErroresFormulario(hayErrores ? nuevosErrores : {});
+    setEstadoSeccionesFamilia({
+      tipo: tipoValido ? "success" : "error",
+      generales: generalesValidos ? "success" : "error",
+      indicadores: indicadoresValidos ? "success" : "error",
+    });
+
+    if (hayErrores) {
+      const seccionesPendientes = [];
+      if (!tipoValido) seccionesPendientes.push("Tipo de inscripción");
+      if (!generalesValidos)
+        seccionesPendientes.push("Datos generales del hogar");
+      if (!indicadoresValidos)
+        seccionesPendientes.push("Indicadores socioeconómicos");
+
+      const detalle =
+        seccionesPendientes.length > 0
+          ? `Completa o corrige: ${seccionesPendientes.join(", ")}.`
+          : "Revisa los campos resaltados en rojo.";
+
+      Swal.fire(
+        "Información incompleta",
+        `${detalle}\nLos campos obligatorios están resaltados para tu revisión.`,
+        "warning"
+      );
+
       return false;
     }
-    switch (pasoActual) {
-      case 0:
-        return precondiciones?.listo ?? false;
-      case 1:
-        return Boolean(estudianteSeleccionado);
-      case 2:
-        return Boolean(aulaSeleccionada);
-      case 3:
-        return Boolean(representanteSeleccionado);
-      case 4: {
-        const tipoValido = Boolean(tipoInscripcion);
-        const generalesOk = camposObligatoriosGenerales.every((campo) => {
-          const valor = datosFormulario[campo];
-          return (
-            valor !== undefined && valor !== null && String(valor).trim() !== ""
-          );
-        });
-        const indicadoresOk = camposObligatoriosIndicadores.every((campo) => {
-          const valor = datosFormulario[campo];
-          return (
-            valor !== undefined && valor !== null && String(valor).trim() !== ""
-          );
-        });
-        return tipoValido && generalesOk && indicadoresOk;
-      }
-      case 5:
-        return true;
-      default:
-        return false;
+
+    return true;
+  }, [datosFormulario, tipoInscripcion]);
+
+  const validarFormulario = useCallback(() => {
+    if (!precondiciones?.listo) {
+      Swal.fire(
+        "Sistema no disponible",
+        "Debes completar los requisitos del año escolar antes de inscribir.",
+        "warning"
+      );
+      return false;
     }
+
+    if (!estudianteSeleccionado) {
+      Swal.fire(
+        "Selecciona un estudiante",
+        "Debes elegir un estudiante para continuar.",
+        "info"
+      );
+      return false;
+    }
+
+    if (!aulaSeleccionada) {
+      Swal.fire(
+        "Selecciona la sección",
+        "Debes elegir un grado y sección con cupo disponible.",
+        "info"
+      );
+      return false;
+    }
+
+    if (!representanteSeleccionado) {
+      Swal.fire(
+        "Selecciona un representante",
+        "El estudiante debe tener un representante autorizado para continuar.",
+        "info"
+      );
+      return false;
+    }
+
+    return validarDatosFamilia();
   }, [
-    pasoActual,
     precondiciones,
     estudianteSeleccionado,
     aulaSeleccionada,
     representanteSeleccionado,
-    datosFormulario,
-    tipoInscripcion,
+    validarDatosFamilia,
   ]);
 
   const guardarInscripcion = useCallback(async () => {
-    if (!validarPasoActual()) {
+    if (!validarFormulario()) {
       return;
     }
+
     if (
       !estudianteSeleccionado ||
       !aulaSeleccionada ||
@@ -461,10 +438,9 @@ export const useInscripcion = () => {
 
     if (respuesta) {
       setResultadoRegistro(respuesta?.inscripcion ?? respuesta);
-      setPasoActual(totalPasos - 1);
     }
   }, [
-    validarPasoActual,
+    validarFormulario,
     estudianteSeleccionado,
     aulaSeleccionada,
     representanteSeleccionado,
@@ -498,11 +474,6 @@ export const useInscripcion = () => {
   ]);
 
   return {
-    pasoActual,
-    totalPasos,
-    puedeAvanzar,
-    avanzar,
-    retroceder,
     guardarInscripcion,
     guardando,
     reiniciar,
@@ -513,17 +484,17 @@ export const useInscripcion = () => {
     estudiantes,
     cargandoEstudiantes,
     estudianteSeleccionado,
-    setEstudianteSeleccionado,
+    seleccionarEstudiante,
 
     aulas,
     cargandoAulas,
     aulaSeleccionada,
-    setAulaSeleccionada,
+    seleccionarAula,
 
     representantes,
     cargandoRepresentantes,
     representanteSeleccionado,
-    setRepresentanteSeleccionado,
+    seleccionarRepresentante,
 
     datosFormulario,
     actualizarDato,
