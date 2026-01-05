@@ -41,11 +41,17 @@ class Conexion
 
   public static function obtenerParametros(): array
   {
+    // Allow overriding via environment variables for Docker / CI
+    $envHost = getenv('DB_HOST');
+    $envName = getenv('DB_NAME') ?: getenv('DB_DATABASE');
+    $envUser = getenv('DB_USER') ?: getenv('DB_USERNAME');
+    $envPass = getenv('DB_PASS') ?: getenv('DB_PASSWORD');
+
     return [
-      'host' => 'localhost',
-      'dbname' => 'escuela',
-      'username' => 'root',
-      'password' => '',
+      'host' => $envHost ?: 'localhost',
+      'dbname' => $envName ?: 'escuela',
+      'username' => $envUser ?: 'root',
+      'password' => $envPass ?: '',
     ];
   }
 }
