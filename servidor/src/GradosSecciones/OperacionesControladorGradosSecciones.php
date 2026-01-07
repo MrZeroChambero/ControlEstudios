@@ -11,7 +11,10 @@ trait OperacionesControladorGradosSecciones
   {
     try {
       $pdo = Conexion::obtener();
-      $datos = self::consultarTodosLosGradosSecciones($pdo);
+      $filtros = $this->obtenerFiltrosListadoGradosSecciones();
+      $datos = empty($filtros)
+        ? self::consultarTodosLosGradosSecciones($pdo)
+        : self::consultarGradosSeccionesPorFiltro($pdo, $filtros);
       header('Content-Type: application/json');
       echo json_encode(['back' => true, 'data' => $datos, 'message' => 'Grados y secciones obtenidos exitosamente.']);
     } catch (Exception $e) {

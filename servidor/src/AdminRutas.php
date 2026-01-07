@@ -94,6 +94,65 @@ function registrarTodasLasRutas(): Router
     });
   };
 
+  // Wrapper para mapear rutas que además requieran un rol/nivel de usuario específico.
+  // Uso: $mapAuthenticatedRole('GET', '/ruta', $handler, ['Director', 'Admin']);
+  $mapAuthenticatedRole = function (
+    string $method,
+    string $route,
+    callable $target,
+    array $allowedRoles = []
+  ) use ($router, $authMiddleware) {
+    $router->map($method, $route, function (...$params) use ($authMiddleware, $target, $allowedRoles) {
+      // Valida sesión básica
+      $authMiddleware();
+
+      // Obtener usuario nuevamente para comprobar rol (evita depender de estado global)
+      try {
+        $hash = $_COOKIE['session_token'] ?? null;
+        if (!$hash) {
+          http_response_code(403);
+          echo json_encode([
+            'back' => false,
+            'blocked' => true,
+            'msg' => 'Acceso bloqueado: credenciales requeridas.'
+          ], JSON_UNESCAPED_UNICODE);
+          return;
+        }
+
+        $pdo = \Micodigo\Config\Conexion::obtener();
+        $login = new \Micodigo\Login\Login($pdo);
+        $usuario = $login->obtenerUsuarioPorHash($hash);
+
+        $rolUsuario = null;
+        if (is_array($usuario)) {
+          // intentar varios campos posibles
+          $rolUsuario = $usuario['rol'] ?? $usuario['nivel'] ?? $usuario['nivel_acceso'] ?? null;
+        }
+
+        if (!empty($allowedRoles) && !in_array($rolUsuario, $allowedRoles, true)) {
+          http_response_code(403);
+          echo json_encode([
+            'back' => false,
+            'blocked' => true,
+            'msg' => 'Acceso bloqueado: nivel de usuario insuficiente.'
+          ], JSON_UNESCAPED_UNICODE);
+          return;
+        }
+
+        // Llamar handler original
+        call_user_func_array($target, $params);
+      } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+          'back' => false,
+          'blocked' => true,
+          'msg' => 'Error del servidor al validar el rol de usuario.'
+        ], JSON_UNESCAPED_UNICODE);
+        return;
+      }
+    });
+  };
+
   // Incluye y registra las rutas de autenticación
   require_once __DIR__ . '/Login/RutasLogin.php';
   registrarRutasLogin($router);
@@ -217,6 +276,10 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de horarios
   require_once __DIR__ . '/Horarios/RutasHorarios.php';
   registrarRutasHorarios($router, $mapAuthenticated);
+
+  // Incluye y registra las rutas de planificación académica
+  require_once __DIR__ . '/PlanificacionAcademica/RutasPlanificacionAcademica.php';
+  registrarRutasPlanificacionAcademica($router, $mapAuthenticated);
 
   return $router;
 }

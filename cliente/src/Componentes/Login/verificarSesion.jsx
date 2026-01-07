@@ -31,6 +31,16 @@ export const verificarSesion = async (navigate) => {
           });
           break;
         case 401: // Unauthorized
+          // Si el servidor indica que no hay sesión activa, no mostrar alerta
+          if (
+            error.response.data &&
+            typeof error.response.data.msg === "string" &&
+            error.response.data.msg.trim() === "No hay sesión activa."
+          ) {
+            // Silencioso: usuario simplemente no tiene sesión
+            return;
+          }
+
           Swal.fire({
             icon: "error",
             title: "Credenciales incorrectas",
@@ -61,7 +71,7 @@ export const verificarSesion = async (navigate) => {
       Swal.fire({
         icon: "error",
         title: "Error de Conexión",
-        text: "No se pudo conectar con el servidor. Verifica que el servidor (XAMPP) esté en ejecución y que la URL sea correcta.",
+        text: "El servidor está fuera de servicio.",
       });
     } else {
       // Algo más causó el error

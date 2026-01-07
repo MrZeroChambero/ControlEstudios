@@ -21,7 +21,7 @@ const initialFormState = {
 export const RecuperarClave = () => {
   const [paso, setPaso] = useState("usuario");
   const [form, setForm] = useState(initialFormState);
-  const [preguntas, setPreguntas] = useState([]);
+  const [preguntaActiva, setPreguntaActiva] = useState(null);
   const [usuarioObjetivo, setUsuarioObjetivo] = useState(null);
   const [infoIntentos, setInfoIntentos] = useState(null);
   const navigate = useNavigate();
@@ -45,24 +45,23 @@ export const RecuperarClave = () => {
       const respuesta = await iniciarRecuperacionClave(nombreUsuario);
       if (respuesta?.back && respuesta?.data) {
         setInfoIntentos(null);
-        const preguntasRecibidas = Array.isArray(respuesta.data.preguntas)
-          ? respuesta.data.preguntas
-          : [];
+        const preguntaServidor =
+          respuesta.data.pregunta || respuesta.data.pregunta_actual;
 
-        if (preguntasRecibidas.length < 3) {
+        if (!preguntaServidor?.id) {
           Swal.fire(
-            "Sin preguntas",
-            "El usuario no tiene suficientes preguntas registradas. Contacta a un director para que las agregue.",
+            "Sin pregunta",
+            "El servidor no envió una pregunta válida. Intenta nuevamente más tarde.",
             "info"
           );
           return;
         }
 
         setUsuarioObjetivo(respuesta.data.usuario);
-        setPreguntas(preguntasRecibidas);
+        setPreguntaActiva(preguntaServidor);
         setForm((prev) => ({
           ...prev,
-          preguntaSeleccionada: preguntasRecibidas[0]?.id ?? "",
+          preguntaSeleccionada: preguntaServidor.id,
           respuesta: "",
           nuevaContrasena: "",
           confirmarContrasena: "",
@@ -144,7 +143,7 @@ export const RecuperarClave = () => {
         setInfoIntentos(null);
         Swal.fire("Exito", respuesta.message, "success").then(() => {
           setForm(initialFormState);
-          setPreguntas([]);
+          setPreguntaActiva(null);
           setPaso("usuario");
           setUsuarioObjetivo(null);
           navigate("/Login");
@@ -177,7 +176,7 @@ export const RecuperarClave = () => {
 
   const reiniciarProceso = () => {
     setForm(initialFormState);
-    setPreguntas([]);
+    setPreguntaActiva(null);
     setPaso("usuario");
     setUsuarioObjetivo(null);
     setInfoIntentos(null);
@@ -254,19 +253,9 @@ export const RecuperarClave = () => {
               <label className="block text-sm font-semibold text-slate-700">
                 Pregunta de seguridad
               </label>
-              <select
-                value={form.preguntaSeleccionada}
-                onChange={(e) =>
-                  actualizarCampo("preguntaSeleccionada", e.target.value)
-                }
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                {preguntas.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.pregunta}
-                  </option>
-                ))}
-              </select>
+              <div className="mt-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm">
+                {preguntaActiva?.pregunta || "Sin pregunta disponible."}
+              </div>
             </div>
 
             <div>

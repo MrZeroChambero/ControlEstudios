@@ -88,7 +88,7 @@ export const Solicitud = async (
       Swal.fire({
         icon: "error",
         title: "Error de Conexión",
-        text: "No se pudo conectar con el servidor. Verifica que el servidor (XAMPP) esté en ejecución y que la URL sea correcta.",
+        text: "El servidor está fuera de servicio.",
       });
     } else {
       onAttemptUpdate?.(null);

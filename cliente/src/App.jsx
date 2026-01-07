@@ -26,6 +26,7 @@ import Inscripcion from "./Componentes/Inscripcion/inscripcion.jsx";
 import { RecuperarClave } from "./Componentes/RecuperarClave/RecuperarClave.jsx";
 import Respaldo from "./Componentes/Respaldo/Respaldo.jsx";
 import { Horarios } from "./Componentes/Horarios/Horarios.jsx";
+import { PlanificacionAcademica } from "./Componentes/PlanificacionAcademica/PlanificacionAcademica.jsx";
 
 function App() {
   return (
@@ -52,6 +53,10 @@ function App() {
       <Route path="Inscripcion" element={<Inscripcion />} />
       <Route path="respaldos" element={<Respaldo />} />
       <Route path="Horarios" element={<Horarios />} />
+      <Route
+        path="planificacion-academica"
+        element={<PlanificacionAcademica />}
+      />
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
@@ -59,6 +64,10 @@ function App() {
       <Route path="/server-error" element={<ServerErrorPage />} />
       <Route path="/personas" element={<Personas />} />
       <Route path="/usuarios" element={<Usuarios />} />
+      <Route
+        path="/planificacion-academica"
+        element={<PlanificacionAcademica />}
+      />
 
       {/* Aquí puedes agregar más rutas */}
     </Routes>

@@ -68,6 +68,12 @@ export const AdminRutas = () => {
         >
           Gestión de respaldos
         </button>
+        <button
+          onClick={() => handleNavigation("/planificacion-academica")}
+          className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          Planificación académica
+        </button>
       </div>
     </div>
   );

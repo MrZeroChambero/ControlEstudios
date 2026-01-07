@@ -78,7 +78,8 @@ class ControladoraPreguntasSeguridad
         return;
       }
 
-      $estadoBloqueo = $bloqueos->verificarBloqueo($pdo, (int) $resultado['usuario']['id_usuario'], Bloqueos::TIPO_PREGUNTAS);
+      $usuarioId = (int) $resultado['usuario']['id_usuario'];
+      $estadoBloqueo = $bloqueos->verificarBloqueo($pdo, $usuarioId, Bloqueos::TIPO_PREGUNTAS);
       if ($estadoBloqueo) {
         http_response_code(423);
         header('Content-Type: application/json');
@@ -90,6 +91,17 @@ class ControladoraPreguntasSeguridad
         return;
       }
 
+      $preguntaAleatoria = $servicio->obtenerPreguntaAleatoria($pdo, $usuarioId);
+      if (!$preguntaAleatoria) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+          'back' => false,
+          'message' => 'No fue posible seleccionar una pregunta de seguridad.',
+        ]);
+        return;
+      }
+
       $bloqueos->limpiarIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS);
 
       header('Content-Type: application/json');
@@ -97,10 +109,11 @@ class ControladoraPreguntasSeguridad
         'back' => true,
         'data' => [
           'usuario' => [
-            'id_usuario' => (int) $resultado['usuario']['id_usuario'],
+            'id_usuario' => $usuarioId,
             'nombre_usuario' => $resultado['usuario']['nombre_usuario'],
           ],
-          'preguntas' => $resultado['preguntas'],
+          'pregunta' => $preguntaAleatoria,
+          'total_preguntas' => count($resultado['preguntas']),
         ],
         'message' => 'Preguntas de seguridad disponibles.'
       ]);
