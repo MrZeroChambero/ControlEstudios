@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaFilter, FaSyncAlt, FaExchangeAlt, FaEye } from "react-icons/fa";
+import { FaExchangeAlt, FaEye, FaClone } from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
   listarPlanificaciones,
   cambiarEstadoPlanificacion,
   obtenerPlanificacion,
   obtenerAsignacionDocente,
+  crearPlanificacion,
 } from "../../api/planificacionesService";
 import { obtenerCatalogosPlanificacion } from "../../api/planificacionCatalogosService";
 import { PlanificacionDetallePanel } from "./PlanificacionDetallePanel";
+import { PlanificacionFormModal } from "./PlanificacionFormModal";
+import { EncabezadoPlanificacion } from "./componentes/EncabezadoPlanificacion";
+import { FiltrosPlanificacion } from "./componentes/FiltrosPlanificacion";
 
 const filtrosIniciales = {
   estado: "activo",
@@ -75,6 +79,19 @@ export const PlanificacionAcademica = () => {
     data: null,
     error: "",
   });
+  const [modalFormulario, setModalFormulario] = useState({
+    abierto: false,
+    modo: "crear",
+    inicial: null,
+  });
+  const [nivelUsuario, setNivelUsuario] = useState("");
+
+  useEffect(() => {
+    const storedNivel = localStorage.getItem("nivel");
+    if (storedNivel) {
+      setNivelUsuario(storedNivel);
+    }
+  }, []);
 
   const fetchPlanificaciones = useCallback(async () => {
     setIsLoading(true);
@@ -182,6 +199,25 @@ export const PlanificacionAcademica = () => {
     return { total, activos, individuales };
   }, [planificaciones]);
 
+  const contextoEditable = contexto?.editable === true;
+  const contextoMotivo = contexto?.motivo_bloqueo ?? null;
+  const puedeGestionarPlanificaciones = useMemo(
+    () => nivelUsuario === "Director" || nivelUsuario === "Docente",
+    [nivelUsuario]
+  );
+  const puedeCrearPlanificacion =
+    contextoEditable && puedeGestionarPlanificaciones;
+  const botonCrearTitulo = !puedeGestionarPlanificaciones
+    ? "Tu rol no tiene permisos para registrar planificaciones."
+    : !contextoEditable
+    ? contextoMotivo || "El contexto actual es de solo lectura."
+    : "Registrar una nueva planificación.";
+  const botonClonarTitulo = !puedeGestionarPlanificaciones
+    ? "Tu rol no tiene permisos para clonar planificaciones."
+    : !contextoEditable
+    ? contextoMotivo || "El contexto actual es de solo lectura."
+    : "Clonar planificación";
+
   const docentesMap = useMemo(
     () => crearMapaPorId(catalogos.personal),
     [catalogos.personal]
@@ -199,21 +235,87 @@ export const PlanificacionAcademica = () => {
     [catalogos.momentos]
   );
 
+  const contextoMomentoNombre = useMemo(() => {
+    if (!contexto?.momento) return null;
+    return (
+      contexto.momento.nombre ??
+      contexto.momento.momento_nombre ??
+      contexto.momento.nombre_momento ??
+      null
+    );
+  }, [contexto]);
+
+  const contextoMomentoId = useMemo(() => {
+    if (!contexto?.momento) return null;
+    return normalizarClave(contexto.momento.id_momento ?? contexto.momento.id);
+  }, [contexto]);
+
+  const contextoAnioId = useMemo(() => {
+    if (!contexto?.anio) return null;
+    return normalizarClave(
+      contexto.anio.id_anio_escolar ??
+        contexto.anio.id_anio ??
+        contexto.anio.id ??
+        contexto.anio.codigo
+    );
+  }, [contexto]);
+
   const contextoResumen = useMemo(() => {
     if (!contexto) return null;
     const partes = [];
     if (contexto.anio?.id_anio_escolar) {
       partes.push(`Año #${contexto.anio.id_anio_escolar}`);
     }
-    if (contexto.momento?.nombre_momento) {
-      partes.push(`Momento ${contexto.momento.nombre_momento}`);
+    if (contextoMomentoNombre) {
+      partes.push(`Momento ${contextoMomentoNombre}`);
     }
     const descripcion = partes.length ? partes.join(" · ") : "Sin contexto";
     return {
       descripcion,
       editable: contexto.editable === true,
     };
-  }, [contexto]);
+  }, [contexto, contextoMomentoNombre]);
+
+  const momentosActivosContexto = useMemo(() => {
+    if (!Array.isArray(catalogos.momentos)) {
+      return [];
+    }
+
+    return catalogos.momentos.filter((momento) => {
+      const estado = (
+        momento.estado ??
+        momento.raw?.estado ??
+        momento.raw?.estado_momento ??
+        momento.raw?.momento_estado ??
+        ""
+      )
+        .toString()
+        .toLowerCase();
+      if (estado !== "activo") {
+        return false;
+      }
+
+      const fkAnio = normalizarClave(
+        momento.fk_anio_escolar ??
+          momento.raw?.fk_anio_escolar ??
+          momento.raw?.fk_anio ??
+          momento.raw?.id_anio_escolar
+      );
+
+      if (contextoAnioId !== null && fkAnio !== contextoAnioId) {
+        return false;
+      }
+
+      if (contextoMomentoId !== null) {
+        const idMomento = normalizarClave(momento.id_momento ?? momento.id);
+        return idMomento === contextoMomentoId;
+      }
+
+      return true;
+    });
+  }, [catalogos.momentos, contextoAnioId, contextoMomentoId]);
+
+  const hayMomentoActivoContexto = momentosActivosContexto.length > 0;
 
   const asignacionAula = docenteAsignacion.data?.aula ?? null;
   const componentesAsignados = docenteAsignacion.data?.componentes ?? [];
@@ -242,7 +344,9 @@ export const PlanificacionAcademica = () => {
       if (registro) {
         const detalle =
           registro.grado || registro.seccion
-            ? ` (Gr ${registro.grado ?? "?"} - Secc ${registro.seccion ?? "?"})`
+            ? ` (Grado ${registro.grado ?? "?"} - Seccion ${
+                registro.seccion ?? "?"
+              })`
             : "";
         return `${registro.label}${detalle}`;
       }
@@ -281,27 +385,154 @@ export const PlanificacionAcademica = () => {
     [momentosMap]
   );
 
-  const handleChangeFiltro = (event) => {
+  const alCambiarFiltro = (event) => {
     const { name, value } = event.target;
     setFiltros((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitFiltros = (event) => {
+  const alEnviarFiltros = (event) => {
     event.preventDefault();
     setFiltrosAplicados(filtros);
   };
 
-  const handleResetFiltros = () => {
+  const alReiniciarFiltros = () => {
     setFiltros(filtrosIniciales);
     setFiltrosAplicados(filtrosIniciales);
   };
 
-  const handleRefrescar = () => {
+  const alRefrescar = () => {
     fetchPlanificaciones();
   };
 
-  const handleToggleEstado = async (planificacion) => {
+  const alAbrirModal = useCallback(
+    (modo = "crear", inicial = null) => {
+      if (!puedeGestionarPlanificaciones) {
+        Swal.fire(
+          "Acceso restringido",
+          "Tu rol no tiene permisos para gestionar planificaciones académicas.",
+          "warning"
+        );
+        return;
+      }
+      if (!contextoEditable) {
+        Swal.fire(
+          "Contexto bloqueado",
+          contextoMotivo ||
+            "El contexto actual es de solo lectura; no es posible registrar planificaciones.",
+          "warning"
+        );
+        return;
+      }
+      if (modo === "crear" && !hayMomentoActivoContexto) {
+        Swal.fire(
+          "Sin momento activo",
+          "No hay un momento académico activo configurado para el año escolar vigente. Configure el momento en el módulo correspondiente antes de registrar planificaciones.",
+          "warning"
+        );
+        return;
+      }
+      setModalFormulario({ abierto: true, modo, inicial });
+    },
+    [
+      contextoEditable,
+      contextoMotivo,
+      hayMomentoActivoContexto,
+      puedeGestionarPlanificaciones,
+    ]
+  );
+
+  const alCerrarModal = () => {
+    setModalFormulario({ abierto: false, modo: "crear", inicial: null });
+  };
+
+  const alCrearPlanificacion = async (payload) => {
+    const lote = Array.isArray(payload) ? payload : [payload];
+    for (const item of lote) {
+      const respuesta = await crearPlanificacion(item);
+      if (!respuesta.success) {
+        const error = new Error(
+          respuesta.message || "No fue posible registrar la planificación."
+        );
+        error.validation = respuesta.errors;
+        throw error;
+      }
+    }
+
+    Swal.fire(
+      lote.length > 1
+        ? "Planificaciones registradas"
+        : "Planificación registrada",
+      lote.length > 1
+        ? `Se registraron ${lote.length} planificaciones.`
+        : "La planificación se guardó correctamente.",
+      "success"
+    );
+    fetchPlanificaciones();
+  };
+
+  const alClonarPlanificacion = async (planificacion) => {
+    if (!planificacion?.id_planificacion) {
+      return;
+    }
+
+    if (!puedeGestionarPlanificaciones) {
+      Swal.fire(
+        "Acceso restringido",
+        "Tu rol no tiene permisos para clonar planificaciones.",
+        "warning"
+      );
+      return;
+    }
+
+    if (!contextoEditable) {
+      Swal.fire(
+        "Contexto bloqueado",
+        contextoMotivo ||
+          "El contexto actual es de solo lectura; no es posible clonar planificaciones.",
+        "warning"
+      );
+      return;
+    }
+
+    const respuesta = await obtenerPlanificacion(
+      planificacion.id_planificacion
+    );
+    if (!respuesta.success) {
+      Swal.fire(
+        "Error",
+        respuesta.message || "No fue posible cargar la planificación base.",
+        "error"
+      );
+      return;
+    }
+
+    const datos = respuesta.data || planificacion;
+    alAbrirModal("clonar", {
+      ...datos,
+      id_planificacion: undefined,
+      estado: "activo",
+    });
+  };
+
+  const alAlternarEstadoPlanificacion = async (planificacion) => {
     if (!planificacion?.id_planificacion) return;
+    if (!puedeGestionarPlanificaciones) {
+      Swal.fire(
+        "Acceso restringido",
+        "Tu rol no tiene permisos para cambiar el estado de una planificación.",
+        "warning"
+      );
+      return;
+    }
+    if (!contextoEditable) {
+      Swal.fire(
+        "Contexto bloqueado",
+        contextoMotivo ||
+          "El contexto actual es de solo lectura; no es posible modificar planificaciones.",
+        "warning"
+      );
+      return;
+    }
     const nuevoEstado =
       planificacion.estado === "activo" ? "inactivo" : "activo";
     const confirmacion = await Swal.fire({
@@ -335,7 +566,7 @@ export const PlanificacionAcademica = () => {
     fetchPlanificaciones();
   };
 
-  const handleVerDetalle = async (planificacion) => {
+  const alVerDetalle = async (planificacion) => {
     if (!planificacion?.id_planificacion) return;
     setPlanSeleccionada(planificacion);
     setDetalle(planificacion);
@@ -359,14 +590,14 @@ export const PlanificacionAcademica = () => {
     setDetalleCargando(false);
   };
 
-  const handleCerrarDetalle = () => {
+  const alCerrarDetalle = () => {
     setDetalleAbierto(false);
     setDetalle(null);
     setPlanSeleccionada(null);
     setDetalleCargando(false);
   };
 
-  const renderTableBody = () => {
+  const generarFilasTabla = () => {
     if (isLoading) {
       return (
         <tr>
@@ -425,7 +656,7 @@ export const PlanificacionAcademica = () => {
             </span>
             <button
               type="button"
-              onClick={() => handleVerDetalle(plan)}
+              onClick={() => alVerDetalle(plan)}
               className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
             >
               <FaEye />
@@ -433,11 +664,30 @@ export const PlanificacionAcademica = () => {
             </button>
             <button
               type="button"
-              onClick={() => handleToggleEstado(plan)}
-              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+              onClick={() => alAlternarEstadoPlanificacion(plan)}
+              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!puedeGestionarPlanificaciones || !contextoEditable}
+              title={
+                !puedeGestionarPlanificaciones
+                  ? "Tu rol no tiene permisos para cambiar el estado."
+                  : !contextoEditable
+                  ? contextoMotivo ||
+                    "El contexto actual es de solo lectura; no se puede cambiar el estado."
+                  : "Cambiar estado"
+              }
             >
               <FaExchangeAlt />
               Cambiar estado
+            </button>
+            <button
+              type="button"
+              onClick={() => alClonarPlanificacion(plan)}
+              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!puedeGestionarPlanificaciones || !contextoEditable}
+              title={botonClonarTitulo}
+            >
+              <FaClone />
+              Clonar
             </button>
           </div>
         </td>
@@ -447,228 +697,30 @@ export const PlanificacionAcademica = () => {
 
   return (
     <section className="space-y-6">
-      <header className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">
-              Planificación Académica
-            </p>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Seguimiento de planificaciones
-            </h1>
-            <p className="text-sm text-slate-500">
-              Consulta el estado de las planificaciones por docente, aula,
-              momento o tipo.
-            </p>
-            {contextoResumen && (
-              <p className="text-xs text-slate-500">
-                Contexto actual: {contextoResumen.descripcion} —{" "}
-                {contextoResumen.editable ? "Editable" : "Solo lectura"}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={handleRefrescar}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
-          >
-            <FaSyncAlt className="text-base" />
-            Actualizar
-          </button>
-        </div>
+      <EncabezadoPlanificacion
+        resumen={resumen}
+        contextoResumen={contextoResumen}
+        contextoEditable={contextoEditable}
+        contextoMotivo={contextoMotivo}
+        puedeCrearPlanificacion={puedeCrearPlanificacion}
+        tituloBotonCrear={botonCrearTitulo}
+        alRefrescar={alRefrescar}
+        alAbrirModal={alAbrirModal}
+      />
 
-        <dl className="mt-6 grid gap-4 text-center sm:grid-cols-3">
-          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-            <dt className="text-xs uppercase tracking-wide text-slate-500">
-              Total
-            </dt>
-            <dd className="text-2xl font-bold text-slate-800">
-              {resumen.total}
-            </dd>
-          </div>
-          <div className="rounded-lg border border-green-100 bg-green-50 p-4">
-            <dt className="text-xs uppercase tracking-wide text-green-600">
-              Activas
-            </dt>
-            <dd className="text-2xl font-bold text-green-700">
-              {resumen.activos}
-            </dd>
-          </div>
-          <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
-            <dt className="text-xs uppercase tracking-wide text-indigo-600">
-              Individuales
-            </dt>
-            <dd className="text-2xl font-bold text-indigo-700">
-              {resumen.individuales}
-            </dd>
-          </div>
-        </dl>
-      </header>
-
-      <form
-        onSubmit={handleSubmitFiltros}
-        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-      >
-        <div className="mb-4 flex items-center gap-2 text-slate-600">
-          <FaFilter />
-          <span className="text-sm font-semibold">Filtros rápidos</span>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <label className="flex flex-col text-sm text-slate-600">
-            Tipo
-            <select
-              name="tipo"
-              value={filtros.tipo}
-              onChange={handleChangeFiltro}
-              className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="">Todos</option>
-              <option value="aula">Aula completa</option>
-              <option value="individual">Individual</option>
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-slate-600">
-            Momento
-            <select
-              name="fk_momento"
-              value={filtros.fk_momento}
-              onChange={handleChangeFiltro}
-              className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
-              disabled={catalogosLoading || !catalogos.momentos.length}
-            >
-              <option value="">Todos</option>
-              {catalogos.momentos.map((momento) => (
-                <option key={momento.id} value={momento.id}>
-                  {momento.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-slate-600">
-            Docente responsable
-            <select
-              name="fk_personal"
-              value={filtros.fk_personal}
-              onChange={handleChangeFiltro}
-              className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
-              disabled={catalogosLoading || !catalogos.personal.length}
-            >
-              <option value="">Todos</option>
-              {catalogos.personal.map((docente) => (
-                <option key={docente.id} value={docente.id}>
-                  {docente.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-slate-600">
-            Aula
-            <select
-              name="fk_aula"
-              value={filtros.fk_aula}
-              onChange={handleChangeFiltro}
-              className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
-              disabled={catalogosLoading || !catalogos.aulas.length}
-            >
-              <option value="">Todas</option>
-              {catalogos.aulas.map((aula) => (
-                <option key={aula.id} value={aula.id}>
-                  {aula.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-slate-600">
-            Componente de aprendizaje
-            <select
-              name="fk_componente"
-              value={filtros.fk_componente}
-              onChange={handleChangeFiltro}
-              className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
-              disabled={catalogosLoading || !catalogos.componentes.length}
-            >
-              <option value="">Todos</option>
-              {catalogos.componentes.map((componente) => (
-                <option key={componente.id} value={componente.id}>
-                  {componente.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {filtros.fk_personal && (
-            <div className="md:col-span-3 rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
-              {docenteAsignacion.loading ? (
-                <span>Buscando asignación del docente...</span>
-              ) : docenteAsignacion.error ? (
-                <span className="text-red-600">{docenteAsignacion.error}</span>
-              ) : asignacionAula ? (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Aula asignada
-                    </p>
-                    <p className="font-semibold text-slate-700">
-                      Gr {asignacionAula.grado ?? "N/D"} - Sección{" "}
-                      {asignacionAula.seccion ?? "N/D"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Componentes vinculados
-                    </p>
-                    {componentesAsignados.length ? (
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {componentesAsignados.map((componente) => (
-                          <span
-                            key={componente.id}
-                            className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700"
-                          >
-                            {componente.nombre}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-500">
-                        El docente no tiene componentes registrados para este
-                        momento.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <span className="text-xs text-slate-500">
-                  No se encontró aula ni componentes asociados al docente para
-                  el contexto seleccionado.
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-        {(catalogosLoading || catalogosError) && (
-          <p className="mt-3 text-xs text-slate-500">
-            {catalogosLoading
-              ? "Cargando catálogos de apoyo..."
-              : catalogosError}
-          </p>
-        )}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-            disabled={isLoading}
-          >
-            Aplicar filtros
-          </button>
-          <button
-            type="button"
-            onClick={handleResetFiltros}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-            disabled={isLoading}
-          >
-            Limpiar
-          </button>
-        </div>
-      </form>
+      <FiltrosPlanificacion
+        filtros={filtros}
+        catalogos={catalogos}
+        catalogosLoading={catalogosLoading}
+        catalogosError={catalogosError}
+        planificacionesCargando={isLoading}
+        docenteAsignacion={docenteAsignacion}
+        asignacionAula={asignacionAula}
+        componentesAsignados={componentesAsignados}
+        alCambiarFiltro={alCambiarFiltro}
+        alEnviarFiltros={alEnviarFiltros}
+        alReiniciarFiltros={alReiniciarFiltros}
+      />
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
@@ -686,7 +738,7 @@ export const PlanificacionAcademica = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {renderTableBody()}
+              {generarFilasTabla()}
             </tbody>
           </table>
         </div>
@@ -696,13 +748,24 @@ export const PlanificacionAcademica = () => {
         isOpen={detalleAbierto}
         planificacion={detalle || planSeleccionada}
         isLoading={detalleCargando}
-        onClose={handleCerrarDetalle}
+        onClose={alCerrarDetalle}
         resolvers={{
           docente: resolverDocente,
           aula: resolverAula,
           componente: resolverComponente,
           momento: resolverMomento,
         }}
+      />
+      <PlanificacionFormModal
+        isOpen={modalFormulario.abierto}
+        modo={modalFormulario.modo}
+        initialData={modalFormulario.inicial}
+        contexto={contexto}
+        catalogos={catalogos}
+        onClose={alCerrarModal}
+        onSubmit={alCrearPlanificacion}
+        cargarAsignacionDocente={obtenerAsignacionDocente}
+        bloqueado={contextoEditable ? null : contextoMotivo}
       />
     </section>
   );

@@ -4,32 +4,41 @@ use Micodigo\Parentesco\Parentesco;
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
 
-function registrarRutasParentesco(AltoRouter $router)
-{
+function registrarRutasParentesco(
+  AltoRouter $router,
+  callable $mapAuthenticatedRole = null,
+  array $rolesPermitidos = []
+) {
   $controlador = new Parentesco();
 
-  $authMiddleware = function () {
-    header('Content-Type: text/html; charset=utf-8');
-    if (!isset($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado.', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-    $pdo = Conexion::obtener();
-    $login = new Login($pdo);
-    if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada.', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-  };
+  if ($mapAuthenticatedRole) {
+    $mapAuthenticated = function (string $method, string $route, callable $target) use ($mapAuthenticatedRole, $rolesPermitidos) {
+      $mapAuthenticatedRole($method, $route, $target, $rolesPermitidos);
+    };
+  } else {
+    $authMiddleware = function () {
+      header('Content-Type: text/html; charset=utf-8');
+      if (!isset($_COOKIE['session_token'])) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        exit();
+      }
+      $pdo = Conexion::obtener();
+      $login = new Login($pdo);
+      if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada.', 'back' => true], JSON_UNESCAPED_UNICODE);
+        exit();
+      }
+    };
 
-  $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware) {
-    $router->map($method, $route, function (...$params) use ($authMiddleware, $target) {
-      $authMiddleware();
-      call_user_func_array($target, $params);
-    });
-  };
+    $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware) {
+      $router->map($method, $route, function (...$params) use ($authMiddleware, $target) {
+        $authMiddleware();
+        call_user_func_array($target, $params);
+      });
+    };
+  }
 
   // CRUD básico
   $mapAuthenticated('GET', '/parentescos', [$controlador, 'listarParentescos']);

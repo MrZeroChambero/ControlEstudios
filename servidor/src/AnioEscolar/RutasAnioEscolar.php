@@ -2,22 +2,35 @@
 
 use Micodigo\AnioEscolar\ControladoraAnioEscolar;
 
-function registrarRutasAnioEscolar(AltoRouter $router): void
-{
+function registrarRutasAnioEscolar(
+  AltoRouter $router,
+  callable $mapAuthenticatedRole = null,
+  array $rolesPermitidos = []
+): void {
   $controladora = new ControladoraAnioEscolar();
 
-  $router->map('GET', '/anios_escolares', [$controladora, 'listar']);
-  $router->map('GET', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+  $map = function (string $method, string $route, callable $target) use ($router) {
+    $router->map($method, $route, $target);
+  };
+
+  if ($mapAuthenticatedRole) {
+    $map = function (string $method, string $route, callable $target) use ($mapAuthenticatedRole, $rolesPermitidos) {
+      $mapAuthenticatedRole($method, $route, $target, $rolesPermitidos);
+    };
+  }
+
+  $map('GET', '/anios_escolares', [$controladora, 'listar']);
+  $map('GET', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
     $controladora->obtener($id);
   });
-  $router->map('POST', '/anios_escolares', [$controladora, 'crear']);
-  $router->map('PUT', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+  $map('POST', '/anios_escolares', [$controladora, 'crear']);
+  $map('PUT', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
     $controladora->actualizar($id);
   });
-  $router->map('DELETE', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
+  $map('DELETE', '/anios_escolares/[i:id]', function (int $id) use ($controladora) {
     $controladora->eliminar($id);
   });
-  $router->map('PATCH', '/anios_escolares/[i:id]/estado', function (int $id) use ($controladora) {
+  $map('PATCH', '/anios_escolares/[i:id]/estado', function (int $id) use ($controladora) {
     $controladora->cambiarEstado($id);
   });
 }

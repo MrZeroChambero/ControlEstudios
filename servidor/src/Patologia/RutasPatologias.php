@@ -5,32 +5,41 @@ use Micodigo\CondicionesSalud\CondicionesSalud;
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
 
-function registrarRutasPatologias(AltoRouter $router)
-{
+function registrarRutasPatologias(
+  AltoRouter $router,
+  callable $mapAuthenticatedRole = null,
+  array $rolesPermitidos = []
+) {
   $ctrlPatologia = new Patologia([]);
   $ctrlCondicion = new CondicionesSalud([]);
 
-  $auth = function () {
-    header('Content-Type: text/html; charset=utf-8');
-    if (!isset($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-    $pdo = Conexion::obtener();
-    $login = new Login($pdo);
-    if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
-      http_response_code(401);
-      echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada', 'back' => true], JSON_UNESCAPED_UNICODE);
-      exit();
-    }
-  };
-  $map = function (string $m, string $r, callable $t) use ($router, $auth) {
-    $router->map($m, $r, function (...$p) use ($auth, $t) {
-      $auth();
-      call_user_func_array($t, $p);
-    });
-  };
+  if ($mapAuthenticatedRole) {
+    $map = function (string $m, string $r, callable $t) use ($mapAuthenticatedRole, $rolesPermitidos) {
+      $mapAuthenticatedRole($m, $r, $t, $rolesPermitidos);
+    };
+  } else {
+    $auth = function () {
+      header('Content-Type: text/html; charset=utf-8');
+      if (!isset($_COOKIE['session_token'])) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Acceso no autorizado', 'back' => true], JSON_UNESCAPED_UNICODE);
+        exit();
+      }
+      $pdo = Conexion::obtener();
+      $login = new Login($pdo);
+      if (!$login->obtenerUsuarioPorHash($_COOKIE['session_token'])) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Sesión inválida o expirada', 'back' => true], JSON_UNESCAPED_UNICODE);
+        exit();
+      }
+    };
+    $map = function (string $m, string $r, callable $t) use ($router, $auth) {
+      $router->map($m, $r, function (...$p) use ($auth, $t) {
+        $auth();
+        call_user_func_array($t, $p);
+      });
+    };
+  }
 
   // Patologías catálogo
   $map('GET', '/patologias', [$ctrlPatologia, 'listarPatologias']);

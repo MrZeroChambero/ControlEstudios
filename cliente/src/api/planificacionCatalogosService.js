@@ -62,10 +62,12 @@ const mapearAulas = (registros = []) =>
       if (!id) return null;
       const grado = registro.grado ?? registro.grado_aula;
       const seccion = registro.seccion ?? registro.seccion_aula;
+      const gradoTexto = grado ? `Grado ${grado}` : null;
+      const seccionTexto = seccion ? `Seccion ${seccion}` : null;
       const label =
         registro.nombre ||
         (grado || seccion
-          ? `Gr ${grado ?? "?"} - Secc ${seccion ?? "?"}`
+          ? `${gradoTexto ?? "Grado ?"} - ${seccionTexto ?? "Seccion ?"}`
           : `Aula #${id}`);
       return {
         id: Number(id),

@@ -2,20 +2,33 @@
 
 use Micodigo\Contenidos\ControladoraContenidos;
 
-function registrarRutasContenidos(AltoRouter $router)
-{
+function registrarRutasContenidos(
+  AltoRouter $router,
+  callable $mapAuthenticatedRole = null,
+  array $rolesPermitidos = []
+) {
   $controlador = new ControladoraContenidos();
 
-  $router->map('GET', '/contenidos', [$controlador, 'listar']);
-  $router->map('POST', '/contenidos', [$controlador, 'crear']);
-  $router->map('PUT', '/contenidos/[i:id_contenido]', function ($id_contenido) use ($controlador) {
+  if ($mapAuthenticatedRole) {
+    $map = function (string $method, string $route, callable $target) use ($mapAuthenticatedRole, $rolesPermitidos) {
+      $mapAuthenticatedRole($method, $route, $target, $rolesPermitidos);
+    };
+  } else {
+    $map = function (string $method, string $route, callable $target) use ($router) {
+      $router->map($method, $route, $target);
+    };
+  }
+
+  $map('GET', '/contenidos', [$controlador, 'listar']);
+  $map('POST', '/contenidos', [$controlador, 'crear']);
+  $map('PUT', '/contenidos/[i:id_contenido]', function ($id_contenido) use ($controlador) {
     $controlador->actualizar($id_contenido);
   });
-  $router->map('DELETE', '/contenidos/[i:id_contenido]', function ($id_contenido) use ($controlador) {
+  $map('DELETE', '/contenidos/[i:id_contenido]', function ($id_contenido) use ($controlador) {
     $controlador->eliminar($id_contenido);
   });
-  $router->map('PATCH', '/contenidos/[i:id_contenido]/estado', function ($id_contenido) use ($controlador) {
+  $map('PATCH', '/contenidos/[i:id_contenido]/estado', function ($id_contenido) use ($controlador) {
     $controlador->cambiarEstado($id_contenido);
   });
-  $router->map('GET', '/contenidos/listar-select', [$controlador, 'listarSelect']);
+  $map('GET', '/contenidos/listar-select', [$controlador, 'listarSelect']);
 }

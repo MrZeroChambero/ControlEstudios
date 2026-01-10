@@ -48,10 +48,13 @@ trait PlanificacionAcademicaContextoTrait
       $anio = $this->consultarAnioActivo($pdo) ?? $this->consultarAnioFinalizado($pdo);
     }
 
+    $editable = $this->contextoEsEditable($anio, $momento);
+
     return [
       'anio' => $anio,
       'momento' => $momento,
-      'editable' => $this->contextoEsEditable($anio, $momento),
+      'editable' => $editable,
+      'motivo_bloqueo' => $editable ? null : $this->motivoBloqueoContexto($anio, $momento),
     ];
   }
 

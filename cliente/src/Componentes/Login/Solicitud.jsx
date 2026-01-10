@@ -36,67 +36,98 @@ export const Solicitud = async (
       RespuestaPositiva(response.data, navigate);
     }
   } catch (error) {
-    if (error.response) {
-      const payload = error.response.data;
+    const status =
+      error?.response?.status ?? (error?.request ? "NO_RESPONSE" : "UNKNOWN");
+
+    // Funciones flecha para manejar cada tipo de respuesta
+    const handle400 = (err) => {
+      const payload = err.response.data;
       const detalleIntentos = formatAttemptMessage(payload);
       onAttemptUpdate?.(detalleIntentos);
-
       const baseMessage = payload?.msg;
-      const alertaConIntentos = (titulo, icono = "error") => {
-        Swal.fire({
-          icon: icono,
-          title: titulo,
-          html: buildAttemptHtml(baseMessage, detalleIntentos),
-        });
-      };
+      Swal.fire({
+        icon: "error",
+        title: "Error en la solicitud",
+        text: baseMessage || "La solicitud no es válida. Revisa los datos.",
+      });
+    };
 
-      switch (error.response.status) {
-        case 400:
-          Swal.fire({
-            icon: "error",
-            title: "Error en la solicitud",
-            text: baseMessage || "La solicitud no es válida. Revisa los datos.",
-          });
-          break;
-        case 401:
-          alertaConIntentos("Credenciales incorrectas");
-          break;
-        case 423:
-          alertaConIntentos("Demasiados intentos", "warning");
-          break;
-        case 500:
-          Swal.fire({
-            icon: "error",
-            title: "Error del servidor",
-            text:
-              baseMessage ||
-              "Ocurrió un error en el servidor. Inténtalo de nuevo más tarde.",
-          });
-          break;
-        default:
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text:
-              baseMessage ||
-              `El servidor respondió con el código: ${error.response.status}`,
-          });
-          break;
-      }
-    } else if (error.request) {
+    const handle401 = (err) => {
+      const payload = err.response.data;
+      const detalleIntentos = formatAttemptMessage(payload);
+      onAttemptUpdate?.(detalleIntentos);
+      const baseMessage = payload?.msg;
+      Swal.fire({
+        icon: "error",
+        title: "Credenciales incorrectas",
+        html: buildAttemptHtml(baseMessage, detalleIntentos),
+      });
+    };
+
+    const handle423 = (err) => {
+      const payload = err.response.data;
+      const detalleIntentos = formatAttemptMessage(payload);
+      onAttemptUpdate?.(detalleIntentos);
+      const baseMessage = payload?.msg;
+      Swal.fire({
+        icon: "warning",
+        title: "Demasiados intentos",
+        html: buildAttemptHtml(baseMessage, detalleIntentos),
+      });
+    };
+
+    const handle500 = (err) => {
+      const payload = err.response.data;
+      const detalleIntentos = formatAttemptMessage(payload);
+      onAttemptUpdate?.(detalleIntentos);
+      const baseMessage = payload?.msg;
+      Swal.fire({
+        icon: "error",
+        title: "Error del servidor",
+        text:
+          baseMessage ||
+          "Ocurrió un error en el servidor. Inténtalo de nuevo más tarde.",
+      });
+    };
+
+    const handleNoResponse = () => {
       onAttemptUpdate?.(null);
       Swal.fire({
         icon: "error",
         title: "Error de Conexión",
         text: "El servidor está fuera de servicio.",
       });
-    } else {
+    };
+
+    const handleUnknown = () => {
       onAttemptUpdate?.(null);
       Swal.fire({
         icon: "error",
         title: "Error",
         text: "Ocurrió un error inesperado. Por favor, contacta al soporte técnico.",
       });
+    };
+
+    switch (status) {
+      case 400:
+        handle400(error);
+        break;
+      case 401:
+        handle401(error);
+        break;
+      case 423:
+        handle423(error);
+        break;
+      case 500:
+        handle500(error);
+        break;
+      case "NO_RESPONSE":
+        handleNoResponse();
+        break;
+      case "UNKNOWN":
+      default:
+        handleUnknown();
+        break;
     }
   }
 };

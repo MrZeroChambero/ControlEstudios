@@ -30,6 +30,7 @@ trait PlanificacionAcademicaValidacionesTrait
     $errores = $validator->validate() ? [] : $validator->errors();
     $errores = $this->combinarErrores($errores, $this->validarForaneas($pdo));
     $errores = $this->combinarErrores($errores, $this->validarColecciones($pdo));
+    $errores = $this->combinarErrores($errores, $this->validarCompatibilidadAsignacion($pdo));
     $errores = $this->combinarErrores($errores, $this->validarUnicidad($pdo));
 
     return empty($errores) ? true : $errores;
@@ -63,6 +64,10 @@ trait PlanificacionAcademicaValidacionesTrait
     $errores = [];
 
     if ($this->competencias) {
+      if (count($this->competencias) > 10) {
+        $errores['competencias'][] = 'No puede asociar más de 10 competencias a una planificación.';
+      }
+
       $faltantes = $this->faltantesEnTabla($pdo, 'competencias', 'id_competencia', $this->competencias);
       if ($faltantes) {
         $errores['competencias'][] = 'Competencias inexistentes: ' . implode(', ', $faltantes);
@@ -83,6 +88,29 @@ trait PlanificacionAcademicaValidacionesTrait
     }
 
     return $errores;
+  }
+
+  private function validarCompatibilidadAsignacion(PDO $pdo): array
+  {
+    if ($this->fk_personal === null || $this->fk_aula === null || $this->fk_componente === null || $this->fk_momento === null) {
+      return [];
+    }
+
+    $stmt = $pdo->prepare('SELECT 1 FROM imparte WHERE fk_personal = :docente AND fk_aula = :aula AND fk_componente = :componente AND fk_momento = :momento LIMIT 1');
+    $stmt->execute([
+      ':docente' => $this->fk_personal,
+      ':aula' => $this->fk_aula,
+      ':componente' => $this->fk_componente,
+      ':momento' => $this->fk_momento,
+    ]);
+
+    if ($stmt->fetchColumn()) {
+      return [];
+    }
+
+    return [
+      'fk_personal' => ['El docente no está asignado al aula y componente seleccionados para el momento indicado.'],
+    ];
   }
 
   private function validarUnicidad(PDO $pdo): array

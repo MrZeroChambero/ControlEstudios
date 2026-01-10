@@ -157,6 +157,17 @@ function registrarTodasLasRutas(): Router
   require_once __DIR__ . '/Login/RutasLogin.php';
   registrarRutasLogin($router);
 
+  // Definición de roles utilizados en las reglas de acceso
+  $ROLES = [
+    'DIRECTOR' => 'Director',
+    'ADMIN' => 'Secretario',
+    'DOCENTE' => 'Docente',
+  ];
+
+  $rolesDirectorAdmin = [$ROLES['DIRECTOR'], $ROLES['ADMIN']];
+  $rolesDirectorDocente = [$ROLES['DIRECTOR'], $ROLES['DOCENTE']];
+  $rolesDirectorAdminDocente = [$ROLES['DIRECTOR'], $ROLES['ADMIN'], $ROLES['DOCENTE']];
+
   // Rutas publicas para recuperacion de contrasena mediante preguntas de seguridad
   require_once __DIR__ . '/PreguntasSeguridad/RutasPreguntasSeguridad.php';
   registrarRutasPreguntasSeguridad($router);
@@ -167,39 +178,39 @@ function registrarTodasLasRutas(): Router
 
   // Incluye y registra las rutas de personas
   require_once __DIR__ . '/Persona/RutasPersona.php';
-  registrarRutasPersona($router);
+  registrarRutasPersona($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de estudiantes (sin middleware en el archivo de rutas)
   require_once __DIR__ . '/Estudiante/RutasEstudiante.php';
-  registrarRutasEstudiante($router, $mapAuthenticated);
+  registrarRutasEstudiante($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de consultas médicas (placeholder)
   require_once __DIR__ . '/ConsultasMedicas/RutasConsultasMedicas.php';
-  registrarRutasConsultasMedicas($router, $mapAuthenticated);
+  registrarRutasConsultasMedicas($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de documentos académicos
   require_once __DIR__ . '/DocumentosAcademicos/RutasDocumentosAcademicos.php';
-  registrarRutasDocumentosAcademicos($router);
+  registrarRutasDocumentosAcademicos($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de alergias
   require_once __DIR__ . '/Alergias/RutasAlergias.php';
-  registrarRutasAlergias($router);
+  registrarRutasAlergias($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de patologías / condiciones de salud
   require_once __DIR__ . '/Patologia/RutasPatologias.php';
-  registrarRutasPatologias($router);
+  registrarRutasPatologias($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Registrar rutas de vacunas
   require_once __DIR__ . '/Vacuna/RutasVacunas.php';
-  registrarRutasVacunas($router);
+  registrarRutasVacunas($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de personal
   require_once __DIR__ . '/Personal/RutasPersonal.php';
-  registrarRutasPersonal($router);
+  registrarRutasPersonal($router, $mapAuthenticatedRole, $rolesDirectorAdmin);
 
   // Incluye y registra las rutas de representantes
   require_once __DIR__ . '/Representate/RutasRepresentante.php';
-  registrarRutasRepresentante($router);
+  registrarRutasRepresentante($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de habilidades
   require_once __DIR__ . '/Habilidades/RutasHabilidades.php';
@@ -214,18 +225,18 @@ function registrarTodasLasRutas(): Router
   registrarRutasFuncionPersonal($router);
   // Incluye y registra las rutas de áreas de aprendizaje
   require_once __DIR__ . '/AreasAprendizaje/RutasAreasAprendizaje.php';
-  registrarRutasAreasAprendizaje($router);
+  registrarRutasAreasAprendizaje($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de parentescos
   require_once __DIR__ . '/Parentesco/RutasParentesco.php';
-  registrarRutasParentesco($router);
+  registrarRutasParentesco($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de contenidos
   require_once __DIR__ . '/Contenidos/RutasContenidos.php';
-  registrarRutasContenidos($router);
+  registrarRutasContenidos($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
   // Incluye y registra las rutas de temas
   require_once __DIR__ . '/Temas/RutasTemas.php';
-  registrarRutasTemas($router);
+  registrarRutasTemas($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de respaldos de base de datos
   require_once __DIR__ . '/Respaldo/RutasRespaldo.php';
@@ -237,49 +248,49 @@ function registrarTodasLasRutas(): Router
 
   // Incluye y registra las rutas de componentes de aprendizaje
   require_once __DIR__ . '/ComponentesAprendizaje/RutasComponentesAprendizaje.php';
-  registrarRutasComponentesAprendizaje($router);
+  registrarRutasComponentesAprendizaje($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de aulas
   require_once __DIR__ . '/Aula/RutasAula.php';
-  registrarRutasAula($router);
+  registrarRutasAula($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de inscripciones
   require_once __DIR__ . '/Inscripcion/RutasInscripcion.php';
-  registrarRutasInscripcion($router, $mapAuthenticated);
+  registrarRutasInscripcion($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de impartir
   require_once __DIR__ . '/Impartir/RutasImpartir.php';
-  registrarRutasImpartir($router, $mapAuthenticated);
+  registrarRutasImpartir($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de competencias
   require_once __DIR__ . '/Competencias/RutasCompetencias.php';
-  registrarRutasCompetencias($router, $mapAuthenticated);
+  registrarRutasCompetencias($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorDocente);
 
   // Incluye y registra las rutas de indicadores
   require_once __DIR__ . '/Indicadores/RutasIndicadores.php';
-  registrarRutasIndicadores($router, $mapAuthenticated);
+  registrarRutasIndicadores($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorDocente);
 
 
 
   // Incluye y registra las rutas de grados y secciones
   require_once __DIR__ . '/GradosSecciones/RutasGradosSecciones.php';
-  registrarRutasGradosSecciones($router);
+  registrarRutasGradosSecciones($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de años escolares
   require_once __DIR__ . '/AnioEscolar/RutasAnioEscolar.php';
-  registrarRutasAnioEscolar($router);
+  registrarRutasAnioEscolar($router, $mapAuthenticatedRole, $rolesDirectorDocente);
 
   // Incluye y registra las rutas de momentos académicos
   require_once __DIR__ . '/MomentoAcademico/RutasMomentoAcademico.php';
-  registrarRutasMomentoAcademico($router);
+  registrarRutasMomentoAcademico($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de horarios
   require_once __DIR__ . '/Horarios/RutasHorarios.php';
-  registrarRutasHorarios($router, $mapAuthenticated);
+  registrarRutasHorarios($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorAdminDocente);
 
   // Incluye y registra las rutas de planificación académica
   require_once __DIR__ . '/PlanificacionAcademica/RutasPlanificacionAcademica.php';
-  registrarRutasPlanificacionAcademica($router, $mapAuthenticated);
+  registrarRutasPlanificacionAcademica($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorDocente);
 
   return $router;
 }
