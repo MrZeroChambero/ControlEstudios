@@ -4,28 +4,52 @@ import {
   formatearFechaHoraCorta,
 } from "../../utilidades/formatoFechas";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+import { usuariosViewModalClasses } from "../EstilosCliente/EstilosClientes";
+
+const getDisplayValue = (value, fallback = "No especificado") => {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+  return value;
+};
+
+const buildVariantClass = (base, variants, key) => {
+  const variant = variants?.[key] || variants?.default || "";
+  return `${base} ${variant}`.trim();
+};
 
 export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
   if (!isOpen || !usuario) return null;
 
-  const formStyles = {
-    label: "text-sm font-semibold text-slate-600",
-    value: "text-base text-slate-900",
-    sectionTitle:
-      "mb-4 text-xl font-semibold text-blue-600 border-b border-slate-200 pb-2",
-  };
-
-  const Section = ({ title, children }) => (
-    <section className="space-y-4">
-      <h3 className={formStyles.sectionTitle}>{title}</h3>
-      {children}
+  const Section = ({ title, children, columns = 2 }) => (
+    <section className={usuariosViewModalClasses.section.wrapper}>
+      <h3 className={usuariosViewModalClasses.section.title}>{title}</h3>
+      <div
+        className={
+          columns === 1
+            ? usuariosViewModalClasses.sectionFull
+            : usuariosViewModalClasses.section.body
+        }
+      >
+        {children}
+      </div>
     </section>
+  );
+
+  const Field = ({ label, value, children }) => (
+    <div className={usuariosViewModalClasses.field}>
+      <span className={usuariosViewModalClasses.label}>{label}</span>
+      <div className={usuariosViewModalClasses.valueBox}>
+        {children ?? getDisplayValue(value)}
+      </div>
+    </div>
   );
 
   const ultimoLogin = formatearFechaHoraCorta(usuario.ultimo_login);
   const fechaBloqueo = formatearFechaHoraCorta(usuario.fecha_bloqueo);
   const fechaNacimiento = formatearFechaCorta(usuario.fecha_nacimiento);
   const fechaContratacion = formatearFechaCorta(usuario.fecha_contratacion);
+
   const genero =
     usuario.genero === "M"
       ? "Masculino"
@@ -33,23 +57,17 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
       ? "Femenino"
       : "No especificado";
 
-  const estadoChipClass =
-    usuario.estado === "activo"
-      ? "bg-emerald-200 text-emerald-800"
-      : "bg-rose-200 text-rose-800";
+  const estadoClass = buildVariantClass(
+    usuariosViewModalClasses.chipBase,
+    usuariosViewModalClasses.estadoVariants,
+    usuario.estado
+  );
 
-  const tipoFuncionChipClass = (() => {
-    if (usuario.tipo_funcion === "Administrativo") {
-      return "bg-purple-200 text-purple-800";
-    }
-    if (usuario.tipo_funcion === "Docente") {
-      return "bg-blue-200 text-blue-800";
-    }
-    if (usuario.tipo_funcion) {
-      return "bg-emerald-200 text-emerald-800";
-    }
-    return "bg-slate-200 text-slate-700";
-  })();
+  const tipoFuncionClass = buildVariantClass(
+    usuariosViewModalClasses.chipBase,
+    usuariosViewModalClasses.tipoFuncionVariants,
+    usuario.tipo_funcion
+  );
 
   const estudiantesRepresentados = Array.isArray(
     usuario.estudiantes_representados
@@ -57,229 +75,131 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
     ? usuario.estudiantes_representados
     : [];
 
+  const nombreCompleto = [
+    usuario.primer_nombre,
+    usuario.segundo_nombre,
+    usuario.primer_apellido,
+    usuario.segundo_apellido,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <VentanaModal
       isOpen={isOpen}
       onClose={onClose}
       title="Información Completa del Usuario"
       size="xl"
-      bodyClassName="space-y-8"
-      contentClassName="max-w-4xl"
+      bodyClassName={usuariosViewModalClasses.bodyLayout}
+      footer={
+        <button
+          type="button"
+          onClick={onClose}
+          className={usuariosViewModalClasses.footerButton}
+        >
+          Cerrar
+        </button>
+      }
     >
       <>
-        <Section title="Información de la Cuenta">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p className={formStyles.label}>Nombre de Usuario</p>
-              <p className={formStyles.value}>{usuario.nombre_usuario}</p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Rol</p>
-              <p className={formStyles.value}>{usuario.rol}</p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Estado</p>
-              <p className={formStyles.value}>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-semibold ${estadoChipClass}`}
-                >
-                  {usuario.estado || "No especificado"}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Último Login</p>
-              <p className={formStyles.value}>{ultimoLogin || "Nunca"}</p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Intentos Fallidos</p>
-              <p className={formStyles.value}>
-                {usuario.intentos_fallidos || 0}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Fecha de Bloqueo</p>
-              <p className={formStyles.value}>
-                {fechaBloqueo || "No bloqueado"}
-              </p>
-            </div>
-          </div>
+        <Section title="Información de la cuenta">
+          <Field label="Nombre de usuario" value={usuario.nombre_usuario} />
+          <Field label="Rol" value={usuario.rol} />
+          <Field label="Estado">
+            <span className={estadoClass}>
+              {getDisplayValue(usuario.estado)}
+            </span>
+          </Field>
+          <Field label="Último acceso" value={ultimoLogin || "Nunca"} />
+          <Field
+            label="Intentos fallidos"
+            value={usuario.intentos_fallidos ?? 0}
+          />
+          <Field
+            label="Fecha de bloqueo"
+            value={fechaBloqueo || "No bloqueado"}
+          />
         </Section>
 
-        <Section title="Información Personal">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p className={formStyles.label}>Nombre Completo</p>
-              <p className={formStyles.value}>
-                {[
-                  usuario.primer_nombre,
-                  usuario.segundo_nombre,
-                  usuario.primer_apellido,
-                  usuario.segundo_apellido,
-                ]
-                  .filter(Boolean)
-                  .join(" ") || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Cédula</p>
-              <p className={formStyles.value}>
-                {usuario.cedula || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Fecha de Nacimiento</p>
-              <p className={formStyles.value}>
-                {fechaNacimiento || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Género</p>
-              <p className={formStyles.value}>{genero}</p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Nacionalidad</p>
-              <p className={formStyles.value}>
-                {usuario.nacionalidad || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Tipo de Sangre</p>
-              <p className={formStyles.value}>
-                {usuario.tipo_sangre || "No especificado"}
-              </p>
-            </div>
-          </div>
+        <Section title="Información personal">
+          <Field label="Nombre completo" value={nombreCompleto || null} />
+          <Field label="Cédula" value={usuario.cedula} />
+          <Field label="Fecha de nacimiento" value={fechaNacimiento} />
+          <Field label="Género" value={genero} />
+          <Field label="Nacionalidad" value={usuario.nacionalidad} />
+          <Field label="Tipo de sangre" value={usuario.tipo_sangre} />
         </Section>
 
-        <Section title="Información de Contacto">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p className={formStyles.label}>Dirección</p>
-              <p className={formStyles.value}>
-                {usuario.direccion || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Teléfono Principal</p>
-              <p className={formStyles.value}>
-                {usuario.telefono_principal || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Teléfono Secundario</p>
-              <p className={formStyles.value}>
-                {usuario.telefono_secundario || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Email</p>
-              <p className={formStyles.value}>
-                {usuario.email || "No especificado"}
-              </p>
-            </div>
-          </div>
+        <Section title="Información de contacto">
+          <Field label="Dirección" value={usuario.direccion} />
+          <Field
+            label="Teléfono principal"
+            value={usuario.telefono_principal}
+          />
+          <Field
+            label="Teléfono secundario"
+            value={usuario.telefono_secundario}
+          />
+          <Field label="Correo electrónico" value={usuario.email} />
         </Section>
 
-        <Section title="Información Laboral">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p className={formStyles.label}>Cargo</p>
-              <p className={formStyles.value}>
-                {usuario.nombre_cargo || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Función</p>
-              <p className={formStyles.value}>
-                {usuario.funcion_personal || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Tipo de Función</p>
-              <p className={formStyles.value}>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-semibold ${tipoFuncionChipClass}`}
-                >
-                  {usuario.tipo_funcion || "No especificado"}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Fecha de Contratación</p>
-              <p className={formStyles.value}>
-                {fechaContratacion || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Nivel Académico</p>
-              <p className={formStyles.value}>
-                {usuario.nivel_academico || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Horas de Trabajo</p>
-              <p className={formStyles.value}>
-                {usuario.horas_trabajo || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>RIF</p>
-              <p className={formStyles.value}>
-                {usuario.rif || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Etnia/Religión</p>
-              <p className={formStyles.value}>
-                {usuario.etnia_religion || "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Cantidad de Hijas</p>
-              <p className={formStyles.value}>
-                {typeof usuario.cantidad_hijas === "number"
-                  ? usuario.cantidad_hijas
-                  : "No especificado"}
-              </p>
-            </div>
-            <div>
-              <p className={formStyles.label}>Cantidad de Hijos Varones</p>
-              <p className={formStyles.value}>
-                {typeof usuario.cantidad_hijos_varones === "number"
-                  ? usuario.cantidad_hijos_varones
-                  : "No especificado"}
-              </p>
-            </div>
-          </div>
+        <Section title="Información laboral">
+          <Field label="Cargo" value={usuario.nombre_cargo} />
+          <Field label="Función" value={usuario.funcion_personal} />
+          <Field label="Tipo de función">
+            <span className={tipoFuncionClass}>
+              {getDisplayValue(usuario.tipo_funcion)}
+            </span>
+          </Field>
+          <Field label="Fecha de contratación" value={fechaContratacion} />
+          <Field label="Nivel académico" value={usuario.nivel_academico} />
+          <Field label="Horas de trabajo" value={usuario.horas_trabajo} />
+          <Field label="RIF" value={usuario.rif} />
+          <Field label="Etnia / Religión" value={usuario.etnia_religion} />
+          <Field
+            label="Cantidad de hijas"
+            value={
+              typeof usuario.cantidad_hijas === "number"
+                ? usuario.cantidad_hijas
+                : undefined
+            }
+          />
+          <Field
+            label="Cantidad de hijos varones"
+            value={
+              typeof usuario.cantidad_hijos_varones === "number"
+                ? usuario.cantidad_hijos_varones
+                : undefined
+            }
+          />
         </Section>
 
-        <Section title="Estudiantes Representados">
+        <Section title="Estudiantes representados" columns={1}>
           {estudiantesRepresentados.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full table-auto border-collapse border border-slate-200 text-sm">
-                <thead className="bg-slate-100">
+            <div className={usuariosViewModalClasses.table.wrapper}>
+              <table className={usuariosViewModalClasses.table.table}>
+                <thead className={usuariosViewModalClasses.table.head}>
                   <tr>
-                    <th className="border border-slate-200 px-4 py-2 text-left">
-                      Nombre Completo
+                    <th className={usuariosViewModalClasses.table.headCell}>
+                      Nombre completo
                     </th>
-                    <th className="border border-slate-200 px-4 py-2 text-left">
+                    <th className={usuariosViewModalClasses.table.headCell}>
                       Cédula
                     </th>
-                    <th className="border border-slate-200 px-4 py-2 text-left">
-                      Cédula Escolar
+                    <th className={usuariosViewModalClasses.table.headCell}>
+                      Cédula escolar
                     </th>
-                    <th className="border border-slate-200 px-4 py-2 text-left">
+                    <th className={usuariosViewModalClasses.table.headCell}>
                       Grado
                     </th>
-                    <th className="border border-slate-200 px-4 py-2 text-left">
+                    <th className={usuariosViewModalClasses.table.headCell}>
                       Edad
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {estudiantesRepresentados.map((estudiante, index) => {
-                    const nombreCompleto =
+                  {estudiantesRepresentados.map((estudiante) => {
+                    const nombre =
                       [
                         estudiante.primer_nombre,
                         estudiante.segundo_nombre,
@@ -290,25 +210,28 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
                         .join(" ") || "-";
 
                     return (
-                      <tr key={index} className="transition hover:bg-slate-50">
-                        <td className="border border-slate-200 px-4 py-2">
-                          {nombreCompleto}
+                      <tr
+                        key={`${estudiante.id_estudiante}-${estudiante.cedula}`}
+                        className={usuariosViewModalClasses.table.row}
+                      >
+                        <td className={usuariosViewModalClasses.table.cell}>
+                          {nombre}
                         </td>
-                        <td className="border border-slate-200 px-4 py-2">
-                          {estudiante.cedula || "No especificado"}
+                        <td className={usuariosViewModalClasses.table.cell}>
+                          {getDisplayValue(estudiante.cedula, "-")}
                         </td>
-                        <td className="border border-slate-200 px-4 py-2">
-                          {estudiante.cedula_escolar || "No especificado"}
+                        <td className={usuariosViewModalClasses.table.cell}>
+                          {getDisplayValue(estudiante.cedula_escolar, "-")}
                         </td>
-                        <td className="border border-slate-200 px-4 py-2">
+                        <td className={usuariosViewModalClasses.table.cell}>
                           {estudiante.grado
                             ? `Grado ${estudiante.grado}`
                             : "No inscrito"}
                         </td>
-                        <td className="border border-slate-200 px-4 py-2">
+                        <td className={usuariosViewModalClasses.table.cell}>
                           {typeof estudiante.edad === "number"
                             ? `${estudiante.edad} años`
-                            : "No especificado"}
+                            : "-"}
                         </td>
                       </tr>
                     );
@@ -317,7 +240,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
               </table>
             </div>
           ) : (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <div className={usuariosViewModalClasses.bannerWarning}>
               Este usuario no representa a ningún estudiante actualmente.
             </div>
           )}

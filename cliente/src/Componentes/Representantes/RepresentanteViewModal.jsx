@@ -43,11 +43,11 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
   );
 
   const Field = ({ label, value, children }) => (
-    <div>
+    <div className={representantesViewModalClasses.field}>
       <span className={representantesViewModalClasses.label}>{label}</span>
-      <p className={representantesViewModalClasses.value}>
+      <div className={representantesViewModalClasses.valueBox}>
         {children ?? getDisplayValue(value)}
-      </p>
+      </div>
     </div>
   );
 
@@ -89,8 +89,16 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
       onClose={onClose}
       title="Detalle de Representante"
       size="xl"
-      bodyClassName={representantesViewModalClasses.body}
-      contentClassName="max-w-5xl"
+      bodyClassName={representantesViewModalClasses.bodyLayout}
+      footer={
+        <button
+          type="button"
+          onClick={onClose}
+          className={representantesViewModalClasses.footerButton}
+        >
+          Cerrar
+        </button>
+      }
     >
       <>
         <Section title="Estado">

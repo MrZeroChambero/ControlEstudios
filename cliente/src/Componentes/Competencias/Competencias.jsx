@@ -9,6 +9,7 @@ import { CompetenciasTable } from "./CompetenciasTable";
 import { CompetenciaFormModal } from "./CompetenciaFormModal";
 import { IndicadoresModal } from "./IndicadoresModal";
 import { CompetenciasFilterModal } from "./CompetenciasFilterModal";
+import { CompetenciaViewModal } from "./CompetenciaViewModal";
 import { useCompetenciasData } from "./hooks/useCompetenciasData";
 import {
   crearCompetencia,
@@ -47,6 +48,13 @@ export const Competencias = () => {
   });
 
   const [modalIndicadores, setModalIndicadores] = useState({
+    abierto: false,
+    competencia: null,
+    indicadores: [],
+    cargando: false,
+  });
+
+  const [modalVerCompetencia, setModalVerCompetencia] = useState({
     abierto: false,
     competencia: null,
     indicadores: [],
@@ -250,6 +258,56 @@ export const Competencias = () => {
     ? selectedComponent.nombre
     : "Todos los componentes";
 
+  const abrirDetalleCompetencia = async (competencia) => {
+    setModalVerCompetencia({
+      abierto: true,
+      competencia,
+      indicadores: Array.isArray(competencia?.indicadores)
+        ? competencia.indicadores
+        : [],
+      cargando: true,
+    });
+
+    const competenciaId =
+      competencia?.id_competencia ?? competencia?.id ?? null;
+
+    if (!competenciaId) {
+      setModalVerCompetencia((prev) => ({
+        ...prev,
+        cargando: false,
+      }));
+      return;
+    }
+
+    try {
+      const respuesta = await obtenerIndicadoresPorCompetencia(competenciaId);
+      setModalVerCompetencia({
+        abierto: true,
+        competencia: {
+          ...competencia,
+          ...(respuesta?.competencia || {}),
+        },
+        indicadores: respuesta?.indicadores || [],
+        cargando: false,
+      });
+    } catch (error) {
+      Swal.fire("Aviso", error.message, "warning");
+      setModalVerCompetencia((prev) => ({
+        ...prev,
+        cargando: false,
+      }));
+    }
+  };
+
+  const cerrarDetalleCompetencia = () => {
+    setModalVerCompetencia({
+      abierto: false,
+      competencia: null,
+      indicadores: [],
+      cargando: false,
+    });
+  };
+
   return (
     <section className="p-6">
       <div className={layout.container}>
@@ -307,6 +365,7 @@ export const Competencias = () => {
         <CompetenciasTable
           competencias={competencias}
           isLoading={isLoading}
+          onView={abrirDetalleCompetencia}
           onEdit={(dato) => abrirModalCompetencia("editar", dato)}
           onDelete={manejarEliminarCompetencia}
           onViewIndicators={abrirIndicadores}
@@ -343,6 +402,14 @@ export const Competencias = () => {
         onActualizarIndicador={manejarActualizarIndicador}
         onEliminarIndicador={manejarEliminarIndicador}
         onToggleOcultar={manejarToggleIndicador}
+      />
+
+      <CompetenciaViewModal
+        isOpen={modalVerCompetencia.abierto}
+        onClose={cerrarDetalleCompetencia}
+        competencia={modalVerCompetencia.competencia}
+        indicadores={modalVerCompetencia.indicadores}
+        isLoading={modalVerCompetencia.cargando}
       />
     </section>
   );

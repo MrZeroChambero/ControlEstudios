@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
-import { FaList, FaEdit, FaTrash } from "react-icons/fa";
+import { FaList, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import {
   contenidosTableClasses,
   contenidosIconClasses,
 } from "../EstilosCliente/EstilosClientes";
 
-const columnasBase = (onEdit, onDelete, onViewIndicators) => [
+const columnasBase = (onView, onEdit, onDelete, onViewIndicators) => [
   {
     name: "Competencia",
     selector: (row) => row.nombre_competencia,
@@ -43,6 +43,14 @@ const columnasBase = (onEdit, onDelete, onViewIndicators) => [
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
+          onClick={() => onView(row)}
+          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.viewButton}`}
+          title="Ver detalle de la competencia"
+        >
+          <FaEye className={contenidosIconClasses.base} />
+        </button>
+        <button
+          type="button"
           onClick={() => onViewIndicators(row)}
           className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.temasButton}`}
           title="Gestionar indicadores"
@@ -76,6 +84,7 @@ const columnasBase = (onEdit, onDelete, onViewIndicators) => [
 export const CompetenciasTable = ({
   competencias = [],
   isLoading = false,
+  onView,
   onEdit,
   onDelete,
   onViewIndicators,
@@ -96,8 +105,8 @@ export const CompetenciasTable = ({
   }, [competencias, filtro]);
 
   const columnas = useMemo(
-    () => columnasBase(onEdit, onDelete, onViewIndicators),
-    [onEdit, onDelete, onViewIndicators]
+    () => columnasBase(onView, onEdit, onDelete, onViewIndicators),
+    [onView, onEdit, onDelete, onViewIndicators]
   );
 
   const barraBusqueda = (
@@ -165,6 +174,7 @@ export const CompetenciasTable = ({
 CompetenciasTable.propTypes = {
   competencias: PropTypes.array,
   isLoading: PropTypes.bool,
+  onView: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onViewIndicators: PropTypes.func.isRequired,

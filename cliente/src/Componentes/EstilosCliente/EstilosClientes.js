@@ -1,22 +1,62 @@
+// Design tokens keep typography tweaks centralized across the app.
+export const typographyScale = {
+  xxs: "text-[10px]",
+  xs: "text-xs",
+  sm: "text-sm",
+  base: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
+};
+
+export const fontWeights = {
+  regular: "font-normal",
+  medium: "font-medium",
+  semibold: "font-semibold",
+  bold: "font-bold",
+};
+
+export const textColors = {
+  primary: "text-slate-900",
+  secondary: "text-slate-800",
+  tertiary: "text-slate-700",
+  muted: "text-slate-500",
+};
+
+export const typography = {
+  titleLg: `${typographyScale["2xl"]} ${fontWeights.bold} ${textColors.primary}`,
+  titleMd: `${typographyScale.xl} ${fontWeights.semibold} ${textColors.primary}`,
+  titleSm: `${typographyScale.lg} ${fontWeights.semibold} ${textColors.primary}`,
+  bodyBase: `${typographyScale.base} ${textColors.primary}`,
+  bodyMutedSm: `${typographyScale.sm} ${textColors.muted}`,
+  helper: `${typographyScale.xs} ${textColors.muted}`,
+  label: `${typographyScale.sm} ${fontWeights.semibold} ${textColors.tertiary}`,
+  button: `${typographyScale.sm} ${fontWeights.semibold}`,
+  pill: `${typographyScale.xs} ${fontWeights.semibold} uppercase tracking-wide`,
+  pillTight: `${typographyScale.xxs} ${fontWeights.semibold} uppercase tracking-wide`,
+  tag: `${typographyScale.xs} ${fontWeights.semibold}`,
+};
+
+const buttonShape = "inline-flex items-center rounded-2xl px-4 py-2";
+const buttonGapContent = "gap-2";
+const buttonInteractive = "transition focus:outline-none focus:ring-4";
+const buttonShadowInteractive = `${buttonInteractive} shadow-sm`;
+
 export const baseContainer =
   "rounded-3xl border border-slate-100 bg-white p-6 shadow-xl transition-shadow";
 export const baseHeader =
   "mb-4 flex flex-wrap items-center justify-between gap-4";
-export const baseTitle = "text-2xl font-bold text-slate-900";
-export const baseDescription = "mb-6 text-sm text-slate-500";
-const buttonBase =
-  "inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4";
-export const primaryButtonBase =
-  "inline-flex items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4";
-export const neutralButtonBase =
-  "inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-4";
-export const secondaryButton =
-  "inline-flex items-center justify-center rounded-2xl bg-slate-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-400/50";
+export const baseTitle = typography.titleLg;
+export const baseDescription = `mb-6 ${typography.bodyMutedSm}`;
+const buttonBase = `${buttonShape} ${buttonGapContent} ${typography.button} text-white ${buttonShadowInteractive}`;
+export const primaryButtonBase = `${buttonShape} justify-center ${typography.button} text-white ${buttonShadowInteractive}`;
+export const neutralButtonBase = `${buttonShape} ${buttonGapContent} ${typography.button} ${buttonInteractive}`;
+export const secondaryButton = `${buttonShape} justify-center bg-slate-600 ${typography.button} text-white shadow-sm transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-400/50`;
 export const fieldBase =
   "w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-slate-100";
 const readOnlyBase =
   "rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700";
-export const helperTextBase = "text-xs text-slate-500";
+export const helperTextBase = typography.helper;
 export const actionGroupBase = "flex items-center justify-center gap-2";
 const actionButtonBase =
   "inline-flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2";
@@ -24,9 +64,8 @@ const smallActionButtonBase =
   "inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2";
 const filterInputBase =
   "w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
-const helperMessageBase = "py-6 text-center text-sm text-slate-500";
-const typePillBase =
-  "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide";
+const helperMessageBase = `py-6 text-center ${typography.bodyMutedSm}`;
+export const typePillBase = `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`;
 
 const estudiantesFieldBase =
   "w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
@@ -53,7 +92,7 @@ const createLayoutTokens = (accentKey) => ({
 
 const createFormTokens = (accentKey) => ({
   group: "mb-4 flex flex-col gap-1.5",
-  label: "text-sm font-semibold text-slate-700",
+  label: typography.label,
   input: fieldBase,
   inputValid:
     "w-full rounded-2xl border border-blue-300 bg-blue-50 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
@@ -78,14 +117,13 @@ const createFormTokens = (accentKey) => ({
 });
 
 const baseStatusPills = {
-  base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide",
+  base: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pillTight}`,
   active: "bg-blue-100 text-blue-700",
   inactive: "bg-rose-100 text-rose-700",
   warning: "bg-amber-100 text-amber-700",
 };
 
-const gradoPill =
-  "inline-flex items-center justify-center rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-600";
+const gradoPill = `inline-flex items-center justify-center rounded-full bg-blue-50 px-2.5 py-1 ${typography.pillTight} text-blue-600`;
 
 const tableBase = {
   wrapper: "overflow-x-auto",
@@ -107,7 +145,7 @@ const temasTableBase = {
     "flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between",
   filterInput: `${filterInputBase} md:max-w-xs`,
   addButton: `${buttonBase} ${accentTokens.blue}`,
-  stats: "text-sm text-slate-500",
+  stats: typography.bodyMutedSm,
   actionGroup: actionGroupBase,
   actionButton: smallActionButtonBase,
   editButton:
@@ -156,8 +194,7 @@ const modalFooterDangerButton = `${buttonBase} bg-rose-600 hover:bg-rose-700 foc
 const detailSectionTitleBase =
   "text-lg font-semibold text-blue-600 border-b border-slate-200 pb-2";
 const detailSectionWrapper = "space-y-3";
-const detailLabelClass =
-  "text-xs font-semibold uppercase tracking-wide text-slate-500";
+const detailLabelClass = `${typography.pill} ${textColors.muted}`;
 const detailValueClass = "text-sm text-slate-900";
 const detailCardBase = {
   container: "rounded-2xl border border-slate-200 bg-slate-50 p-4",
@@ -210,7 +247,7 @@ export const temasModalClasses = {
   content: "w-full max-w-6xl rounded-3xl bg-white p-8 shadow-2xl",
   header: "mb-6 flex flex-wrap items-start justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
-  subtitle: "text-sm text-slate-500",
+  subtitle: typography.bodyMutedSm,
   closeButton:
     "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
   emptyIcon: "mb-4 text-6xl",
@@ -291,7 +328,7 @@ export const aulasFormClasses = {
   grid: "grid grid-cols-1 gap-4 md:grid-cols-3",
   section: "mt-6",
   sectionTitle: "text-base font-semibold text-slate-800",
-  note: "text-xs text-slate-500",
+  note: typography.helper,
 };
 
 export const aulasTableClasses = {
@@ -342,7 +379,7 @@ export const areasModalClasses = {
 export const areasComponentTableClasses = {
   wrapper: "mt-6",
   title: "text-base font-semibold text-slate-700",
-  emptyState: "text-sm text-slate-500",
+  emptyState: typography.bodyMutedSm,
 };
 
 // Componentes de aprendizaje
@@ -398,7 +435,7 @@ export const estudiantesTableClasses = {
     "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
   deleteButton: "text-rose-500 hover:text-rose-600",
   status: {
-    base: "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+    base: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`,
     activo: "bg-blue-100 text-blue-700",
     incompleto: "bg-amber-100 text-amber-700",
     inactivo: "bg-rose-100 text-rose-700",
@@ -462,8 +499,8 @@ export const seleccionEntidadClasses = {
     "flex cursor-pointer items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50",
   listItemActive: "bg-blue-50/70",
   itemName: "text-sm font-semibold text-slate-800",
-  itemMeta: "text-xs text-slate-500",
-  activeTag: "text-xs font-semibold uppercase tracking-wide text-blue-600",
+  itemMeta: typography.helper,
+  activeTag: `${typography.pill} text-blue-600`,
   empty: helperMessageBase,
 };
 
@@ -472,9 +509,9 @@ export const estudiantesFichaClasses = {
   header: "mb-4 flex items-center gap-3",
   avatar:
     "flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold",
-  fieldLabel: "text-xs font-semibold uppercase tracking-wide text-slate-400",
+  fieldLabel: `${typography.pill} text-slate-400`,
   fieldValue: "text-sm font-medium text-slate-700",
-  chip: "inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600",
+  chip: `inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 ${typography.tag} text-slate-600`,
 };
 
 export const estudiantesModalClasses = {
@@ -483,7 +520,7 @@ export const estudiantesModalClasses = {
     "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
   header: "mb-6 flex items-center justify-between gap-3",
   title: "text-2xl font-semibold text-slate-900",
-  subtitle: "text-sm text-slate-500",
+  subtitle: typography.bodyMutedSm,
   closeButton:
     "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
   body: "space-y-6",
@@ -506,7 +543,7 @@ export const estudiantesModalClasses = {
     list: "max-h-64 overflow-y-auto rounded-3xl border border-slate-200",
     item: "flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50",
     name: "text-sm font-semibold text-slate-800",
-    meta: "text-xs text-slate-500",
+    meta: typography.helper,
     selectButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
     empty: helperMessageBase,
   },
@@ -538,7 +575,7 @@ export const estudiantesModalClasses = {
     list: "mt-3 space-y-2 max-h-56 overflow-y-auto",
     item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
     name: "text-sm font-semibold text-slate-800",
-    meta: "text-xs text-slate-500",
+    meta: typography.helper,
     delivered:
       "inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700",
     pending:
@@ -558,7 +595,7 @@ export const estudiantesModalClasses = {
     item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
     details: "flex flex-col gap-1 text-xs text-slate-600",
     headline: "text-sm font-semibold text-slate-800",
-    meta: "text-xs text-slate-500",
+    meta: typography.helper,
     deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
     addButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
     empty: helperMessageBase,
@@ -589,7 +626,7 @@ export const inscripcionStepClasses = {
 
 export const inscripcionControlClasses = {
   nav: "flex flex-col gap-3 md:flex-row md:items-center md:justify-between",
-  info: "text-sm text-slate-500",
+  info: typography.bodyMutedSm,
   buttons: "flex flex-col gap-2 md:flex-row md:gap-3",
   primary: `${primaryButtonBase} ${accentTokens.blue}`,
   secondary: `${neutralButtonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-200/60`,
@@ -608,36 +645,37 @@ export const inscripcionFormClasses = {
     error: "border-rose-400 bg-rose-50/80 shadow-md",
   },
   sectionStatusPill: {
-    neutral:
-      "inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600",
-    success:
-      "inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700",
-    error:
-      "inline-flex items-center rounded-full bg-rose-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-rose-700",
+    neutral: `${typePillBase} bg-slate-100 text-slate-600`,
+    success: `${typePillBase} bg-emerald-100 text-emerald-700`,
+    error: `${typePillBase} bg-rose-100 text-rose-700`,
   },
 };
 
 export const inscripcionTableClasses = {
   ...tableBase,
   wrapper: "overflow-x-auto rounded-3xl border border-slate-100",
-  helperText: "py-4 text-center text-sm text-slate-500",
+  helperText: `py-4 text-center ${typography.bodyMutedSm}`,
 };
 
 export const inscripcionSummaryClasses = {
   grid: "grid grid-cols-1 gap-4 md:grid-cols-2",
   card: "rounded-3xl border border-slate-100 bg-slate-50 p-4 shadow-sm",
   title: "mb-2 text-sm font-semibold text-slate-700",
-  itemLabel: "text-xs font-semibold uppercase tracking-wide text-slate-400",
+  itemLabel: `${typography.pill} text-slate-400`,
   itemValue: "text-sm font-medium text-slate-700",
 };
 
 export const estudiantesViewModalClasses = {
   ...detailModalBase,
+  bodyLayout: "space-y-8",
+  field: "flex flex-col gap-1.5",
   section: {
     wrapper: detailSectionWrapper,
     title: detailSectionTitleBase,
     body: "space-y-3",
   },
+  label: detailLabelClass,
+  value: detailValueClass,
   row: {
     container: "grid gap-1 md:grid-cols-[200px_1fr] md:items-start",
     label: detailLabelClass,
@@ -645,6 +683,7 @@ export const estudiantesViewModalClasses = {
   },
   card: detailCardBase,
   empty: helperMessageBase,
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
 };
 
 // Personal
@@ -665,8 +704,7 @@ export const personalFormClasses = {
 export const personalTableClasses = {
   ...personasTableClasses,
   viewButton: "text-blue-600 hover:text-blue-700",
-  rolePill:
-    "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
+  rolePill: `${typePillBase} bg-blue-50 text-blue-700`,
   typePill: {
     base: typePillBase,
     administrativo: `${typePillBase} bg-blue-100 text-blue-700`,
@@ -688,14 +726,13 @@ export const personalModalClasses = {
   content: "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl",
   header: "mb-6 flex flex-wrap items-center justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
-  meta: "flex items-center gap-3 text-sm text-slate-500",
-  stepBadge:
-    "inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
+  meta: `flex items-center gap-3 ${typography.bodyMutedSm}`,
+  stepBadge: `${typePillBase} gap-2 bg-blue-100 text-blue-700`,
   stepDots: "flex items-center gap-2",
   stepDot: "h-2.5 w-2.5 rounded-full bg-slate-200",
   stepDotActive: "bg-blue-500",
   closeButton: modalCloseDangerButton,
-  subtitle: "mb-6 text-sm text-slate-500",
+  subtitle: `mb-6 ${typography.bodyMutedSm}`,
   actionBar: "mt-6 flex flex-wrap items-center justify-between gap-3",
   listWrapper: "max-h-96 overflow-y-auto rounded-3xl border border-slate-200",
   listHeader:
@@ -705,9 +742,8 @@ export const personalModalClasses = {
     "flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50 cursor-pointer",
   listPerson: "flex flex-col gap-0.5",
   listName: "text-sm font-semibold text-slate-900",
-  listMeta: "text-xs text-slate-500",
-  listTag:
-    "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
+  listMeta: typography.helper,
+  listTag: `${typePillBase} bg-blue-100 text-blue-700`,
   searchWrapper: "relative",
   searchIcon:
     "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400",
@@ -720,6 +756,8 @@ export const personalModalClasses = {
 
 export const personalViewModalClasses = {
   ...detailModalBase,
+  bodyLayout: "space-y-8",
+  field: "flex flex-col gap-1.5",
   section: {
     wrapper: detailSectionWrapper,
     title: detailSectionTitleBase,
@@ -728,8 +766,8 @@ export const personalViewModalClasses = {
   sectionStack: "space-y-2",
   label: detailLabelClass,
   value: detailValueClass,
-  statusChipBase:
-    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
+  statusChipBase: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`,
   statusChipVariants: {
     activo: "bg-emerald-100 text-emerald-700",
     incompleto: "bg-amber-100 text-amber-700",
@@ -744,8 +782,7 @@ export const personalViewModalClasses = {
     Especialista: "bg-sky-100 text-sky-700",
     default: "bg-slate-200 text-slate-600",
   },
-  typeChipBase:
-    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  typeChipBase: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`,
   listGrid: "grid grid-cols-1 gap-2 md:grid-cols-2",
   listItem:
     "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700",
@@ -782,8 +819,7 @@ export const representantesFormClasses = createFormTokens("blue");
 
 export const representantesTableClasses = {
   ...personasTableClasses,
-  relationshipPill:
-    "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
+  relationshipPill: `${typePillBase} bg-blue-50 text-blue-700`,
 };
 
 export const representantesModalClasses = {
@@ -791,10 +827,9 @@ export const representantesModalClasses = {
   content: "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl",
   header: "mb-6 flex flex-wrap items-center justify-between gap-4",
   title: "text-2xl font-semibold text-slate-900",
-  subtitle: "text-sm text-slate-500",
-  meta: "flex items-center gap-3 text-sm text-slate-500",
-  stepBadge:
-    "inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
+  subtitle: typography.bodyMutedSm,
+  meta: `flex items-center gap-3 ${typography.bodyMutedSm}`,
+  stepBadge: `${typePillBase} gap-2 bg-blue-100 text-blue-700`,
   stepDots: "flex items-center gap-2",
   stepDot: "h-2.5 w-2.5 rounded-full bg-slate-200",
   stepDotActive: "bg-blue-500",
@@ -807,9 +842,8 @@ export const representantesModalClasses = {
     "flex cursor-pointer items-start justify-between gap-3 px-4 py-3 transition hover:bg-blue-50",
   listPerson: "flex flex-col gap-0.5",
   listName: "text-sm font-semibold text-slate-900",
-  listMeta: "text-xs text-slate-500",
-  listTag:
-    "inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700",
+  listMeta: typography.helper,
+  listTag: `${typePillBase} bg-blue-100 text-blue-700`,
   listEmpty: helperMessageBase,
   searchWrapper: "relative",
   searchIcon:
@@ -823,6 +857,8 @@ export const representantesModalClasses = {
 
 export const representantesViewModalClasses = {
   ...detailModalBase,
+  bodyLayout: "space-y-6",
+  field: "flex flex-col gap-1.5",
   section: {
     wrapper: detailSectionWrapper,
     title: detailSectionTitleBase,
@@ -830,22 +866,105 @@ export const representantesViewModalClasses = {
   },
   label: detailLabelClass,
   value: detailValueClass,
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
   listGrid: "grid grid-cols-1 gap-2 md:grid-cols-2",
   listItem:
     "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700",
-  chipBase:
-    "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+  chipBase: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`,
   chipVariants: {
     activo: "bg-emerald-100 text-emerald-700",
     incompleto: "bg-amber-100 text-amber-700",
     inactivo: "bg-rose-100 text-rose-700",
     default: "bg-slate-200 text-slate-600",
   },
-  pillBlue:
-    "inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700",
-  pillGreen:
-    "inline-flex items-center justify-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700",
+  pillBlue: `${typePillBase} bg-blue-100 text-blue-700`,
+  pillGreen: `${typePillBase} bg-emerald-100 text-emerald-700`,
   card: detailCardBase,
+  empty: helperMessageBase,
+};
+
+export const usuariosViewModalClasses = {
+  ...detailModalBase,
+  bodyLayout: "space-y-8",
+  field: "flex flex-col gap-1.5",
+  section: {
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "grid gap-4 md:grid-cols-2",
+  },
+  sectionFull: "space-y-3",
+  label: detailLabelClass,
+  value: detailValueClass,
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
+  chipBase: `${typePillBase} px-3 py-1`,
+  estadoVariants: {
+    activo: "bg-emerald-100 text-emerald-700",
+    inactivo: "bg-rose-100 text-rose-700",
+    bloqueado: "bg-amber-100 text-amber-700",
+    default: "bg-slate-200 text-slate-600",
+  },
+  tipoFuncionVariants: {
+    Administrativo: "bg-purple-100 text-purple-700",
+    Docente: "bg-blue-100 text-blue-700",
+    Especialista: "bg-sky-100 text-sky-700",
+    default: "bg-slate-200 text-slate-600",
+  },
+  statsChip: `${typePillBase} bg-blue-50 text-blue-700`,
+  table: {
+    wrapper: "overflow-hidden rounded-3xl border border-slate-200",
+    table: "min-w-full divide-y divide-slate-200",
+    head: "bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
+    headCell: "px-4 py-2",
+    row: "bg-white even:bg-slate-50/70",
+    cell: "px-4 py-2 text-sm text-slate-700",
+  },
+  bannerWarning:
+    "rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800",
+  empty: helperMessageBase,
+};
+
+export const competenciasViewModalClasses = {
+  ...detailModalBase,
+  bodyLayout: "space-y-6",
+  field: "flex flex-col gap-1.5",
+  section: {
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "grid gap-4 md:grid-cols-2",
+  },
+  label: detailLabelClass,
+  value: detailValueClass,
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
+  descriptionBox:
+    "rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700",
+  metaGrid: "grid gap-3 md:grid-cols-2",
+  pill: `${typePillBase} bg-blue-100 text-blue-700`,
+  indicators: {
+    wrapper: "space-y-2",
+    item: "rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200",
+    title: "text-base font-semibold text-slate-800",
+    meta: "text-sm text-slate-600",
+  },
+  empty: helperMessageBase,
+};
+
+export const indicadoresViewModalClasses = {
+  ...detailModalBase,
+  bodyLayout: "space-y-6",
+  field: "flex flex-col gap-1.5",
+  section: {
+    wrapper: detailSectionWrapper,
+    title: detailSectionTitleBase,
+    body: "grid gap-4 md:grid-cols-2",
+  },
+  label: detailLabelClass,
+  value: detailValueClass,
+  valueBox: `${readOnlyBase} flex items-center gap-2`,
+  descriptionBox:
+    "rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700",
+  tag: `${typePillBase} bg-slate-100 text-slate-600`,
+  highlightTag: `${typePillBase} bg-emerald-100 text-emerald-700`,
+  warnTag: `${typePillBase} bg-amber-100 text-amber-700`,
   empty: helperMessageBase,
 };
 

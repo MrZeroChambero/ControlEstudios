@@ -1,33 +1,39 @@
 import React from "react";
 import { FaTimes } from "react-icons/fa";
+import {
+  typography,
+  typographyScale,
+  textColors,
+  typePillBase,
+  fontWeights,
+} from "../EstilosCliente/EstilosClientes";
+
+const infoRowLabelClass = `${typography.pill} ${textColors.muted}`;
+const infoRowValueClass = `${typographyScale.sm} ${fontWeights.medium} ${textColors.tertiary}`;
+const chipListTitleClass = `${typography.pill} ${textColors.muted}`;
+const chipBadgeClass = `${typePillBase} border border-slate-200 bg-white text-slate-600`;
+const mutedBodyTextClass = typography.bodyMutedSm;
 
 const InfoRow = ({ label, value }) => (
   <div className="flex flex-col rounded-lg border border-slate-100 p-3">
-    <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-      {label}
-    </span>
-    <span className="text-sm font-medium text-slate-700">{value ?? "-"}</span>
+    <span className={infoRowLabelClass}>{label}</span>
+    <span className={infoRowValueClass}>{value ?? "-"}</span>
   </div>
 );
 
 const ChipsList = ({ title, items = [], emptyLabel }) => (
   <div>
-    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-      {title}
-    </p>
+    <p className={chipListTitleClass}>{title}</p>
     {items.length ? (
       <div className="mt-2 flex flex-wrap gap-2">
         {items.map((item) => (
-          <span
-            key={item}
-            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
-          >
+          <span key={item} className={chipBadgeClass}>
             #{item}
           </span>
         ))}
       </div>
     ) : (
-      <p className="mt-2 text-sm text-slate-500">{emptyLabel}</p>
+      <p className={`mt-2 ${mutedBodyTextClass}`}>{emptyLabel}</p>
     )}
   </div>
 );
@@ -84,10 +90,10 @@ export const PlanificacionDetallePanel = ({
       <aside className="relative ml-auto flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">
+            <p className={`${typography.pill} text-indigo-500`}>
               Detalle de planificación
             </p>
-            <h2 className="text-lg font-bold text-slate-800">
+            <h2 className={`${typography.titleSm} ${fontWeights.bold}`}>
               #{detalle.id_planificacion ?? "-"}
             </h2>
           </div>
@@ -103,7 +109,7 @@ export const PlanificacionDetallePanel = ({
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {isLoading ? (
-            <p className="text-sm text-slate-500">Cargando detalle...</p>
+            <p className={mutedBodyTextClass}>Cargando detalle...</p>
           ) : (
             <div className="space-y-6">
               <div className="grid gap-3">
@@ -149,7 +155,7 @@ export const PlanificacionDetallePanel = ({
                   emptyLabel="No se registraron estudiantes para esta planificación."
                 />
               ) : (
-                <p className="text-sm text-slate-500">
+                <p className={mutedBodyTextClass}>
                   Esta planificación es por aula completa, por lo que no lista
                   estudiantes individuales.
                 </p>

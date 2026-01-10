@@ -1,4 +1,16 @@
 import React from "react";
+import {
+  typography,
+  typographyScale,
+  textColors,
+  fontWeights,
+} from "../../EstilosCliente/EstilosClientes";
+
+const avatarInitialClass = `flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 ${typographyScale.xs} ${fontWeights.semibold} uppercase tracking-wide text-slate-600`;
+const selectedNameClass = `${typographyScale.sm} ${fontWeights.semibold} ${textColors.tertiary}`;
+const dropdownEmptyClass = `${typography.bodyMutedSm}`;
+const loadingHelperClass = `${typographyScale.xs} ${fontWeights.semibold} ${textColors.muted}`;
+const emptyHelperClass = `${typographyScale.xs} ${fontWeights.semibold} text-rose-500`;
 
 export const SelectorDocenteInteractivo = ({
   form,
@@ -36,10 +48,10 @@ export const SelectorDocenteInteractivo = ({
         >
           <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
             <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <span className={avatarInitialClass}>
                 {docenteSeleccionado ? docenteSeleccionado.initials : "?"}
               </span>
-              <span className="truncate text-sm font-semibold text-slate-700">
+              <span className={`truncate ${selectedNameClass}`}>
                 {docenteSeleccionado
                   ? docenteSeleccionado.baseLabel
                   : "Selecciona un docente"}
@@ -90,7 +102,7 @@ export const SelectorDocenteInteractivo = ({
             </div>
             <div className="max-h-64 overflow-y-auto py-2" role="listbox">
               {catalogoPersonal.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-slate-500">
+                <p className={`px-4 py-3 ${dropdownEmptyClass}`}>
                   {mensajeSinDocentes}
                 </p>
               ) : catalogoPersonalFiltrado.length ? (
@@ -118,7 +130,7 @@ export const SelectorDocenteInteractivo = ({
                   );
                 })
               ) : (
-                <p className="px-4 py-3 text-sm text-slate-500">
+                <p className={`px-4 py-3 ${dropdownEmptyClass}`}>
                   No encontramos docentes que coincidan con tu búsqueda.
                 </p>
               )}
@@ -127,14 +139,12 @@ export const SelectorDocenteInteractivo = ({
         )}
       </div>
       {cargandoDocentesAsignacion && (
-        <p className="text-xs font-semibold text-slate-500">
+        <p className={loadingHelperClass}>
           Buscando docentes con asignaciones activas...
         </p>
       )}
       {!cargandoDocentesAsignacion && catalogoPersonal.length === 0 && (
-        <p className="text-xs font-semibold text-rose-500">
-          {mensajeSinDocentes}
-        </p>
+        <p className={emptyHelperClass}>{mensajeSinDocentes}</p>
       )}
     </div>
   );

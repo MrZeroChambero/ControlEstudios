@@ -11,6 +11,7 @@ import {
   representantesTableClasses,
   contenidosIconClasses,
   dataTableBaseStyles,
+  typePillBase,
 } from "../EstilosCliente/EstilosClientes";
 
 export const RepresentanteTable = ({
@@ -42,8 +43,9 @@ export const RepresentanteTable = ({
   const resolveEstadoBadge = (estado) => {
     const normalized = (estado || "").toString().toLowerCase();
     const { statusChip } = representantesTableClasses;
-    if (!statusChip)
-      return "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-slate-200 text-slate-600";
+    if (!statusChip) {
+      return `${typePillBase} bg-slate-200 text-slate-600`;
+    }
     if (normalized === "activo") {
       return `${statusChip.base} ${statusChip.activo || statusChip.active}`;
     }

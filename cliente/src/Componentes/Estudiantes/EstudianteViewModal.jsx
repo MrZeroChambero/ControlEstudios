@@ -18,11 +18,9 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
   );
 
   const Row = ({ label, value }) => (
-    <div className={estudiantesViewModalClasses.row.container}>
-      <span className={estudiantesViewModalClasses.row.label}>{label}</span>
-      <span className={estudiantesViewModalClasses.row.value}>
-        {value ?? "-"}
-      </span>
+    <div className={estudiantesViewModalClasses.field}>
+      <span className={estudiantesViewModalClasses.label}>{label}</span>
+      <div className={estudiantesViewModalClasses.valueBox}>{value ?? "-"}</div>
     </div>
   );
 
@@ -54,8 +52,7 @@ export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {
       title="Detalle del Estudiante"
       subtitle={modalSubtitle || null}
       size="xl"
-      contentClassName="max-w-5xl"
-      bodyClassName="space-y-6"
+      bodyClassName={estudiantesViewModalClasses.bodyLayout}
       footer={
         <button
           onClick={onClose}

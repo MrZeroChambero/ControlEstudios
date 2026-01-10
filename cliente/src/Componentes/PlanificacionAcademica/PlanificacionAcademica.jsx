@@ -13,6 +13,12 @@ import { PlanificacionDetallePanel } from "./PlanificacionDetallePanel";
 import { PlanificacionFormModal } from "./PlanificacionFormModal";
 import { EncabezadoPlanificacion } from "./componentes/EncabezadoPlanificacion";
 import { FiltrosPlanificacion } from "./componentes/FiltrosPlanificacion";
+import {
+  typography,
+  typographyScale,
+  textColors,
+  typePillBase,
+} from "../EstilosCliente/EstilosClientes";
 
 const filtrosIniciales = {
   estado: "activo",
@@ -29,6 +35,16 @@ const catalogosIniciales = {
   componentes: [],
   momentos: [],
 };
+
+const tableHeaderTextClass = `${typography.pill} ${textColors.muted}`;
+const tipoPillClass = `${typePillBase} bg-slate-100 text-slate-700`;
+const estadoActivoPillClass = `${typePillBase} bg-emerald-100 text-emerald-700`;
+const estadoInactivoPillClass = `${typePillBase} bg-amber-100 text-amber-700`;
+const resumenChipClass = `rounded bg-slate-100 px-2 py-1 ${typographyScale.xs} ${textColors.tertiary}`;
+const inlineActionButtonClass = `flex items-center gap-1 rounded border border-slate-200 px-3 py-1 ${typography.button} ${textColors.tertiary} transition hover:border-slate-400 hover:text-slate-800`;
+const inlineActionButtonDisabledClass = `disabled:cursor-not-allowed disabled:opacity-50`;
+const tableEmptyTextClass = `py-6 text-center ${typography.bodyMutedSm}`;
+const tableRowTextClass = `${typographyScale.sm}`;
 
 const normalizarClave = (valor) => {
   if (valor === null || valor === undefined) return null;
@@ -601,7 +617,7 @@ export const PlanificacionAcademica = () => {
     if (isLoading) {
       return (
         <tr>
-          <td colSpan="8" className="py-6 text-center text-slate-500">
+          <td colSpan="8" className={tableEmptyTextClass}>
             Cargando planificaciones...
           </td>
         </tr>
@@ -611,7 +627,7 @@ export const PlanificacionAcademica = () => {
     if (!planificaciones.length) {
       return (
         <tr>
-          <td colSpan="8" className="py-6 text-center text-slate-500">
+          <td colSpan="8" className={tableEmptyTextClass}>
             {errorMensaje || "No hay planificaciones registradas."}
           </td>
         </tr>
@@ -621,9 +637,9 @@ export const PlanificacionAcademica = () => {
     return planificaciones.map((plan) => (
       <tr
         key={plan.id_planificacion}
-        className="border-b border-slate-100 text-sm"
+        className={`border-b border-slate-100 ${tableRowTextClass}`}
       >
-        <td className="px-4 py-3 font-semibold text-slate-700">
+        <td className={`px-4 py-3 ${typography.label}`}>
           #{plan.id_planificacion}
         </td>
         <td className="px-4 py-3">{resolverDocente(plan.fk_personal)}</td>
@@ -631,33 +647,33 @@ export const PlanificacionAcademica = () => {
         <td className="px-4 py-3">{resolverComponente(plan.fk_componente)}</td>
         <td className="px-4 py-3">{resolverMomento(plan.fk_momento)}</td>
         <td className="px-4 py-3">
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
-            {tipoLabel(plan.tipo)}
-          </span>
+          <span className={tipoPillClass}>{tipoLabel(plan.tipo)}</span>
         </td>
         <td className="px-4 py-3">
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+            className={
               plan.estado === "activo"
-                ? "bg-green-100 text-green-700"
-                : "bg-amber-100 text-amber-700"
-            }`}
+                ? estadoActivoPillClass
+                : estadoInactivoPillClass
+            }
           >
             {estadoLabel(plan.estado)}
           </span>
         </td>
-        <td className="px-4 py-3 text-right text-sm">
+        <td
+          className={`px-4 py-3 text-right ${typographyScale.sm} ${textColors.primary}`}
+        >
           <div className="flex flex-wrap items-center justify-end gap-2">
-            <span className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">
+            <span className={resumenChipClass}>
               {plan.competencias?.length ?? 0} competencias
             </span>
-            <span className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600">
+            <span className={resumenChipClass}>
               {plan.estudiantes?.length ?? 0} estudiantes
             </span>
             <button
               type="button"
               onClick={() => alVerDetalle(plan)}
-              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
+              className={`${inlineActionButtonClass}`}
             >
               <FaEye />
               Ver detalle
@@ -665,7 +681,7 @@ export const PlanificacionAcademica = () => {
             <button
               type="button"
               onClick={() => alAlternarEstadoPlanificacion(plan)}
-              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`${inlineActionButtonClass} ${inlineActionButtonDisabledClass}`}
               disabled={!puedeGestionarPlanificaciones || !contextoEditable}
               title={
                 !puedeGestionarPlanificaciones
@@ -682,7 +698,7 @@ export const PlanificacionAcademica = () => {
             <button
               type="button"
               onClick={() => alClonarPlanificacion(plan)}
-              className="flex items-center gap-1 rounded border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`${inlineActionButtonClass} ${inlineActionButtonDisabledClass}`}
               disabled={!puedeGestionarPlanificaciones || !contextoEditable}
               title={botonClonarTitulo}
             >
@@ -725,7 +741,7 @@ export const PlanificacionAcademica = () => {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-left">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <thead className={`bg-slate-50 ${tableHeaderTextClass}`}>
               <tr>
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Docente</th>

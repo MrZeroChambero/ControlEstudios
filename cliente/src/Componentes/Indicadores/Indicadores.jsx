@@ -22,10 +22,12 @@ import {
   FaPlus,
   FaSyncAlt,
   FaEye,
-  FaEyeSlash,
   FaEdit,
   FaTrash,
+  FaToggleOn,
+  FaToggleOff,
 } from "react-icons/fa";
+import { IndicadorViewModal } from "./IndicadorViewModal";
 
 const layout = contenidosLayout;
 const formClasses = contenidosFormClasses;
@@ -46,6 +48,11 @@ export const Indicadores = () => {
   const [modalIndicador, setModalIndicador] = useState({
     abierto: false,
     modo: "crear",
+    indicador: null,
+  });
+
+  const [modalVerIndicador, setModalVerIndicador] = useState({
+    abierto: false,
     indicador: null,
   });
 
@@ -179,6 +186,14 @@ export const Indicadores = () => {
 
   const cerrarModalIndicador = useCallback(() => {
     setModalIndicador({ abierto: false, modo: "crear", indicador: null });
+  }, []);
+
+  const abrirModalVerIndicador = useCallback((indicador) => {
+    setModalVerIndicador({ abierto: true, indicador });
+  }, []);
+
+  const cerrarModalVerIndicador = useCallback(() => {
+    setModalVerIndicador({ abierto: false, indicador: null });
   }, []);
 
   const recargarIndicadores = useCallback(async () => {
@@ -325,10 +340,18 @@ export const Indicadores = () => {
       },
       {
         name: "Acciones",
-        width: "160px",
+        width: "190px",
         center: true,
         cell: (row) => (
           <div className={tableClasses.actionGroup}>
+            <button
+              type="button"
+              onClick={() => abrirModalVerIndicador(row)}
+              className={`${tableClasses.actionButton} ${tableClasses.viewButton}`}
+              title="Ver detalle del indicador"
+            >
+              <FaEye className={contenidosIconClasses.base} />
+            </button>
             <button
               type="button"
               onClick={() => manejarToggleIndicador(row)}
@@ -342,9 +365,9 @@ export const Indicadores = () => {
               }
             >
               {row.ocultar === "si" ? (
-                <FaEye className={contenidosIconClasses.base} />
+                <FaToggleOff className={contenidosIconClasses.base} />
               ) : (
-                <FaEyeSlash className={contenidosIconClasses.base} />
+                <FaToggleOn className={contenidosIconClasses.base} />
               )}
             </button>
             <button
@@ -370,7 +393,12 @@ export const Indicadores = () => {
         button: true,
       },
     ],
-    [abrirModalEditar, manejarEliminarIndicador, manejarToggleIndicador]
+    [
+      abrirModalEditar,
+      abrirModalVerIndicador,
+      manejarEliminarIndicador,
+      manejarToggleIndicador,
+    ]
   );
 
   const barraBusqueda = (
@@ -563,6 +591,12 @@ export const Indicadores = () => {
         modo={modalIndicador.modo}
         indicador={modalIndicador.indicador}
         competencia={competenciaActual}
+      />
+
+      <IndicadorViewModal
+        isOpen={modalVerIndicador.abierto}
+        onClose={cerrarModalVerIndicador}
+        indicador={modalVerIndicador.indicador}
       />
     </section>
   );

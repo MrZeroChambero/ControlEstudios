@@ -32,7 +32,9 @@ export const ComponentesAprendizajeForm = ({
           Área de aprendizaje
         </label>
         {isViewMode ? (
-          <p className={componentesFormClasses.readOnly}>{nombreArea}</p>
+          <div className={componentesFormClasses.readOnly}>
+            {nombreArea || "Sin área asignada"}
+          </div>
         ) : (
           <select
             id="fk_area"
@@ -59,36 +61,46 @@ export const ComponentesAprendizajeForm = ({
         >
           Nombre del componente
         </label>
-        <input
-          id="nombre_componente"
-          type="text"
-          name="nombre_componente"
-          value={formData.nombre_componente}
-          onChange={handleInputChange}
-          className={componentesFormClasses.input}
-          autoComplete="off"
-          maxLength={100}
-          required
-          readOnly={isViewMode}
-        />
+        {isViewMode ? (
+          <div className={componentesFormClasses.readOnly}>
+            {formData.nombre_componente || "Sin nombre asignado"}
+          </div>
+        ) : (
+          <input
+            id="nombre_componente"
+            type="text"
+            name="nombre_componente"
+            value={formData.nombre_componente}
+            onChange={handleInputChange}
+            className={componentesFormClasses.input}
+            autoComplete="off"
+            maxLength={100}
+            required
+          />
+        )}
       </div>
 
       <div className={componentesFormClasses.group}>
         <label className={componentesFormClasses.label} htmlFor="especialista">
           Especialista responsable
         </label>
-        <input
-          id="especialista"
-          type="text"
-          name="especialista"
-          value={formData.especialista}
-          onChange={handleInputChange}
-          className={componentesFormClasses.input}
-          autoComplete="off"
-          maxLength={50}
-          required
-          readOnly={isViewMode}
-        />
+        {isViewMode ? (
+          <div className={componentesFormClasses.readOnly}>
+            {formData.especialista || "Sin especialista asignado"}
+          </div>
+        ) : (
+          <input
+            id="especialista"
+            type="text"
+            name="especialista"
+            value={formData.especialista}
+            onChange={handleInputChange}
+            className={componentesFormClasses.input}
+            autoComplete="off"
+            maxLength={50}
+            required
+          />
+        )}
       </div>
 
       <div className={componentesFormClasses.group}>
@@ -96,9 +108,9 @@ export const ComponentesAprendizajeForm = ({
           ¿Evalúa?
         </label>
         {isViewMode ? (
-          <p className={componentesFormClasses.readOnly}>
+          <div className={componentesFormClasses.readOnly}>
             {formData.evalua === "si" ? "Sí evalúa" : "No evalúa"}
-          </p>
+          </div>
         ) : (
           <select
             id="evalua"
@@ -118,11 +130,11 @@ export const ComponentesAprendizajeForm = ({
         <span className={componentesFormClasses.label}>
           Estado del componente
         </span>
-        <p className={componentesFormClasses.readOnly}>
+        <div className={componentesFormClasses.readOnly}>
           {currentComponente?.estado_componente === "inactivo"
             ? "Inactivo"
             : "Activo"}
-        </p>
+        </div>
       </div>
 
       {!isViewMode && (

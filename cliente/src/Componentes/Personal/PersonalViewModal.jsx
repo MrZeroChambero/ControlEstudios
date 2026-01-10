@@ -30,11 +30,11 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
   );
 
   const Field = ({ label, value, children }) => (
-    <div>
+    <div className={personalViewModalClasses.field}>
       <span className={personalViewModalClasses.label}>{label}</span>
-      <p className={personalViewModalClasses.value}>
+      <div className={personalViewModalClasses.valueBox}>
         {children ?? getDisplayValue(value)}
-      </p>
+      </div>
     </div>
   );
 
@@ -68,8 +68,16 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
       onClose={onClose}
       title="Información Completa del Personal"
       size="xl"
-      bodyClassName={personalViewModalClasses.body}
-      contentClassName="max-w-5xl"
+      bodyClassName={personalViewModalClasses.bodyLayout}
+      footer={
+        <button
+          type="button"
+          onClick={onClose}
+          className={personalViewModalClasses.footerButton}
+        >
+          Cerrar
+        </button>
+      }
     >
       <Section title="Estados">
         <Field label="Estado persona">

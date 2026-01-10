@@ -26,7 +26,8 @@ export const ComponentesAprendizajeModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={getTitle()}
-      size="lg"
+      size={isViewMode ? "lg" : "md"}
+      bodyClassName={isViewMode ? "space-y-6" : "space-y-4"}
       contentClassName="max-w-3xl"
     >
       <ComponentesAprendizajeForm
