@@ -4,6 +4,7 @@ namespace Micodigo\Estudiante;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Persona\Persona;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 
 trait OperacionesControladorEstudiante
@@ -16,16 +17,6 @@ trait OperacionesControladorEstudiante
     return $data ?? [];
   }
 
-  private function sendJson(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = ['status' => $status, 'message' => $message, 'back' => $status === 'success'];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
-  }
-
   // Crear persona candidata (estado incompleto)
   public function crearCandidato(): void
   {
@@ -33,15 +24,15 @@ trait OperacionesControladorEstudiante
       $data = $this->parseJsonInput();
       $v = $this->crearValidadorPersonaEstudiante($data);
       if (!$v->validate()) {
-        $this->sendJson(400, 'error', 'Errores de validación.', null, $v->errors());
+        RespuestaJson::error('Errores de validación.', 400, $v->errors());
         return;
       }
       $pdo = Conexion::obtener();
       $id_persona = self::crearPersonaEstudiante($pdo, $data);
       $persona = Persona::consultar($pdo, $id_persona);
-      $this->sendJson(201, 'success', 'Candidato creado exitosamente.', $persona);
+      RespuestaJson::exito($persona, 'Candidato creado exitosamente.', 201);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al crear candidato: ' . $e->getMessage());
+      RespuestaJson::error('Error al crear candidato.', 500, null, $e);
     }
   }
 
@@ -52,29 +43,29 @@ trait OperacionesControladorEstudiante
       $data = $this->parseJsonInput();
       $v = $this->crearValidadorRegistroEstudiante($data);
       if (!$v->validate()) {
-        $this->sendJson(400, 'error', 'Errores de validación.', null, $v->errors());
+        RespuestaJson::error('Errores de validación.', 400, $v->errors());
         return;
       }
       $pdo = Conexion::obtener();
       $persona = Persona::consultar($pdo, $id_persona);
       if (!$persona) {
-        $this->sendJson(404, 'error', 'Persona no encontrada.');
+        RespuestaJson::error('Persona no encontrada.', 404);
         return;
       }
       if ($persona['tipo_persona'] !== 'estudiante' || $persona['estado'] !== 'incompleto') {
-        $this->sendJson(400, 'error', 'La persona no es candidata válida.');
+        RespuestaJson::error('La persona no es candidata válida.', 400);
         return;
       }
       try {
         $id_est = self::registrarEstudiante($pdo, $id_persona, $data);
       } catch (\RuntimeException $e) {
-        $this->sendJson(400, 'error', $e->getMessage());
+        RespuestaJson::error($e->getMessage(), 400);
         return;
       }
       $est = self::consultarEstudiantePorId($pdo, $id_est);
-      $this->sendJson(201, 'success', 'Estudiante registrado exitosamente.', $est);
+      RespuestaJson::exito($est, 'Estudiante registrado exitosamente.', 201);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al registrar estudiante: ' . $e->getMessage());
+      RespuestaJson::error('Error al registrar estudiante.', 500, null, $e);
     }
   }
 
@@ -83,9 +74,9 @@ trait OperacionesControladorEstudiante
     try {
       $pdo = Conexion::obtener();
       $rows = self::consultarCandidatos($pdo);
-      $this->sendJson(200, 'success', 'Candidatos obtenidos.', $rows);
+      RespuestaJson::exito($rows, 'Candidatos obtenidos.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar candidatos: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar candidatos.', 500, null, $e);
     }
   }
 
@@ -94,9 +85,9 @@ trait OperacionesControladorEstudiante
     try {
       $pdo = Conexion::obtener();
       $rows = self::consultarTodosEstudiantes($pdo);
-      $this->sendJson(200, 'success', 'Estudiantes obtenidos.', $rows);
+      RespuestaJson::exito($rows, 'Estudiantes obtenidos.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar estudiantes: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar estudiantes.', 500, null, $e);
     }
   }
 
@@ -106,12 +97,12 @@ trait OperacionesControladorEstudiante
       $pdo = Conexion::obtener();
       $row = self::consultarEstudiantePorId($pdo, $id);
       if ($row) {
-        $this->sendJson(200, 'success', 'Estudiante encontrado.', $row);
+        RespuestaJson::exito($row, 'Estudiante encontrado.');
       } else {
-        $this->sendJson(404, 'error', 'Estudiante no encontrado.');
+        RespuestaJson::error('Estudiante no encontrado.', 404);
       }
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al obtener estudiante: ' . $e->getMessage());
+      RespuestaJson::error('Error al obtener estudiante.', 500, null, $e);
     }
   }
 
@@ -122,14 +113,19 @@ trait OperacionesControladorEstudiante
       $pdo = Conexion::obtener();
       $actual = self::consultarEstudiantePorId($pdo, $id_estudiante);
       if (!$actual) {
-        $this->sendJson(404, 'error', 'Estudiante no encontrado.');
+        RespuestaJson::error('Estudiante no encontrado.', 404);
         return;
       }
       $ok = self::actualizarEstudiante($pdo, $id_estudiante, $data);
       $row = self::consultarEstudiantePorId($pdo, $id_estudiante);
-      $this->sendJson($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Estudiante actualizado.' : 'No se pudo actualizar.', $row);
+      if (!$ok) {
+        RespuestaJson::error('No se pudo actualizar el estudiante.', 500, null, $row ? ['id_estudiante' => ['Sin cambios aplicados.']] : null);
+        return;
+      }
+
+      RespuestaJson::exito($row, 'Estudiante actualizado.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al actualizar estudiante: ' . $e->getMessage());
+      RespuestaJson::error('Error al actualizar estudiante.', 500, null, $e);
     }
   }
 
@@ -138,15 +134,20 @@ trait OperacionesControladorEstudiante
     try {
       $data = $this->parseJsonInput();
       if (!isset($data['estado'])) {
-        $this->sendJson(400, 'error', 'Estado requerido.');
+        RespuestaJson::error('Estado requerido.', 400, ['estado' => ['Campo obligatorio.']]);
         return;
       }
       $pdo = Conexion::obtener();
       $ok = self::cambiarEstadoEstudiante($pdo, $id_estudiante, $data['estado']);
       $row = self::consultarEstudiantePorId($pdo, $id_estudiante);
-      $this->sendJson($ok ? 200 : 400, $ok ? 'success' : 'error', $ok ? 'Estado cambiado.' : 'Estado inválido o fallo.', $row);
+      if (!$ok) {
+        RespuestaJson::error('Estado inválido o no se pudo actualizar.', 400);
+        return;
+      }
+
+      RespuestaJson::exito($row, 'Estado cambiado.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al cambiar estado: ' . $e->getMessage());
+      RespuestaJson::error('Error al cambiar estado.', 500, null, $e);
     }
   }
 }

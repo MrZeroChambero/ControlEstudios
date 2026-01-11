@@ -1,4 +1,7 @@
 <?php
+
+use Micodigo\Utils\RespuestaJson;
+
 require __DIR__ . '/servidor/vendor/autoload.php';
 // Especifica la codificación UTF-8 y tipo por defecto para la API
 header('Content-Type: application/json; charset=utf-8');
@@ -24,6 +27,8 @@ if (in_array($origin, $allowedOrigins, true)) {
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
 header('Access-Control-Expose-Headers: Content-Length, Content-Type');
+
+RespuestaJson::habilitarBuffer();
 
 // Responder preflight y salir
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -51,12 +56,13 @@ if ($match) {
 
   call_user_func_array($target, $args);
 } else {
-  http_response_code(404);
-  header("Content-Type: application/json");
-  echo json_encode([
-    'status' => 'error',
-    'message' => 'Ruta no encontrada',
-    'details' => "El recurso solicitado en la URL '{$_SERVER['REQUEST_URI']}' no fue encontrado en este servidor. Por favor, verifique la URL.",
-    'back' => true
-  ], JSON_UNESCAPED_UNICODE);
+  $uriSolicitada = $_SERVER['REQUEST_URI'] ?? '';
+  $detalle = "El recurso solicitado en la URL '{$uriSolicitada}' no fue encontrado en este servidor.";
+  RespuestaJson::error(
+    'Ruta no encontrada',
+    404,
+    null,
+    $detalle,
+    ['details' => $detalle]
+  );
 }

@@ -3,6 +3,7 @@
 namespace Micodigo\ComponentesAprendizaje;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDOException;
 
@@ -14,9 +15,9 @@ class ControladoraComponentes
             $conexion = Conexion::obtener();
             $modelo = new ComponentesAprendizaje();
             $componentes = $modelo->consultarComponentesCompletos($conexion);
-            $this->enviarRespuestaJson(200, 'exito', 'Componentes de aprendizaje consultados correctamente.', $componentes);
+            RespuestaJson::exito($componentes, 'Componentes de aprendizaje consultados correctamente.');
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al listar los componentes.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al listar los componentes.', 500, null, $excepcion);
         }
     }
 
@@ -26,9 +27,9 @@ class ControladoraComponentes
             $conexion = Conexion::obtener();
             $modelo = new ComponentesAprendizaje();
             $componentes = $modelo->consultarParaSelect($conexion);
-            $this->enviarRespuestaJson(200, 'exito', 'Componentes activos obtenidos correctamente.', $componentes);
+            RespuestaJson::exito($componentes, 'Componentes activos obtenidos correctamente.');
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al obtener los componentes para selección.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al obtener los componentes para selección.', 500, null, $excepcion);
         }
     }
 
@@ -41,13 +42,13 @@ class ControladoraComponentes
             $resultado = $modelo->crear($conexion, $entrada);
 
             if (isset($resultado['errores'])) {
-                $this->enviarRespuestaJson(422, 'error', 'La información enviada no es válida.', null, $resultado['errores']);
+                RespuestaJson::error('La información enviada no es válida.', 422, $resultado['errores']);
                 return;
             }
 
-            $this->enviarRespuestaJson(201, 'exito', 'Componente de aprendizaje creado correctamente.', $resultado['datos']);
+            RespuestaJson::exito($resultado['datos'], 'Componente de aprendizaje creado correctamente.', 201);
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al registrar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al registrar el componente.', 500, null, $excepcion);
         }
     }
 
@@ -61,13 +62,13 @@ class ControladoraComponentes
 
             if (isset($resultado['errores'])) {
                 $codigo = isset($resultado['errores']['id_componente']) ? 404 : 422;
-                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el componente.', null, $resultado['errores']);
+                RespuestaJson::error('No fue posible actualizar el componente.', $codigo, $resultado['errores']);
                 return;
             }
 
-            $this->enviarRespuestaJson(200, 'exito', 'Componente de aprendizaje actualizado correctamente.', $resultado['datos']);
+            RespuestaJson::exito($resultado['datos'], 'Componente de aprendizaje actualizado correctamente.');
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al actualizar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al actualizar el componente.', 500, null, $excepcion);
         }
     }
 
@@ -80,13 +81,13 @@ class ControladoraComponentes
 
             if (isset($resultado['errores'])) {
                 $codigo = isset($resultado['errores']['relaciones']) ? 409 : 404;
-                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible eliminar el componente.', null, $resultado['errores']);
+                RespuestaJson::error('No fue posible eliminar el componente.', $codigo, $resultado['errores']);
                 return;
             }
 
-            $this->enviarRespuestaJson(200, 'exito', 'Componente de aprendizaje eliminado correctamente.', $resultado['datos']);
+            RespuestaJson::exito($resultado['datos'], 'Componente de aprendizaje eliminado correctamente.');
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al eliminar el componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al eliminar el componente.', 500, null, $excepcion);
         }
     }
 
@@ -102,7 +103,7 @@ class ControladoraComponentes
 
             if (isset($resultado['errores'])) {
                 $codigo = isset($resultado['errores']['id_componente']) ? 404 : 422;
-                $this->enviarRespuestaJson($codigo, 'error', 'No fue posible cambiar el estado del componente.', null, $resultado['errores']);
+                RespuestaJson::error('No fue posible cambiar el estado del componente.', $codigo, $resultado['errores']);
                 return;
             }
 
@@ -110,9 +111,9 @@ class ControladoraComponentes
                 ? 'El componente se activó correctamente.'
                 : 'El componente se desactivó correctamente.';
 
-            $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
+            RespuestaJson::exito($resultado['datos'], $mensaje);
         } catch (Exception | PDOException $excepcion) {
-            $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del componente.', null, ['detalle' => [$excepcion->getMessage()]]);
+            RespuestaJson::error('Ocurrió un problema al cambiar el estado del componente.', 500, null, $excepcion);
         }
     }
 
@@ -129,27 +130,5 @@ class ControladoraComponentes
         }
 
         return is_array($datos) ? $datos : [];
-    }
-
-    private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
-    {
-        http_response_code($codigoHttp);
-        header('Content-Type: application/json; charset=utf-8');
-
-        $respuesta = [
-            'estado' => $estado,
-            'exito' => $estado === 'exito',
-            'mensaje' => $mensaje,
-        ];
-
-        if ($datos !== null) {
-            $respuesta['datos'] = $datos;
-        }
-
-        if ($errores !== null) {
-            $respuesta['errores'] = $errores;
-        }
-
-        echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
     }
 }

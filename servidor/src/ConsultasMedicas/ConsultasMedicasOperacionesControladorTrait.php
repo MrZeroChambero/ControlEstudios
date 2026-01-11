@@ -3,6 +3,7 @@
 namespace Micodigo\ConsultasMedicas;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 
 trait ConsultasMedicasOperacionesControladorTrait
@@ -14,15 +15,6 @@ trait ConsultasMedicasOperacionesControladorTrait
     if ($d === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
     return $d ?? [];
   }
-  private function sendJsonConsultas(int $c, string $s, string $m, $data = null, $err = null): void
-  {
-    http_response_code($c);
-    header('Content-Type: application/json; charset=utf-8');
-    $r = ['status' => $s, 'message' => $m, 'back' => $s === 'success'];
-    if ($data !== null) $r['data'] = $data;
-    if ($err !== null) $r['errors'] = $err;
-    echo json_encode($r, JSON_UNESCAPED_UNICODE);
-  }
   public function crearConsultaMedica(): void
   {
     try {
@@ -31,12 +23,12 @@ trait ConsultasMedicasOperacionesControladorTrait
       $obj = new ConsultasMedicas($d);
       $r = $obj->crear($pdo);
       if (is_array($r)) {
-        $this->sendJsonConsultas(400, 'error', 'Validación', null, $r);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $r);
         return;
       }
-      $this->sendJsonConsultas(201, 'success', 'Consulta creada', $obj);
+      RespuestaJson::exito($obj, 'Consulta creada correctamente.', 201);
     } catch (Exception $e) {
-      $this->sendJsonConsultas(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al crear la consulta médica.', 500, null, $e);
     }
   }
   public function actualizarConsultaMedica(int $id): void
@@ -46,19 +38,25 @@ trait ConsultasMedicasOperacionesControladorTrait
       $pdo = Conexion::obtener();
       $row = self::obtener($pdo, $id);
       if (!$row) {
-        $this->sendJsonConsultas(404, 'error', 'No encontrada');
+        RespuestaJson::error('Consulta médica no encontrada.', 404);
         return;
       }
       $obj = new ConsultasMedicas($d);
       $obj->id_consulta = $id;
       $r = $obj->actualizar($pdo);
       if (is_array($r)) {
-        $this->sendJsonConsultas(400, 'error', 'Validación', null, $r);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $r);
         return;
       }
-      $this->sendJsonConsultas($r ? 200 : 500, $r ? 'success' : 'error', $r ? 'Actualizada' : 'Fallo', self::obtener($pdo, $id));
+      if (!$r) {
+        RespuestaJson::error('No se pudo actualizar la consulta médica.', 500);
+        return;
+      }
+
+      $actualizada = self::obtener($pdo, $id);
+      RespuestaJson::exito($actualizada, 'Consulta médica actualizada correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonConsultas(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al actualizar la consulta médica.', 500, null, $e);
     }
   }
   public function eliminarConsultaMedica(int $id): void
@@ -66,9 +64,14 @@ trait ConsultasMedicasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = ConsultasMedicasGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonConsultas($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminada' : 'No eliminada');
+      if (!$ok) {
+        RespuestaJson::error('No fue posible eliminar la consulta médica.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(['id_consulta' => $id], 'Consulta médica eliminada correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonConsultas(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al eliminar la consulta médica.', 500, null, $e);
     }
   }
   public function listarConsultasMedicasEstudiante(int $fk_estudiante): void
@@ -76,9 +79,9 @@ trait ConsultasMedicasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listarPorEstudiante($pdo, $fk_estudiante);
-      $this->sendJsonConsultas(200, 'success', 'Listado obtenido', $rows);
+      RespuestaJson::exito($rows, 'Listado de consultas médicas obtenido correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonConsultas(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al listar las consultas médicas.', 500, null, $e);
     }
   }
 }

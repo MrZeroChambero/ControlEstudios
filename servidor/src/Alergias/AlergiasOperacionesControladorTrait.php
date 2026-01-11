@@ -3,6 +3,7 @@
 namespace Micodigo\Alergias;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 
 trait AlergiasOperacionesControladorTrait
@@ -15,34 +16,24 @@ trait AlergiasOperacionesControladorTrait
     return $data ?? [];
   }
 
-  private function sendJsonAlergia(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = ['status' => $status, 'message' => $message, 'back' => $status === 'success'];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
-  }
-
   public function crearAlergia(): void
   {
     try {
       $data = $this->parseJsonInputAlergia();
       if (empty($data['nombre'])) {
-        $this->sendJsonAlergia(400, 'error', 'Nombre requerido');
+        RespuestaJson::error('El nombre de la alergia es requerido.', 400, ['nombre' => ['Campo obligatorio.']]);
         return;
       }
       $pdo = Conexion::obtener();
       $al = new Alergias(['nombre' => $data['nombre']]);
       $res = $al->crear($pdo);
       if (is_array($res)) {
-        $this->sendJsonAlergia(400, 'error', 'Validación fallida', null, $res);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $res);
         return;
       }
-      $this->sendJsonAlergia(201, 'success', 'Alergia creada', $al);
+      RespuestaJson::exito($al, 'Alergia creada.', 201);
     } catch (Exception $e) {
-      $this->sendJsonAlergia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al crear la alergia.', 500, null, $e);
     }
   }
 
@@ -53,19 +44,25 @@ trait AlergiasOperacionesControladorTrait
       $pdo = Conexion::obtener();
       $row = self::obtener($pdo, $id);
       if (!$row) {
-        $this->sendJsonAlergia(404, 'error', 'No encontrada');
+        RespuestaJson::error('La alergia solicitada no existe.', 404);
         return;
       }
       $al = new Alergias(['nombre' => $data['nombre'] ?? $row['nombre']]);
       $al->id_alergia = $id;
       $res = $al->actualizar($pdo);
       if (is_array($res)) {
-        $this->sendJsonAlergia(400, 'error', 'Validación fallida', null, $res);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $res);
         return;
       }
-      $this->sendJsonAlergia($res ? 200 : 500, $res ? 'success' : 'error', $res ? 'Alergia actualizada' : 'No se pudo actualizar', self::obtener($pdo, $id));
+      if (!$res) {
+        RespuestaJson::error('No se pudo actualizar la alergia.', 500);
+        return;
+      }
+
+      $actualizada = self::obtener($pdo, $id);
+      RespuestaJson::exito($actualizada, 'Alergia actualizada correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonAlergia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al actualizar la alergia.', 500, null, $e);
     }
   }
 
@@ -74,9 +71,14 @@ trait AlergiasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = AlergiasGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonAlergia($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminada' : 'No eliminada');
+      if (!$ok) {
+        RespuestaJson::error('No fue posible eliminar la alergia.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(['id_alergia' => $id], 'Alergia eliminada correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonAlergia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al eliminar la alergia.', 500, null, $e);
     }
   }
 
@@ -85,9 +87,9 @@ trait AlergiasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listar($pdo);
-      $this->sendJsonAlergia(200, 'success', 'Listado obtenido', $rows);
+      RespuestaJson::exito($rows, 'Listado de alergias obtenido correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonAlergia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al listar las alergias.', 500, null, $e);
     }
   }
 }

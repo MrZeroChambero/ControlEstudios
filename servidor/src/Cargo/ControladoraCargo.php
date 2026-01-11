@@ -3,6 +3,7 @@
 namespace Micodigo\Cargo;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Valitron\Validator;
 use Exception;
 
@@ -28,20 +29,9 @@ class ControladoraCargo
       $pdo = Conexion::obtener();
       $cargos = Cargo::consultarTodos($pdo);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $cargos,
-        'message' => 'Cargos obtenidos exitosamente.'
-      ]);
+      RespuestaJson::exito($cargos, 'Cargos obtenidos exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los cargos.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error al obtener los cargos.', 500, null, $e);
     }
   }
 
@@ -53,28 +43,13 @@ class ControladoraCargo
       $cargo = Cargo::obtenerPorId($pdo, $id_cargo);
 
       if ($cargo) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'data' => $cargo,
-          'message' => 'Cargo obtenido exitosamente.'
-        ]);
-      } else {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Cargo no encontrado.'
-        ]);
+        RespuestaJson::exito($cargo, 'Cargo obtenido exitosamente.');
+        return;
       }
+
+      RespuestaJson::error('Cargo no encontrado.', 404);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener el cargo.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error al obtener el cargo.', 500, null, $e);
     }
   }
 
@@ -89,13 +64,11 @@ class ControladoraCargo
         throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
       }
 
-      // Limpiar textos
       $data['nombre_cargo'] = $this->limpiarTexto($data['nombre_cargo'] ?? '');
       $data['codigo'] = $this->limpiarTexto($data['codigo'] ?? '');
 
       $errores = [];
 
-      // Validar campos requeridos
       if (empty($data['nombre_cargo'])) {
         $errores['nombre_cargo'] = 'El nombre del cargo es requerido';
       }
@@ -104,58 +77,43 @@ class ControladoraCargo
         $errores['tipo'] = 'El tipo de cargo es requerido';
       }
 
-      // Validar tipo de cargo
       if (!empty($data['tipo']) && !in_array($data['tipo'], ['Docente', 'Administrativo', 'Obrero'])) {
         $errores['tipo'] = 'El tipo de cargo debe ser Docente, Administrativo u Obrero';
       }
 
-      // Validar longitud de campos
       if (!empty($data['nombre_cargo']) && strlen($data['nombre_cargo']) > 100) {
         $errores['nombre_cargo'] = 'El nombre del cargo no puede exceder 100 caracteres';
       }
 
       if (!empty($data['codigo']) && strlen($data['codigo']) > 15) {
-        $errores['codigo'] = 'El código no puede exceder 15 caracteres';
+        $errores['codigo'] = 'El codigo no puede exceder 15 caracteres';
       }
 
       if (!empty($errores)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $errores,
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        RespuestaJson::error('Datos invalidos en la solicitud.', 400, $errores);
         return;
       }
 
       $pdo = Conexion::obtener();
 
-      // Verificar si el nombre del cargo ya existe
       if (Cargo::verificarNombreExistente($pdo, $data['nombre_cargo'])) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => ['nombre_cargo' => 'El nombre del cargo ya existe'],
-          'message' => 'El nombre del cargo ya está registrado.'
-        ]);
+        RespuestaJson::error(
+          'El nombre del cargo ya esta registrado.',
+          400,
+          ['nombre_cargo' => 'El nombre del cargo ya existe']
+        );
         return;
       }
 
-      // Verificar si el código ya existe (si se proporciona)
       if (!empty($data['codigo']) && Cargo::verificarCodigoExistente($pdo, $data['codigo'])) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => ['codigo' => 'El código ya existe'],
-          'message' => 'El código ya está registrado.'
-        ]);
+        RespuestaJson::error(
+          'El codigo ya esta registrado.',
+          400,
+          ['codigo' => 'El codigo ya existe']
+        );
         return;
       }
 
-      // Crear cargo
       $cargoData = [
         'nombre_cargo' => $data['nombre_cargo'],
         'tipo' => $data['tipo'],
@@ -164,27 +122,14 @@ class ControladoraCargo
 
       $id_cargo = Cargo::crear($pdo, $cargoData);
 
-      if ($id_cargo) {
-        // Obtener datos del cargo creado
-        $cargoCreado = Cargo::obtenerPorId($pdo, $id_cargo);
-
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'data' => $cargoCreado,
-          'message' => 'Cargo creado exitosamente.'
-        ]);
-      } else {
+      if (!$id_cargo) {
         throw new Exception('No se pudo crear el cargo en la base de datos');
       }
+
+      $cargoCreado = Cargo::obtenerPorId($pdo, $id_cargo);
+      RespuestaJson::exito($cargoCreado, 'Cargo creado exitosamente.', 201);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al crear el cargo.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error en el servidor al crear el cargo.', 500, null, $e);
     }
   }
 
@@ -199,13 +144,11 @@ class ControladoraCargo
         throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
       }
 
-      // Limpiar textos
       $data['nombre_cargo'] = $this->limpiarTexto($data['nombre_cargo'] ?? '');
       $data['codigo'] = $this->limpiarTexto($data['codigo'] ?? '');
 
       $errores = [];
 
-      // Validar campos requeridos
       if (empty($data['nombre_cargo'])) {
         $errores['nombre_cargo'] = 'El nombre del cargo es requerido';
       }
@@ -214,70 +157,49 @@ class ControladoraCargo
         $errores['tipo'] = 'El tipo de cargo es requerido';
       }
 
-      // Validar tipo de cargo
       if (!empty($data['tipo']) && !in_array($data['tipo'], ['Docente', 'Administrativo', 'Obrero'])) {
         $errores['tipo'] = 'El tipo de cargo debe ser Docente, Administrativo u Obrero';
       }
 
-      // Validar longitud de campos
       if (!empty($data['nombre_cargo']) && strlen($data['nombre_cargo']) > 100) {
         $errores['nombre_cargo'] = 'El nombre del cargo no puede exceder 100 caracteres';
       }
 
       if (!empty($data['codigo']) && strlen($data['codigo']) > 15) {
-        $errores['codigo'] = 'El código no puede exceder 15 caracteres';
+        $errores['codigo'] = 'El codigo no puede exceder 15 caracteres';
       }
 
       if (!empty($errores)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $errores,
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        RespuestaJson::error('Datos invalidos en la solicitud.', 400, $errores);
         return;
       }
 
       $pdo = Conexion::obtener();
 
-      // Verificar que el cargo existe
       $cargoExistente = Cargo::obtenerPorId($pdo, $id_cargo);
       if (!$cargoExistente) {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Cargo no encontrado.'
-        ]);
+        RespuestaJson::error('Cargo no encontrado.', 404);
         return;
       }
 
-      // Verificar si el nombre del cargo ya existe (excluyendo el actual)
       if (Cargo::verificarNombreExistente($pdo, $data['nombre_cargo'], $id_cargo)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => ['nombre_cargo' => 'El nombre del cargo ya existe'],
-          'message' => 'El nombre del cargo ya está registrado.'
-        ]);
+        RespuestaJson::error(
+          'El nombre del cargo ya esta registrado.',
+          400,
+          ['nombre_cargo' => 'El nombre del cargo ya existe']
+        );
         return;
       }
 
-      // Verificar si el código ya existe (si se proporciona, excluyendo el actual)
       if (!empty($data['codigo']) && Cargo::verificarCodigoExistente($pdo, $data['codigo'], $id_cargo)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => ['codigo' => 'El código ya existe'],
-          'message' => 'El código ya está registrado.'
-        ]);
+        RespuestaJson::error(
+          'El codigo ya esta registrado.',
+          400,
+          ['codigo' => 'El codigo ya existe']
+        );
         return;
       }
 
-      // Actualizar cargo
       $cargoData = [
         'nombre_cargo' => $data['nombre_cargo'],
         'tipo' => $data['tipo'],
@@ -286,27 +208,14 @@ class ControladoraCargo
 
       $actualizado = Cargo::actualizar($pdo, $id_cargo, $cargoData);
 
-      if ($actualizado) {
-        // Obtener datos actualizados
-        $cargoActualizado = Cargo::obtenerPorId($pdo, $id_cargo);
-
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'data' => $cargoActualizado,
-          'message' => 'Cargo actualizado exitosamente.'
-        ]);
-      } else {
+      if (!$actualizado) {
         throw new Exception('No se pudo actualizar el cargo en la base de datos');
       }
+
+      $cargoActualizado = Cargo::obtenerPorId($pdo, $id_cargo);
+      RespuestaJson::exito($cargoActualizado, 'Cargo actualizado exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al actualizar el cargo.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error en el servidor al actualizar el cargo.', 500, null, $e);
     }
   }
 
@@ -316,48 +225,29 @@ class ControladoraCargo
     try {
       $pdo = Conexion::obtener();
 
-      // Verificar que el cargo existe
       $cargoExistente = Cargo::obtenerPorId($pdo, $id_cargo);
       if (!$cargoExistente) {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Cargo no encontrado.'
-        ]);
+        RespuestaJson::error('Cargo no encontrado.', 404);
         return;
       }
 
-      // Verificar si el cargo está siendo usado por algún personal
       if (Cargo::verificarUsoEnPersonal($pdo, $id_cargo)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'No se puede eliminar el cargo porque está asignado a personal activo.'
-        ]);
+        RespuestaJson::error(
+          'No se puede eliminar el cargo porque esta asignado a personal activo.',
+          400
+        );
         return;
       }
 
       $eliminado = Cargo::eliminar($pdo, $id_cargo);
 
-      if ($eliminado) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Cargo eliminado exitosamente.'
-        ]);
-      } else {
+      if (!$eliminado) {
         throw new Exception('No se pudo eliminar el cargo de la base de datos');
       }
+
+      RespuestaJson::exito([], 'Cargo eliminado exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al eliminar el cargo.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error en el servidor al eliminar el cargo.', 500, null, $e);
     }
   }
 
@@ -368,20 +258,9 @@ class ControladoraCargo
       $pdo = Conexion::obtener();
       $cargos = Cargo::consultarParaSelect($pdo);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $cargos,
-        'message' => 'Cargos obtenidos exitosamente para select.'
-      ]);
+      RespuestaJson::exito($cargos, 'Cargos obtenidos exitosamente para select.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los cargos para select.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error al obtener los cargos para select.', 500, null, $e);
     }
   }
 }

@@ -4,6 +4,7 @@ namespace Micodigo\Horarios;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
+use Micodigo\Utils\RespuestaJson;
 use PDO;
 use Exception;
 use PDOException;
@@ -25,9 +26,9 @@ class ControladoraHorarios
       ];
 
       $resultado = $modelo->listar($conexion, $criterios);
-      $this->enviarRespuestaJson(200, 'exito', 'Horarios consultados correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Horarios consultados correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible listar los horarios.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible listar los horarios.', 500, null, $excepcion);
     }
   }
 
@@ -43,9 +44,9 @@ class ControladoraHorarios
       ];
 
       $resultado = $modelo->obtenerCatalogos($conexion, $opciones);
-      $this->enviarRespuestaJson(200, 'exito', 'Catálogos obtenidos correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Catálogos obtenidos correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible obtener los catálogos de horarios.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible obtener los catálogos de horarios.', 500, null, $excepcion);
     }
   }
 
@@ -60,13 +61,13 @@ class ControladoraHorarios
       $resultado = $modelo->crear($conexion, $datos, ['rol' => $usuario['rol'] ?? '']);
 
       if (isset($resultado['errores'])) {
-        $this->enviarRespuestaJson(422, 'error', 'Los datos enviados no son válidos.', null, $resultado['errores']);
+        RespuestaJson::error('Los datos enviados no son válidos.', 422, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(201, 'exito', 'Horario registrado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Horario registrado correctamente.', 201);
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible registrar el horario.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible registrar el horario.', 500, null, $excepcion);
     }
   }
 
@@ -82,13 +83,13 @@ class ControladoraHorarios
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['id_horario']) ? 404 : 422;
-        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el horario.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible actualizar el horario.', $codigo, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Horario actualizado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Horario actualizado correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible actualizar el horario.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible actualizar el horario.', 500, null, $excepcion);
     }
   }
 
@@ -100,13 +101,13 @@ class ControladoraHorarios
       $resultado = $modelo->eliminar($conexion, $idHorario);
 
       if (isset($resultado['errores'])) {
-        $this->enviarRespuestaJson(404, 'error', 'No fue posible eliminar el horario.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible eliminar el horario.', 404, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Horario eliminado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Horario eliminado correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible eliminar el horario.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible eliminar el horario.', 500, null, $excepcion);
     }
   }
 
@@ -124,13 +125,13 @@ class ControladoraHorarios
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['id_horario']) ? 404 : 422;
-        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el subgrupo.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible actualizar el subgrupo.', $codigo, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Subgrupo actualizado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Subgrupo actualizado correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'No fue posible sincronizar el subgrupo.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('No fue posible sincronizar el subgrupo.', 500, null, $excepcion);
     }
   }
 
@@ -166,25 +167,4 @@ class ControladoraHorarios
     return is_array($datos) ? $datos : [];
   }
 
-  private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
-  {
-    http_response_code($codigoHttp);
-    header('Content-Type: application/json; charset=utf-8');
-
-    $respuesta = [
-      'estado' => $estado,
-      'exito' => $estado === 'exito',
-      'mensaje' => $mensaje,
-    ];
-
-    if ($datos !== null) {
-      $respuesta['datos'] = $datos;
-    }
-
-    if ($errores !== null) {
-      $respuesta['errores'] = $errores;
-    }
-
-    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
-  }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use AltoRouter as Router;
+use Micodigo\Utils\RespuestaJson;
 
 /**
  * Centraliza la creación del enrutador y el registro de todas las rutas de la aplicación.
@@ -44,12 +45,16 @@ function registrarTodasLasRutas(): Router
 
     // Si no viene cookie, bloqueamos
     if (!isset($_COOKIE['session_token'])) {
-      http_response_code(403);
-      echo json_encode([
-        'back' => false,
-        'blocked' => true,
-        'msg' => 'Acceso bloqueado: credenciales requeridas.'
-      ], JSON_UNESCAPED_UNICODE);
+      RespuestaJson::error(
+        'Acceso bloqueado: credenciales requeridas.',
+        403,
+        null,
+        null,
+        [
+          'blocked' => true,
+          'msg' => 'Acceso bloqueado: credenciales requeridas.'
+        ]
+      );
       exit;
     }
 
@@ -63,23 +68,31 @@ function registrarTodasLasRutas(): Router
       if (!$usuario) {
         // Cookie inválida o expirada -> bloquear y borrar cookie
         setcookie('session_token', '', time() - 3600, '/');
-        http_response_code(403);
-        echo json_encode([
-          'back' => false,
-          'blocked' => true,
-          'msg' => 'Acceso bloqueado: sesión inválida o expirada.'
-        ], JSON_UNESCAPED_UNICODE);
+        RespuestaJson::error(
+          'Acceso bloqueado: sesión inválida o expirada.',
+          403,
+          null,
+          null,
+          [
+            'blocked' => true,
+            'msg' => 'Acceso bloqueado: sesión inválida o expirada.'
+          ]
+        );
         exit;
       }
 
       // Si llega aquí, la sesión es válida: continua ejecución
     } catch (Exception $e) {
-      http_response_code(500);
-      echo json_encode([
-        'back' => false,
-        'blocked' => true,
-        'msg' => 'Error del servidor al validar la sesión.'
-      ], JSON_UNESCAPED_UNICODE);
+      RespuestaJson::error(
+        'Error del servidor al validar la sesión.',
+        500,
+        null,
+        $e,
+        [
+          'blocked' => true,
+          'msg' => 'Error del servidor al validar la sesión.'
+        ]
+      );
       exit;
     }
   };
@@ -110,12 +123,16 @@ function registrarTodasLasRutas(): Router
       try {
         $hash = $_COOKIE['session_token'] ?? null;
         if (!$hash) {
-          http_response_code(403);
-          echo json_encode([
-            'back' => false,
-            'blocked' => true,
-            'msg' => 'Acceso bloqueado: credenciales requeridas.'
-          ], JSON_UNESCAPED_UNICODE);
+          RespuestaJson::error(
+            'Acceso bloqueado: credenciales requeridas.',
+            403,
+            null,
+            null,
+            [
+              'blocked' => true,
+              'msg' => 'Acceso bloqueado: credenciales requeridas.'
+            ]
+          );
           return;
         }
 
@@ -130,24 +147,32 @@ function registrarTodasLasRutas(): Router
         }
 
         if (!empty($allowedRoles) && !in_array($rolUsuario, $allowedRoles, true)) {
-          http_response_code(403);
-          echo json_encode([
-            'back' => false,
-            'blocked' => true,
-            'msg' => 'Acceso bloqueado: nivel de usuario insuficiente.'
-          ], JSON_UNESCAPED_UNICODE);
+          RespuestaJson::error(
+            'Acceso bloqueado: nivel de usuario insuficiente.',
+            403,
+            null,
+            null,
+            [
+              'blocked' => true,
+              'msg' => 'Acceso bloqueado: nivel de usuario insuficiente.'
+            ]
+          );
           return;
         }
 
         // Llamar handler original
         call_user_func_array($target, $params);
       } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode([
-          'back' => false,
-          'blocked' => true,
-          'msg' => 'Error del servidor al validar el rol de usuario.'
-        ], JSON_UNESCAPED_UNICODE);
+        RespuestaJson::error(
+          'Error del servidor al validar el rol de usuario.',
+          500,
+          null,
+          $e,
+          [
+            'blocked' => true,
+            'msg' => 'Error del servidor al validar el rol de usuario.'
+          ]
+        );
         return;
       }
     });
@@ -291,6 +316,10 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de planificación académica
   require_once __DIR__ . '/PlanificacionAcademica/RutasPlanificacionAcademica.php';
   registrarRutasPlanificacionAcademica($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorDocente);
+
+  // Incluye y registra las rutas de rendimiento académico
+  require_once __DIR__ . '/RendimientoAcademico/RutasRendimientoAcademico.php';
+  registrarRutasRendimientoAcademico($router, $mapAuthenticated, $mapAuthenticatedRole, $rolesDirectorDocente);
 
   return $router;
 }

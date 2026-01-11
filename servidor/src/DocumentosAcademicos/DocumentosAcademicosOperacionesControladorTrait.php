@@ -3,6 +3,7 @@
 namespace Micodigo\DocumentosAcademicos;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 
 trait DocumentosAcademicosOperacionesControladorTrait
@@ -14,15 +15,6 @@ trait DocumentosAcademicosOperacionesControladorTrait
     if ($d === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
     return $d ?? [];
   }
-  private function sendJsonDocs(int $c, string $s, string $m, $data = null, $err = null): void
-  {
-    http_response_code($c);
-    header('Content-Type: application/json; charset=utf-8');
-    $r = ['status' => $s, 'message' => $m, 'back' => $s === 'success'];
-    if ($data !== null) $r['data'] = $data;
-    if ($err !== null) $r['errors'] = $err;
-    echo json_encode($r, JSON_UNESCAPED_UNICODE);
-  }
   public function crearDocumentoAcademico(): void
   {
     try {
@@ -31,12 +23,12 @@ trait DocumentosAcademicosOperacionesControladorTrait
       $obj = new DocumentosAcademicos($d);
       $r = $obj->crear($pdo);
       if (is_array($r)) {
-        $this->sendJsonDocs(400, 'error', 'Validación', null, $r);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $r);
         return;
       }
-      $this->sendJsonDocs(201, 'success', 'Documento creado', $obj);
+      RespuestaJson::exito($obj, 'Documento académico creado correctamente.', 201);
     } catch (Exception $e) {
-      $this->sendJsonDocs(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al crear el documento académico.', 500, null, $e);
     }
   }
   public function actualizarDocumentoAcademico(int $id): void
@@ -46,19 +38,25 @@ trait DocumentosAcademicosOperacionesControladorTrait
       $pdo = Conexion::obtener();
       $row = self::obtener($pdo, $id);
       if (!$row) {
-        $this->sendJsonDocs(404, 'error', 'No encontrado');
+        RespuestaJson::error('Documento académico no encontrado.', 404);
         return;
       }
       $obj = new DocumentosAcademicos($d);
       $obj->id_documento = $id;
       $r = $obj->actualizar($pdo);
       if (is_array($r)) {
-        $this->sendJsonDocs(400, 'error', 'Validación', null, $r);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $r);
         return;
       }
-      $this->sendJsonDocs($r ? 200 : 500, $r ? 'success' : 'error', $r ? 'Actualizado' : 'Fallo', self::obtener($pdo, $id));
+      if (!$r) {
+        RespuestaJson::error('No se pudo actualizar el documento académico.', 500);
+        return;
+      }
+
+      $actualizado = self::obtener($pdo, $id);
+      RespuestaJson::exito($actualizado, 'Documento académico actualizado correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonDocs(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al actualizar el documento académico.', 500, null, $e);
     }
   }
   public function eliminarDocumentoAcademico(int $id): void
@@ -66,9 +64,14 @@ trait DocumentosAcademicosOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = DocumentosAcademicosGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonDocs($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminado' : 'No eliminado');
+      if (!$ok) {
+        RespuestaJson::error('No fue posible eliminar el documento académico.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(['id_documento' => $id], 'Documento académico eliminado correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonDocs(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al eliminar el documento académico.', 500, null, $e);
     }
   }
   public function listarDocumentosEstudiante(int $fk_estudiante): void
@@ -76,9 +79,9 @@ trait DocumentosAcademicosOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listarPorEstudiante($pdo, $fk_estudiante);
-      $this->sendJsonDocs(200, 'success', 'Listado obtenido', $rows);
+      RespuestaJson::exito($rows, 'Listado de documentos académicos obtenido correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonDocs(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al listar los documentos académicos.', 500, null, $e);
     }
   }
 }

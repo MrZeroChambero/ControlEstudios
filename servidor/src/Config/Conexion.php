@@ -2,6 +2,8 @@
 
 namespace Micodigo\Config;
 
+use Micodigo\Utils\RespuestaJson;
+
 class Conexion
 {
   // Propiedad para almacenar la conexión PDO
@@ -33,8 +35,13 @@ class Conexion
       self::$pdo = new \PDO($dsn, $username, $password, $options);
       return self::$pdo;
     } catch (\PDOException $e) {
-      http_response_code(500);
-      echo json_encode(['msg' => 'Error de conexión a la base de datos: ' . $e->getMessage()]);
+      RespuestaJson::error(
+        'Error de conexión a la base de datos.',
+        500,
+        null,
+        $e,
+        ['msg' => 'Error de conexión a la base de datos.']
+      );
       exit;
     }
   }

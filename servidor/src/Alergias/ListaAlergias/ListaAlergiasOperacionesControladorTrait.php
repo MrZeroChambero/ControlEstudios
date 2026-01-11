@@ -3,6 +3,7 @@
 namespace Micodigo\Alergias\ListaAlergias;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 
 trait ListaAlergiasOperacionesControladorTrait
@@ -14,15 +15,6 @@ trait ListaAlergiasOperacionesControladorTrait
     if ($data === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
     return $data ?? [];
   }
-  private function sendJsonListaAlergias(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = ['status' => $status, 'message' => $message, 'back' => $status === 'success'];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
-  }
   public function asignarAlergia(): void
   {
     try {
@@ -31,12 +23,12 @@ trait ListaAlergiasOperacionesControladorTrait
       $obj = new ListaAlergias(['fk_alergia' => $d['fk_alergia'] ?? null, 'fk_estudiante' => $d['fk_estudiante'] ?? null]);
       $r = $obj->crear($pdo);
       if (is_array($r)) {
-        $this->sendJsonListaAlergias(400, 'error', 'Validación fallida', null, $r);
+        RespuestaJson::error('La información proporcionada no es válida.', 400, $r);
         return;
       }
-      $this->sendJsonListaAlergias(201, 'success', 'Alergia asignada', $obj);
+      RespuestaJson::exito($obj, 'Alergia asignada correctamente.', 201);
     } catch (Exception $e) {
-      $this->sendJsonListaAlergias(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al asignar la alergia.', 500, null, $e);
     }
   }
   public function eliminarAlergiaAsignada(int $id): void
@@ -44,9 +36,14 @@ trait ListaAlergiasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = ListaAlergiasGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonListaAlergias($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminada' : 'No eliminada');
+      if (!$ok) {
+        RespuestaJson::error('No fue posible eliminar la asignación.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(['id_lista_alergia' => $id], 'Alergia desasignada correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonListaAlergias(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al eliminar la asignación de alergia.', 500, null, $e);
     }
   }
   public function listarAlergiasEstudiante(int $id_estudiante): void
@@ -54,9 +51,9 @@ trait ListaAlergiasOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listarPorEstudiante($pdo, $id_estudiante);
-      $this->sendJsonListaAlergias(200, 'success', 'Listado obtenido', $rows);
+      RespuestaJson::exito($rows, 'Listado de alergias del estudiante obtenido correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonListaAlergias(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Ocurrió un problema al listar las alergias del estudiante.', 500, null, $e);
     }
   }
 }

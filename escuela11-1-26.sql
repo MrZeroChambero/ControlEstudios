@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-12-2025 a las 16:57:35
+-- Tiempo de generación: 11-01-2026 a las 21:06:06
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -268,6 +268,13 @@ CREATE TABLE `bloqueos` (
   `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `bloqueos`
+--
+
+INSERT INTO `bloqueos` (`id_bloqueo`, `fk_usuario`, `intentos`, `fecha_desbloqueo`, `bloqueos_seguidos`, `fecha_ultimo_bloqueo`, `tipo_bloqueo`) VALUES
+(4, 43, 3, '2026-01-07 18:39:08', 0, '2026-01-07 18:39:13', 'preguntas_de_seguridad');
+
 -- --------------------------------------------------------
 
 --
@@ -289,7 +296,7 @@ CREATE TABLE `bloqueos_ip` (
 --
 
 INSERT INTO `bloqueos_ip` (`id_bloqueo_ip`, `ip_hash`, `intentos`, `fecha_desbloqueo`, `bloqueos_seguidos`, `fecha_ultimo_bloqueo`, `tipo_bloqueo`) VALUES
-(1, 'eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3', 0, '2025-12-11 19:24:37', 1, '2025-12-11 19:19:37', 'preguntas_de_seguridad');
+(6, 'eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3', 3, '2026-01-07 18:39:08', 0, '2026-01-07 18:39:13', 'preguntas_de_seguridad');
 
 -- --------------------------------------------------------
 
@@ -533,11 +540,26 @@ CREATE TABLE `contenido_indicador` (
 CREATE TABLE `documentos_academicos` (
   `id_documento` int(11) NOT NULL,
   `fk_estudiante` int(11) NOT NULL,
-  `tipo_documento` enum('Tarjeta Vacunación','Carta Residencia','Partida Nacimiento','Boleta','Constancia Prosecución','Certificado Aprendizaje') NOT NULL,
-  `grado` enum('Educ. Inicial','1','2','3','4','5','6','') DEFAULT NULL,
+  `tipo_documento` enum('Tarjeta Vacunación','Carta Residencia','Partida Nacimiento','Constancia Act. Extracurricular','Boleta','Constancia Prosecución','Certificado Aprendizaje') NOT NULL,
+  `grado` enum('Educ. Inicial','Primero','Segundo','Tercero','Cuarto','Quinto','Sexto') DEFAULT NULL,
   `entregado` enum('si','no') NOT NULL DEFAULT 'no',
   `observaciones` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `documentos_academicos`
+--
+
+INSERT INTO `documentos_academicos` (`id_documento`, `fk_estudiante`, `tipo_documento`, `grado`, `entregado`, `observaciones`) VALUES
+(3, 48, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
+(4, 28, 'Partida Nacimiento', 'Primero', 'si', 'Original entregado'),
+(5, 28, 'Tarjeta Vacunación', 'Primero', 'si', 'Completa'),
+(6, 30, 'Partida Nacimiento', 'Tercero', 'si', 'Copia legalizada'),
+(7, 32, 'Carta Residencia', 'Quinto', 'si', 'Con sellos correspondientes'),
+(8, 34, 'Constancia Act. Extracurricular', 'Segundo', 'no', 'Pendiente de entrega'),
+(9, 39, 'Boleta', 'Cuarto', 'si', 'Año anterior'),
+(10, 42, 'Certificado Aprendizaje', 'Sexto', 'si', 'Promovido'),
+(11, 47, 'Constancia Prosecución', 'Quinto', 'si', 'Para trámite bancario');
 
 -- --------------------------------------------------------
 
@@ -1493,6 +1515,14 @@ CREATE TABLE `planificaciones` (
   `reutilizable` enum('si','no') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `planificaciones`
+--
+
+INSERT INTO `planificaciones` (`id_planificacion`, `fk_personal`, `fk_aula`, `fk_componente`, `fk_momento`, `tipo`, `estado`, `reutilizable`) VALUES
+(1, 35, 5, 4, 11, 'aula', 'activo', 'no'),
+(2, 1, 1, 8, 11, 'aula', 'activo', 'no');
+
 -- --------------------------------------------------------
 
 --
@@ -1516,6 +1546,14 @@ CREATE TABLE `plan_competencias` (
   `fk_competencias` int(11) NOT NULL,
   `fk_planificacion` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `plan_competencias`
+--
+
+INSERT INTO `plan_competencias` (`id_plan_com`, `fk_competencias`, `fk_planificacion`) VALUES
+(1, 4, 1),
+(2, 8, 2);
 
 -- --------------------------------------------------------
 
@@ -1598,7 +1636,8 @@ CREATE TABLE `respaldos` (
 --
 
 INSERT INTO `respaldos` (`id_respaldos`, `direccion`, `fecha`, `fk_usuario`) VALUES
-(1, '12-12-2025_04-55-35.sql', '2025-12-12', 1);
+(1, '12-12-2025_04-55-35.sql', '2025-12-12', 1),
+(2, '13-12-2025_00-52-09.sql', '2025-12-13', 1);
 
 -- --------------------------------------------------------
 
@@ -1619,7 +1658,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(47, 1, 'ec37337c2a9b774b3979a2dc8a28cf90b6b9e4b4065654cc9bd206ed849e04ee', '2025-12-12', '2025-12-13');
+(54, 43, 'b0df0df7fce2c72e7a2f2e17e6e5d25092477b8eff739b8fcba73406efdba7ac', '2026-01-09', '2026-01-10');
 
 -- --------------------------------------------------------
 
@@ -2213,13 +2252,13 @@ ALTER TABLE `aula`
 -- AUTO_INCREMENT de la tabla `bloqueos`
 --
 ALTER TABLE `bloqueos`
-  MODIFY `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_bloqueo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `bloqueos_ip`
 --
 ALTER TABLE `bloqueos_ip`
-  MODIFY `id_bloqueo_ip` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_bloqueo_ip` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `cargos`
@@ -2369,7 +2408,7 @@ ALTER TABLE `personas`
 -- AUTO_INCREMENT de la tabla `planificaciones`
 --
 ALTER TABLE `planificaciones`
-  MODIFY `id_planificacion` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_planificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones_individuales`
@@ -2381,7 +2420,7 @@ ALTER TABLE `planificaciones_individuales`
 -- AUTO_INCREMENT de la tabla `plan_competencias`
 --
 ALTER TABLE `plan_competencias`
-  MODIFY `id_plan_com` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_plan_com` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `preguntas`
@@ -2399,13 +2438,13 @@ ALTER TABLE `representantes`
 -- AUTO_INCREMENT de la tabla `respaldos`
 --
 ALTER TABLE `respaldos`
-  MODIFY `id_respaldos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_respaldos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

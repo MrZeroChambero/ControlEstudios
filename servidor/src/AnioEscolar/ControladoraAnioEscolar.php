@@ -4,6 +4,7 @@ namespace Micodigo\AnioEscolar;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDOException;
 use RuntimeException;
@@ -16,9 +17,9 @@ class ControladoraAnioEscolar
       $conexion = Conexion::obtener();
       $modelo = new AnioEscolar();
       $anios = $modelo->consultarAniosCompletos($conexion);
-      $this->enviarRespuestaJson(200, 'exito', 'Años escolares consultados correctamente.', $anios);
+      RespuestaJson::exito($anios, 'Años escolares consultados correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al listar los años escolares.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al listar los años escolares.', 500, null, $excepcion);
     }
   }
 
@@ -30,13 +31,13 @@ class ControladoraAnioEscolar
       $anio = $modelo->consultarPorId($conexion, $idAnio);
 
       if ($anio === null) {
-        $this->enviarRespuestaJson(404, 'error', 'El año escolar solicitado no existe.', null, ['id_anio_escolar' => ['Registro no encontrado.']]);
+        RespuestaJson::error('El año escolar solicitado no existe.', 404, ['id_anio_escolar' => ['Registro no encontrado.']]);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Año escolar obtenido correctamente.', $anio);
+      RespuestaJson::exito($anio, 'Año escolar obtenido correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al obtener el año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al obtener el año escolar.', 500, null, $excepcion);
     }
   }
 
@@ -50,15 +51,15 @@ class ControladoraAnioEscolar
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['estado']) ? 409 : 422;
-        $this->enviarRespuestaJson($codigo, 'error', 'La información enviada no es válida.', null, $resultado['errores']);
+        RespuestaJson::error('La información enviada no es válida.', $codigo, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(201, 'exito', 'Año escolar registrado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Año escolar registrado correctamente.', 201);
     } catch (RuntimeException $excepcion) {
-      $this->enviarRespuestaJson(422, 'error', $excepcion->getMessage(), null, ['momentos' => [$excepcion->getMessage()]]);
+      RespuestaJson::error($excepcion->getMessage(), 422, ['momentos' => [$excepcion->getMessage()]]);
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al registrar el año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al registrar el año escolar.', 500, null, $excepcion);
     }
   }
 
@@ -72,15 +73,15 @@ class ControladoraAnioEscolar
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['id_anio_escolar']) ? 404 : 422;
-        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible actualizar el año escolar.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible actualizar el año escolar.', $codigo, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Año escolar actualizado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Año escolar actualizado correctamente.');
     } catch (RuntimeException $excepcion) {
-      $this->enviarRespuestaJson(422, 'error', $excepcion->getMessage(), null, ['momentos' => [$excepcion->getMessage()]]);
+      RespuestaJson::error($excepcion->getMessage(), 422, ['momentos' => [$excepcion->getMessage()]]);
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al actualizar el año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al actualizar el año escolar.', 500, null, $excepcion);
     }
   }
 
@@ -98,13 +99,13 @@ class ControladoraAnioEscolar
         } elseif (isset($resultado['errores']['id_anio_escolar'])) {
           $codigo = 404;
         }
-        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible eliminar el año escolar.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible eliminar el año escolar.', $codigo, $resultado['errores']);
         return;
       }
 
-      $this->enviarRespuestaJson(200, 'exito', 'Año escolar eliminado correctamente.', $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], 'Año escolar eliminado correctamente.');
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al eliminar el año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al eliminar el año escolar.', 500, null, $excepcion);
     }
   }
 
@@ -121,7 +122,7 @@ class ControladoraAnioEscolar
       $modelo = new AnioEscolar();
       $anioActual = $modelo->consultarPorId($conexion, $idAnio);
       if ($anioActual === null) {
-        $this->enviarRespuestaJson(404, 'error', 'El año escolar solicitado no existe.', null, ['id_anio_escolar' => ['Registro no encontrado.']]);
+        RespuestaJson::error('El año escolar solicitado no existe.', 404, ['id_anio_escolar' => ['Registro no encontrado.']]);
         return;
       }
 
@@ -133,18 +134,16 @@ class ControladoraAnioEscolar
 
       $accionEfectiva = is_string($accionEfectiva) ? strtolower(trim($accionEfectiva)) : null;
       if ($accionEfectiva !== 'activar' && $accionEfectiva !== 'desactivar') {
-        $this->enviarRespuestaJson(422, 'error', 'La acción solicitada es inválida.', null, ['accion' => ['Acción no soportada.']]);
+        RespuestaJson::error('La acción solicitada es inválida.', 422, ['accion' => ['Acción no soportada.']]);
         return;
       }
 
       if ($accionEfectiva === 'desactivar') {
         $errorContrasena = $this->validarContrasenaDesactivacion($conexion, $entrada);
         if ($errorContrasena !== null) {
-          $this->enviarRespuestaJson(
-            $errorContrasena['codigo'],
-            'error',
+          RespuestaJson::error(
             $errorContrasena['mensaje'],
-            null,
+            $errorContrasena['codigo'],
             $errorContrasena['errores'] ?? null
           );
           return;
@@ -156,7 +155,7 @@ class ControladoraAnioEscolar
 
       if (isset($resultado['errores'])) {
         $codigo = isset($resultado['errores']['id_anio_escolar']) ? 404 : 422;
-        $this->enviarRespuestaJson($codigo, 'error', 'No fue posible cambiar el estado del año escolar.', null, $resultado['errores']);
+        RespuestaJson::error('No fue posible cambiar el estado del año escolar.', $codigo, $resultado['errores']);
         return;
       }
 
@@ -167,9 +166,9 @@ class ControladoraAnioEscolar
           ? 'El año escolar se desactivó correctamente.'
           : 'El año escolar se marcó como incompleto.');
 
-      $this->enviarRespuestaJson(200, 'exito', $mensaje, $resultado['datos']);
+      RespuestaJson::exito($resultado['datos'], $mensaje);
     } catch (Exception | PDOException $excepcion) {
-      $this->enviarRespuestaJson(500, 'error', 'Ocurrió un problema al cambiar el estado del año escolar.', null, ['detalle' => [$excepcion->getMessage()]]);
+      RespuestaJson::error('Ocurrió un problema al cambiar el estado del año escolar.', 500, null, $excepcion);
     }
   }
 
@@ -310,27 +309,5 @@ class ControladoraAnioEscolar
     }
 
     return is_array($datos) ? $datos : [];
-  }
-
-  private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
-  {
-    http_response_code($codigoHttp);
-    header('Content-Type: application/json; charset=utf-8');
-
-    $respuesta = [
-      'estado' => $estado,
-      'exito' => $estado === 'exito',
-      'mensaje' => $mensaje,
-    ];
-
-    if ($datos !== null) {
-      $respuesta['datos'] = $datos;
-    }
-
-    if ($errores !== null) {
-      $respuesta['errores'] = $errores;
-    }
-
-    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
   }
 }

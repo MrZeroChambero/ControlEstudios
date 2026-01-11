@@ -2,6 +2,8 @@
 
 namespace Micodigo\ConsultasMedicas;
 
+use Micodigo\Utils\RespuestaJson;
+
 class ConsultasMedicas
 {
   private function parseJsonInput(): array
@@ -9,16 +11,6 @@ class ConsultasMedicas
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
     return $data ?? [];
-  }
-
-  private function sendJson(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = ['status' => $status, 'message' => $message, 'back' => $status === 'success'];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
   }
 
   private function obtenerPDO(): \PDO
@@ -32,9 +24,9 @@ class ConsultasMedicas
       $pdo = $this->obtenerPDO();
       $stmt = $pdo->query("SELECT id_consulta, fk_estudiante, tipo_consulta, fecha_consulta AS fecha, motivo AS descripcion, observaciones AS tratamiento FROM consultas_medicas ORDER BY fecha_consulta DESC, id_consulta DESC");
       $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-      $this->sendJson(200, 'success', 'Consultas listadas.', $rows);
+      RespuestaJson::exito($rows, 'Consultas listadas.');
     } catch (\Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar las consultas médicas.', 500, null, $e);
     }
   }
 
@@ -45,9 +37,9 @@ class ConsultasMedicas
       $stmt = $pdo->prepare("SELECT id_consulta, fk_estudiante, tipo_consulta, fecha_consulta AS fecha, motivo AS descripcion, observaciones AS tratamiento FROM consultas_medicas WHERE fk_estudiante = ? ORDER BY fecha_consulta DESC, id_consulta DESC");
       $stmt->execute([$id_estudiante]);
       $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-      $this->sendJson(200, 'success', 'Consultas del estudiante obtenidas.', $rows);
+      RespuestaJson::exito($rows, 'Consultas del estudiante obtenidas.');
     } catch (\Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar por estudiante: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar las consultas del estudiante.', 500, null, $e);
     }
   }
 
@@ -57,7 +49,7 @@ class ConsultasMedicas
       $data = $this->parseJsonInput();
       $errores = $this->validar($data, true);
       if ($errores) {
-        $this->sendJson(400, 'error', 'Errores de validación.', null, $errores);
+        RespuestaJson::error('Errores de validación.', 400, $errores);
         return;
       }
       $pdo = $this->obtenerPDO();
@@ -72,9 +64,9 @@ class ConsultasMedicas
       ]);
       $id = $pdo->lastInsertId();
       $row = $this->obtenerPorId($pdo, $id);
-      $this->sendJson(201, 'success', 'Consulta creada.', $row);
+      RespuestaJson::exito($row, 'Consulta creada.', 201);
     } catch (\Exception $e) {
-      $this->sendJson(500, 'error', 'Error al crear: ' . $e->getMessage());
+      RespuestaJson::error('Error al crear la consulta médica.', 500, null, $e);
     }
   }
 
@@ -84,13 +76,13 @@ class ConsultasMedicas
       $data = $this->parseJsonInput();
       $errores = $this->validar($data, false);
       if ($errores) {
-        $this->sendJson(400, 'error', 'Errores de validación.', null, $errores);
+        RespuestaJson::error('Errores de validación.', 400, $errores);
         return;
       }
       $pdo = $this->obtenerPDO();
       $existe = $this->obtenerPorId($pdo, $id_consulta);
       if (!$existe) {
-        $this->sendJson(404, 'error', 'Consulta no encontrada.');
+        RespuestaJson::error('Consulta no encontrada.', 404);
         return;
       }
       $stmt = $pdo->prepare("UPDATE consultas_medicas SET tipo_consulta = ?, motivo = ?, tiene_informe_medico = ?, fecha_consulta = ?, observaciones = ? WHERE id_consulta = ?");
@@ -103,9 +95,9 @@ class ConsultasMedicas
         $id_consulta
       ]);
       $row = $this->obtenerPorId($pdo, $id_consulta);
-      $this->sendJson(200, 'success', 'Consulta actualizada.', $row);
+      RespuestaJson::exito($row, 'Consulta actualizada.');
     } catch (\Exception $e) {
-      $this->sendJson(500, 'error', 'Error al actualizar: ' . $e->getMessage());
+      RespuestaJson::error('Error al actualizar la consulta médica.', 500, null, $e);
     }
   }
 
@@ -115,9 +107,9 @@ class ConsultasMedicas
       $pdo = $this->obtenerPDO();
       $stmt = $pdo->prepare("DELETE FROM consultas_medicas WHERE id_consulta = ?");
       $stmt->execute([$id_consulta]);
-      $this->sendJson(200, 'success', 'Consulta eliminada.', ['id_consulta' => $id_consulta]);
+      RespuestaJson::exito(['id_consulta' => $id_consulta], 'Consulta eliminada.');
     } catch (\Exception $e) {
-      $this->sendJson(500, 'error', 'Error al eliminar: ' . $e->getMessage());
+      RespuestaJson::error('Error al eliminar la consulta médica.', 500, null, $e);
     }
   }
 

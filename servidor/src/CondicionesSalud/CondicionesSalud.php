@@ -3,6 +3,7 @@
 namespace Micodigo\CondicionesSalud;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Valitron\Validator;
 
 class CondicionesSalud
@@ -15,13 +16,6 @@ class CondicionesSalud
   private function pdo()
   {
     return Conexion::obtener();
-  }
-
-  private function json($arr, int $code = 200)
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
   }
 
   // GET /condiciones-salud/estudiante/{id} y alias
@@ -37,9 +31,9 @@ class CondicionesSalud
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);
       $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-      return $this->json(['status' => 'success', 'message' => 'Condiciones obtenidas.', 'back' => true, 'data' => $data]);
+      RespuestaJson::exito($data, 'Condiciones obtenidas.');
     } catch (\Exception $e) {
-      return $this->json(['status' => 'error', 'message' => 'Error listando condiciones.', 'back' => true, 'errors' => [$e->getMessage()]], 500);
+      RespuestaJson::error('Error listando condiciones.', 500, null, $e);
     }
   }
 
@@ -51,7 +45,8 @@ class CondicionesSalud
     $errors = [];
     foreach ($required as $r) if (empty($input[$r])) $errors[$r] = 'Requerido';
     if ($errors) {
-      return $this->json(['status' => 'error', 'message' => 'Validación fallida.', 'back' => true, 'errors' => $errors], 422);
+      RespuestaJson::error('Validación fallida.', 422, $errors);
+      return;
     }
     try {
       $pdo = $this->pdo();
@@ -63,9 +58,9 @@ class CondicionesSalud
         $input['observaciones'] ?? null
       ]);
       $id = $pdo->lastInsertId();
-      return $this->json(['status' => 'success', 'message' => 'Condición creada.', 'back' => true, 'data' => ['id_condicion' => (int)$id]]);
+      RespuestaJson::exito(['id_condicion' => (int) $id], 'Condición creada.', 201);
     } catch (\Exception $e) {
-      return $this->json(['status' => 'error', 'message' => 'Error creando condición.', 'back' => true, 'errors' => [$e->getMessage()]], 500);
+      RespuestaJson::error('Error creando condición.', 500, null, $e);
     }
   }
 
@@ -83,7 +78,8 @@ class CondicionesSalud
       }
     }
     if (empty($sets)) {
-      return $this->json(['status' => 'error', 'message' => 'Sin campos para actualizar.', 'back' => true], 400);
+      RespuestaJson::error('Sin campos para actualizar.', 400);
+      return;
     }
     $vals[] = $id;
     try {
@@ -91,9 +87,9 @@ class CondicionesSalud
       $sql = 'UPDATE condiciones_salud SET ' . implode(', ', $sets) . ' WHERE id_condicion = ?';
       $stmt = $pdo->prepare($sql);
       $ok = $stmt->execute($vals);
-      return $this->json(['status' => 'success', 'message' => 'Condición actualizada.', 'back' => true, 'data' => ['updated' => $ok]]);
+      RespuestaJson::exito(['updated' => (bool) $ok], 'Condición actualizada.');
     } catch (\Exception $e) {
-      return $this->json(['status' => 'error', 'message' => 'Error actualizando condición.', 'back' => true, 'errors' => [$e->getMessage()]], 500);
+      RespuestaJson::error('Error actualizando condición.', 500, null, $e);
     }
   }
 
@@ -104,9 +100,14 @@ class CondicionesSalud
       $pdo = $this->pdo();
       $stmt = $pdo->prepare('DELETE FROM condiciones_salud WHERE id_condicion = ?');
       $ok = $stmt->execute([$id]);
-      return $this->json(['status' => 'success', 'message' => 'Condición eliminada.', 'back' => true, 'data' => ['deleted' => $ok]]);
+      if (!$ok) {
+        RespuestaJson::error('No fue posible eliminar la condición de salud.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(['deleted' => true], 'Condición eliminada.');
     } catch (\Exception $e) {
-      return $this->json(['status' => 'error', 'message' => 'Error eliminando condición.', 'back' => true, 'errors' => [$e->getMessage()]], 500);
+      RespuestaJson::error('Error eliminando condición.', 500, null, $e);
     }
   }
 }
