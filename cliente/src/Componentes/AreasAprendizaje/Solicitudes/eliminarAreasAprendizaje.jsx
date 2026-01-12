@@ -1,3 +1,8 @@
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../../utilidades/respuestaBackend";
+
 export const eliminarAreasAprendizaje = async (props) => {
   const {
     Swal,
@@ -25,41 +30,30 @@ export const eliminarAreasAprendizaje = async (props) => {
           withCredentials: true,
         });
 
-        if (!response.data || response.data.exito !== true) {
+        const compat = normalizarRespuesta(
+          asegurarCompatibilidad(response.data),
+          "No se pudo eliminar el área de aprendizaje."
+        );
+
+        if (!compat.success) {
           throw {
             response: {
-              data: response.data ?? {
-                exito: false,
-                mensaje: "No se pudo eliminar el área de aprendizaje.",
-              },
+              data: compat.raw,
             },
+            message: compat.message,
           };
         }
 
-        Swal.fire("¡Borrado!", response.data.mensaje, "success");
+        Swal.fire("¡Borrado!", compat.message, "success");
         solicitudAreasAprendizaje({ setIsLoading, setAreas });
       } catch (error) {
         console.error("Error al eliminar área de aprendizaje:", error);
-        const errorData = error.response?.data;
+        const compat = normalizarRespuesta(
+          asegurarCompatibilidad(error.response?.data),
+          "No se pudo eliminar el área de aprendizaje."
+        );
 
-        if (errorData && errorData.exito === false) {
-          console.error(
-            "Error del backend:",
-            errorData.mensaje,
-            errorData.errores
-          );
-          Swal.fire(
-            "Error",
-            errorData.mensaje || "No se pudo eliminar el área de aprendizaje.",
-            "error"
-          );
-        } else {
-          Swal.fire(
-            "Error",
-            "No se pudo eliminar el área de aprendizaje.",
-            "error"
-          );
-        }
+        Swal.fire("Error", compat.message, "error");
       }
     }
   });

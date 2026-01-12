@@ -1,3 +1,8 @@
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../../utilidades/respuestaBackend";
+
 export const EnviarAreasAprendizaje = async (props) => {
   const {
     e,
@@ -34,47 +39,39 @@ export const EnviarAreasAprendizaje = async (props) => {
       });
     }
 
-    if (!response.data || response.data.exito !== true) {
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(response.data),
+      "No se pudo completar la operación."
+    );
+
+    if (!compat.success) {
       throw {
-        response: {
-          data: response.data ?? {
-            exito: false,
-            mensaje: "No se pudo completar la operación.",
-          },
-        },
+        response: { data: compat.raw },
+        message: compat.message,
       };
     }
 
     const successMessage = currentArea ? "¡Actualizado!" : "¡Creado!";
-    Swal.fire(successMessage, response.data.mensaje, "success");
+    Swal.fire(successMessage, compat.message, "success");
     solicitudAreasAprendizaje({ setIsLoading, setAreas });
     closeModal();
   } catch (error) {
     console.error("Error al guardar área de aprendizaje:", error);
-    const errorData = error.response?.data;
-    console.log(error);
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "Error de comunicación con el servidor."
+    );
 
-    if (errorData) {
-      console.error("Error del backend:", errorData.mensaje, errorData.errores);
-
-      if (errorData.exito === false) {
-        if (errorData.errores) {
-          const erroresFormateados = Object.entries(errorData.errores).map(
-            ([campo, mensajes]) =>
-              `${campo}: ${
-                Array.isArray(mensajes) ? mensajes.join(", ") : mensajes
-              }`
-          );
-          const errorMsg = erroresFormateados.join("\n");
-          Swal.fire("Error de validación", errorMsg, "error");
-        } else {
-          Swal.fire("Error", errorData.mensaje || "Ocurrió un error.", "error");
-        }
-      } else {
-        Swal.fire("Error", "Error de comunicación con el servidor.", "error");
-      }
+    if (compat.errors && Object.keys(compat.errors).length > 0) {
+      const erroresFormateados = Object.entries(compat.errors).map(
+        ([campo, mensajes]) =>
+          `${campo}: ${
+            Array.isArray(mensajes) ? mensajes.join(", ") : mensajes
+          }`
+      );
+      Swal.fire("Error de validación", erroresFormateados.join("\n"), "error");
     } else {
-      Swal.fire("Error", "Error de conexión con el servidor.", "error");
+      Swal.fire("Error", compat.message, "error");
     }
   }
 };

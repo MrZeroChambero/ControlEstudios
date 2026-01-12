@@ -3,8 +3,10 @@
 namespace Micodigo\Persona;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDO;
+use RuntimeException;
 
 trait PersonaHttpTrait
 {
@@ -13,23 +15,9 @@ trait PersonaHttpTrait
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
     if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-      throw new Exception('JSON inválido: ' . json_last_error_msg());
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido.');
     }
     return $data ?? [];
-  }
-
-  private function sendJson(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = [
-      'status' => $status,
-      'message' => $message,
-      'back' => $status === 'success'
-    ];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
   }
 
   public function listarPersonas(): void
@@ -41,9 +29,9 @@ trait PersonaHttpTrait
         $filtros['tipo_persona'] = $_GET['tipo_persona'];
       }
       $personas = self::consultarTodos($pdo, $filtros);
-      $this->sendJson(200, 'success', 'Personas obtenidas.', $personas);
+      RespuestaJson::exito($personas, 'Personas obtenidas.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error del servidor al obtener personas.');
+      RespuestaJson::error('Error del servidor al obtener personas.', 500, null, $e);
     }
   }
 
@@ -53,12 +41,12 @@ trait PersonaHttpTrait
       $pdo = Conexion::obtener();
       $persona = self::consultar($pdo, $id);
       if ($persona) {
-        $this->sendJson(200, 'success', 'Persona encontrada.', $persona);
+        RespuestaJson::exito($persona, 'Persona encontrada.');
       } else {
-        $this->sendJson(404, 'error', 'Persona no encontrada.');
+        RespuestaJson::error('Persona no encontrada.', 404);
       }
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error del servidor al consultar persona.');
+      RespuestaJson::error('Error del servidor al consultar persona.', 500, null, $e);
     }
   }
 
@@ -67,7 +55,7 @@ trait PersonaHttpTrait
     try {
       $data = $this->parseJsonInput();
       if (empty($data)) {
-        $this->sendJson(400, 'error', 'Datos JSON inválidos o vacíos.');
+        RespuestaJson::error('El cuerpo de la solicitud está vacío.', 400);
         return;
       }
       $persona = new Persona($data);
@@ -75,14 +63,16 @@ trait PersonaHttpTrait
       $resultado = $persona->crear($pdo);
       if (is_numeric($resultado)) {
         $persona->id_persona = $resultado;
-        $this->sendJson(201, 'success', 'Persona creada exitosamente.', $persona);
+        RespuestaJson::exito($persona, 'Persona creada exitosamente.', 201);
       } elseif (is_array($resultado)) {
-        $this->sendJson(400, 'error', 'Error de validación.', null, $resultado);
+        RespuestaJson::error('Error de validación.', 422, $resultado);
       } else {
-        $this->sendJson(500, 'error', 'No se pudo crear la persona.');
+        RespuestaJson::error('No se pudo crear la persona.', 500);
       }
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error en el servidor: ' . $e->getMessage());
+      RespuestaJson::error('Error en el servidor al crear la persona.', 500, null, $e);
     }
   }
 
@@ -91,26 +81,28 @@ trait PersonaHttpTrait
     try {
       $data = $this->parseJsonInput();
       if (empty($data)) {
-        $this->sendJson(400, 'error', 'Datos JSON inválidos.');
+        RespuestaJson::error('El cuerpo de la solicitud está vacío.', 400);
         return;
       }
       $pdo = Conexion::obtener();
       if (!self::consultar($pdo, $id)) {
-        $this->sendJson(404, 'error', 'Persona no encontrada.');
+        RespuestaJson::error('Persona no encontrada.', 404);
         return;
       }
       $persona = new Persona($data);
       $persona->id_persona = $id;
       $resultado = $persona->actualizar($pdo);
       if ($resultado === true) {
-        $this->sendJson(200, 'success', 'Persona actualizada exitosamente.');
+        RespuestaJson::exito(null, 'Persona actualizada exitosamente.');
       } elseif (is_array($resultado)) {
-        $this->sendJson(400, 'error', 'Error de validación.', null, $resultado);
+        RespuestaJson::error('Error de validación.', 422, $resultado);
       } else {
-        $this->sendJson(500, 'error', 'No se pudo actualizar la persona.');
+        RespuestaJson::error('No se pudo actualizar la persona.', 500);
       }
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error en el servidor: ' . $e->getMessage());
+      RespuestaJson::error('Error en el servidor al actualizar la persona.', 500, null, $e);
     }
   }
 
@@ -119,19 +111,23 @@ trait PersonaHttpTrait
     try {
       $data = $this->parseJsonInput();
       if (!isset($data['estado'])) {
-        $this->sendJson(400, 'error', 'El estado es requerido.');
+        RespuestaJson::error('El estado es requerido.', 400, [
+          'estado' => ['Este campo es obligatorio.'],
+        ]);
         return;
       }
       $pdo = Conexion::obtener();
       $stmt = $pdo->prepare('UPDATE personas SET estado = ? WHERE id_persona = ?');
       $stmt->execute([$data['estado'], $id]);
       if ($stmt->rowCount() > 0) {
-        $this->sendJson(200, 'success', 'Estado actualizado exitosamente.');
+        RespuestaJson::exito(null, 'Estado actualizado exitosamente.');
       } else {
-        $this->sendJson(404, 'error', 'Persona no encontrada o estado sin cambios.');
+        RespuestaJson::error('Persona no encontrada o estado sin cambios.', 404);
       }
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error en el servidor: ' . $e->getMessage());
+      RespuestaJson::error('Error en el servidor al actualizar el estado.', 500, null, $e);
     }
   }
 
@@ -140,19 +136,19 @@ trait PersonaHttpTrait
     try {
       $pdo = Conexion::obtener();
       if (!self::consultar($pdo, $id)) {
-        $this->sendJson(404, 'error', 'Persona no encontrada.');
+        RespuestaJson::error('Persona no encontrada.', 404);
         return;
       }
       $resultado = self::eliminar($pdo, $id);
       if ($resultado === true) {
-        $this->sendJson(200, 'success', 'Persona eliminada exitosamente.');
+        RespuestaJson::exito(null, 'Persona eliminada exitosamente.');
       } elseif (is_array($resultado) && isset($resultado['error_fk'])) {
-        $this->sendJson(409, 'error', $resultado['error_fk']);
+        RespuestaJson::error($resultado['error_fk'], 409);
       } else {
-        $this->sendJson(500, 'error', 'No se pudo eliminar la persona.');
+        RespuestaJson::error('No se pudo eliminar la persona.', 500);
       }
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error en el servidor: ' . $e->getMessage());
+      RespuestaJson::error('Error en el servidor al eliminar la persona.', 500, null, $e);
     }
   }
 }

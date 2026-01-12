@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 const CONTENIDOS_URL = `${BASE_URL}/contenidos`;
@@ -18,21 +22,27 @@ export const solicitarContenidos = async ({
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      const registros = Array.isArray(data.datos) ? data.datos : [];
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudieron cargar los contenidos."
+    );
+
+    if (compat.success) {
+      const registros = Array.isArray(compat.data) ? compat.data : [];
       setContenidos(registros);
       return registros;
     }
 
-    const mensaje = data?.mensaje || "No se pudieron cargar los contenidos.";
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
     setContenidos([]);
     return [];
   } catch (error) {
     console.error("Error al obtener contenidos:", error);
-    const mensaje =
-      error.response?.data?.mensaje || "No se pudieron cargar los contenidos.";
-    Swal.fire("Error", mensaje, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar los contenidos."
+    );
+    Swal.fire("Error", compat.message, "error");
     setContenidos([]);
     return [];
   } finally {
@@ -46,23 +56,27 @@ export const solicitarComponentesSelect = async ({ setComponentes, Swal }) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      const registros = Array.isArray(data.datos) ? data.datos : [];
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudieron cargar los componentes disponibles."
+    );
+
+    if (compat.success) {
+      const registros = Array.isArray(compat.data) ? compat.data : [];
       setComponentes(registros);
       return registros;
     }
 
-    const mensaje =
-      data?.mensaje || "No se pudieron cargar los componentes disponibles.";
-    Swal.fire("Aviso", mensaje, "warning");
+    Swal.fire("Aviso", compat.message, "warning");
     setComponentes([]);
     return [];
   } catch (error) {
     console.error("Error al obtener componentes para contenido:", error);
-    const mensaje =
-      error.response?.data?.mensaje ||
-      "No se pudieron cargar los componentes disponibles.";
-    Swal.fire("Error", mensaje, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar los componentes disponibles."
+    );
+    Swal.fire("Error", compat.message, "error");
     setComponentes([]);
     return [];
   }
@@ -74,19 +88,24 @@ export const solicitarTemasPorContenido = async (idContenido, Swal) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      return Array.isArray(data.datos) ? data.datos : [];
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudieron cargar los temas."
+    );
+
+    if (compat.success) {
+      return Array.isArray(compat.data) ? compat.data : [];
     }
 
-    const mensaje = data?.mensaje || "No se pudieron cargar los temas.";
-    Swal.fire("Aviso", mensaje, "warning");
+    Swal.fire("Aviso", compat.message, "warning");
     return [];
   } catch (error) {
     console.error("Error al obtener temas por contenido:", error);
-    const mensaje =
-      error.response?.data?.mensaje ||
-      "No se pudieron cargar los temas asociados.";
-    Swal.fire("Error", mensaje, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar los temas asociados."
+    );
+    Swal.fire("Error", compat.message, "error");
     return [];
   }
 };
@@ -112,21 +131,26 @@ export const eliminarContenido = async ({ idContenido, recargar, Swal }) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje || "Contenido eliminado.", "success");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo eliminar el contenido."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message || "Contenido eliminado.", "success");
       recargar?.();
       return true;
     }
 
-    const mensaje = data?.mensaje || "No se pudo eliminar el contenido.";
-    Swal.fire("Aviso", mensaje, "warning");
+    Swal.fire("Aviso", compat.message, "warning");
     return false;
   } catch (error) {
     console.error("Error al eliminar contenido:", error);
-    const mensaje =
-      error.response?.data?.mensaje ||
-      "No se pudo eliminar el contenido seleccionado.";
-    Swal.fire("Error", mensaje, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo eliminar el contenido seleccionado."
+    );
+    Swal.fire("Error", compat.message, "error");
     return false;
   }
 };
@@ -164,23 +188,27 @@ export const enviarContenido = async ({
 
     const { data } = response;
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje, "success");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo guardar el contenido."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message, "success");
       recargar?.();
       cerrarModal();
-      return data.datos;
+      return compat.data;
     }
 
-    console.warn("[Contenidos] Respuesta sin éxito (guardar):", data);
+    console.warn("[Contenidos] Respuesta sin éxito (guardar):", compat.raw);
 
-    const mensaje = data?.mensaje || "No se pudo guardar el contenido.";
-    if (data?.errores) {
-      const detalle = Object.entries(data.errores)
+    if (compat.errors) {
+      const detalle = Object.entries(compat.errors)
         .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(", ")}`)
         .join("\n");
       Swal.fire("Errores de validación", detalle, "error");
     } else {
-      Swal.fire("Aviso", mensaje, "warning");
+      Swal.fire("Aviso", compat.message, "warning");
     }
     return null;
   } catch (error) {
@@ -188,18 +216,18 @@ export const enviarContenido = async ({
     if (error.response) {
       console.error("[Contenidos] Respuesta de error:", error.response);
     }
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo guardar la información del contenido."
+    );
 
-    if (respuesta?.errores) {
-      const detalle = Object.entries(respuesta.errores)
+    if (compat.errors) {
+      const detalle = Object.entries(compat.errors)
         .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(", ")}`)
         .join("\n");
       Swal.fire("Errores de validación", detalle, "error");
     } else {
-      const mensaje =
-        respuesta?.mensaje ||
-        "No se pudo guardar la información del contenido.";
-      Swal.fire("Error", mensaje, "error");
+      Swal.fire("Error", compat.message, "error");
     }
 
     return null;
@@ -214,29 +242,32 @@ export const cambioEstadoContenido = async ({ idContenido, estado, Swal }) => {
       { withCredentials: true }
     );
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje, "success");
-      return data.datos;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo cambiar el estado del contenido."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message, "success");
+      return compat.data;
     }
 
-    const mensaje =
-      data?.mensaje || "No se pudo cambiar el estado del contenido.";
-    Swal.fire("Aviso", mensaje, "warning");
+    Swal.fire("Aviso", compat.message, "warning");
     return null;
   } catch (error) {
     console.error("Error al cambiar estado del contenido:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo cambiar el estado del contenido seleccionado."
+    );
 
-    if (respuesta?.errores) {
-      const detalle = Object.entries(respuesta.errores)
+    if (compat.errors) {
+      const detalle = Object.entries(compat.errors)
         .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(", ")}`)
         .join("\n");
       Swal.fire("Errores de validación", detalle, "error");
     } else {
-      const mensaje =
-        respuesta?.mensaje ||
-        "No se pudo cambiar el estado del contenido seleccionado.";
-      Swal.fire("Error", mensaje, "error");
+      Swal.fire("Error", compat.message, "error");
     }
 
     return null;

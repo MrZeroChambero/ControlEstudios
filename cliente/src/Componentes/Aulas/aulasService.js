@@ -1,30 +1,29 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const API_BASE = "http://localhost:8080/controlestudios/servidor/aulas";
 
 const withCredentials = { withCredentials: true };
 
 const adaptResponse = (payload, fallbackMessage) => {
-  if (!payload || typeof payload !== "object") {
-    return {
-      success: false,
-      message: fallbackMessage,
-      data: null,
-      errors: null,
-    };
-  }
-
+  const compat = normalizarRespuesta(payload, fallbackMessage);
   return {
-    success: payload.exito === true,
-    message: payload.mensaje ?? fallbackMessage,
-    data: payload.datos ?? null,
-    errors: payload.errores ?? null,
+    success: compat.success,
+    message: compat.message,
+    data: compat.data,
+    errors: compat.errors,
   };
 };
 
 const extractError = (error, fallbackMessage) => {
   if (error?.response?.data) {
-    return adaptResponse(error.response.data, fallbackMessage);
+    return adaptResponse(
+      asegurarCompatibilidad(error.response.data),
+      fallbackMessage
+    );
   }
 
   return {
@@ -39,7 +38,7 @@ export const obtenerResumenAulas = async () => {
   try {
     const { data } = await axios.get(`${API_BASE}/apertura`, withCredentials);
     return adaptResponse(
-      data,
+      asegurarCompatibilidad(data),
       "No se pudo obtener la informacion de las aulas."
     );
   } catch (error) {
@@ -57,7 +56,7 @@ export const aperturarAulas = async (payload) => {
       headers: { "Content-Type": "application/json" },
     });
     return adaptResponse(
-      data,
+      asegurarCompatibilidad(data),
       "No fue posible aperturar las aulas solicitadas."
     );
   } catch (error) {
@@ -78,7 +77,10 @@ export const actualizarEstadoAula = async (idAula, estado) => {
         headers: { "Content-Type": "application/json" },
       }
     );
-    return adaptResponse(data, "No fue posible cambiar el estado del aula.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "No fue posible cambiar el estado del aula."
+    );
   } catch (error) {
     return extractError(error, "No fue posible cambiar el estado del aula.");
   }
@@ -94,7 +96,10 @@ export const actualizarCuposAula = async (idAula, cupos) => {
         headers: { "Content-Type": "application/json" },
       }
     );
-    return adaptResponse(data, "No fue posible actualizar los cupos del aula.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "No fue posible actualizar los cupos del aula."
+    );
   } catch (error) {
     return extractError(error, "No fue posible actualizar los cupos del aula.");
   }

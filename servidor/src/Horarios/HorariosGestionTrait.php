@@ -16,6 +16,8 @@ trait HorariosGestionTrait
   {
     $anioId = isset($opciones['fk_anio_escolar']) ? (int) $opciones['fk_anio_escolar'] : null;
     $aulaId = isset($opciones['fk_aula']) ? (int) $opciones['fk_aula'] : null;
+    $momentoId = isset($opciones['fk_momento']) ? (int) $opciones['fk_momento'] : null;
+    $componenteId = isset($opciones['fk_componente']) ? (int) $opciones['fk_componente'] : null;
 
     $catalogos = [
       'aulas' => $this->consultarCatalogoAulas($conexion, $anioId),
@@ -24,7 +26,12 @@ trait HorariosGestionTrait
 
     if ($aulaId !== null && $aulaId > 0) {
       $catalogos['componentes'] = $this->consultarCatalogoComponentes($conexion, $aulaId);
-      $catalogos['personal'] = $this->consultarCatalogoPersonal($conexion, $aulaId);
+      $catalogos['personal'] = $this->consultarCatalogoPersonal(
+        $conexion,
+        $aulaId,
+        $momentoId,
+        $componenteId
+      );
       $catalogos['estudiantes'] = $this->consultarCatalogoEstudiantes($conexion, $aulaId);
     }
 
@@ -317,8 +324,14 @@ trait HorariosGestionTrait
     }, $registros);
   }
 
-  protected function consultarCatalogoPersonal(PDO $conexion, int $aulaId): array
-  {
+  protected function consultarCatalogoPersonal(
+    PDO $conexion,
+    int $aulaId,
+    ?int $momentoId = null,
+    ?int $componenteId = null
+  ): array {
+    $parametros = [$aulaId];
+
     $sql = 'SELECT DISTINCT i.fk_personal,
                             per.estado,
                             fun.tipo,
@@ -331,10 +344,21 @@ trait HorariosGestionTrait
             INNER JOIN personal per ON per.id_personal = i.fk_personal
             INNER JOIN funcion_personal fun ON fun.id_funcion_personal = per.fk_funcion
             INNER JOIN personas ON personas.id_persona = per.fk_persona
-            WHERE i.fk_aula = ?
-            ORDER BY personas.primer_apellido, personas.primer_nombre';
+            WHERE i.fk_aula = ?';
 
-    $registros = $this->ejecutarConsulta($conexion, $sql, [$aulaId]);
+    if ($momentoId !== null && $momentoId > 0) {
+      $sql .= ' AND i.fk_momento = ?';
+      $parametros[] = $momentoId;
+    }
+
+    if ($componenteId !== null && $componenteId > 0) {
+      $sql .= ' AND i.fk_componente = ?';
+      $parametros[] = $componenteId;
+    }
+
+    $sql .= ' ORDER BY personas.primer_apellido, personas.primer_nombre';
+
+    $registros = $this->ejecutarConsulta($conexion, $sql, $parametros);
 
     return array_map(function (array $fila) {
       return [

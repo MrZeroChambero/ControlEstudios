@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 const AREAS_URL = `${BASE_URL}/areas_aprendizaje/listar-select`;
@@ -9,24 +13,31 @@ const INDICADORES_POR_COMPETENCIA_URL = (id) =>
   `${BASE_URL}/competencias/${id}/indicadores`;
 
 const manejarError = (error, mensajePorDefecto) => {
-  const respuesta = error?.response?.data;
+  const compat = normalizarRespuesta(
+    asegurarCompatibilidad(error?.response?.data),
+    mensajePorDefecto || "Ocurrió un problema en la solicitud."
+  );
   return (
-    respuesta?.mensaje ||
-    respuesta?.errors?.detalle?.[0] ||
+    compat.message ||
     mensajePorDefecto ||
-    "Ocurrio un problema en la solicitud."
+    "Ocurrió un problema en la solicitud."
   );
 };
+
+const compatRespuesta = (data, fallback) =>
+  normalizarRespuesta(asegurarCompatibilidad(data), fallback);
 
 export const obtenerAreasSelect = async () => {
   try {
     const { data } = await axios.get(AREAS_URL, { withCredentials: true });
-    if (data?.exito === true) {
-      return Array.isArray(data.datos) ? data.datos : [];
-    }
-    throw new Error(
-      data?.mensaje || "No fue posible cargar las areas disponibles."
+    const compat = compatRespuesta(
+      data,
+      "No fue posible cargar las áreas disponibles."
     );
+    if (!compat.success) {
+      throw new Error(compat.message);
+    }
+    return Array.isArray(compat.data) ? compat.data : [];
   } catch (error) {
     throw new Error(
       manejarError(error, "No fue posible cargar las areas disponibles.")
@@ -40,13 +51,16 @@ export const obtenerComponentesSelect = async () => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      return Array.isArray(data.datos) ? data.datos : [];
+    const compat = compatRespuesta(
+      data,
+      "No fue posible cargar los componentes disponibles."
+    );
+
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
 
-    throw new Error(
-      data?.mensaje || "No fue posible cargar los componentes disponibles."
-    );
+    return Array.isArray(compat.data) ? compat.data : [];
   } catch (error) {
     throw new Error(
       manejarError(error, "No fue posible cargar los componentes disponibles.")
@@ -69,14 +83,21 @@ export const obtenerCompetencias = async ({ areaId, componenteId }) => {
       params,
     });
 
-    if (data?.exito === true) {
-      const registros = data?.datos?.competencias;
-      return Array.isArray(registros) ? registros : [];
+    const compat = compatRespuesta(
+      data,
+      "No fue posible recuperar las competencias registradas."
+    );
+
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
 
-    throw new Error(
-      data?.mensaje || "No fue posible recuperar las competencias registradas."
-    );
+    const registros = Array.isArray(compat.data?.competencias)
+      ? compat.data.competencias
+      : Array.isArray(compat.data)
+      ? compat.data
+      : [];
+    return registros;
   } catch (error) {
     throw new Error(
       manejarError(
@@ -93,15 +114,19 @@ export const crearCompetencia = async (payload) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      return data?.datos ?? null;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible registrar la competencia indicada."
+    );
+
+    if (compat.success) {
+      return compat.data ?? null;
     }
 
-    const errores = data?.errores;
-    const mensaje =
-      data?.mensaje || "No fue posible registrar la competencia indicada.";
-    const error = new Error(mensaje);
-    error.validation = errores;
+    const error = new Error(compat.message);
+    if (compat.errors) {
+      error.validation = compat.errors;
+    }
     throw error;
   } catch (error) {
     if (error.validation) {
@@ -123,15 +148,19 @@ export const actualizarCompetencia = async (idCompetencia, payload) => {
       }
     );
 
-    if (data?.exito === true) {
-      return data?.datos ?? null;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible actualizar la competencia indicada."
+    );
+
+    if (compat.success) {
+      return compat.data ?? null;
     }
 
-    const errores = data?.errores;
-    const mensaje =
-      data?.mensaje || "No fue posible actualizar la competencia indicada.";
-    const error = new Error(mensaje);
-    error.validation = errores;
+    const error = new Error(compat.message);
+    if (compat.errors) {
+      error.validation = compat.errors;
+    }
     throw error;
   } catch (error) {
     if (error.validation) {
@@ -152,11 +181,16 @@ export const eliminarCompetencia = async (idCompetencia) => {
       }
     );
 
-    if (data?.exito === true) {
+    const compat = compatRespuesta(
+      data,
+      "No fue posible eliminar la competencia."
+    );
+
+    if (compat.success) {
       return true;
     }
 
-    throw new Error(data?.mensaje || "No fue posible eliminar la competencia.");
+    throw new Error(compat.message);
   } catch (error) {
     throw new Error(
       manejarError(
@@ -176,17 +210,24 @@ export const obtenerIndicadoresPorCompetencia = async (idCompetencia) => {
       }
     );
 
-    if (data?.exito === true) {
-      const registros = data?.datos?.indicadores;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible obtener los indicadores asociados."
+    );
+
+    if (compat.success) {
+      const registros = Array.isArray(compat.data?.indicadores)
+        ? compat.data.indicadores
+        : Array.isArray(compat.data)
+        ? compat.data
+        : [];
       return {
-        indicadores: Array.isArray(registros) ? registros : [],
-        competencia: data?.datos?.competencia ?? null,
+        indicadores: registros,
+        competencia: compat.data?.competencia ?? null,
       };
     }
 
-    throw new Error(
-      data?.mensaje || "No fue posible obtener los indicadores asociados."
-    );
+    throw new Error(compat.message);
   } catch (error) {
     throw new Error(
       manejarError(error, "No fue posible obtener los indicadores asociados.")
@@ -200,15 +241,19 @@ export const crearIndicador = async (payload) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      return data?.datos ?? null;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible registrar el indicador indicado."
+    );
+
+    if (compat.success) {
+      return compat.data ?? null;
     }
 
-    const errores = data?.errores;
-    const mensaje =
-      data?.mensaje || "No fue posible registrar el indicador indicado.";
-    const error = new Error(mensaje);
-    error.validation = errores;
+    const error = new Error(compat.message);
+    if (compat.errors) {
+      error.validation = compat.errors;
+    }
     throw error;
   } catch (error) {
     if (error.validation) {
@@ -230,15 +275,19 @@ export const actualizarIndicador = async (idIndicador, payload) => {
       }
     );
 
-    if (data?.exito === true) {
-      return data?.datos ?? null;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible actualizar el indicador indicado."
+    );
+
+    if (compat.success) {
+      return compat.data ?? null;
     }
 
-    const errores = data?.errores;
-    const mensaje =
-      data?.mensaje || "No fue posible actualizar el indicador indicado.";
-    const error = new Error(mensaje);
-    error.validation = errores;
+    const error = new Error(compat.message);
+    if (compat.errors) {
+      error.validation = compat.errors;
+    }
     throw error;
   } catch (error) {
     if (error.validation) {
@@ -256,11 +305,16 @@ export const eliminarIndicador = async (idIndicador) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
+    const compat = compatRespuesta(
+      data,
+      "No fue posible eliminar el indicador."
+    );
+
+    if (compat.success) {
       return true;
     }
 
-    throw new Error(data?.mensaje || "No fue posible eliminar el indicador.");
+    throw new Error(compat.message);
   } catch (error) {
     throw new Error(
       manejarError(error, "No fue posible eliminar el indicador seleccionado.")
@@ -276,13 +330,16 @@ export const actualizarVisibilidadIndicador = async (idIndicador, ocultar) => {
       { withCredentials: true }
     );
 
-    if (data?.exito === true) {
-      return data?.datos ?? null;
+    const compat = compatRespuesta(
+      data,
+      "No fue posible actualizar la visibilidad del indicador."
+    );
+
+    if (compat.success) {
+      return compat.data ?? null;
     }
 
-    throw new Error(
-      data?.mensaje || "No fue posible actualizar la visibilidad del indicador."
-    );
+    throw new Error(compat.message);
   } catch (error) {
     throw new Error(
       manejarError(

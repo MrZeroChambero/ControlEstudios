@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const API_URL =
   "http://localhost:8080/controlestudios/servidor/componentes_aprendizaje";
@@ -11,25 +15,25 @@ export const solicitudComponentesAprendizaje = async ({
   try {
     setIsLoading(true);
     const response = await axios.get(API_URL, { withCredentials: true });
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(response.data),
+      "No se pudieron cargar los componentes de aprendizaje."
+    );
 
-    if (response.data?.exito === true) {
-      const datos = Array.isArray(response.data.datos)
-        ? response.data.datos
-        : [];
+    if (compat.success) {
+      const datos = Array.isArray(compat.data) ? compat.data : [];
       setComponentes(datos);
     } else {
-      const mensaje =
-        response.data?.mensaje ||
-        "No se pudieron cargar los componentes de aprendizaje.";
-      Swal.fire("Error", mensaje, "error");
+      Swal.fire("Error", compat.message, "error");
       setComponentes([]);
     }
   } catch (error) {
     console.error("Error al obtener componentes de aprendizaje:", error);
-    const mensajeError =
-      error.response?.data?.mensaje ||
-      "No se pudieron cargar los componentes de aprendizaje.";
-    Swal.fire("Error", mensajeError, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar los componentes de aprendizaje."
+    );
+    Swal.fire("Error", compat.message, "error");
     setComponentes([]);
   } finally {
     setIsLoading(false);

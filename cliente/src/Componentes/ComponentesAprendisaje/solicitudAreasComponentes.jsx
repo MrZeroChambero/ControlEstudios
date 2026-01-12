@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const API_URL =
   "http://localhost:8080/controlestudios/servidor/areas_aprendizaje/listar-select";
@@ -6,25 +10,25 @@ const API_URL =
 export const solicitudAreasComponentes = async ({ setAreas, Swal }) => {
   try {
     const response = await axios.get(API_URL, { withCredentials: true });
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(response.data),
+      "No se pudieron cargar las áreas de aprendizaje activas."
+    );
 
-    if (response.data?.exito === true) {
-      const datos = Array.isArray(response.data.datos)
-        ? response.data.datos
-        : [];
+    if (compat.success) {
+      const datos = Array.isArray(compat.data) ? compat.data : [];
       setAreas(datos);
     } else {
-      const mensaje =
-        response.data?.mensaje ||
-        "No se pudieron cargar las áreas de aprendizaje activas.";
-      Swal.fire("Aviso", mensaje, "warning");
+      Swal.fire("Aviso", compat.message, "warning");
       setAreas([]);
     }
   } catch (error) {
     console.error("Error al obtener las áreas disponibles:", error);
-    const mensaje =
-      error.response?.data?.mensaje ||
-      "No se pudieron cargar las áreas de aprendizaje.";
-    Swal.fire("Error", mensaje, "error");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar las áreas de aprendizaje."
+    );
+    Swal.fire("Error", compat.message, "error");
     setAreas([]);
   }
 };

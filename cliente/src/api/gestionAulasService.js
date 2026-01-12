@@ -1,16 +1,39 @@
 import axios from "axios";
+import {
+  asegurarCompatibilidad,
+  normalizarRespuesta,
+} from "../utilidades/respuestaBackend";
 
 const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 
 const buildError = (error) => {
-  const response = error.response?.data;
-  const validation = response?.errores;
-  const message = response?.mensaje ?? error.message ?? "Error inesperado.";
+  const response = asegurarCompatibilidad(error?.response?.data);
+  const compat = normalizarRespuesta(response, "Error inesperado.");
+  const validation = compat.errors;
+  const message = compat.message ?? error?.message ?? "Error inesperado.";
   const err = new Error(message);
   if (validation) {
     err.validation = validation;
   }
+  if (response) {
+    err.response = { data: response };
+  }
   return err;
+};
+
+const ensureOk = (respuesta) => {
+  const compat = normalizarRespuesta(asegurarCompatibilidad(respuesta));
+  if (!compat.success) {
+    const err = new Error(
+      compat.message || "La operación no pudo completarse."
+    );
+    if (compat.errors) {
+      err.validation = compat.errors;
+    }
+    err.response = { data: compat.raw };
+    throw err;
+  }
+  return compat.data;
 };
 
 export const obtenerGestionDocentes = async (anioId) => {
@@ -27,7 +50,7 @@ export const obtenerGestionDocentes = async (anioId) => {
     const { data } = await axios.get(endpoint, {
       withCredentials: true,
     });
-    return data?.datos;
+    return ensureOk(data);
   } catch (error) {
     throw buildError(error);
   }
@@ -40,7 +63,7 @@ export const asignarDocenteTitular = async (aulaId, payload) => {
       payload,
       { withCredentials: true }
     );
-    return data?.datos;
+    return ensureOk(data);
   } catch (error) {
     throw buildError(error);
   }
@@ -51,7 +74,7 @@ export const eliminarDocenteTitular = async (aulaId) => {
     const { data } = await axios.delete(`${BASE_URL}/aulas/${aulaId}/docente`, {
       withCredentials: true,
     });
-    return data?.datos;
+    return ensureOk(data);
   } catch (error) {
     throw buildError(error);
   }
@@ -64,7 +87,7 @@ export const asignarEspecialista = async (aulaId, payload) => {
       payload,
       { withCredentials: true }
     );
-    return data?.datos;
+    return ensureOk(data);
   } catch (error) {
     throw buildError(error);
   }
@@ -76,7 +99,7 @@ export const eliminarEspecialista = async (aulaId, componenteId) => {
       `${BASE_URL}/aulas/${aulaId}/especialistas/${componenteId}`,
       { withCredentials: true }
     );
-    return data?.datos;
+    return ensureOk(data);
   } catch (error) {
     throw buildError(error);
   }

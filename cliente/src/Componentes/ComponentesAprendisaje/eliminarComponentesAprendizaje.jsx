@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const formatearErrores = (errores) => {
   if (!errores) {
@@ -36,10 +40,15 @@ export const eliminarComponenteAprendizaje = ({
         withCredentials: true,
       });
 
-      if (response.data?.exito) {
+      const compat = normalizarRespuesta(
+        asegurarCompatibilidad(response.data),
+        "No se pudo eliminar el componente de aprendizaje."
+      );
+
+      if (compat.success) {
         Swal.fire(
           "¡Eliminado!",
-          response.data.mensaje ||
+          compat.message ||
             "El componente de aprendizaje fue eliminado correctamente.",
           "success"
         );
@@ -47,8 +56,7 @@ export const eliminarComponenteAprendizaje = ({
         return;
       }
 
-      const detalle =
-        formatearErrores(response.data?.errores) || response.data?.mensaje;
+      const detalle = formatearErrores(compat.errors) || compat.message;
       Swal.fire(
         "Error",
         (detalle || "No se pudo eliminar el componente.").replace(
@@ -59,11 +67,11 @@ export const eliminarComponenteAprendizaje = ({
       );
     } catch (error) {
       console.error("Error al eliminar el componente de aprendizaje:", error);
-      const respuesta = error.response?.data;
-      const detalle =
-        formatearErrores(respuesta?.errores) ||
-        respuesta?.mensaje ||
-        "No se pudo eliminar el componente de aprendizaje.";
+      const compat = normalizarRespuesta(
+        asegurarCompatibilidad(error.response?.data),
+        "No se pudo eliminar el componente de aprendizaje."
+      );
+      const detalle = formatearErrores(compat.errors) || compat.message;
       Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
     }
   });

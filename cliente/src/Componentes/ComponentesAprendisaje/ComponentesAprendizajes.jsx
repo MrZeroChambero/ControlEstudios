@@ -9,6 +9,10 @@ import { solicitudAreasComponentes } from "./solicitudAreasComponentes";
 import { enviarComponenteAprendizaje } from "./EnviarComponentesAprendizaje";
 import { eliminarComponenteAprendizaje } from "./eliminarComponentesAprendizaje";
 import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
+import {
   componentesLayout,
   componentesIconClasses,
 } from "../EstilosCliente/EstilosClientes";
@@ -72,26 +76,34 @@ export const ComponentesAprendizajes = () => {
             { withCredentials: true }
           );
 
-          if (response.data?.exito) {
+          const compat = normalizarRespuesta(
+            asegurarCompatibilidad(response.data),
+            "No se pudo cambiar el estado del componente."
+          );
+
+          if (compat.success) {
             Swal.fire(
               "¡Actualizado!",
-              response.data.mensaje || "El estado ha sido modificado.",
+              compat.message || "El estado ha sido modificado.",
               "success"
             );
             refetchData();
           } else {
             const detalle =
-              formatearErrores(response.data?.errores) ||
-              response.data?.mensaje ||
+              formatearErrores(compat.errors) ||
+              compat.message ||
               "No se pudo cambiar el estado del componente.";
             Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
           }
         } catch (error) {
           console.error("Error al cambiar estado:", error);
-          const respuesta = error.response?.data;
+          const compat = normalizarRespuesta(
+            asegurarCompatibilidad(error.response?.data),
+            "No se pudo cambiar el estado del componente."
+          );
           const detalle =
-            formatearErrores(respuesta?.errores) ||
-            respuesta?.mensaje ||
+            formatearErrores(compat.errors) ||
+            compat.message ||
             "No se pudo cambiar el estado del componente.";
           Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
         }

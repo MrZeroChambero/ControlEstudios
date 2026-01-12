@@ -4,14 +4,16 @@ namespace Micodigo\PreguntasSeguridad;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Bloqueos\Bloqueos;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
+use RuntimeException;
 
 class ControladoraPreguntasSeguridad
 {
   public function iniciarRecuperacion(): void
   {
     try {
-      $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+      $payload = $this->leerEntradaJson();
       $nombreUsuario = trim((string) ($payload['nombre_usuario'] ?? ''));
       $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
@@ -21,21 +23,17 @@ class ControladoraPreguntasSeguridad
       if ($nombreUsuario === '') {
         $registroIp = $bloqueos->registrarIntentoFallidoIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS, 10);
         if (!empty($registroIp['bloqueado'])) {
-          http_response_code(423);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
-            'bloqueo' => $registroIp,
-          ]);
+          RespuestaJson::error(
+            'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
+            423,
+            null,
+            null,
+            ['bloqueo' => $registroIp]
+          );
           return;
         }
 
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Debes indicar el nombre de usuario.',
+        RespuestaJson::error('Debes indicar el nombre de usuario.', 400, null, null, [
           'intentos' => $registroIp,
         ]);
         return;
@@ -43,13 +41,13 @@ class ControladoraPreguntasSeguridad
 
       $estadoBloqueoIp = $bloqueos->verificarBloqueoIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS);
       if ($estadoBloqueoIp) {
-        http_response_code(423);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueoIp['duracion_minutos'])) . '.',
-          'bloqueo' => $estadoBloqueoIp,
-        ]);
+        RespuestaJson::error(
+          'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueoIp['duracion_minutos'])) . '.',
+          423,
+          null,
+          null,
+          ['bloqueo' => $estadoBloqueoIp]
+        );
         return;
       }
       $servicio = new PreguntasSeguridad();
@@ -58,21 +56,17 @@ class ControladoraPreguntasSeguridad
       if (!$resultado) {
         $registroIp = $bloqueos->registrarIntentoFallidoIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS, 10);
         if (!empty($registroIp['bloqueado'])) {
-          http_response_code(423);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
-            'bloqueo' => $registroIp,
-          ]);
+          RespuestaJson::error(
+            'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
+            423,
+            null,
+            null,
+            ['bloqueo' => $registroIp]
+          );
           return;
         }
 
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Usuario no encontrado o sin preguntas registradas.',
+        RespuestaJson::error('Usuario no encontrado o sin preguntas registradas.', 404, null, null, [
           'intentos' => $registroIp,
         ]);
         return;
@@ -81,50 +75,36 @@ class ControladoraPreguntasSeguridad
       $usuarioId = (int) $resultado['usuario']['id_usuario'];
       $estadoBloqueo = $bloqueos->verificarBloqueo($pdo, $usuarioId, Bloqueos::TIPO_PREGUNTAS);
       if ($estadoBloqueo) {
-        http_response_code(423);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Demasiados intentos fallidos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueo['duracion_minutos'])) . '.',
-          'bloqueo' => $estadoBloqueo,
-        ]);
+        RespuestaJson::error(
+          'Demasiados intentos fallidos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueo['duracion_minutos'])) . '.',
+          423,
+          null,
+          null,
+          ['bloqueo' => $estadoBloqueo]
+        );
         return;
       }
 
       $preguntaAleatoria = $servicio->obtenerPreguntaAleatoria($pdo, $usuarioId);
       if (!$preguntaAleatoria) {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'No fue posible seleccionar una pregunta de seguridad.',
-        ]);
+        RespuestaJson::error('No fue posible seleccionar una pregunta de seguridad.', 500);
         return;
       }
 
       $bloqueos->limpiarIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => [
-          'usuario' => [
-            'id_usuario' => $usuarioId,
-            'nombre_usuario' => $resultado['usuario']['nombre_usuario'],
-          ],
-          'pregunta' => $preguntaAleatoria,
-          'total_preguntas' => count($resultado['preguntas']),
+      RespuestaJson::exito([
+        'usuario' => [
+          'id_usuario' => $usuarioId,
+          'nombre_usuario' => $resultado['usuario']['nombre_usuario'],
         ],
-        'message' => 'Preguntas de seguridad disponibles.'
-      ]);
+        'pregunta' => $preguntaAleatoria,
+        'total_preguntas' => count($resultado['preguntas']),
+      ], 'Preguntas de seguridad disponibles.');
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al iniciar la recuperacion.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error al iniciar la recuperacion.', 500, null, $e);
     }
   }
 
@@ -132,7 +112,7 @@ class ControladoraPreguntasSeguridad
   {
     $pdo = null;
     try {
-      $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+      $payload = $this->leerEntradaJson();
       $nombreUsuario = trim((string) ($payload['nombre_usuario'] ?? ''));
       $preguntaId = (int) ($payload['id_pregunta'] ?? 0);
       $respuesta = trim((string) ($payload['respuesta'] ?? ''));
@@ -154,13 +134,7 @@ class ControladoraPreguntasSeguridad
       }
 
       if (!empty($errores)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'No se pudo restablecer la contrasena.',
-          'errors' => $errores,
-        ]);
+        RespuestaJson::error('No se pudo restablecer la contrasena.', 400, ['general' => $errores]);
         return;
       }
 
@@ -170,13 +144,13 @@ class ControladoraPreguntasSeguridad
 
       $estadoBloqueoIp = $bloqueos->verificarBloqueoIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS);
       if ($estadoBloqueoIp) {
-        http_response_code(423);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueoIp['duracion_minutos'])) . '.',
-          'bloqueo' => $estadoBloqueoIp,
-        ]);
+        RespuestaJson::error(
+          'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueoIp['duracion_minutos'])) . '.',
+          423,
+          null,
+          null,
+          ['bloqueo' => $estadoBloqueoIp]
+        );
         return;
       }
 
@@ -185,21 +159,17 @@ class ControladoraPreguntasSeguridad
       if (!$datosUsuario) {
         $registroIp = $bloqueos->registrarIntentoFallidoIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS, 5);
         if (!empty($registroIp['bloqueado'])) {
-          http_response_code(423);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'message' => 'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
-            'bloqueo' => $registroIp,
-          ]);
+          RespuestaJson::error(
+            'Demasiados intentos fallidos desde esta direccion IP. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) ($registroIp['duracion_minutos'] ?? 1))) . '.',
+            423,
+            null,
+            null,
+            ['bloqueo' => $registroIp]
+          );
           return;
         }
 
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Usuario no encontrado o sin preguntas registradas.',
+        RespuestaJson::error('Usuario no encontrado o sin preguntas registradas.', 404, null, null, [
           'intentos' => $registroIp,
         ]);
         return;
@@ -208,13 +178,13 @@ class ControladoraPreguntasSeguridad
       $usuarioId = (int) $datosUsuario['usuario']['id_usuario'];
       $estadoBloqueo = $bloqueos->verificarBloqueo($pdo, $usuarioId, Bloqueos::TIPO_PREGUNTAS);
       if ($estadoBloqueo) {
-        http_response_code(423);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Demasiados intentos fallidos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueo['duracion_minutos'])) . '.',
-          'bloqueo' => $estadoBloqueo,
-        ]);
+        RespuestaJson::error(
+          'Demasiados intentos fallidos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, (int) $estadoBloqueo['duracion_minutos'])) . '.',
+          423,
+          null,
+          null,
+          ['bloqueo' => $estadoBloqueo]
+        );
         return;
       }
 
@@ -228,14 +198,16 @@ class ControladoraPreguntasSeguridad
             : (int) ($resultadoIp['duracion_minutos'] ?? 1);
           $motivo = !empty($resultadoIp['bloqueado'] ?? false) ? 'ip_bloqueada' : 'bloqueado';
 
-          http_response_code(423);
-          header('Content-Type: application/json');
-          echo json_encode([
-            'back' => false,
-            'reason' => $motivo,
-            'message' => 'Has agotado los intentos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, $duracion)) . '.',
-            'bloqueo' => !empty($resultadoIp['bloqueado'] ?? false) ? $resultadoIp : $resultadoUsuario,
-          ]);
+          RespuestaJson::error(
+            'Has agotado los intentos. Intenta nuevamente en ' . Bloqueos::formatearMinutos(max(1, $duracion)) . '.',
+            423,
+            null,
+            null,
+            [
+              'reason' => $motivo,
+              'bloqueo' => !empty($resultadoIp['bloqueado'] ?? false) ? $resultadoIp : $resultadoUsuario,
+            ]
+          );
           return;
         }
 
@@ -250,11 +222,7 @@ class ControladoraPreguntasSeguridad
           ? 'La respuesta proporcionada no es valida. Te quedan ' . $restantes . ' intentos antes del bloqueo.'
           : 'La respuesta proporcionada no es valida.';
 
-        http_response_code(403);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => $mensajeIntentos,
+        RespuestaJson::error($mensajeIntentos, 403, null, null, [
           'intentos' => [
             'usuario' => $resultadoUsuario,
             'ip' => $resultadoIp,
@@ -276,23 +244,39 @@ class ControladoraPreguntasSeguridad
       $bloqueos->limpiar($pdo, $usuarioId, Bloqueos::TIPO_PREGUNTAS);
       $bloqueos->limpiarIp($pdo, $ip, Bloqueos::TIPO_PREGUNTAS);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'message' => 'Contrasena restablecida correctamente. Inicia sesion con tu nueva clave.'
-      ]);
+      RespuestaJson::exito(null, 'Contrasena restablecida correctamente. Inicia sesion con tu nueva clave.');
+    } catch (RuntimeException $e) {
+      if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
       if ($pdo instanceof \PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
       }
 
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al restablecer la contrasena.',
-        'error_details' => $e->getMessage()
-      ]);
+      RespuestaJson::error('Error al restablecer la contrasena.', 500, null, $e);
     }
+  }
+
+  private function leerEntradaJson(): array
+  {
+    $contenido = file_get_contents('php://input');
+    if ($contenido === false) {
+      throw new RuntimeException('No se pudo leer el cuerpo de la solicitud.');
+    }
+
+    $contenido = trim($contenido);
+    if ($contenido === '') {
+      return [];
+    }
+
+    $datos = json_decode($contenido, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($datos)) {
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido: ' . json_last_error_msg());
+    }
+
+    return $datos;
   }
 }

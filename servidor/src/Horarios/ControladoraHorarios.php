@@ -41,6 +41,8 @@ class ControladoraHorarios
       $opciones = [
         'fk_anio_escolar' => isset($_GET['fk_anio_escolar']) ? (int) $_GET['fk_anio_escolar'] : null,
         'fk_aula' => isset($_GET['fk_aula']) ? (int) $_GET['fk_aula'] : null,
+        'fk_momento' => isset($_GET['fk_momento']) ? (int) $_GET['fk_momento'] : null,
+        'fk_componente' => isset($_GET['fk_componente']) ? (int) $_GET['fk_componente'] : null,
       ];
 
       $resultado = $modelo->obtenerCatalogos($conexion, $opciones);
@@ -166,5 +168,4 @@ class ControladoraHorarios
 
     return is_array($datos) ? $datos : [];
   }
-
 }

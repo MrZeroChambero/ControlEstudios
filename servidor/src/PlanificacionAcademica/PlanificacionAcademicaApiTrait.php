@@ -5,6 +5,7 @@ namespace Micodigo\PlanificacionAcademica;
 use AltoRouter;
 use Exception;
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use PDO;
 use PDOException;
 
@@ -36,15 +37,17 @@ trait PlanificacionAcademicaApiTrait
 
   protected function responderJson(int $codigo, string $estado, bool $exito, string $mensaje, $datos = null, ?array $errores = null): void
   {
-    http_response_code($codigo);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
+    $extra = [
       'estado' => $estado,
       'exito' => $exito,
-      'mensaje' => $mensaje,
-      'datos' => $datos,
-      'errores' => $errores,
-    ], JSON_UNESCAPED_UNICODE);
+    ];
+
+    if ($exito) {
+      RespuestaJson::exito($datos, $mensaje, $codigo, $extra);
+      return;
+    }
+
+    RespuestaJson::error($mensaje, $codigo, $errores, null, $extra);
   }
 
   protected function obtenerConexion(): PDO

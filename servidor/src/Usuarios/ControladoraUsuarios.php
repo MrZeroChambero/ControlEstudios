@@ -5,8 +5,10 @@ namespace Micodigo\Usuarios;
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
 use Micodigo\PreguntasSeguridad\PreguntasSeguridad;
+use Micodigo\Utils\RespuestaJson;
 use Valitron\Validator;
 use Exception;
+use RuntimeException;
 
 class ControladoraUsuarios
 {
@@ -104,26 +106,48 @@ class ControladoraUsuarios
     return $mensajes;
   }
 
+  private function obtenerCuerpoJson(): array
+  {
+    $contenido = file_get_contents('php://input');
+    if ($contenido === false) {
+      throw new RuntimeException('No se pudo leer el cuerpo de la solicitud.');
+    }
+
+    if ($contenido === '') {
+      return [];
+    }
+
+    $data = json_decode($contenido, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+      throw new RuntimeException('Formato JSON inválido: ' . json_last_error_msg());
+    }
+
+    return $data;
+  }
+
+  private function responderExito(mixed $datos, string $mensaje, int $codigo = 200, array $extra = []): void
+  {
+    RespuestaJson::exito($datos, $mensaje, $codigo, $extra);
+  }
+
+  private function responderError(
+    string $mensaje,
+    int $codigo,
+    ?array $errores = null,
+    $detalle = null,
+    array $extra = []
+  ): void {
+    RespuestaJson::error($mensaje, $codigo, $errores, $detalle, $extra);
+  }
+
   public function listar()
   {
     try {
       $pdo = Conexion::obtener();
       $usuarios = Usuarios::consultarTodos($pdo);
-
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $usuarios,
-        'message' => 'Usuarios obtenidos exitosamente.'
-      ]);
+      $this->responderExito($usuarios, 'Usuarios obtenidos exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener los usuarios.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error al obtener los usuarios.', 500, null, $e);
     }
   }
 
@@ -132,20 +156,9 @@ class ControladoraUsuarios
     try {
       $pdo = Conexion::obtener();
       $personal = Usuarios::consultarPersonalActivoParaSelect($pdo);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $personal,
-        'message' => 'Personal para select obtenido exitosamente.'
-      ]);
+      $this->responderExito($personal, 'Personal para select obtenido exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener el personal para select.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error al obtener el personal para select.', 500, null, $e);
     }
   }
 
@@ -156,29 +169,13 @@ class ControladoraUsuarios
       $usuario = Usuarios::consultarCompleto($pdo, $id);
 
       if (!$usuario) {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Usuario no encontrado.'
-        ]);
+        $this->responderError('Usuario no encontrado.', 404);
         return;
       }
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $usuario,
-        'message' => 'Usuario obtenido exitosamente.'
-      ]);
+      $this->responderExito($usuario, 'Usuario obtenido exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al obtener el usuario.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error al obtener el usuario.', 500, null, $e);
     }
   }
 
@@ -186,12 +183,7 @@ class ControladoraUsuarios
   {
     $pdo = null;
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
-
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
-      }
+      $data = $this->obtenerCuerpoJson();
 
       $data['nombre_usuario'] = $this->limpiarTexto($data['nombre_usuario'] ?? '');
       $data['contrasena'] = $data['contrasena'] ?? '';
@@ -271,13 +263,7 @@ class ControladoraUsuarios
       }
 
       if (!empty($errores)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $errores,
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        $this->responderError('Datos inválidos en la solicitud.', 400, $errores);
         return;
       }
 
@@ -301,28 +287,26 @@ class ControladoraUsuarios
         'estado' => 'activo',
       ];
 
-      http_response_code(201);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => [
+      $this->responderExito(
+        [
           'usuario' => $respuestaUsuario,
           'preguntas' => $preguntasGuardadas,
         ],
-        'message' => 'Usuario creado exitosamente.'
-      ]);
+        'Usuario creado exitosamente.',
+        201
+      );
+    } catch (RuntimeException $e) {
+      if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+
+      $this->responderError($e->getMessage(), 400);
     } catch (Exception $e) {
       if ($pdo instanceof \PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
       }
 
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al crear el usuario.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error en el servidor al crear el usuario.', 500, null, $e);
     }
   }
 
@@ -330,23 +314,13 @@ class ControladoraUsuarios
   {
     $pdo = null;
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
-
-      if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('Error en el formato JSON: ' . json_last_error_msg());
-      }
+      $data = $this->obtenerCuerpoJson();
 
       $pdo = Conexion::obtener();
       $usuario = Usuarios::consultarActualizar($pdo, $id);
 
       if (!$usuario) {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Usuario no encontrado.'
-        ]);
+        $this->responderError('Usuario no encontrado.', 404);
         return;
       }
 
@@ -413,13 +387,7 @@ class ControladoraUsuarios
       }
 
       if (!empty($errores)) {
-        http_response_code(400);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'errors' => $errores,
-          'message' => 'Datos inválidos en la solicitud.'
-        ]);
+        $this->responderError('Datos inválidos en la solicitud.', 400, $errores);
         return;
       }
 
@@ -449,27 +417,25 @@ class ControladoraUsuarios
         'estado' => $usuario->estado,
       ];
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => [
+      $this->responderExito(
+        [
           'usuario' => $respuesta,
           'preguntas' => $actualizarPreguntas ? $preguntasSeguridad->listarPorUsuario($pdo, (int) $usuario->id_usuario) : null,
         ],
-        'message' => 'Usuario actualizado exitosamente.'
-      ]);
+        'Usuario actualizado exitosamente.'
+      );
+    } catch (RuntimeException $e) {
+      if ($pdo instanceof \PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+      }
+
+      $this->responderError($e->getMessage(), 400);
     } catch (Exception $e) {
       if ($pdo instanceof \PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
       }
 
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al actualizar el usuario.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error en el servidor al actualizar el usuario.', 500, null, $e);
     }
   }
 
@@ -478,27 +444,12 @@ class ControladoraUsuarios
     try {
       $pdo = Conexion::obtener();
       if (Usuarios::eliminar($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Usuario eliminado exitosamente.'
-        ]);
+        $this->responderExito(null, 'Usuario eliminado exitosamente.');
       } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al eliminar el usuario.'
-        ]);
+        $this->responderError('Error al eliminar el usuario.', 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al eliminar el usuario.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error en el servidor al eliminar el usuario.', 500, null, $e);
     }
   }
 
@@ -507,27 +458,12 @@ class ControladoraUsuarios
     try {
       $pdo = Conexion::obtener();
       if (Usuarios::cambiarEstado($pdo, $id)) {
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => true,
-          'message' => 'Estado del usuario cambiado exitosamente.'
-        ]);
+        $this->responderExito(null, 'Estado del usuario cambiado exitosamente.');
       } else {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Error al cambiar el estado del usuario.'
-        ]);
+        $this->responderError('Error al cambiar el estado del usuario.', 500);
       }
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error en el servidor al cambiar el estado del usuario.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error en el servidor al cambiar el estado del usuario.', 500, null, $e);
     }
   }
 
@@ -538,43 +474,22 @@ class ControladoraUsuarios
       $usuario = Usuarios::consultarActualizar($pdo, $idUsuario);
 
       if (!$usuario) {
-        http_response_code(404);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'Usuario no encontrado.'
-        ]);
+        $this->responderError('Usuario no encontrado.', 404);
         return;
       }
 
       $actor = $this->obtenerUsuarioAutenticado();
       if (!$this->puedeGestionarPreguntas($actor, (int) $usuario->id_usuario, $usuario->rol)) {
-        http_response_code(403);
-        header('Content-Type: application/json');
-        echo json_encode([
-          'back' => false,
-          'message' => 'No tienes permisos para consultar las preguntas de seguridad de este usuario.'
-        ]);
+        $this->responderError('No tienes permisos para consultar las preguntas de seguridad de este usuario.', 403);
         return;
       }
 
       $preguntasSeguridad = new PreguntasSeguridad();
       $preguntas = $preguntasSeguridad->listarPorUsuario($pdo, (int) $usuario->id_usuario);
 
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => true,
-        'data' => $preguntas,
-        'message' => 'Preguntas de seguridad obtenidas correctamente.'
-      ]);
+      $this->responderExito($preguntas, 'Preguntas de seguridad obtenidas correctamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode([
-        'back' => false,
-        'message' => 'Error al consultar las preguntas de seguridad.',
-        'error_details' => $e->getMessage()
-      ]);
+      $this->responderError('Error al consultar las preguntas de seguridad.', 500, null, $e);
     }
   }
 }

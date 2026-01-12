@@ -2,6 +2,7 @@
 
 namespace Micodigo\Indicadores;
 
+use Micodigo\Utils\RespuestaJson;
 use RuntimeException;
 
 trait IndicadoresRespuestaTrait
@@ -34,14 +35,11 @@ trait IndicadoresRespuestaTrait
     mixed $datos = null,
     ?array $errores = null
   ): void {
-    http_response_code($codigoHttp);
-    header('Content-Type: application/json; charset=utf-8');
+    if ($exito) {
+      RespuestaJson::exito($datos, $mensaje, $codigoHttp);
+      return;
+    }
 
-    echo json_encode([
-      'exito' => $exito,
-      'mensaje' => $mensaje,
-      'datos' => $datos,
-      'errores' => $errores,
-    ], JSON_UNESCAPED_UNICODE);
+    RespuestaJson::error($mensaje, $codigoHttp, $errores);
   }
 }

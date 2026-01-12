@@ -3,8 +3,10 @@
 namespace Micodigo\Parentesco;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDO;
+use RuntimeException;
 
 trait OperacionesControladorParentesco
 {
@@ -12,18 +14,10 @@ trait OperacionesControladorParentesco
   {
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
-    if ($data === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido.');
+    }
     return $data ?? [];
-  }
-
-  private function sendJson(int $code, string $status, string $message, $data = null, $errors = null): void
-  {
-    http_response_code($code);
-    header('Content-Type: application/json; charset=utf-8');
-    $resp = ['status' => $status, 'message' => $message, 'back' => $status === 'success'];
-    if ($data !== null) $resp['data'] = $data;
-    if ($errors !== null) $resp['errors'] = $errors;
-    echo json_encode($resp, JSON_UNESCAPED_UNICODE);
   }
 
   public function listarParentescos(): void
@@ -31,9 +25,9 @@ trait OperacionesControladorParentesco
     try {
       $pdo = Conexion::obtener();
       $lista = ConsultasParentesco::consultarTodosParentescos($pdo);
-      $this->sendJson(200, 'success', 'Parentescos obtenidos.', $lista);
+      RespuestaJson::exito($lista, 'Parentescos obtenidos.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar parentescos.');
+      RespuestaJson::error('Error al listar parentescos.', 500, null, $e);
     }
   }
 
@@ -42,10 +36,13 @@ trait OperacionesControladorParentesco
     try {
       $pdo = Conexion::obtener();
       $r = ConsultasParentesco::consultarParentescoPorId($pdo, $id);
-      if ($r) $this->sendJson(200, 'success', 'Parentesco obtenido.', $r);
-      else $this->sendJson(404, 'error', 'Parentesco no encontrado.');
+      if ($r) {
+        RespuestaJson::exito($r, 'Parentesco obtenido.');
+      } else {
+        RespuestaJson::error('Parentesco no encontrado.', 404);
+      }
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al obtener parentesco.');
+      RespuestaJson::error('Error al obtener parentesco.', 500, null, $e);
     }
   }
 
@@ -54,9 +51,9 @@ trait OperacionesControladorParentesco
     try {
       $pdo = Conexion::obtener();
       $lista = ConsultasParentesco::consultarParentescosPorEstudiante($pdo, $id_estudiante);
-      $this->sendJson(200, 'success', 'Parentescos del estudiante.', $lista);
+      RespuestaJson::exito($lista, 'Parentescos del estudiante.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar por estudiante: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar por estudiante.', 500, null, $e);
     }
   }
 
@@ -65,9 +62,9 @@ trait OperacionesControladorParentesco
     try {
       $pdo = Conexion::obtener();
       $lista = ConsultasParentesco::consultarParentescosPorRepresentante($pdo, $id_representante);
-      $this->sendJson(200, 'success', 'Parentescos del representante.', $lista);
+      RespuestaJson::exito($lista, 'Parentescos del representante.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al listar por representante: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar por representante.', 500, null, $e);
     }
   }
 
@@ -78,14 +75,16 @@ trait OperacionesControladorParentesco
       $pdo = Conexion::obtener();
       $val = ValidacionesParentesco::validarDatosCrear($pdo, $data);
       if ($val !== true) {
-        $this->sendJson(422, 'error', 'Datos inválidos.', null, $val);
+        RespuestaJson::error('Datos inválidos.', 422, $val);
         return;
       }
       $id = GestionParentesco::crearParentescoBD($pdo, $data);
       $nuevo = ConsultasParentesco::consultarParentescoPorId($pdo, $id);
-      $this->sendJson(201, 'success', 'Parentesco creado.', $nuevo);
+      RespuestaJson::exito($nuevo, 'Parentesco creado.', 201);
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al crear parentesco.');
+      RespuestaJson::error('Error al crear parentesco.', 500, null, $e);
     }
   }
 
@@ -96,14 +95,19 @@ trait OperacionesControladorParentesco
       $pdo = Conexion::obtener();
       $val = ValidacionesParentesco::validarDatosActualizar($pdo, $id, $data);
       if ($val !== true) {
-        $this->sendJson(422, 'error', 'Datos inválidos.', null, $val);
+        RespuestaJson::error('Datos inválidos.', 422, $val);
         return;
       }
       $ok = GestionParentesco::actualizarParentescoBD($pdo, $id, $data);
       $act = ConsultasParentesco::consultarParentescoPorId($pdo, $id);
-      $this->sendJson(200, 'success', 'Parentesco actualizado.', ['updated' => $ok, 'data' => $act]);
+      RespuestaJson::exito([
+        'updated' => $ok,
+        'data' => $act,
+      ], 'Parentesco actualizado.');
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al actualizar parentesco.');
+      RespuestaJson::error('Error al actualizar parentesco.', 500, null, $e);
     }
   }
 
@@ -112,9 +116,14 @@ trait OperacionesControladorParentesco
     try {
       $pdo = Conexion::obtener();
       $ok = GestionParentesco::eliminarParentescoBD($pdo, $id);
-      $this->sendJson(200, 'success', 'Parentesco eliminado.', ['deleted' => $ok]);
+      if (!$ok) {
+        RespuestaJson::error('No se pudo eliminar el parentesco.', 404);
+        return;
+      }
+
+      RespuestaJson::exito(['deleted' => true], 'Parentesco eliminado.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al eliminar parentesco.');
+      RespuestaJson::error('Error al eliminar parentesco.', 500, null, $e);
     }
   }
 
@@ -124,9 +133,9 @@ trait OperacionesControladorParentesco
       $pdo = Conexion::obtener();
       // Usar configuración dinámica desde JSON con fallback
       $tipos = TiposParentesco::obtenerTiposPermitidos($pdo);
-      $this->sendJson(200, 'success', 'Tipos de parentesco.', $tipos);
+      RespuestaJson::exito($tipos, 'Tipos de parentesco.');
     } catch (Exception $e) {
-      $this->sendJson(500, 'error', 'Error al obtener tipos.');
+      RespuestaJson::error('Error al obtener tipos.', 500, null, $e);
     }
   }
 }

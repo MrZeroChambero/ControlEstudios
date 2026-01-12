@@ -1,16 +1,20 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const API_URL = "http://localhost:8080/controlestudios/servidor/temas";
 
 const normalizarNombreTema = (valor) =>
   valor?.trim().replace(/\s+/g, " ") ?? "";
 
-const mostrarErrores = (Swal, respuesta) => {
-  if (!respuesta?.errores) {
+const mostrarErrores = (Swal, compat) => {
+  if (!compat?.errors) {
     return false;
   }
 
-  const detalle = Object.entries(respuesta.errores)
+  const detalle = Object.entries(compat.errors)
     .map(([campo, errores]) => `${campo}: ${[].concat(errores).join(", ")}`)
     .join("\n");
 
@@ -38,28 +42,33 @@ export const crearTema = async (datos, Swal) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje, "success");
-      return data.datos;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo registrar el tema."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message, "success");
+      return compat.data;
     }
 
-    if (!mostrarErrores(Swal, data)) {
-      const mensaje = data?.mensaje || "No se pudo registrar el tema.";
-      Swal.fire("Aviso", mensaje, "warning");
+    if (!mostrarErrores(Swal, compat)) {
+      Swal.fire("Aviso", compat.message, "warning");
     }
 
-    throw new Error(data?.mensaje || "No se pudo registrar el tema.");
+    throw new Error(compat.message || "No se pudo registrar el tema.");
   } catch (error) {
     console.error("Error al crear tema:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo registrar la información del tema."
+    );
 
-    if (mostrarErrores(Swal, respuesta)) {
+    if (mostrarErrores(Swal, compat)) {
       throw error;
     }
 
-    const mensaje =
-      respuesta?.mensaje || "No se pudo registrar la información del tema.";
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
     throw error;
   }
 };
@@ -84,28 +93,33 @@ export const actualizarTema = async (idTema, datos, Swal) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje, "success");
-      return data.datos;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo actualizar el tema."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message, "success");
+      return compat.data;
     }
 
-    if (!mostrarErrores(Swal, data)) {
-      const mensaje = data?.mensaje || "No se pudo actualizar el tema.";
-      Swal.fire("Aviso", mensaje, "warning");
+    if (!mostrarErrores(Swal, compat)) {
+      Swal.fire("Aviso", compat.message, "warning");
     }
 
-    throw new Error(data?.mensaje || "No se pudo actualizar el tema.");
+    throw new Error(compat.message || "No se pudo actualizar el tema.");
   } catch (error) {
     console.error("Error al actualizar tema:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo actualizar la información del tema."
+    );
 
-    if (mostrarErrores(Swal, respuesta)) {
+    if (mostrarErrores(Swal, compat)) {
       throw error;
     }
 
-    const mensaje =
-      respuesta?.mensaje || "No se pudo actualizar la información del tema.";
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
     throw error;
   }
 };
@@ -116,27 +130,32 @@ export const eliminarTema = async (idTema, Swal) => {
       withCredentials: true,
     });
 
-    if (data?.exito === true) {
-      return data.datos;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo eliminar el tema."
+    );
+
+    if (compat.success) {
+      return compat.data;
     }
 
-    if (!mostrarErrores(Swal, data)) {
-      const mensaje = data?.mensaje || "No se pudo eliminar el tema.";
-      Swal.fire("Aviso", mensaje, "warning");
+    if (!mostrarErrores(Swal, compat)) {
+      Swal.fire("Aviso", compat.message, "warning");
     }
 
-    throw new Error(data?.mensaje || "No se pudo eliminar el tema.");
+    throw new Error(compat.message || "No se pudo eliminar el tema.");
   } catch (error) {
     console.error("Error al eliminar tema:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo eliminar el tema seleccionado."
+    );
 
-    if (mostrarErrores(Swal, respuesta)) {
+    if (mostrarErrores(Swal, compat)) {
       throw error;
     }
 
-    const mensaje =
-      respuesta?.mensaje || "No se pudo eliminar el tema seleccionado.";
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
     throw error;
   }
 };
@@ -149,28 +168,33 @@ export const cambioEstadoTema = async (idTema, Swal) => {
       { withCredentials: true }
     );
 
-    if (data?.exito === true) {
-      Swal.fire("Hecho", data.mensaje, "success");
-      return data.datos;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo cambiar el estado del tema."
+    );
+
+    if (compat.success) {
+      Swal.fire("Hecho", compat.message, "success");
+      return compat.data;
     }
 
-    if (!mostrarErrores(Swal, data)) {
-      const mensaje = data?.mensaje || "No se pudo cambiar el estado del tema.";
-      Swal.fire("Aviso", mensaje, "warning");
+    if (!mostrarErrores(Swal, compat)) {
+      Swal.fire("Aviso", compat.message, "warning");
     }
 
-    throw new Error(data?.mensaje || "No se pudo cambiar el estado del tema.");
+    throw new Error(compat.message || "No se pudo cambiar el estado del tema.");
   } catch (error) {
     console.error("Error al cambiar estado del tema:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo cambiar el estado del tema."
+    );
 
-    if (mostrarErrores(Swal, respuesta)) {
+    if (mostrarErrores(Swal, compat)) {
       throw error;
     }
 
-    const mensaje =
-      respuesta?.mensaje || "No se pudo cambiar el estado del tema.";
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
     throw error;
   }
 };

@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const API_BASE = "http://localhost:8080/controlestudios/servidor";
 const API_RESPALDOS = `${API_BASE}/respaldos`;
@@ -9,16 +13,20 @@ export const listarRespaldos = async () => {
       withCredentials: true,
     });
     console.log(["respaldos:listado", data]);
-    if (data?.estado !== "exito") {
-      throw new Error("No se pudo obtener el historial de respaldos.");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo obtener el historial de respaldos."
+    );
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
-    return data.datos?.respaldos ?? [];
+    return compat.data?.respaldos ?? compat.data ?? [];
   } catch (error) {
-    const mensaje =
-      error?.response?.data?.mensaje ||
-      error?.message ||
-      "No se pudo obtener el historial de respaldos.";
-    throw new Error(mensaje);
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error?.response?.data),
+      "No se pudo obtener el historial de respaldos."
+    );
+    throw new Error(compat.message || error?.message);
   }
 };
 
@@ -33,17 +41,21 @@ export const crearRespaldo = async () => {
     );
     const { data } = respuesta;
     console.log(["respaldos:crear", respuesta]);
-    if (data?.estado !== "exito") {
-      throw new Error("No se pudo crear el respaldo.");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo crear el respaldo."
+    );
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
-    return data.datos?.respaldo ?? null;
+    return compat.data?.respaldo ?? compat.data ?? null;
   } catch (error) {
     console.log(["respaldos:crear", error]);
-    const mensaje =
-      error?.response?.data?.mensaje ||
-      error?.message ||
-      "No se pudo crear el respaldo.";
-    throw new Error(mensaje);
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error?.response?.data),
+      "No se pudo crear el respaldo."
+    );
+    throw new Error(compat.message || error?.message);
   }
 };
 
@@ -60,16 +72,20 @@ export const restaurarRespaldo = async (nombre) => {
       }
     );
     console.log(["respaldos:restaurar-nombre", nombre, data]);
-    if (data?.estado !== "exito") {
-      throw new Error("No se pudo restaurar el respaldo.");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo restaurar el respaldo."
+    );
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
-    return data.datos?.respaldo ?? null;
+    return compat.data?.respaldo ?? compat.data ?? null;
   } catch (error) {
-    const mensaje =
-      error?.response?.data?.mensaje ||
-      error?.message ||
-      "No se pudo restaurar el respaldo.";
-    throw new Error(mensaje);
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error?.response?.data),
+      "No se pudo restaurar el respaldo."
+    );
+    throw new Error(compat.message || error?.message);
   }
 };
 
@@ -86,16 +102,20 @@ export const restaurarDesdeArchivo = async (archivo) => {
     });
     console.log(["respaldos:restaurar-archivo", archivo?.name, data]);
 
-    if (data?.estado !== "exito") {
-      throw new Error("No se pudo restaurar la base de datos.");
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(data),
+      "No se pudo restaurar la base de datos."
+    );
+    if (!compat.success) {
+      throw new Error(compat.message);
     }
-    return data.datos?.respaldo ?? null;
+    return compat.data?.respaldo ?? compat.data ?? null;
   } catch (error) {
-    const mensaje =
-      error?.response?.data?.mensaje ||
-      error?.message ||
-      "No se pudo restaurar la base de datos.";
-    throw new Error(mensaje);
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error?.response?.data),
+      "No se pudo restaurar la base de datos."
+    );
+    throw new Error(compat.message || error?.message);
   }
 };
 

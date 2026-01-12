@@ -3,7 +3,9 @@
 namespace Micodigo\Patologia;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
+use RuntimeException;
 
 trait PatologiaOperacionesControladorTrait
 {
@@ -11,36 +13,33 @@ trait PatologiaOperacionesControladorTrait
   {
     $raw = file_get_contents('php://input');
     $d = json_decode($raw, true);
-    if ($d === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+    if ($d === null && json_last_error() !== JSON_ERROR_NONE) {
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido.');
+    }
     return $d ?? [];
-  }
-  private function sendJsonPatologia(int $c, string $s, string $m, $data = null, $err = null): void
-  {
-    http_response_code($c);
-    header('Content-Type: application/json; charset=utf-8');
-    $r = ['status' => $s, 'message' => $m, 'back' => $s === 'success'];
-    if ($data !== null) $r['data'] = $data;
-    if ($err !== null) $r['errors'] = $err;
-    echo json_encode($r, JSON_UNESCAPED_UNICODE);
   }
   public function crearPatologia(): void
   {
     try {
       $d = $this->parseJsonInputPatologia();
       if (empty($d['nombre_patologia'])) {
-        $this->sendJsonPatologia(400, 'error', 'Nombre requerido');
+        RespuestaJson::error('El nombre de la patología es requerido.', 400, [
+          'nombre_patologia' => ['Este campo es obligatorio.'],
+        ]);
         return;
       }
       $pdo = Conexion::obtener();
       $p = new Patologia($d);
       $res = $p->crear($pdo);
       if (is_array($res)) {
-        $this->sendJsonPatologia(400, 'error', 'Validación', null, $res);
+        RespuestaJson::error('Los datos proporcionados no son válidos.', 422, $res);
         return;
       }
-      $this->sendJsonPatologia(201, 'success', 'Patología creada', $p);
+      RespuestaJson::exito($p, 'Patología creada.', 201);
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJsonPatologia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al crear la patología.', 500, null, $e);
     }
   }
   public function actualizarPatologia(int $id): void
@@ -50,19 +49,26 @@ trait PatologiaOperacionesControladorTrait
       $pdo = Conexion::obtener();
       $row = self::obtener($pdo, $id);
       if (!$row) {
-        $this->sendJsonPatologia(404, 'error', 'No encontrada');
+        RespuestaJson::error('La patología solicitada no existe.', 404);
         return;
       }
       $p = new Patologia(['nombre_patologia' => $d['nombre_patologia'] ?? $row['nombre_patologia'], 'descripcion' => $d['descripcion'] ?? $row['descripcion']]);
       $p->id_patologia = $id;
       $res = $p->actualizar($pdo);
       if (is_array($res)) {
-        $this->sendJsonPatologia(400, 'error', 'Validación', null, $res);
+        RespuestaJson::error('Los datos proporcionados no son válidos.', 422, $res);
         return;
       }
-      $this->sendJsonPatologia($res ? 200 : 500, $res ? 'success' : 'error', $res ? 'Actualizada' : 'Fallo', self::obtener($pdo, $id));
+      if (!$res) {
+        RespuestaJson::error('No se pudo actualizar la patología.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(self::obtener($pdo, $id), 'Patología actualizada.');
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJsonPatologia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al actualizar la patología.', 500, null, $e);
     }
   }
   public function eliminarPatologia(int $id): void
@@ -70,9 +76,14 @@ trait PatologiaOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = PatologiaGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonPatologia($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminada' : 'No eliminada');
+      if (!$ok) {
+        RespuestaJson::error('No se pudo eliminar la patología.', 404);
+        return;
+      }
+
+      RespuestaJson::exito(null, 'Patología eliminada.');
     } catch (Exception $e) {
-      $this->sendJsonPatologia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al eliminar la patología.', 500, null, $e);
     }
   }
   public function listarPatologias(): void
@@ -80,9 +91,9 @@ trait PatologiaOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listar($pdo);
-      $this->sendJsonPatologia(200, 'success', 'Listado', $rows);
+      RespuestaJson::exito($rows, 'Listado de patologías obtenido.');
     } catch (Exception $e) {
-      $this->sendJsonPatologia(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al listar patologías.', 500, null, $e);
     }
   }
 }

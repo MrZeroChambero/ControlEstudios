@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Exception;
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
+use Micodigo\Utils\RespuestaJson;
 use PDO;
 use RuntimeException;
 use Valitron\Validator;
@@ -647,23 +648,12 @@ class Inscripcion
 
   private function responder(int $codigo, bool $exito, string $mensaje, mixed $datos = null, ?array $errores = null): void
   {
-    http_response_code($codigo);
-    header('Content-Type: application/json; charset=utf-8');
-
-    $payload = [
-      'back' => $exito,
-      'message' => $mensaje,
-    ];
-
-    if ($datos !== null) {
-      $payload['data'] = $datos;
+    if ($exito) {
+      RespuestaJson::exito($datos, $mensaje, $codigo);
+      return;
     }
 
-    if ($errores !== null) {
-      $payload['errors'] = $errores;
-    }
-
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    RespuestaJson::error($mensaje, $codigo, $errores);
   }
 
   private function construirDebugRespuesta(?array $mensajes, ?array $sql): ?array

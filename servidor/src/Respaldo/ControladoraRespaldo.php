@@ -5,6 +5,7 @@ namespace Micodigo\Respaldo;
 use Exception;
 use Micodigo\Config\Conexion;
 use Micodigo\Login\Login;
+use Micodigo\Utils\RespuestaJson;
 
 class ControladoraRespaldo
 {
@@ -139,22 +140,16 @@ class ControladoraRespaldo
 
   private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
   {
-    http_response_code($codigoHttp);
-    header('Content-Type: application/json; charset=utf-8');
-
-    $respuesta = [
+    $extra = [
       'estado' => $estado,
-      'mensaje' => $mensaje,
+      'exito' => $estado === 'exito',
     ];
 
-    if ($datos !== null) {
-      $respuesta['datos'] = $datos;
+    if ($estado === 'exito') {
+      RespuestaJson::exito($datos, $mensaje, $codigoHttp, $extra);
+      return;
     }
 
-    if ($errores !== null) {
-      $respuesta['errores'] = $errores;
-    }
-
-    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
+    RespuestaJson::error($mensaje, $codigoHttp, $errores, null, $extra);
   }
 }

@@ -5,57 +5,55 @@ namespace Micodigo\Representate;
 use Micodigo\Config\Conexion;
 use Micodigo\Persona\Persona;
 use Micodigo\Estudiante\Estudiante as EstudianteModel;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDO;
+use RuntimeException;
 
 trait OperacionesControladorRepresentante
 {
   public function crearRepresentante()
   {
     try {
-      $data = json_decode(file_get_contents('php://input'), true);
-      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
-
+      $data = $this->leerEntradaJsonRepresentante();
       $pdo = Conexion::obtener();
 
-      // Si nos pasan id_persona usamos persona existente
       if (!empty($data['id_persona'])) {
-        $persona = Persona::consultar($pdo, $data['id_persona']);
-        if (!$persona) throw new Exception('Persona no encontrada');
-
-        // validar edad >=16
-        $edad = null;
-        if (!empty($persona['fecha_nacimiento'])) {
-          $edad = (new \DateTime())->diff(new \DateTime($persona['fecha_nacimiento']))->y;
+        $personaId = (int) $data['id_persona'];
+        $persona = Persona::consultar($pdo, $personaId);
+        if (!$persona) {
+          RespuestaJson::error('Persona no encontrada.', 404);
+          return;
         }
-        if ($edad === null || $edad < 16) throw new Exception('La persona debe tener al menos 16 años');
 
-        // Si es estudiante, cambiar tipo a representante
+        $edad = $this->calcularEdad($persona['fecha_nacimiento'] ?? null);
+        if ($edad === null || $edad < 16) {
+          RespuestaJson::error('La persona debe tener al menos 16 años.', 422);
+          return;
+        }
+
         if (($persona['tipo_persona'] ?? '') === 'estudiante') {
           $stmt = $pdo->prepare('UPDATE personas SET tipo_persona = ? WHERE id_persona = ?');
-          $stmt->execute(['representante', $data['id_persona']]);
+          $stmt->execute(['representante', $personaId]);
         }
 
-        // Crear registro representante
-        $repData = [
-          'fk_persona' => $data['id_persona'],
+        $representanteId = self::crearRepresentanteBD($pdo, [
+          'fk_persona' => $personaId,
           'oficio' => $data['oficio'] ?? null,
           'nivel_educativo' => $data['nivel_educativo'] ?? null,
           'profesion' => $data['profesion'] ?? null,
-          'lugar_trabajo' => $data['lugar_trabajo'] ?? null
-        ];
-        $id = self::crearRepresentanteBD($pdo, $repData);
+          'lugar_trabajo' => $data['lugar_trabajo'] ?? null,
+        ]);
 
-        // Asegurar estado activo en persona
         $stmt = $pdo->prepare('UPDATE personas SET estado = ? WHERE id_persona = ?');
-        $stmt->execute(['activo', $data['id_persona']]);
+        $stmt->execute(['activo', $personaId]);
 
-        header('Content-Type: application/json');
-        echo json_encode(['back' => true, 'data' => ['id_representante' => (int)$id], 'message' => 'Representante creado para persona existente.']);
+        RespuestaJson::exito([
+          'id_representante' => (int) $representanteId,
+        ], 'Representante creado para persona existente.', 201);
         return;
       }
 
-      // Crear persona nueva tipo representante con estado incompleto (se activará luego)
       $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
       $personaData = [
         'primer_nombre' => $data['primer_nombre'] ?? null,
@@ -72,45 +70,50 @@ trait OperacionesControladorRepresentante
         'email' => $email === '' ? null : $email,
         'tipo_persona' => 'representante',
         'tipo_sangre' => $data['tipo_sangre'] ?? null,
-        'estado' => 'incompleto'
+        'estado' => 'incompleto',
       ];
 
-      // Validar edad mínima 16
-      if (empty($personaData['fecha_nacimiento'])) throw new Exception('Fecha de nacimiento requerida');
-      $edad = (new \DateTime())->diff(new \DateTime($personaData['fecha_nacimiento']))->y;
-      if ($edad < 16) throw new Exception('La persona debe tener al menos 16 años');
-
-      // Crear persona
-      $persona = new Persona($personaData);
-      $resultado = $persona->crear(Conexion::obtener());
-      if (!is_numeric($resultado)) {
-        // devolver errores de validación si ofrece
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'Error validación persona', 'errors' => $resultado]);
+      $edad = $this->calcularEdad($personaData['fecha_nacimiento'] ?? null);
+      if ($edad === null) {
+        RespuestaJson::error('Fecha de nacimiento requerida.', 422, [
+          'fecha_nacimiento' => ['Debe indicar la fecha de nacimiento.'],
+        ]);
         return;
       }
-      $id_persona = $resultado;
 
-      // Crear representante
-      $repData = [
-        'fk_persona' => $id_persona,
+      if ($edad < 16) {
+        RespuestaJson::error('La persona debe tener al menos 16 años.', 422);
+        return;
+      }
+
+      $persona = new Persona($personaData);
+      $resultado = $persona->crear($pdo);
+      if (!is_numeric($resultado)) {
+        RespuestaJson::error('Error de validación al crear la persona.', 422, is_array($resultado) ? $resultado : null);
+        return;
+      }
+
+      $personaId = (int) $resultado;
+      $representanteId = self::crearRepresentanteBD($pdo, [
+        'fk_persona' => $personaId,
         'oficio' => $data['oficio'] ?? null,
         'nivel_educativo' => $data['nivel_educativo'] ?? null,
         'profesion' => $data['profesion'] ?? null,
-        'lugar_trabajo' => $data['lugar_trabajo'] ?? null
-      ];
-      $id_rep = self::crearRepresentanteBD($pdo, $repData);
+        'lugar_trabajo' => $data['lugar_trabajo'] ?? null,
+      ]);
 
-      // Activar persona (regla: al crear representante persona pasa a 'activo')
       $stmtAct = $pdo->prepare('UPDATE personas SET estado = ? WHERE id_persona = ?');
-      $stmtAct->execute(['activo', $id_persona]);
+      $stmtAct->execute(['activo', $personaId]);
 
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => ['id_representante' => (int)$id_rep, 'id_persona' => (int)$id_persona], 'message' => 'Representante creado.']);
+      RespuestaJson::exito([
+        'id_representante' => (int) $representanteId,
+        'id_persona' => $personaId,
+      ], 'Representante creado.', 201);
+    } catch (RuntimeException $e) {
+      $codigo = $e->getCode();
+      RespuestaJson::error($e->getMessage(), $codigo > 0 ? $codigo : 400);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al crear representante.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al crear representante.', 500, null, $e);
     }
   }
 
@@ -119,12 +122,9 @@ trait OperacionesControladorRepresentante
     try {
       $pdo = Conexion::obtener();
       $lista = self::consultarTodos($pdo);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $lista, 'message' => 'Representantes obtenidos.']);
+      RespuestaJson::exito($lista, 'Representantes obtenidos.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al listar representantes.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al listar representantes.', 500, null, $e);
     }
   }
 
@@ -133,12 +133,9 @@ trait OperacionesControladorRepresentante
     try {
       $pdo = Conexion::obtener();
       $lista = self::consultarPersonasParaRepresentante($pdo);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $lista, 'message' => 'Personas candidatas obtenidas.']);
+      RespuestaJson::exito($lista, 'Personas candidatas obtenidas.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al listar personas candidatas.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al listar personas candidatas.', 500, null, $e);
     }
   }
 
@@ -198,27 +195,25 @@ trait OperacionesControladorRepresentante
         $familia = $stmtFam->fetchAll(PDO::FETCH_ASSOC);
         if ($familia && count($familia) > 0) $datos['estudiantes_familia'] = $familia;
       }
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $datos, 'message' => 'Representante obtenido.']);
+      RespuestaJson::exito($datos, 'Representante obtenido.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al obtener representante.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al obtener representante.', 500, null, $e);
     }
   }
 
   public function actualizarRepresentante($id_representante)
   {
     try {
-      $data = json_decode(file_get_contents('php://input'), true) ?? [];
+      $data = $this->leerEntradaJsonRepresentante();
       $pdo = Conexion::obtener();
       $ok = self::actualizarRepresentanteBD($pdo, $id_representante, $data);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => ['updated' => (bool)$ok], 'message' => 'Representante actualizado.']);
+      RespuestaJson::exito([
+        'updated' => (bool) $ok,
+      ], 'Representante actualizado.');
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al actualizar representante.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al actualizar representante.', 500, null, $e);
     }
   }
 
@@ -227,12 +222,50 @@ trait OperacionesControladorRepresentante
     try {
       $pdo = Conexion::obtener();
       $ok = self::eliminarRepresentanteBD($pdo, $id_representante);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => ['deleted' => (bool)$ok], 'message' => 'Representante eliminado.']);
+      if (!$ok) {
+        RespuestaJson::error('No se pudo eliminar el representante.', 500);
+        return;
+      }
+
+      RespuestaJson::exito([
+        'deleted' => true,
+      ], 'Representante eliminado.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al eliminar representante.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al eliminar representante.', 500, null, $e);
     }
+  }
+
+  private function leerEntradaJsonRepresentante(): array
+  {
+    $contenido = file_get_contents('php://input');
+    if ($contenido === false) {
+      throw new RuntimeException('No se pudo leer la solicitud.');
+    }
+
+    $contenido = trim($contenido);
+    if ($contenido === '') {
+      return [];
+    }
+
+    $datos = json_decode($contenido, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($datos)) {
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido: ' . json_last_error_msg());
+    }
+
+    return $datos;
+  }
+
+  private function calcularEdad(?string $fecha): ?int
+  {
+    if ($fecha === null || trim($fecha) === '') {
+      return null;
+    }
+
+    $fechaNormalizada = \DateTime::createFromFormat('Y-m-d', $fecha);
+    if (!$fechaNormalizada) {
+      return null;
+    }
+
+    return (int) $fechaNormalizada->diff(new \DateTime())->y;
   }
 }

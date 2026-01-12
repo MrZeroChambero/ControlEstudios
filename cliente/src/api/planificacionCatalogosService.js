@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../utilidades/respuestaBackend";
 
 const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 
@@ -11,20 +15,13 @@ const ENDPOINTS = {
 
 const withCredentials = { withCredentials: true };
 
-const adaptBackArray = (payload) => {
-  if (payload?.back === true) {
-    return payload.data ?? payload.datos ?? [];
+const adaptArray = (payload, fallback) => {
+  const compat = normalizarRespuesta(asegurarCompatibilidad(payload), fallback);
+  if (compat.success) {
+    const registros = compat.data ?? [];
+    return Array.isArray(registros) ? registros : [];
   }
-  throw new Error(payload?.message || "Respuesta inválida del servidor.");
-};
-
-const adaptExitoArray = (payload) => {
-  if (payload?.exito === true || payload?.estado === "exito") {
-    return payload.datos ?? payload.data ?? [];
-  }
-  throw new Error(
-    payload?.mensaje || payload?.message || "Respuesta inválida del servidor."
-  );
+  throw new Error(compat.message || fallback);
 };
 
 const construirNombrePersona = (registro = {}) => {
@@ -126,22 +123,28 @@ const mapearMomentos = (registros = []) =>
 
 const fetchPersonal = async () => {
   const { data } = await axios.get(ENDPOINTS.personal, withCredentials);
-  return mapearPersonal(adaptBackArray(data));
+  return mapearPersonal(
+    adaptArray(data, "No se pudo cargar el personal disponible.")
+  );
 };
 
 const fetchAulas = async () => {
   const { data } = await axios.get(ENDPOINTS.aulas, withCredentials);
-  return mapearAulas(adaptBackArray(data));
+  return mapearAulas(adaptArray(data, "No se pudo cargar la lista de aulas."));
 };
 
 const fetchComponentes = async () => {
   const { data } = await axios.get(ENDPOINTS.componentes, withCredentials);
-  return mapearComponentes(adaptExitoArray(data));
+  return mapearComponentes(
+    adaptArray(data, "No se pudo cargar la lista de componentes.")
+  );
 };
 
 const fetchMomentos = async () => {
   const { data } = await axios.get(ENDPOINTS.momentos, withCredentials);
-  return mapearMomentos(adaptBackArray(data));
+  return mapearMomentos(
+    adaptArray(data, "No se pudo cargar los momentos académicos.")
+  );
 };
 
 export const obtenerCatalogosPlanificacion = async () => {

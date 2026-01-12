@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../utilidades/respuestaBackend";
 
 const API_BASE = "http://localhost:8080/controlestudios/servidor";
 const RESOURCE = `${API_BASE}/anios_escolares`;
@@ -22,26 +26,27 @@ const fallbackError = (message) => ({
 });
 
 const adaptResponse = (payload, fallbackMessage) => {
-  if (!payload || typeof payload !== "object") {
-    return fallbackError(fallbackMessage);
+  const normalizada = normalizarRespuesta(payload, fallbackMessage);
+
+  if (!normalizada.success) {
+    return {
+      ...normalizada,
+      data: normalizada.data ?? [],
+      errors: normalizada.errors ?? {},
+    };
   }
 
-  const success =
-    payload.success === true ||
-    payload.exito === true ||
-    payload.estado === "exito";
-
   return {
-    success,
-    message: payload.mensaje ?? payload.message ?? fallbackMessage,
-    data: payload.datos ?? payload.data ?? null,
-    errors: payload.errores ?? payload.errors ?? {},
+    success: true,
+    message: normalizada.message,
+    data: normalizada.data ?? [],
+    errors: normalizada.errors ?? {},
   };
 };
 
 const extractError = (error, message) => {
   if (error?.response?.data) {
-    return adaptResponse(error.response.data, message);
+    return adaptResponse(asegurarCompatibilidad(error.response.data), message);
   }
   return fallbackError(message);
 };
@@ -49,7 +54,10 @@ const extractError = (error, message) => {
 export const listarAniosEscolares = async () => {
   try {
     const { data } = await axios.get(ENDPOINTS.list, withCredentials);
-    return adaptResponse(data, "No se pudieron obtener los años escolares.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "No se pudieron obtener los años escolares."
+    );
   } catch (error) {
     return extractError(error, "No se pudieron obtener los años escolares.");
   }
@@ -63,7 +71,10 @@ export const crearAnioEscolar = async (payload) => {
       headers: { "Content-Type": "application/json" },
     });
     console.log("respuesta crear año escolar:", data);
-    return adaptResponse(data, "Error al crear el año escolar.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "Error al crear el año escolar."
+    );
   } catch (error) {
     console.log("respuesta crear año escolar:", error);
 
@@ -77,7 +88,10 @@ export const actualizarAnioEscolar = async (id, payload) => {
       ...withCredentials,
       headers: { "Content-Type": "application/json" },
     });
-    return adaptResponse(data, "Error al actualizar el año escolar.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "Error al actualizar el año escolar."
+    );
   } catch (error) {
     return extractError(error, "Error al actualizar el año escolar.");
   }
@@ -86,7 +100,10 @@ export const actualizarAnioEscolar = async (id, payload) => {
 export const eliminarAnioEscolar = async (id) => {
   try {
     const { data } = await axios.delete(ENDPOINTS.remove(id), withCredentials);
-    return adaptResponse(data, "Error al eliminar el año escolar.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "Error al eliminar el año escolar."
+    );
   } catch (error) {
     return extractError(error, "Error al eliminar el año escolar.");
   }
@@ -101,7 +118,10 @@ export const cambiarEstadoAnioEscolar = async (id, payload) => {
       ...withCredentials,
       headers: { "Content-Type": "application/json" },
     });
-    return adaptResponse(data, "Error al cambiar el estado del año escolar.");
+    return adaptResponse(
+      asegurarCompatibilidad(data),
+      "Error al cambiar el estado del año escolar."
+    );
   } catch (error) {
     return extractError(error, "Error al cambiar el estado del año escolar.");
   }

@@ -4,6 +4,7 @@ namespace Micodigo\RendimientoAcademico;
 
 use Exception;
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -51,15 +52,17 @@ trait RendimientoAcademicoApiTrait
     $datos = null,
     ?array $errores = null
   ): void {
-    http_response_code($codigo);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
+    $extra = [
       'estado' => $estado,
       'exito' => $exito,
-      'mensaje' => $mensaje,
-      'datos' => $datos,
-      'errores' => $errores,
-    ], JSON_UNESCAPED_UNICODE);
+    ];
+
+    if ($exito) {
+      RespuestaJson::exito($datos, $mensaje, $codigo, $extra);
+      return;
+    }
+
+    RespuestaJson::error($mensaje, $codigo, $errores, null, $extra);
   }
 
   public function contextoApi(): void

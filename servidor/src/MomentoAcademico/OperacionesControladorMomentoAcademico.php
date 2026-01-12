@@ -3,6 +3,7 @@
 namespace Micodigo\MomentoAcademico;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use RuntimeException;
 
@@ -13,12 +14,9 @@ trait OperacionesControladorMomentoAcademico
     try {
       $pdo = Conexion::obtener();
       $datos = self::consultarTodosLosMomentos($pdo);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $datos, 'message' => 'Momentos académicos obtenidos exitosamente.']);
+      RespuestaJson::exito($datos, 'Momentos académicos obtenidos exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al listar momentos académicos.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al listar momentos académicos.', 500, null, $e);
     }
   }
 
@@ -27,27 +25,20 @@ trait OperacionesControladorMomentoAcademico
     try {
       $pdo = Conexion::obtener();
       $datos = self::consultarMomentosPorAnio($pdo, $id_anio);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $datos, 'message' => 'Momentos del año obtenidos exitosamente.']);
+      RespuestaJson::exito($datos, 'Momentos del año obtenidos exitosamente.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al listar momentos por año.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al listar momentos por año.', 500, null, $e);
     }
   }
 
   public function crearMomento()
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
-      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+      $data = $this->leerEntradaJson();
       $data['nombre'] = $this->limpiarTexto($data['nombre'] ?? null);
       $v = $this->crearValidadorMomento($data);
       if (!$v->validate()) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'errors' => $v->errors()]);
+        RespuestaJson::error('Errores de validación.', 422, $v->errors());
         return;
       }
 
@@ -56,42 +47,31 @@ trait OperacionesControladorMomentoAcademico
       // Validaciones adicionales: duración entre 65 y 70 días
       $dias = ValidacionesMomentoAcademico::calcularDuracionDias($data['fecha_inicio'], $data['fecha_fin']);
       if ($dias < 65 || $dias > 70) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'La duración del momento debe estar entre 65 y 70 días.', 'dias' => $dias]);
+        RespuestaJson::error('La duración del momento debe estar entre 65 y 70 días.', 422, null, null, ['dias' => $dias]);
         return;
       }
 
       // Verificar fk_anio_escolar existe en petición
       $fk_anio = isset($data['fk_anio_escolar']) ? (int)$data['fk_anio_escolar'] : null;
       if ($fk_anio === null) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'fk_anio_escolar es requerido para crear un momento.']);
+        RespuestaJson::error('fk_anio_escolar es requerido para crear un momento.', 422);
         return;
       }
 
       $data['fk_anio_escolar'] = $fk_anio;
 
       if (ValidacionesMomentoAcademico::verificarSolapamientoMomento($pdo, $fk_anio, $data['fecha_inicio'], $data['fecha_fin'], null)) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'El momento se solapa con otro momento del mismo año escolar.']);
+        RespuestaJson::error('El momento se solapa con otro momento del mismo año escolar.', 422);
         return;
       }
 
       $id = self::crearMomentoBD($pdo, $data);
       $nuevo = self::consultarMomentoPorId($pdo, $id);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $nuevo, 'message' => 'Momento creado exitosamente.']);
+      RespuestaJson::exito($nuevo, 'Momento creado exitosamente.', 201);
     } catch (RuntimeException $e) {
-      http_response_code(422);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => $e->getMessage()]);
+      RespuestaJson::error($e->getMessage(), 422);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al crear momento académico.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al crear momento académico.', 500, null, $e);
     }
   }
 
@@ -100,27 +80,20 @@ trait OperacionesControladorMomentoAcademico
     try {
       $pdo = Conexion::obtener();
       $dato = self::consultarMomentoPorId($pdo, $id);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $dato, 'message' => 'Momento académico obtenido.']);
+      RespuestaJson::exito($dato, 'Momento académico obtenido.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al obtener momento académico.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al obtener momento académico.', 500, null, $e);
     }
   }
 
   public function actualizarMomento($id)
   {
     try {
-      $input = file_get_contents('php://input');
-      $data = json_decode($input, true);
-      if (json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
+      $data = $this->leerEntradaJson();
       $data['nombre'] = $this->limpiarTexto($data['nombre'] ?? null);
       $v = $this->crearValidadorMomento($data);
       if (!$v->validate()) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'errors' => $v->errors()]);
+        RespuestaJson::error('Errores de validación.', 422, $v->errors());
         return;
       }
 
@@ -129,9 +102,7 @@ trait OperacionesControladorMomentoAcademico
       // Validación duración
       $dias = ValidacionesMomentoAcademico::calcularDuracionDias($data['fecha_inicio'], $data['fecha_fin']);
       if ($dias < 65 || $dias > 70) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'La duración del momento debe estar entre 65 y 70 días.', 'dias' => $dias]);
+        RespuestaJson::error('La duración del momento debe estar entre 65 y 70 días.', 422, null, null, ['dias' => $dias]);
         return;
       }
 
@@ -143,33 +114,24 @@ trait OperacionesControladorMomentoAcademico
       }
 
       if ($fk_anio === null) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'fk_anio_escolar es requerido para actualizar un momento.']);
+        RespuestaJson::error('fk_anio_escolar es requerido para actualizar un momento.', 422);
         return;
       }
 
       $data['fk_anio_escolar'] = $fk_anio;
 
       if (ValidacionesMomentoAcademico::verificarSolapamientoMomento($pdo, $fk_anio, $data['fecha_inicio'], $data['fecha_fin'], $id)) {
-        http_response_code(422);
-        header('Content-Type: application/json');
-        echo json_encode(['back' => false, 'message' => 'El momento se solapa con otro momento del mismo año escolar.']);
+        RespuestaJson::error('El momento se solapa con otro momento del mismo año escolar.', 422);
         return;
       }
 
       $ok = self::actualizarMomentoBD($pdo, $id, $data);
       $actualizado = self::consultarMomentoPorId($pdo, $id);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $actualizado, 'message' => 'Momento académico actualizado.']);
+      RespuestaJson::exito($actualizado, 'Momento académico actualizado.');
     } catch (RuntimeException $e) {
-      http_response_code(422);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => $e->getMessage()]);
+      RespuestaJson::error($e->getMessage(), 422);
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al actualizar momento académico.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al actualizar momento académico.', 500, null, $e);
     }
   }
 
@@ -178,12 +140,34 @@ trait OperacionesControladorMomentoAcademico
     try {
       $pdo = Conexion::obtener();
       $ok = self::eliminarMomentoBD($pdo, $id);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => (bool)$ok, 'message' => 'Momento académico eliminado.']);
+      if (!$ok) {
+        RespuestaJson::error('No se pudo eliminar el momento académico.', 404);
+        return;
+      }
+
+      RespuestaJson::exito(null, 'Momento académico eliminado.');
     } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al eliminar momento académico.', 'error_details' => $e->getMessage()]);
+      RespuestaJson::error('Error al eliminar momento académico.', 500, null, $e);
     }
+  }
+
+  private function leerEntradaJson(): array
+  {
+    $contenido = file_get_contents('php://input');
+    if ($contenido === false) {
+      throw new RuntimeException('No fue posible leer la solicitud.');
+    }
+
+    $contenido = trim($contenido);
+    if ($contenido === '') {
+      return [];
+    }
+
+    $decodificado = json_decode($contenido, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($decodificado)) {
+      throw new RuntimeException('JSON inválido: ' . json_last_error_msg());
+    }
+
+    return $decodificado;
   }
 }

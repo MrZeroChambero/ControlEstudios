@@ -3,62 +3,76 @@
 namespace Micodigo\Vacuna\VacunasEstudiante;
 
 use Micodigo\Config\Conexion;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
+use RuntimeException;
 
 trait VacunasEstudianteOperacionesControladorTrait
 {
-  private function parseJsonInputVacunasEst(): array
+  private function leerEntradaJsonVacunasEst(): array
   {
-    $raw = file_get_contents('php://input');
-    $d = json_decode($raw, true);
-    if ($d === null && json_last_error() !== JSON_ERROR_NONE) throw new Exception('JSON inválido: ' . json_last_error_msg());
-    return $d ?? [];
-  }
-  private function sendJsonVacunasEst(int $c, string $s, string $m, $data = null, $err = null): void
-  {
-    http_response_code($c);
-    header('Content-Type: application/json; charset=utf-8');
-    $r = ['status' => $s, 'message' => $m, 'back' => $s === 'success'];
-    if ($data !== null) $r['data'] = $data;
-    if ($err !== null) $r['errors'] = $err;
-    echo json_encode($r, JSON_UNESCAPED_UNICODE);
+    $contenido = file_get_contents('php://input');
+    if ($contenido === false) {
+      throw new RuntimeException('No fue posible leer la solicitud.');
+    }
+
+    $contenido = trim($contenido);
+    if ($contenido === '') {
+      return [];
+    }
+
+    $datos = json_decode($contenido, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($datos)) {
+      throw new RuntimeException('El cuerpo de la solicitud debe contener JSON válido: ' . json_last_error_msg());
+    }
+
+    return $datos;
   }
   public function asignarVacuna(): void
   {
     try {
-      $d = $this->parseJsonInputVacunasEst();
+      $d = $this->leerEntradaJsonVacunasEst();
       $pdo = Conexion::obtener();
       $obj = new VacunasEstudiante($d);
       $res = $obj->crear($pdo);
       if (is_array($res)) {
-        $this->sendJsonVacunasEst(400, 'error', 'Validación fallida', null, $res);
+        RespuestaJson::error('Los datos proporcionados no son válidos.', 422, $res);
         return;
       }
-      $this->sendJsonVacunasEst(201, 'success', 'Vacuna asignada', $obj);
+      RespuestaJson::exito($obj, 'Vacuna asignada correctamente.', 201);
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJsonVacunasEst(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al gestionar las vacunas del estudiante.', 500, null, $e);
     }
   }
   public function actualizarVacunaEstudiante(int $id): void
   {
     try {
-      $d = $this->parseJsonInputVacunasEst();
+      $d = $this->leerEntradaJsonVacunasEst();
       $pdo = Conexion::obtener();
       $row = self::obtener($pdo, $id);
       if (!$row) {
-        $this->sendJsonVacunasEst(404, 'error', 'No encontrado');
+        RespuestaJson::error('La vacuna asignada no existe.', 404);
         return;
       }
       $obj = new VacunasEstudiante($d);
       $obj->id_vacuna_estudiante = $id;
       $res = $obj->actualizar($pdo);
       if (is_array($res)) {
-        $this->sendJsonVacunasEst(400, 'error', 'Validación', null, $res);
+        RespuestaJson::error('Los datos proporcionados no son válidos.', 422, $res);
         return;
       }
-      $this->sendJsonVacunasEst($res ? 200 : 500, $res ? 'success' : 'error', $res ? 'Actualizado' : 'Fallo', self::obtener($pdo, $id));
+      if ($res !== true) {
+        RespuestaJson::error('No se pudo actualizar el registro de vacuna.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(self::obtener($pdo, $id), 'Registro de vacuna actualizado correctamente.');
+    } catch (RuntimeException $e) {
+      RespuestaJson::error($e->getMessage(), 400);
     } catch (Exception $e) {
-      $this->sendJsonVacunasEst(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al gestionar las vacunas del estudiante.', 500, null, $e);
     }
   }
   public function eliminarVacunaEstudiante(int $id): void
@@ -66,9 +80,14 @@ trait VacunasEstudianteOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $ok = VacunasEstudianteGestionTrait::eliminar($pdo, $id);
-      $this->sendJsonVacunasEst($ok ? 200 : 500, $ok ? 'success' : 'error', $ok ? 'Eliminada' : 'No eliminada');
+      if (!$ok) {
+        RespuestaJson::error('No se pudo eliminar el registro de vacuna.', 500);
+        return;
+      }
+
+      RespuestaJson::exito(null, 'Registro de vacuna eliminado correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonVacunasEst(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al gestionar las vacunas del estudiante.', 500, null, $e);
     }
   }
   public function listarVacunasEstudiante(int $fk_estudiante): void
@@ -76,9 +95,9 @@ trait VacunasEstudianteOperacionesControladorTrait
     try {
       $pdo = Conexion::obtener();
       $rows = self::listarPorEstudiante($pdo, $fk_estudiante);
-      $this->sendJsonVacunasEst(200, 'success', 'Listado obtenido', $rows);
+      RespuestaJson::exito($rows, 'Vacunas del estudiante obtenidas correctamente.');
     } catch (Exception $e) {
-      $this->sendJsonVacunasEst(500, 'error', 'Error: ' . $e->getMessage());
+      RespuestaJson::error('Error al gestionar las vacunas del estudiante.', 500, null, $e);
     }
   }
 }

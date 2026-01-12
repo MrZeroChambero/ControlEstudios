@@ -1,5 +1,9 @@
 import axios from "axios";
 import Swal from "sweetalert2";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../../utilidades/respuestaBackend";
 
 export const solicitudAreasAprendizaje = async ({ setIsLoading, setAreas }) => {
   const API_URL =
@@ -8,45 +12,29 @@ export const solicitudAreasAprendizaje = async ({ setIsLoading, setAreas }) => {
   try {
     setIsLoading(true);
     const response = await axios.get(API_URL, { withCredentials: true });
-
-    console.log(
-      "Áreas de aprendizaje cargadas:",
-      response.status,
-      response.data
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(response.data),
+      "No se pudieron cargar las áreas de aprendizaje."
     );
 
-    // Verificar si el backend respondió
-    if (!response.data || response.data.exito !== true) {
-      console.error("El backend no respondió correctamente:", response.data);
-      Swal.fire(
-        "Error",
-        response.data?.mensaje ||
-          "No se pudieron cargar las áreas de aprendizaje.",
-        "error"
-      );
+    console.log("Áreas de aprendizaje cargadas:", response.status, compat);
+
+    if (!compat.success) {
+      console.error("El backend no respondió correctamente:", compat.raw);
+      Swal.fire("Error", compat.message, "error");
       setAreas([]);
       return;
     }
 
-    setAreas(response.data.datos ?? []);
+    setAreas(Array.isArray(compat.data) ? compat.data : []);
   } catch (error) {
     console.error("Error al obtener áreas de aprendizaje:", error);
-    const errorData = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudieron cargar las áreas de aprendizaje."
+    );
 
-    if (errorData && errorData.exito === false) {
-      console.error("Error del backend:", errorData.mensaje, errorData.errores);
-      Swal.fire(
-        "Error",
-        errorData.mensaje || "No se pudieron cargar las áreas de aprendizaje.",
-        "error"
-      );
-    } else {
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar las áreas de aprendizaje.",
-        "error"
-      );
-    }
+    Swal.fire("Error", compat.message, "error");
   } finally {
     setIsLoading(false);
   }

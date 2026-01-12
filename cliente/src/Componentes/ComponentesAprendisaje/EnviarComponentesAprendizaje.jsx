@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  normalizarRespuesta,
+  asegurarCompatibilidad,
+} from "../../utilidades/respuestaBackend";
 
 const formatearErrores = (errores) => {
   if (!errores) {
@@ -33,10 +37,16 @@ export const enviarComponenteAprendizaje = async ({
     const metodo = currentComponente ? axios.put : axios.post;
 
     const response = await metodo(url, payload, { withCredentials: true });
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(response.data),
+      currentComponente
+        ? "No se pudo actualizar el componente."
+        : "No se pudo crear el componente."
+    );
 
-    if (response.data?.exito) {
+    if (compat.success) {
       const mensaje =
-        response.data.mensaje ||
+        compat.message ||
         (currentComponente
           ? "Componente actualizado correctamente."
           : "Componente creado correctamente.");
@@ -47,8 +57,8 @@ export const enviarComponenteAprendizaje = async ({
     }
 
     const mensajeError =
-      formatearErrores(response.data?.errores) ||
-      response.data?.mensaje ||
+      formatearErrores(compat.errors) ||
+      compat.message ||
       "Los datos enviados no son válidos.";
     Swal.fire(
       "Error de validación",
@@ -57,20 +67,17 @@ export const enviarComponenteAprendizaje = async ({
     );
   } catch (error) {
     console.error("Error al guardar el componente de aprendizaje:", error);
-    const respuesta = error.response?.data;
+    const compat = normalizarRespuesta(
+      asegurarCompatibilidad(error.response?.data),
+      "No se pudo comunicar con el servidor."
+    );
 
-    if (respuesta?.errores) {
-      const detalle = formatearErrores(respuesta.errores);
+    if (compat.errors) {
+      const detalle = formatearErrores(compat.errors);
       Swal.fire("Error", detalle.replace(/\n/g, "<br>"), "error");
       return;
     }
 
-    const mensaje =
-      respuesta?.mensaje ||
-      (error.response
-        ? `Error ${error.response.status} del servidor.`
-        : "No se pudo comunicar con el servidor.");
-
-    Swal.fire("Error", mensaje, "error");
+    Swal.fire("Error", compat.message, "error");
   }
 };

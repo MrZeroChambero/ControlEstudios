@@ -4,6 +4,7 @@ namespace Micodigo\Temas;
 
 use Micodigo\Config\Conexion;
 use Micodigo\Contenidos\Contenidos as ContenidosModelo;
+use Micodigo\Utils\RespuestaJson;
 use Exception;
 use PDOException;
 
@@ -152,23 +153,16 @@ class ControladoraTemas
 
   private function enviarRespuestaJson(int $codigoHttp, string $estado, string $mensaje, mixed $datos = null, ?array $errores = null): void
   {
-    http_response_code($codigoHttp);
-    header('Content-Type: application/json; charset=utf-8');
-
-    $respuesta = [
+    $extra = [
       'estado' => $estado,
       'exito' => $estado === 'exito',
-      'mensaje' => $mensaje,
     ];
 
-    if ($datos !== null) {
-      $respuesta['datos'] = $datos;
+    if ($estado === 'exito') {
+      RespuestaJson::exito($datos, $mensaje, $codigoHttp, $extra);
+      return;
     }
 
-    if ($errores !== null) {
-      $respuesta['errores'] = $errores;
-    }
-
-    echo json_encode($respuesta, JSON_UNESCAPED_UNICODE);
+    RespuestaJson::error($mensaje, $codigoHttp, $errores, null, $extra);
   }
 }
