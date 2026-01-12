@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import { FaPlus } from "react-icons/fa";
-import {
-  horariosLayout,
-} from "../EstilosCliente/EstilosClientes";
+import { horariosLayout } from "../EstilosCliente/EstilosClientes";
 import BarraBusquedaHorarios from "./componentes/BarraBusquedaHorarios";
 import TablaHorariosAulas from "./componentes/TablaHorariosAulas";
 import TablaHorariosDocentes from "./componentes/TablaHorariosDocentes";
@@ -27,6 +25,122 @@ import {
   obtenerCatalogosHorarios,
   crearHorario,
 } from "./solicitudesHorarios";
+
+export const Horarios = () => {
+  const [horarios, setHorarios] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [formulario, setFormulario] = useState(() => crearFormularioInicial());
+  const [catalogos, setCatalogos] = useState(() => crearCatalogosIniciales());
+  const [catalogosCargando, setCatalogosCargando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [erroresFormulario, setErroresFormulario] = useState({});
+  const [horariosAula, setHorariosAula] = useState([]);
+  const [cargandoHorariosAula, setCargandoHorariosAula] = useState(false);
+  const [modalSeccionAbierto, setModalSeccionAbierto] = useState(false);
+  const [seccionSeleccionada, setSeccionSeleccionada] = useState(null);
+  const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
+  const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
+
+  const abrirModalSeccion = useCallback((registro) => {
+    setSeccionSeleccionada(registro);
+    setModalSeccionAbierto(true);
+  }, []);
+
+  const cerrarModalSeccion = useCallback(() => {
+    setModalSeccionAbierto(false);
+    setSeccionSeleccionada(null);
+  }, []);
+
+  const abrirModalDocente = useCallback((registro) => {
+    setDocenteSeleccionado(registro);
+    setModalDocenteAbierto(true);
+  }, []);
+
+  const cerrarModalDocente = useCallback(() => {
+    setModalDocenteAbierto(false);
+    setDocenteSeleccionado(null);
+  }, []);
+
+  const construirFiltrosCatalogo = useCallback(
+    (aulaId, momentoId = null, componenteId = null) => {
+      if (!aulaId) {
+        return {};
+      }
+
+      const filtros = {
+        fk_aula: Number(aulaId),
+      };
+
+      const aula = catalogos.aulas.find(
+        (item) => item.id?.toString() === aulaId.toString()
+      );
+
+      if (aula?.anio_escolar) {
+        filtros.fk_anio_escolar = Number(aula.anio_escolar);
+      }
+
+      if (momentoId) {
+        filtros.fk_momento = Number(momentoId);
+      }
+
+      if (componenteId) {
+        filtros.fk_componente = Number(componenteId);
+      }
+
+      return filtros;
+    },
+    [catalogos.aulas]
+  );
+
+  const refrescar = useCallback(async () => {
+    await listarHorarios({ setHorarios, setIsLoading, Swal });
+  }, []);
+
+  useEffect(() => {
+    refrescar();
+  }, [refrescar]);
+
+  const registrosFiltrados = useMemo(() => {
+    const termino = busqueda.trim().toLowerCase();
+    if (termino === "") {
+      return horarios;
+    }
+
+    return horarios.filter((horario) => {
+      const docente = formatearDocente(horario).toLowerCase();
+      const componente = (horario.nombre_componente || "").toLowerCase();
+      const dia = (horario.dia_semana || "").toLowerCase();
+      const momento = (horario.nombre_momento || "").toLowerCase();
+      return (
+        docente.includes(termino) ||
+        componente.includes(termino) ||
+        dia.includes(termino) ||
+        momento.includes(termino)
+      );
+    });
+  }, [busqueda, horarios]);
+
+  const seccionesAgrupadas = useMemo(() => {
+    const mapa = new Map();
+
+    registrosFiltrados.forEach((item) => {
+      const aulaId = item.fk_aula ?? "";
+      const momentoId = item.fk_momento ?? "";
+      const clave = `${aulaId}-${momentoId}`;
+
+      if (!mapa.has(clave)) {
+        mapa.set(clave, {
+          id: clave,
+          fkAula: aulaId,
+          fkMomento: item.fk_momento ?? null,
+          grado: item.grado ?? "N/D",
+          seccion: item.seccion ?? "N/D",
+          momento: item.nombre_momento ?? "Sin momento",
+          anioEscolar: item.fk_anio_escolar ?? null,
+          horarios: [],
+        });
       }
 
       const registro = mapa.get(clave);
