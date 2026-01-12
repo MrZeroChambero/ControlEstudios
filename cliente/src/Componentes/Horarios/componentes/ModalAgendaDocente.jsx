@@ -1,8 +1,14 @@
 import React from "react";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
-import CalendarioResponsive from "./CalendarioResponsive";
+import CalendarioDocenteDetallado from "./CalendarioDocenteDetallado";
 
-const ModalAgendaDocente = ({ abierto, alCerrar, docente, renderBloque }) => (
+const ModalAgendaDocente = ({
+  abierto,
+  alCerrar,
+  docente,
+  onVerDetalle,
+  onEliminar,
+}) => (
   <VentanaModal
     isOpen={abierto}
     onClose={alCerrar}
@@ -13,27 +19,30 @@ const ModalAgendaDocente = ({ abierto, alCerrar, docente, renderBloque }) => (
     {docente ? (
       <>
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-          <p>
-            <span className="font-semibold text-slate-800">Docente:</span>{" "}
-            {docente.nombre}
-          </p>
-          <p>
-            <span className="font-semibold text-slate-800">Función:</span>{" "}
-            {docente.funcion}
-          </p>
-          <p>
-            <span className="font-semibold text-slate-800">Componentes:</span>{" "}
-            {docente.componentesTexto}
-          </p>
-          <p>
-            <span className="font-semibold text-slate-800">Momentos:</span>{" "}
-            {docente.momentosTexto}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-800">Docente:</span>
+              <span>{docente.nombre}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-800">Función:</span>
+              <span>{docente.funcion}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-800">Componentes:</span>
+              <span>{docente.componentesTexto}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-800">Momentos:</span>
+              <span>{docente.momentosTexto}</span>
+            </div>
+          </div>
         </div>
-        <CalendarioResponsive
+        <CalendarioDocenteDetallado
           bloques={docente.horarios}
-          emptyMessage="Sin clases registradas para este día."
-          renderBloque={renderBloque}
+          emptyMessage="Sin clases registradas para este docente."
+          onVerDetalle={onVerDetalle}
+          onEliminar={onEliminar}
         />
       </>
     ) : null}

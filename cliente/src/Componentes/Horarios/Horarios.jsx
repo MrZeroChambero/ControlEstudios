@@ -1,11 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
-import { FaPlus, FaEye, FaTrash } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import {
   horariosLayout,
-  horariosTableClasses,
-  horariosStatusClasses,
-  horariosIconClasses,
 } from "../EstilosCliente/EstilosClientes";
 import BarraBusquedaHorarios from "./componentes/BarraBusquedaHorarios";
 import TablaHorariosAulas from "./componentes/TablaHorariosAulas";
@@ -30,122 +27,6 @@ import {
   obtenerCatalogosHorarios,
   crearHorario,
 } from "./solicitudesHorarios";
-
-export const Horarios = () => {
-  const [horarios, setHorarios] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [busqueda, setBusqueda] = useState("");
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [formulario, setFormulario] = useState(() => crearFormularioInicial());
-  const [catalogos, setCatalogos] = useState(() => crearCatalogosIniciales());
-  const [catalogosCargando, setCatalogosCargando] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const [erroresFormulario, setErroresFormulario] = useState({});
-  const [horariosAula, setHorariosAula] = useState([]);
-  const [cargandoHorariosAula, setCargandoHorariosAula] = useState(false);
-  const [modalSeccionAbierto, setModalSeccionAbierto] = useState(false);
-  const [seccionSeleccionada, setSeccionSeleccionada] = useState(null);
-  const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
-  const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
-
-  const abrirModalSeccion = useCallback((registro) => {
-    setSeccionSeleccionada(registro);
-    setModalSeccionAbierto(true);
-  }, []);
-
-  const cerrarModalSeccion = useCallback(() => {
-    setModalSeccionAbierto(false);
-    setSeccionSeleccionada(null);
-  }, []);
-
-  const abrirModalDocente = useCallback((registro) => {
-    setDocenteSeleccionado(registro);
-    setModalDocenteAbierto(true);
-  }, []);
-
-  const cerrarModalDocente = useCallback(() => {
-    setModalDocenteAbierto(false);
-    setDocenteSeleccionado(null);
-  }, []);
-
-  const construirFiltrosCatalogo = useCallback(
-    (aulaId, momentoId = null, componenteId = null) => {
-      if (!aulaId) {
-        return {};
-      }
-
-      const filtros = {
-        fk_aula: Number(aulaId),
-      };
-
-      const aula = catalogos.aulas.find(
-        (item) => item.id?.toString() === aulaId.toString()
-      );
-
-      if (aula?.anio_escolar) {
-        filtros.fk_anio_escolar = Number(aula.anio_escolar);
-      }
-
-      if (momentoId) {
-        filtros.fk_momento = Number(momentoId);
-      }
-
-      if (componenteId) {
-        filtros.fk_componente = Number(componenteId);
-      }
-
-      return filtros;
-    },
-    [catalogos.aulas]
-  );
-
-  const refrescar = useCallback(async () => {
-    await listarHorarios({ setHorarios, setIsLoading, Swal });
-  }, []);
-
-  useEffect(() => {
-    refrescar();
-  }, [refrescar]);
-
-  const registrosFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLowerCase();
-    if (termino === "") {
-      return horarios;
-    }
-
-    return horarios.filter((horario) => {
-      const docente = formatearDocente(horario).toLowerCase();
-      const componente = (horario.nombre_componente || "").toLowerCase();
-      const dia = (horario.dia_semana || "").toLowerCase();
-      const momento = (horario.nombre_momento || "").toLowerCase();
-      return (
-        docente.includes(termino) ||
-        componente.includes(termino) ||
-        dia.includes(termino) ||
-        momento.includes(termino)
-      );
-    });
-  }, [busqueda, horarios]);
-
-  const seccionesAgrupadas = useMemo(() => {
-    const mapa = new Map();
-
-    registrosFiltrados.forEach((item) => {
-      const aulaId = item.fk_aula ?? "";
-      const momentoId = item.fk_momento ?? "";
-      const clave = `${aulaId}-${momentoId}`;
-
-      if (!mapa.has(clave)) {
-        mapa.set(clave, {
-          id: clave,
-          fkAula: aulaId,
-          fkMomento: item.fk_momento ?? null,
-          grado: item.grado ?? "N/D",
-          seccion: item.seccion ?? "N/D",
-          momento: item.nombre_momento ?? "Sin momento",
-          anioEscolar: item.fk_anio_escolar ?? null,
-          horarios: [],
-        });
       }
 
       const registro = mapa.get(clave);
@@ -176,6 +57,27 @@ export const Horarios = () => {
   const docentesAgrupados = useMemo(() => {
     const mapa = new Map();
 
+    const construirEtiquetaSeccion = (grado, seccion) => {
+      const gradoTexto =
+        typeof grado === "number" || typeof grado === "string"
+          ? String(grado).trim()
+          : "";
+      const seccionTexto =
+        typeof seccion === "number" || typeof seccion === "string"
+          ? String(seccion).trim().toUpperCase()
+          : "";
+
+      if (!gradoTexto && !seccionTexto) {
+        return null;
+      }
+
+      if (!gradoTexto || !seccionTexto) {
+        return `${gradoTexto || "?"}"${seccionTexto || "?"}`;
+      }
+
+      return `${gradoTexto}"${seccionTexto}"`;
+    };
+
     registrosFiltrados.forEach((item) => {
       if (!item.fk_personal) {
         return;
@@ -191,6 +93,7 @@ export const Horarios = () => {
           tipo: item.tipo_funcion ?? "",
           componentes: new Set(),
           momentos: new Set(),
+          secciones: new Set(),
           horarios: [],
         });
       }
@@ -202,6 +105,15 @@ export const Horarios = () => {
       }
       if (item.nombre_momento) {
         registro.momentos.add(item.nombre_momento);
+      }
+
+      const etiquetaSeccion = construirEtiquetaSeccion(
+        item.grado,
+        item.seccion
+      );
+
+      if (etiquetaSeccion) {
+        registro.secciones.add(etiquetaSeccion);
       }
     });
 
@@ -216,13 +128,21 @@ export const Horarios = () => {
             sensitivity: "base",
           })
         );
+        const secciones = Array.from(docente.secciones).sort((a, b) =>
+          a.localeCompare(b, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        );
 
         return {
           ...docente,
           componentes,
           momentos,
+          secciones,
           componentesTexto: componentes.join(", ") || "Sin componentes",
           momentosTexto: momentos.join(", ") || "Sin momentos",
+          seccionesTexto: secciones.join(", ") || "Sin secciones",
         };
       })
       .sort((a, b) =>
@@ -620,55 +540,6 @@ export const Horarios = () => {
     });
   };
 
-  const renderBloqueDocente = useCallback(
-    (bloque) => (
-      <>
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-slate-800">
-            {bloque?.nombre_componente ?? "Sin componente"}
-          </p>
-          <span
-            className={`${horariosStatusClasses.base} ${
-              bloque?.grupo === "completo"
-                ? horariosStatusClasses.completo
-                : horariosStatusClasses.subgrupo
-            }`}
-          >
-            {bloque?.grupo ?? ""}
-          </span>
-        </div>
-        <p className="text-xs text-slate-600">
-          {bloque?.hora_inicio_texto} - {bloque?.hora_fin_texto}
-        </p>
-        <p className="text-xs text-slate-500">
-          Grado {bloque?.grado ?? "?"} — Sección {bloque?.seccion ?? "?"}
-        </p>
-        <p className="text-xs text-slate-500">
-          Momento {bloque?.nombre_momento ?? "-"}
-        </p>
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
-            onClick={() => manejarVerDetalle(bloque)}
-            title="Ver detalle"
-          >
-            <FaEye className={horariosIconClasses.base} />
-          </button>
-          <button
-            type="button"
-            className={`${horariosTableClasses.actionButton} ${horariosTableClasses.deleteButton}`}
-            onClick={() => manejarEliminar(bloque)}
-            title="Eliminar"
-          >
-            <FaTrash className={horariosIconClasses.base} />
-          </button>
-        </div>
-      </>
-    ),
-    [manejarEliminar, manejarVerDetalle]
-  );
-
   const calendarioPorDia = useMemo(() => {
     const base = diasSemanaOrdenados.reduce((acumulado, dia) => {
       acumulado[dia] = [];
@@ -777,7 +648,8 @@ export const Horarios = () => {
         abierto={modalDocenteAbierto}
         alCerrar={cerrarModalDocente}
         docente={docenteSeleccionado}
-        renderBloque={renderBloqueDocente}
+        onVerDetalle={manejarVerDetalle}
+        onEliminar={manejarEliminar}
       />
 
       <ModalFormularioHorario

@@ -16,33 +16,53 @@ const TablaHorariosDocentes = ({ datos, cargando, onVerCalendario }) => {
         name: "Docente",
         selector: (row) => row.nombre,
         sortable: true,
-        grow: 1.6,
+        grow: 2,
         wrap: true,
-      },
-      {
-        name: "Función",
-        selector: (row) => row.funcion,
-        sortable: true,
-        width: "180px",
-        wrap: true,
-      },
-      {
-        name: "Componentes",
-        selector: (row) => row.componentesTexto,
-        sortable: true,
-        grow: 1.6,
-        wrap: true,
-      },
-      {
-        name: "Momentos",
-        selector: (row) => row.momentosTexto,
-        sortable: true,
-        grow: 1.2,
-        wrap: true,
+        cell: (row) => (
+          <div className="flex flex-col gap-2 text-left">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-slate-800">
+                {row.nombre}
+              </p>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                {row.funcion}
+              </span>
+            </div>
+            <div className="space-y-1 text-xs text-slate-500">
+              <p>
+                <span className="font-semibold text-slate-600">
+                  Componentes:
+                </span>{" "}
+                {row.componentesTexto}
+              </p>
+              <p>
+                <span className="font-semibold text-slate-600">Momentos:</span>{" "}
+                {row.momentosTexto}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Array.isArray(row.secciones) && row.secciones.length > 0 ? (
+                row.secciones.map((seccion) => (
+                  <span
+                    key={seccion}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+                  >
+                    {seccion}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400">
+                  Sin secciones registradas
+                </span>
+              )}
+            </div>
+          </div>
+        ),
       },
       {
         name: "Acciones",
         width: "100px",
+        center: true,
         cell: (row) => (
           <button
             type="button"

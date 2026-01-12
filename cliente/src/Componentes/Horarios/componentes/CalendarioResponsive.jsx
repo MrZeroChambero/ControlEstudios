@@ -32,7 +32,7 @@ const CalendarioResponsive = ({ bloques = [], emptyMessage, renderBloque }) => {
                 bloquesDia.map((bloque, indice) => (
                   <div
                     key={`${bloque?.id_horario ?? indice}-${indice}`}
-                    className="rounded-2xl bg-slate-50 p-3 shadow"
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm"
                   >
                     {renderBloque ? renderBloque(bloque) : null}
                   </div>

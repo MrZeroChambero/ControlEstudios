@@ -1,0 +1,11 @@
+# Dependencias de Composer
+/vendor/
+
+# Configuración sensible
+.env
+.env.*
+
+# Archivos temporales
+/storage/
+/cache/
+/logs/
