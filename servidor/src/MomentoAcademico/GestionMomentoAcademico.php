@@ -122,6 +122,16 @@ trait GestionMomentoAcademico
     $estado = $datos['estado'] ?? $datos['estado_momento'] ?? null;
     $estado = is_string($estado) ? strtolower(trim($estado)) : null;
 
-    return in_array($estado, ['activo', 'finalizado'], true) ? $estado : 'activo';
+    if (in_array($estado, ['planificado', 'incompleto'], true)) {
+      $estado = 'pendiente';
+    }
+
+    $permitidos = ['activo', 'pendiente', 'finalizado'];
+
+    if ($estado === null || $estado === '') {
+      return 'pendiente';
+    }
+
+    return in_array($estado, $permitidos, true) ? $estado : 'pendiente';
   }
 }

@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { Dashboard } from "./Componentes/Dashboard/Dashboard.jsx";
 import { Login } from "./Componentes/Login/Login.jsx";
 import { AdminRutas } from "./Componentes/AdministradorRutas/AdminRutas.jsx";
+import { ProtectorNivel } from "./Componentes/AdministradorRutas/ProtectorNivel.jsx";
 import { Usuarios } from "./Componentes/Usuario/Usuarios.jsx";
 import { Personas } from "./Componentes/Persona/Personas.jsx";
 import { ServerErrorPage } from "./Componentes/AdministradorRutas/ServerErrorPage.jsx";
@@ -27,6 +28,8 @@ import { RecuperarClave } from "./Componentes/RecuperarClave/RecuperarClave.jsx"
 import Respaldo from "./Componentes/Respaldo/Respaldo.jsx";
 import { Horarios } from "./Componentes/Horarios/Horarios.jsx";
 import { PlanificacionAcademica } from "./Componentes/PlanificacionAcademica/PlanificacionAcademica.jsx";
+import { RendimientoAcademico } from "./Componentes/RendimientoAcademico/RendimientoAcademico.jsx";
+import { nivelesRendimientoPermitidos } from "./Componentes/RendimientoAcademico/permisosRendimiento";
 
 function App() {
   return (
@@ -57,6 +60,14 @@ function App() {
         path="planificacion-academica"
         element={<PlanificacionAcademica />}
       />
+      <Route
+        path="gestion-de-rendimiento-academico"
+        element={
+          <ProtectorNivel nivelesPermitidos={nivelesRendimientoPermitidos}>
+            <RendimientoAcademico />
+          </ProtectorNivel>
+        }
+      />
 
       <Route path="/Dashboard" element={<Dashboard />} />
       <Route path="/Login" element={<Login />} />
@@ -67,6 +78,14 @@ function App() {
       <Route
         path="/planificacion-academica"
         element={<PlanificacionAcademica />}
+      />
+      <Route
+        path="/gestion-de-rendimiento-academico"
+        element={
+          <ProtectorNivel nivelesPermitidos={nivelesRendimientoPermitidos}>
+            <RendimientoAcademico />
+          </ProtectorNivel>
+        }
       />
 
       {/* Aquí puedes agregar más rutas */}

@@ -644,7 +644,16 @@ trait AnioEscolarGestionTrait
     $estado = $momento['estado'] ?? $momento['estado_momento'] ?? null;
     $estado = is_string($estado) ? strtolower(trim($estado)) : null;
 
-    return in_array($estado, ['activo', 'finalizado'], true) ? $estado : 'activo';
+    if (in_array($estado, ['planificado', 'incompleto'], true)) {
+      $estado = 'pendiente';
+    }
+
+    $permitidos = ['activo', 'pendiente', 'finalizado'];
+    if ($estado === null || $estado === '') {
+      return 'pendiente';
+    }
+
+    return in_array($estado, $permitidos, true) ? $estado : 'pendiente';
   }
 
   private function obtenerSiguienteIdAnio(PDO $conexion): int

@@ -60,7 +60,7 @@ trait MomentosValidacionesTrait
         'fecha_inicio' => $inicio->format('Y-m-d'),
         'fecha_fin' => $fin->format('Y-m-d'),
         'fecha_final' => $fin->format('Y-m-d'),
-        'estado' => 'activo',
+        'estado' => $orden === 1 ? 'activo' : 'pendiente',
       ];
     }
 
@@ -99,6 +99,28 @@ trait MomentosValidacionesTrait
       $inicio = new DateTime($inicioNormalizado);
       $fin = new DateTime($finNormalizado);
 
+      $estadoEntrada = $momento['estado']
+        ?? $momento['estado_momento']
+        ?? $momento['momento_estado']
+        ?? null;
+
+      $estadoNormalizado = is_string($estadoEntrada)
+        ? strtolower(trim($estadoEntrada))
+        : null;
+
+      if ($estadoNormalizado === null || $estadoNormalizado === '') {
+        $estadoNormalizado = $orden === 1 ? 'activo' : 'pendiente';
+      }
+
+      if (in_array($estadoNormalizado, ['planificado', 'incompleto'], true)) {
+        $estadoNormalizado = 'pendiente';
+      }
+
+      if (!in_array($estadoNormalizado, ['activo', 'pendiente', 'finalizado'], true)) {
+        $errores['momento_' . $orden][] = 'El estado del momento ' . $orden . ' es inválido.';
+        continue;
+      }
+
       if ($inicio > $fin) {
         $errores['momento_' . $orden][] = 'La fecha de inicio debe ser anterior a la fecha final.';
       }
@@ -123,7 +145,7 @@ trait MomentosValidacionesTrait
         'fecha_inicio' => $inicio->format('Y-m-d'),
         'fecha_fin' => $fin->format('Y-m-d'),
         'fecha_final' => $fin->format('Y-m-d'),
-        'estado' => $momento['estado'] ?? 'activo',
+        'estado' => $estadoNormalizado,
       ];
     }
 

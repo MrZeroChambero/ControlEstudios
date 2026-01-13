@@ -33,9 +33,12 @@ trait HorariosConsultasTrait
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
-                   personas.segundo_apellido
-            FROM horarios h
-            INNER JOIN aula a ON a.id_aula = h.fk_aula
+                   personas.segundo_apellido,
+                   ae.fecha_inicio AS anio_fecha_inicio,
+                   ae.fecha_fin AS anio_fecha_fin
+                FROM horarios h
+                INNER JOIN aula a ON a.id_aula = h.fk_aula
+                LEFT JOIN anios_escolares ae ON ae.id_anio_escolar = a.fk_anio_escolar
             LEFT JOIN grado_seccion gs ON gs.id_grado_seccion = a.fk_grado_seccion
             INNER JOIN momentos m ON m.id_momento = h.fk_momento
             INNER JOIN componentes_aprendizaje comp ON comp.id_componente = h.fk_componente
@@ -100,9 +103,12 @@ trait HorariosConsultasTrait
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
-                   personas.segundo_apellido
-            FROM horarios h
-            INNER JOIN aula a ON a.id_aula = h.fk_aula
+                   personas.segundo_apellido,
+                   ae.fecha_inicio AS anio_fecha_inicio,
+                   ae.fecha_fin AS anio_fecha_fin
+                FROM horarios h
+                INNER JOIN aula a ON a.id_aula = h.fk_aula
+                LEFT JOIN anios_escolares ae ON ae.id_anio_escolar = a.fk_anio_escolar
             LEFT JOIN grado_seccion gs ON gs.id_grado_seccion = a.fk_grado_seccion
             INNER JOIN momentos m ON m.id_momento = h.fk_momento
             INNER JOIN componentes_aprendizaje comp ON comp.id_componente = h.fk_componente
@@ -239,7 +245,8 @@ trait HorariosConsultasTrait
     }
 
     $estado = strtolower($momento['estado_momento'] ?? '');
-    if (!in_array($estado, ['activo', 'planificado', 'incompleto'], true)) {
+    $permitidos = ['activo', 'pendiente', 'planificado', 'incompleto'];
+    if (!in_array($estado, $permitidos, true)) {
       return null;
     }
 

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Swal from "sweetalert2";
 import { FaPlus } from "react-icons/fa";
 import { horariosLayout } from "../EstilosCliente/EstilosClientes";
@@ -26,6 +32,114 @@ import {
   crearHorario,
 } from "./solicitudesHorarios";
 
+const obtenerAnioDesdeFecha = (valor) => {
+  if (!valor) {
+    return null;
+  }
+  const fecha = new Date(valor);
+  if (Number.isNaN(fecha.getTime())) {
+    return null;
+  }
+  return fecha.getUTCFullYear();
+};
+
+const formatearAnioEscolarEtiqueta = (inicio, fin) => {
+  const anioInicio = obtenerAnioDesdeFecha(inicio);
+  const anioFin = obtenerAnioDesdeFecha(fin);
+
+  if (anioInicio && anioFin) {
+    return anioInicio === anioFin
+      ? `${anioInicio}`
+      : `${anioInicio} - ${anioFin}`;
+  }
+  if (anioInicio) {
+    return `${anioInicio}`;
+  }
+  if (anioFin) {
+    return `${anioFin}`;
+  }
+  return "Sin definir";
+};
+
+const obtenerAnioDesdeMomento = (momento) => {
+  if (!momento) {
+    return null;
+  }
+
+  const candidatos = [
+    momento.anio_escolar,
+    momento.fk_anio_escolar,
+    momento.anio,
+    momento.anioId,
+  ];
+
+  for (const candidato of candidatos) {
+    const numero = Number(candidato);
+    if (!Number.isNaN(numero) && numero > 0) {
+      return numero;
+    }
+  }
+
+  return null;
+};
+
+const obtenerIdMomento = (momento) => {
+  if (!momento) {
+    return null;
+  }
+
+  const candidatos = [
+    momento.id,
+    momento.id_momento,
+    momento.idMomento,
+    momento.momento_id,
+  ];
+
+  for (const candidato of candidatos) {
+    const numero = Number(candidato);
+    if (!Number.isNaN(numero) && numero > 0) {
+      return numero;
+    }
+  }
+
+  return null;
+};
+
+const filtrarMomentosPorAnio = (momentos = [], anioId) => {
+  if (!Array.isArray(momentos)) {
+    return [];
+  }
+  if (!anioId) {
+    return momentos;
+  }
+  const anioNumero = Number(anioId);
+  if (!Number.isFinite(anioNumero) || anioNumero <= 0) {
+    return momentos;
+  }
+
+  return momentos.filter(
+    (momento) => obtenerAnioDesdeMomento(momento) === anioNumero
+  );
+};
+
+const seleccionarMomentoPreferido = (momentos = []) => {
+  if (!Array.isArray(momentos) || momentos.length === 0) {
+    return null;
+  }
+  const normalizarEstado = (valor) =>
+    typeof valor === "string" ? valor.trim().toLowerCase() : "";
+  const prioridades = ["activo", "pendiente", "planificado", "incompleto"];
+  for (const estado of prioridades) {
+    const candidato = momentos.find(
+      (momento) => normalizarEstado(momento.estado) === estado
+    );
+    if (candidato) {
+      return candidato;
+    }
+  }
+  return momentos[0];
+};
+
 export const Horarios = () => {
   const [horarios, setHorarios] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +156,7 @@ export const Horarios = () => {
   const [seccionSeleccionada, setSeccionSeleccionada] = useState(null);
   const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
   const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
+  const consultaHorariosRef = useRef(0);
 
   const abrirModalSeccion = useCallback((registro) => {
     setSeccionSeleccionada(registro);
@@ -129,6 +244,11 @@ export const Horarios = () => {
       const aulaId = item.fk_aula ?? "";
       const momentoId = item.fk_momento ?? "";
       const clave = `${aulaId}-${momentoId}`;
+      const anioInicio =
+        item.anio_fecha_inicio ?? item.anio_inicio ?? item.fecha_inicio ?? null;
+      const anioFin =
+        item.anio_fecha_fin ?? item.anio_fin ?? item.fecha_fin ?? null;
+      const etiquetaAnio = formatearAnioEscolarEtiqueta(anioInicio, anioFin);
 
       if (!mapa.has(clave)) {
         mapa.set(clave, {
@@ -138,7 +258,10 @@ export const Horarios = () => {
           grado: item.grado ?? "N/D",
           seccion: item.seccion ?? "N/D",
           momento: item.nombre_momento ?? "Sin momento",
-          anioEscolar: item.fk_anio_escolar ?? null,
+          anioEscolar: etiquetaAnio,
+          anioEscolarId: item.fk_anio_escolar ?? null,
+          anioInicio,
+          anioFin,
           horarios: [],
         });
       }
@@ -356,44 +479,79 @@ export const Horarios = () => {
           fk_personal: "",
         };
       });
+
+      return normalizados;
     } catch (error) {
       console.error("Error al obtener catálogos de horarios:", error);
+      return null;
     } finally {
       setCatalogosCargando(false);
     }
   };
 
-  const actualizarHorariosAula = async (idAula, idMomento = null) => {
-    if (!idAula) {
+  const actualizarHorariosAula = useCallback(
+    async (idAula, idMomento = null) => {
+      if (!idAula) {
+        consultaHorariosRef.current += 1;
+        setHorariosAula([]);
+        setCargandoHorariosAula(false);
+        return;
+      }
+
+      const llamadaId = consultaHorariosRef.current + 1;
+      consultaHorariosRef.current = llamadaId;
+
+      setCargandoHorariosAula(true);
       setHorariosAula([]);
-      setCargandoHorariosAula(false);
+
+      try {
+        const filtrosConsulta = {
+          fk_aula: Number(idAula),
+        };
+
+        if (idMomento) {
+          filtrosConsulta.fk_momento = Number(idMomento);
+        }
+
+        const registros = await listarHorarios({
+          filtros: filtrosConsulta,
+          Swal,
+        });
+
+        if (consultaHorariosRef.current === llamadaId) {
+          setHorariosAula(Array.isArray(registros) ? registros : []);
+        }
+      } catch (error) {
+        if (consultaHorariosRef.current === llamadaId) {
+          setHorariosAula([]);
+        }
+        console.error("Error al cargar horarios del aula:", error);
+      } finally {
+        if (consultaHorariosRef.current === llamadaId) {
+          setCargandoHorariosAula(false);
+        }
+      }
+    },
+    [listarHorarios, Swal]
+  );
+
+  useEffect(() => {
+    if (!modalAbierto) {
       return;
     }
 
-    setCargandoHorariosAula(true);
-    setHorariosAula([]);
-
-    try {
-      const filtrosConsulta = {
-        fk_aula: Number(idAula),
-      };
-
-      if (idMomento) {
-        filtrosConsulta.fk_momento = Number(idMomento);
-      }
-
-      const registros = await listarHorarios({
-        filtros: filtrosConsulta,
-        Swal,
-      });
-
-      setHorariosAula(Array.isArray(registros) ? registros : []);
-    } catch (error) {
-      console.error("Error al cargar horarios del aula:", error);
-    } finally {
-      setCargandoHorariosAula(false);
+    if (!formulario.fk_aula) {
+      actualizarHorariosAula(null);
+      return;
     }
-  };
+
+    actualizarHorariosAula(formulario.fk_aula, formulario.fk_momento || null);
+  }, [
+    modalAbierto,
+    formulario.fk_aula,
+    formulario.fk_momento,
+    actualizarHorariosAula,
+  ]);
 
   const abrirModal = () => {
     setErroresFormulario({});
@@ -440,40 +598,16 @@ export const Horarios = () => {
       return;
     }
 
-    if (name === "fk_momento") {
-      setFormulario((previo) => ({
-        ...previo,
-        fk_momento: value,
-      }));
-
-      if (formulario.fk_aula) {
-        const filtrosCatalogo = construirFiltrosCatalogo(
-          formulario.fk_aula,
-          value || null,
-          formulario.fk_componente
-        );
-
-        if (Object.keys(filtrosCatalogo).length > 0) {
-          await cargarCatalogos(filtrosCatalogo);
-        }
-
-        await actualizarHorariosAula(formulario.fk_aula, value || null);
-      }
-
-      return;
-    }
-
     if (name === "fk_aula") {
-      setFormulario((previo) => ({
-        ...previo,
-        fk_aula: value,
-        fk_momento: "",
-        fk_componente: "",
-        fk_personal: "",
-        estudiantes: [],
-      }));
-
       if (!value) {
+        setFormulario((previo) => ({
+          ...previo,
+          fk_aula: "",
+          fk_momento: "",
+          fk_componente: "",
+          fk_personal: "",
+          estudiantes: [],
+        }));
         setCatalogos((previo) => ({
           ...previo,
           componentes: [],
@@ -485,10 +619,68 @@ export const Horarios = () => {
         return;
       }
 
-      const filtros = construirFiltrosCatalogo(value);
+      const aulaSeleccionada = catalogos.aulas.find(
+        (aula) => aula.id?.toString() === value.toString()
+      );
+      const momentosRelacionados = filtrarMomentosPorAnio(
+        catalogos.momentos,
+        aulaSeleccionada?.anio_escolar
+      );
+      let momentoPreferido = seleccionarMomentoPreferido(momentosRelacionados);
+      let momentoDestinoNumero = obtenerIdMomento(momentoPreferido);
+      let momentoDestinoId = momentoDestinoNumero
+        ? String(momentoDestinoNumero)
+        : "";
 
-      await cargarCatalogos(filtros);
-      await actualizarHorariosAula(value);
+      setFormulario((previo) => ({
+        ...previo,
+        fk_aula: value,
+        fk_momento: momentoDestinoId,
+        fk_componente: "",
+        fk_personal: "",
+        estudiantes: [],
+      }));
+
+      let filtros = construirFiltrosCatalogo(value, momentoDestinoId || null);
+
+      const nuevosCatalogos = await cargarCatalogos(filtros);
+
+      if (!momentoDestinoId && nuevosCatalogos?.momentos?.length) {
+        momentoPreferido = seleccionarMomentoPreferido(
+          filtrarMomentosPorAnio(
+            nuevosCatalogos.momentos,
+            aulaSeleccionada?.anio_escolar
+          )
+        );
+        momentoDestinoNumero = obtenerIdMomento(momentoPreferido);
+        if (momentoDestinoNumero) {
+          momentoDestinoId = String(momentoDestinoNumero);
+          setFormulario((previo) => ({
+            ...previo,
+            fk_momento: momentoDestinoId,
+          }));
+          filtros = construirFiltrosCatalogo(value, momentoDestinoId);
+          await cargarCatalogos(filtros);
+        }
+      }
+
+      if (!momentoDestinoId) {
+        setErroresFormulario((previo) => ({
+          ...previo,
+          fk_momento:
+            "No se encontró un momento activo para el año escolar del aula seleccionada.",
+        }));
+      } else {
+        setErroresFormulario((previo) => {
+          if (!previo.fk_momento) {
+            return previo;
+          }
+          const copia = { ...previo };
+          delete copia.fk_momento;
+          return copia;
+        });
+      }
+
       return;
     }
 
@@ -544,6 +736,15 @@ export const Horarios = () => {
     const erroresLocales = validarHorasFormulario(formulario);
     if (Object.keys(erroresLocales).length > 0) {
       setErroresFormulario(erroresLocales);
+      return;
+    }
+
+    if (!formulario.fk_momento) {
+      setErroresFormulario((previo) => ({
+        ...previo,
+        fk_momento:
+          "Configura un momento académico activo para el año escolar antes de registrar horarios.",
+      }));
       return;
     }
 

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export const SidebarMenuItem = ({
   title,
   icon,
-  subItems,
+  subItems = [],
   isOpen,
   onToggle,
 }) => {

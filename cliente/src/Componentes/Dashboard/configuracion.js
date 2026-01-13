@@ -1,3 +1,5 @@
+import { nivelesRendimientoPermitidos } from "../RendimientoAcademico/permisosRendimiento";
+
 export const menuSections = {
   Entrada: [
     { name: "Areas de aprendizaje", path: "areas-de-aprendizaje" },
@@ -36,6 +38,7 @@ export const menuSections = {
     {
       name: "Gestión de rendimiento académico",
       path: "gestion-de-rendimiento-academico",
+      nivelesPermitidos: nivelesRendimientoPermitidos,
     },
   ],
   Salidas: [

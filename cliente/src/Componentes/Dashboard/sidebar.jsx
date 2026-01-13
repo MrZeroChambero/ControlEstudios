@@ -11,6 +11,11 @@ import {
 } from "react-icons/md";
 import { SidebarMenuItem } from "./SidebarMenuItem";
 import { menuSections } from "./configuracion";
+import {
+  filtrarPorNivel,
+  obtenerNivelesUsuario,
+  interpretarNivelesEntrada,
+} from "../../utils/nivelesUsuario";
 
 export const Sidebar = () => {
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -29,6 +34,17 @@ export const Sidebar = () => {
       setNivel(storedNivel);
     }
   }, []);
+
+  const nivelesUsuario = nivel
+    ? interpretarNivelesEntrada(nivel)
+    : obtenerNivelesUsuario();
+
+  const seccionesFiltradas = Object.entries(menuSections).map(
+    ([section, items]) => ({
+      nombre: section,
+      items: filtrarPorNivel(items, nivelesUsuario),
+    })
+  );
 
   const menuIcons = {
     Entrada: <MdInput className="w-5 h-5 mr-3" />,
@@ -75,16 +91,21 @@ export const Sidebar = () => {
 
       {/* Enlaces del menú con secciones */}
       <nav className="flex-1 mt-6 px-4 space-y-2 overflow-y-auto sidebar-scroll">
-        {Object.keys(menuSections).map((section) => (
-          <SidebarMenuItem
-            key={section}
-            title={section}
-            icon={menuIcons[section]}
-            subItems={menuSections[section]} // Ahora enviamos el array de objetos
-            isOpen={openDropdowns[section]}
-            onToggle={() => toggleDropdown(section)}
-          />
-        ))}
+        {seccionesFiltradas.map(({ nombre, items }) => {
+          if (!items.length) {
+            return null;
+          }
+          return (
+            <SidebarMenuItem
+              key={nombre}
+              title={nombre}
+              icon={menuIcons[nombre]}
+              subItems={items}
+              isOpen={openDropdowns[nombre]}
+              onToggle={() => toggleDropdown(nombre)}
+            />
+          );
+        })}
       </nav>
       <div className="p-4 border-t border-gray-800">
         <button

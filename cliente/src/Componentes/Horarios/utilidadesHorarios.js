@@ -1,11 +1,13 @@
 import { diasSemanaOrdenados, diasSemanaEtiquetas } from "./constantesHorarios";
 import { diasSemanaOpciones } from "./constantesHorarios";
 
-const SEGMENTO_MINUTOS = 20;
+export const SEGMENTO_MINUTOS = 20;
+export const MIN_MINUTOS_COMPONENTE = 7 * 60 + 40;
+export const MAX_MINUTOS_JORNADA = 12 * 60;
 const TABLA_MINUTO_INICIO = 7 * 60;
 const TABLA_MINUTO_FIN = 12 * 60;
 
-const formatearMinutosA12Horas = (totalMin) => {
+export const formatearMinutosA12Horas = (totalMin) => {
   if (!Number.isFinite(totalMin)) {
     return "";
   }
@@ -24,7 +26,7 @@ const formatearMinutosA12Horas = (totalMin) => {
   return `${horas}:${String(minutos).padStart(2, "0")} ${sufijo}`;
 };
 
-const alinearMinutosASegmento = (totalMin, haciaArriba = false) => {
+export const alinearMinutosASegmento = (totalMin, haciaArriba = false) => {
   if (!Number.isFinite(totalMin)) {
     return totalMin;
   }
@@ -524,26 +526,39 @@ export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
   if (!inicio) {
     errores.hora_inicio =
       "Ingresa la hora de inicio con formato HH:MM (ej. 07:00).";
-  } else if (
-    inicio.horas < 7 ||
-    inicio.horas > 12 ||
-    (inicio.horas === 12 && inicio.minutos > 0)
-  ) {
-    errores.hora_inicio =
-      "La hora de inicio debe estar entre las 07:00 y las 12:00 m.";
+  } else {
+    if (
+      inicio.horas < 7 ||
+      inicio.horas > 12 ||
+      (inicio.horas === 12 && inicio.minutos > 0)
+    ) {
+      errores.hora_inicio =
+        "La hora de inicio debe estar entre las 07:00 y las 12:00 m.";
+    } else if (inicio.totalMinutos < MIN_MINUTOS_COMPONENTE) {
+      errores.hora_inicio =
+        "Las actividades académicas comienzan a las 07:40 a. m.";
+    } else if (inicio.totalMinutos % SEGMENTO_MINUTOS !== 0) {
+      errores.hora_inicio =
+        "La hora de inicio debe coincidir con los bloques de 20 minutos.";
+    }
   }
 
   const fin = parseHoraTexto(hora_fin);
   if (!fin) {
     errores.hora_fin =
       "Ingresa la hora de finalización con formato HH:MM (ej. 08:20).";
-  } else if (
-    fin.horas < 7 ||
-    fin.horas > 12 ||
-    (fin.horas === 12 && fin.minutos > 0)
-  ) {
-    errores.hora_fin =
-      "La hora de finalización debe estar entre las 07:00 y las 12:00 m (máximo 12:00).";
+  } else {
+    if (
+      fin.horas < 7 ||
+      fin.horas > 12 ||
+      (fin.horas === 12 && fin.minutos > 0)
+    ) {
+      errores.hora_fin =
+        "La hora de finalización debe estar entre las 07:00 y las 12:00 m (máximo 12:00).";
+    } else if (fin.totalMinutos % SEGMENTO_MINUTOS !== 0) {
+      errores.hora_fin =
+        "La hora de finalización debe coincidir con los bloques de 20 minutos.";
+    }
   }
 
   if (!errores.hora_inicio && !errores.hora_fin && inicio && fin) {
@@ -559,6 +574,15 @@ export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
           "La duración del bloque debe estar entre 20 y 40 minutos.";
         errores.duracion = mensaje;
         errores.hora_fin = errores.hora_fin || mensaje;
+      } else if (duracion % SEGMENTO_MINUTOS !== 0) {
+        const mensaje = "Las horas deben ajustarse a múltiplos de 20 minutos.";
+        errores.duracion = mensaje;
+        errores.hora_fin = errores.hora_fin || mensaje;
+      }
+      if (fin.totalMinutos < MIN_MINUTOS_COMPONENTE + SEGMENTO_MINUTOS) {
+        errores.hora_fin =
+          errores.hora_fin ||
+          "Los bloques deben culminar después de las 08:00 a. m.";
       }
     }
   }

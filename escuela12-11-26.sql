@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-01-2026 a las 21:06:06
+-- Tiempo de generación: 13-01-2026 a las 01:15:34
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -273,7 +273,7 @@ CREATE TABLE `bloqueos` (
 --
 
 INSERT INTO `bloqueos` (`id_bloqueo`, `fk_usuario`, `intentos`, `fecha_desbloqueo`, `bloqueos_seguidos`, `fecha_ultimo_bloqueo`, `tipo_bloqueo`) VALUES
-(4, 43, 3, '2026-01-07 18:39:08', 0, '2026-01-07 18:39:13', 'preguntas_de_seguridad');
+(4, 43, 0, '2026-01-12 03:39:28', 0, '2026-01-12 03:39:28', 'preguntas_de_seguridad');
 
 -- --------------------------------------------------------
 
@@ -290,13 +290,6 @@ CREATE TABLE `bloqueos_ip` (
   `fecha_ultimo_bloqueo` datetime NOT NULL,
   `tipo_bloqueo` enum('inicio_de_sesion','preguntas_de_seguridad','DDOS') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `bloqueos_ip`
---
-
-INSERT INTO `bloqueos_ip` (`id_bloqueo_ip`, `ip_hash`, `intentos`, `fecha_desbloqueo`, `bloqueos_seguidos`, `fecha_ultimo_bloqueo`, `tipo_bloqueo`) VALUES
-(6, 'eff8e7ca506627fe15dda5e0e512fcaad70b6d520f37cc76597fdb4f2d83a1a3', 3, '2026-01-07 18:39:08', 0, '2026-01-07 18:39:13', 'preguntas_de_seguridad');
 
 -- --------------------------------------------------------
 
@@ -803,6 +796,13 @@ CREATE TABLE `horarios` (
   `hora_fin` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `horarios`
+--
+
+INSERT INTO `horarios` (`id_horario`, `fk_aula`, `fk_momento`, `fk_componente`, `fk_personal`, `grupo`, `dia_semana`, `hora_inicio`, `hora_fin`) VALUES
+(2, 1, 11, 8, 1, 'completo', 'lunes', 7, 7.66667);
+
 -- --------------------------------------------------------
 
 --
@@ -1152,6 +1152,17 @@ CREATE TABLE `literal` (
   `descripcion` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `literal`
+--
+
+INSERT INTO `literal` (`id_literal`, `literal`, `descripcion`) VALUES
+(6, 'A2', 'Desempeño A2'),
+(7, 'B2', 'Desempeño B2'),
+(8, 'C2', 'Desempeño C2'),
+(9, 'D2', 'Desempeño D2'),
+(10, 'E2', 'Desempeño E2');
+
 -- --------------------------------------------------------
 
 --
@@ -1164,7 +1175,7 @@ CREATE TABLE `momentos` (
   `nombre_momento` enum('1','2','3') NOT NULL,
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date NOT NULL,
-  `estado_momento` enum('activo','finalizado') NOT NULL
+  `estado_momento` enum('activo','pendiente','finalizado') NOT NULL DEFAULT 'pendiente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1658,7 +1669,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(54, 43, 'b0df0df7fce2c72e7a2f2e17e6e5d25092477b8eff739b8fcba73406efdba7ac', '2026-01-09', '2026-01-10');
+(59, 43, '52ab5c04c520e26e4bb7edcd82d475721958ea30e07302e9464f47c71562f89c', '2026-01-12', '2026-01-13');
 
 -- --------------------------------------------------------
 
@@ -2348,7 +2359,7 @@ ALTER TABLE `habilidades`
 -- AUTO_INCREMENT de la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `imparte`
@@ -2378,7 +2389,7 @@ ALTER TABLE `lista_alergias`
 -- AUTO_INCREMENT de la tabla `literal`
 --
 ALTER TABLE `literal`
-  MODIFY `id_literal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_literal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `momentos`
@@ -2444,7 +2455,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

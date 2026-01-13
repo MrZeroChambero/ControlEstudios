@@ -808,6 +808,7 @@ export const horariosStatusClasses = {
   ...baseStatusPills,
   completo: "bg-blue-100 text-blue-700",
   subgrupo: "bg-purple-100 text-purple-700",
+  rutina: "bg-amber-100 text-amber-700",
 };
 
 export const horariosIconClasses = contenidosIconClasses;
