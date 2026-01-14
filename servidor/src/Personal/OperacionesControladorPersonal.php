@@ -150,7 +150,6 @@ trait OperacionesControladorPersonal
       $personalData = [
         'fk_persona' => $id_persona,
         'fk_cargo' => $data['fk_cargo'],
-        'fk_funcion' => $data['fk_funcion'],
         'fecha_contratacion' => $data['fecha_contratacion'],
         'nivel_academico' => $data['nivel_academico'] ?? null,
         'horas_trabajo' => $data['horas_trabajo'] ?? null,
@@ -228,7 +227,6 @@ trait OperacionesControladorPersonal
       // No permitir cambio de estado del personal aquí (se mantiene el existente)
       $personalData = [
         'fk_cargo' => $data['fk_cargo'],
-        'fk_funcion' => $data['fk_funcion'],
         'fecha_contratacion' => $data['fecha_contratacion'],
         'nivel_academico' => $data['nivel_academico'] ?? null,
         'horas_trabajo' => $data['horas_trabajo'] ?? null,
@@ -354,20 +352,6 @@ trait OperacionesControladorPersonal
       http_response_code(500);
       header('Content-Type: application/json');
       echo json_encode(['back' => false, 'message' => 'Error al obtener los cargos.', 'error_details' => $e->getMessage()]);
-    }
-  }
-
-  public function listarFunciones()
-  {
-    try {
-      $pdo = Conexion::obtener();
-      $funciones = self::consultarFunciones($pdo);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => true, 'data' => $funciones, 'message' => 'Funciones obtenidas exitosamente.']);
-    } catch (Exception $e) {
-      http_response_code(500);
-      header('Content-Type: application/json');
-      echo json_encode(['back' => false, 'message' => 'Error al obtener las funciones.', 'error_details' => $e->getMessage()]);
     }
   }
 

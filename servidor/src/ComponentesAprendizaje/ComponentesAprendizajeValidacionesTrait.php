@@ -14,7 +14,7 @@ trait ComponentesAprendizajeValidacionesTrait
     $datosDepurados = [
       'fk_area' => isset($datos['fk_area']) ? (int)$datos['fk_area'] : null,
       'nombre_componente' => $this->limpiarTexto($datos['nombre_componente'] ?? null),
-      'especialista' => $this->limpiarTexto($datos['especialista'] ?? null),
+      'especialista' => $this->normalizarTipoDocente($datos['especialista'] ?? null),
       'evalua' => $datos['evalua'] ?? 'no',
       'estado_componente' => $datos['estado_componente'] ?? 'activo',
     ];
@@ -23,7 +23,7 @@ trait ComponentesAprendizajeValidacionesTrait
     $validador->labels([
       'fk_area' => 'área de aprendizaje',
       'nombre_componente' => 'nombre del componente',
-      'especialista' => 'especialista',
+      'especialista' => 'tipo de docente responsable',
       'evalua' => 'indicador de evaluación',
       'estado_componente' => 'estado del componente',
     ]);
@@ -32,12 +32,12 @@ trait ComponentesAprendizajeValidacionesTrait
     $validador->rule('integer', 'fk_area');
     $validador->rule('min', 'fk_area', 1);
     $validador->rule('lengthBetween', 'nombre_componente', 3, 100);
-    $validador->rule('lengthBetween', 'especialista', 3, 50);
     $validador->rule('in', 'evalua', ['si', 'no']);
     $validador->rule('in', 'estado_componente', ['activo', 'inactivo']);
+    $validador->rule('in', 'especialista', self::TIPOS_DOCENTE_PERMITIDOS)
+      ->message('debe ser Docente de aula, Docente especialista o Docente de cultura.');
 
     $this->agregarReglaTextoPermitido($validador, 'nombre_componente', 100);
-    $this->agregarReglaTextoPermitido($validador, 'especialista', 50);
     $this->agregarReglaAreaExistente($validador, $conexion);
 
     if (!$validador->validate()) {

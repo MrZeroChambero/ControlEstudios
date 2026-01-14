@@ -6,6 +6,21 @@ use PDO;
 
 trait AulaAsignacionesConsultasTrait
 {
+  private const TIPOS_DOCENTE_COMPONENTE = [
+    'aula' => [
+      'codigo' => 'aula',
+      'nombre' => 'Docente de aula',
+    ],
+    'especialista' => [
+      'codigo' => 'especialista',
+      'nombre' => 'Docente especialista',
+    ],
+    'cultura' => [
+      'codigo' => 'cultura',
+      'nombre' => 'Docente de cultura',
+    ],
+  ];
+
   protected function obtenerMomentosPorAnio(PDO $conexion, int $anioId): array
   {
     $sql = 'SELECT id_momento,
@@ -45,10 +60,10 @@ trait AulaAsignacionesConsultasTrait
   protected function obtenerPersonalPorId(PDO $conexion, int $idPersonal): ?array
   {
     $sql = 'SELECT per.id_personal,
-                   per.estado AS estado_personal,
-                   per.fk_funcion,
-                   fp.tipo AS tipo_funcion,
-                   fp.nombre AS nombre_funcion,
+             per.estado AS estado_personal,
+             per.fk_cargo,
+             c.tipo AS tipo_funcion,
+             c.nombre_cargo AS nombre_funcion,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
@@ -56,7 +71,7 @@ trait AulaAsignacionesConsultasTrait
                    p.cedula,
                    p.estado AS estado_persona
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+           LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.id_personal = ?
             LIMIT 1';
@@ -75,7 +90,7 @@ trait AulaAsignacionesConsultasTrait
       'estado_persona' => $registro['estado_persona'],
       'tipo_funcion' => $registro['tipo_funcion'],
       'nombre_funcion' => $registro['nombre_funcion'],
-      'fk_funcion' => (int) $registro['fk_funcion'],
+      'fk_cargo' => isset($registro['fk_cargo']) ? (int) $registro['fk_cargo'] : null,
       'primer_nombre' => $registro['primer_nombre'],
       'segundo_nombre' => $registro['segundo_nombre'],
       'primer_apellido' => $registro['primer_apellido'],
@@ -162,12 +177,7 @@ trait AulaAsignacionesConsultasTrait
       }
 
       if (!empty($fila['id_componente']) && $fila['estado_componente'] === 'activo') {
-        $agrupado[$areaId]['componentes'][] = [
-          'id' => (int) $fila['id_componente'],
-          'nombre' => $fila['nombre_componente'],
-          'especialista' => $fila['especialista'],
-          'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
-        ];
+        $agrupado[$areaId]['componentes'][] = $this->mapearComponenteDesdeFila($fila);
       }
     }
 
@@ -176,20 +186,8 @@ trait AulaAsignacionesConsultasTrait
 
   protected function determinarSiRequiereEspecialista(?string $valor): bool
   {
-    if ($valor === null) {
-      return false;
-    }
-
-    $normalizado = strtolower(trim($valor));
-    if ($normalizado === '' || $normalizado === 'no') {
-      return false;
-    }
-
-    if ($normalizado === 'si' || $normalizado === 'sí') {
-      return true;
-    }
-
-    return str_contains($normalizado, 'especial');
+    $meta = $this->obtenerMetaTipoDocenteComponente($valor);
+    return in_array($meta['codigo'], ['especialista', 'cultura'], true);
   }
 
   protected function obtenerDocentesDisponibles(PDO $conexion, int $anioId): array
@@ -219,18 +217,19 @@ trait AulaAsignacionesConsultasTrait
 
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   fp.nombre AS funcion,
+                   c.nombre_cargo AS funcion,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
                    p.segundo_apellido,
                    p.cedula
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.estado = "activo"
               AND p.estado = "activo"
-              AND fp.tipo = "Docente"
+              AND c.tipo IS NOT NULL
+              AND LOWER(c.tipo) = "docente de aula"
             ORDER BY p.primer_nombre, p.primer_apellido';
 
     $sentencia = $conexion->query($sql);
@@ -254,18 +253,19 @@ trait AulaAsignacionesConsultasTrait
   {
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   fp.nombre AS funcion,
+                   c.nombre_cargo AS funcion,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
                    p.segundo_apellido,
                    p.cedula
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.estado = "activo"
               AND p.estado = "activo"
-              AND fp.tipo = "Especialista"
+              AND c.tipo IS NOT NULL
+              AND LOWER(c.tipo) IN ("docente especialista", "docente de cultura")
             ORDER BY p.primer_nombre, p.primer_apellido';
 
     $sentencia = $conexion->query($sql);
@@ -355,11 +355,14 @@ trait AulaAsignacionesConsultasTrait
              MIN(p.segundo_nombre) AS segundo_nombre,
              MIN(p.primer_apellido) AS primer_apellido,
              MIN(p.segundo_apellido) AS segundo_apellido,
+             MIN(car.tipo) AS tipo_cargo,
+             MIN(car.nombre_cargo) AS nombre_cargo,
              MIN(c.nombre_componente) AS nombre_componente,
              MIN(c.especialista) AS especialista
             FROM imparte i
             INNER JOIN personal per ON per.id_personal = i.fk_personal
             INNER JOIN personas p ON p.id_persona = per.fk_persona
+            LEFT JOIN cargos car ON car.id_cargo = per.fk_cargo
             INNER JOIN componentes_aprendizaje c ON c.id_componente = i.fk_componente
             WHERE i.tipo_docente = 'Especialista'
               AND i.fk_aula IN ($placeholders)
@@ -374,15 +377,20 @@ trait AulaAsignacionesConsultasTrait
     foreach ($filas as $fila) {
       $aulaId = (int) $fila['fk_aula'];
       $componenteId = (int) $fila['fk_componente'];
+      $tipoDocentePersonal = $this->normalizarTipoDocente($fila['tipo_cargo'] ?? null);
+
       $resultado[$aulaId][$componenteId] = [
-        'componente' => [
-          'id' => $componenteId,
-          'nombre' => $fila['nombre_componente'],
-          'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
-        ],
+        'componente' => $this->mapearComponenteDesdeFila([
+          'id_componente' => $fila['fk_componente'],
+          'nombre_componente' => $fila['nombre_componente'],
+          'especialista' => $fila['especialista'],
+        ]),
         'personal' => [
           'id_personal' => (int) $fila['fk_personal'],
           'nombre_completo' => $this->construirNombreCompleto($fila),
+          'tipo_cargo' => $fila['tipo_cargo'],
+          'nombre_cargo' => $fila['nombre_cargo'],
+          'tipo_docente' => $tipoDocentePersonal,
         ],
         'clases_totales' => $fila['clases_totales'] !== null ? (int) $fila['clases_totales'] : null,
       ];
@@ -412,13 +420,18 @@ trait AulaAsignacionesConsultasTrait
       $docente = $docentes[$aulaId] ?? null;
       $especialistasAsignados = $especialistas[$aulaId] ?? [];
       $componentesDocente = $docente['componentes'] ?? [];
-      $componentesDocenteSet = array_fill_keys($componentesDocente, true);
 
       $pendientesEspecialistas = 0;
       foreach ($componentesCatalogo as $componenteId => $componente) {
-        if (!empty($componente['requiere_especialista']) && !isset($especialistasAsignados[$componenteId])) {
-          $pendientesEspecialistas++;
+        if (empty($componente['requiere_especialista'])) {
+          continue;
         }
+
+        if (isset($especialistasAsignados[$componenteId])) {
+          continue;
+        }
+
+        $pendientesEspecialistas++;
       }
 
       return [
@@ -451,6 +464,47 @@ trait AulaAsignacionesConsultasTrait
       'docentes' => $docentesDisponibles,
       'especialistas' => $especialistasDisponibles,
     ];
+  }
+
+  protected function mapearComponenteDesdeFila(array $fila): array
+  {
+    $meta = $this->obtenerMetaTipoDocenteComponente($fila['especialista'] ?? null);
+
+    return [
+      'id' => isset($fila['id']) ? (int) $fila['id'] : (int) $fila['id_componente'],
+      'nombre' => $fila['nombre'] ?? $fila['nombre_componente'],
+      'especialista' => $meta['nombre'],
+      'tipo_docente' => $meta['codigo'],
+      'requiere_especialista' => in_array($meta['codigo'], ['especialista', 'cultura'], true),
+      'es_docente_aula' => $meta['codigo'] === 'aula',
+      'es_cultura' => $meta['codigo'] === 'cultura',
+    ];
+  }
+
+  protected function obtenerMetaTipoDocenteComponente(?string $valor): array
+  {
+    $normalizado = strtolower(trim((string) ($valor ?? '')));
+
+    if ($normalizado === '' || $normalizado === 'no') {
+      return self::TIPOS_DOCENTE_COMPONENTE['aula'];
+    }
+
+    if (str_contains($normalizado, 'cultur')) {
+      return self::TIPOS_DOCENTE_COMPONENTE['cultura'];
+    }
+
+    if (
+      str_contains($normalizado, 'especial') ||
+      in_array($normalizado, ['si', 'sí', 'docente especialista'], true)
+    ) {
+      return self::TIPOS_DOCENTE_COMPONENTE['especialista'];
+    }
+
+    if (str_contains($normalizado, 'aula')) {
+      return self::TIPOS_DOCENTE_COMPONENTE['aula'];
+    }
+
+    return self::TIPOS_DOCENTE_COMPONENTE['aula'];
   }
 
   protected function obtenerResumenGestionGeneral(PDO $conexion): array

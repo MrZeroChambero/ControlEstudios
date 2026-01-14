@@ -43,15 +43,14 @@ trait GestionPersonal
   {
     try {
       $sql = "INSERT INTO personal (
-        fk_persona, fk_cargo, fk_funcion, fecha_contratacion,
+        fk_persona, fk_cargo, fecha_contratacion,
         nivel_academico, horas_trabajo, rif, etnia_religion,
         cantidad_hijas, cantidad_hijos_varones, cod_dependencia, estado
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([
         $datosPersonal['fk_persona'],
         $datosPersonal['fk_cargo'],
-        $datosPersonal['fk_funcion'],
         $datosPersonal['fecha_contratacion'],
         $datosPersonal['nivel_academico'],
         $datosPersonal['horas_trabajo'],
@@ -83,14 +82,13 @@ trait GestionPersonal
   {
     try {
       $sql = "UPDATE personal SET 
-        fk_cargo = ?, fk_funcion = ?, fecha_contratacion = ?, nivel_academico = ?,
+        fk_cargo = ?, fecha_contratacion = ?, nivel_academico = ?,
         horas_trabajo = ?, rif = ?, etnia_religion = ?, cantidad_hijas = ?, cantidad_hijos_varones = ?,
         cod_dependencia = ?, estado = ?
       WHERE id_personal = ?";
       $stmt = $pdo->prepare($sql);
       return $stmt->execute([
         $datosPersonal['fk_cargo'],
-        $datosPersonal['fk_funcion'],
         $datosPersonal['fecha_contratacion'],
         $datosPersonal['nivel_academico'],
         $datosPersonal['horas_trabajo'],

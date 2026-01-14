@@ -153,11 +153,10 @@ trait OperacionesControladorRepresentante
         $datos['habilidades'] = $stmtHab->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         // Personal (si existe)
-        $stmtPer = $pdo->prepare("SELECT per.*, c.nombre_cargo, fp.nombre AS nombre_funcion
-                                   FROM personal per
-                                   LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
-                                   LEFT JOIN funcion_personal fp ON per.fk_funcion = fp.id_funcion_personal
-                                   WHERE per.fk_persona = ? LIMIT 1");
+        $stmtPer = $pdo->prepare("SELECT per.*, c.nombre_cargo, c.nombre_cargo AS nombre_funcion, c.tipo AS tipo_funcion
+                 FROM personal per
+                 LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
+                 WHERE per.fk_persona = ? LIMIT 1");
         $stmtPer->execute([$id_persona]);
         $personal = $stmtPer->fetch(PDO::FETCH_ASSOC);
         if ($personal) $datos['personal'] = $personal;

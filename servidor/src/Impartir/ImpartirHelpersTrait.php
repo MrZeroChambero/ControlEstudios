@@ -19,20 +19,7 @@ trait ImpartirHelpersTrait
 
   protected function determinarSiRequiereEspecialista(?string $valor): bool
   {
-    if ($valor === null) {
-      return false;
-    }
-
-    $normalizado = strtolower(trim($valor));
-    if ($normalizado === '' || $normalizado === 'no') {
-      return false;
-    }
-
-    if ($normalizado === 'si') {
-      return true;
-    }
-
-    return str_contains($normalizado, 'especial');
+    return in_array($this->normalizarTipoComponente($valor), ['especialista', 'cultura'], true);
   }
 
   protected function ordenarAulasPorGradoSeccion(array &$aulas): void
@@ -51,15 +38,74 @@ trait ImpartirHelpersTrait
 
   protected function esEspecialidadDocenteAula(?string $valor): bool
   {
+    return $this->normalizarTipoComponente($valor) === 'aula';
+  }
+
+  protected function normalizarTipoDocente(?string $valor): ?string
+  {
     if ($valor === null) {
-      return false;
+      return null;
     }
 
-    $normalizado = strtolower(trim($valor));
-    if ($normalizado === '') {
-      return false;
+    $clave = strtolower(trim($valor));
+    if ($clave === '') {
+      return null;
     }
 
-    return str_contains($normalizado, 'docente') && str_contains($normalizado, 'aula');
+    if (str_contains($clave, 'cultur')) {
+      return 'cultura';
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    if (str_contains($clave, 'aula') || str_contains($clave, 'integral') || str_contains($clave, 'guia')) {
+      return 'aula';
+    }
+
+    if (str_contains($clave, 'docente')) {
+      return 'aula';
+    }
+
+    if (str_contains($clave, 'admin')) {
+      return 'administrativo';
+    }
+
+    if (str_contains($clave, 'obrer')) {
+      return 'obrero';
+    }
+
+    return null;
+  }
+
+  protected function normalizarTipoComponente(?string $valor): string
+  {
+    if ($valor === null) {
+      return 'aula';
+    }
+
+    $clave = strtolower(trim($valor));
+    if ($clave === '' || $clave === 'no') {
+      return 'aula';
+    }
+
+    if ($clave === 'si') {
+      return 'especialista';
+    }
+
+    if (str_contains($clave, 'cultur')) {
+      return 'cultura';
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    if (str_contains($clave, 'docente') && str_contains($clave, 'aula')) {
+      return 'aula';
+    }
+
+    return 'aula';
   }
 }

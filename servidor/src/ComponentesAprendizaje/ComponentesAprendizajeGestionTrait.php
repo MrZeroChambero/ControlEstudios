@@ -11,7 +11,7 @@ trait ComponentesAprendizajeGestionTrait
     $datosDepurados = [
       'fk_area' => isset($datos['fk_area']) ? (int)$datos['fk_area'] : null,
       'nombre_componente' => $this->limpiarTexto($datos['nombre_componente'] ?? null),
-      'especialista' => $this->limpiarTexto($datos['especialista'] ?? null),
+      'especialista' => $this->normalizarTipoDocente($datos['especialista'] ?? null),
       'evalua' => $datos['evalua'] ?? 'no',
       'estado_componente' => 'activo',
     ];
@@ -58,8 +58,8 @@ trait ComponentesAprendizajeGestionTrait
         ? $this->limpiarTexto($datos['nombre_componente'])
         : $this->limpiarTexto($actual['nombre_componente']),
       'especialista' => array_key_exists('especialista', $datos)
-        ? $this->limpiarTexto($datos['especialista'])
-        : $this->limpiarTexto($actual['especialista']),
+        ? $this->normalizarTipoDocente($datos['especialista'])
+        : $this->normalizarTipoDocente($actual['especialista']),
       'evalua' => array_key_exists('evalua', $datos) ? $datos['evalua'] : $actual['evalua'],
       'estado_componente' => $actual['estado_componente'],
     ];

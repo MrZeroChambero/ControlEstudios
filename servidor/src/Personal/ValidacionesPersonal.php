@@ -86,13 +86,11 @@ trait ValidacionesPersonal
     $v->rules([
       'required' => [
         ['fk_cargo'],
-        ['fk_funcion'],
         ['fecha_contratacion']
       ],
       'date' => [['fecha_contratacion', 'Y-m-d']],
       'integer' => [
         ['fk_cargo'],
-        ['fk_funcion']
       ],
       'lengthMax' => [
         ['nivel_academico', 100],

@@ -20,7 +20,8 @@ trait ComponentesAprendizajeConsultasTrait
                 LEFT JOIN areas_aprendizaje a ON a.id_area_aprendizaje = c.fk_area
                 ORDER BY c.nombre_componente';
 
-    return $this->ejecutarConsulta($conexion, $sql);
+    $registros = $this->ejecutarConsulta($conexion, $sql);
+    return array_map(fn(array $fila): array => $this->mapearMetadatosComponente($fila), $registros);
   }
 
   public function consultarPorId(PDO $conexion, int $idComponente): ?array
@@ -37,7 +38,8 @@ trait ComponentesAprendizajeConsultasTrait
                 LEFT JOIN areas_aprendizaje a ON a.id_area_aprendizaje = c.fk_area
                 WHERE c.id_componente = ?';
 
-    return $this->ejecutarConsultaUnica($conexion, $sql, [$idComponente]);
+    $registro = $this->ejecutarConsultaUnica($conexion, $sql, [$idComponente]);
+    return $registro === null ? null : $this->mapearMetadatosComponente($registro);
   }
 
   public function existePorId(PDO $conexion, int $idComponente): bool
@@ -59,7 +61,8 @@ trait ComponentesAprendizajeConsultasTrait
                 WHERE estado_componente = 'activo'
                 ORDER BY nombre_componente";
 
-    return $this->ejecutarConsulta($conexion, $sql);
+    $registros = $this->ejecutarConsulta($conexion, $sql);
+    return array_map(fn(array $fila): array => $this->mapearMetadatosComponente($fila), $registros);
   }
 
   public function consultarParaSelect(PDO $conexion): array
@@ -105,5 +108,19 @@ trait ComponentesAprendizajeConsultasTrait
     $sql = 'SELECT COUNT(*) FROM areas_aprendizaje WHERE id_area_aprendizaje = ?';
     $total = (int)$this->ejecutarValor($conexion, $sql, [$idArea]);
     return $total > 0;
+  }
+
+  protected function mapearMetadatosComponente(array $registro): array
+  {
+    $tipoDocente = $this->normalizarTipoDocente($registro['especialista'] ?? null) ?? 'Docente de aula';
+    $codigoTipo = $this->obtenerCodigoTipoDocente($tipoDocente) ?? 'aula';
+
+    $registro['especialista'] = $tipoDocente;
+    $registro['tipo_docente'] = $codigoTipo;
+    $registro['requiere_especialista'] = in_array($codigoTipo, ['especialista', 'cultura'], true);
+    $registro['es_cultura'] = $codigoTipo === 'cultura';
+    $registro['es_docente_aula'] = $codigoTipo === 'aula';
+
+    return $registro;
   }
 }

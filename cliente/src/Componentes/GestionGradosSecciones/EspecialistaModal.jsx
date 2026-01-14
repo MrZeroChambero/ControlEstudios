@@ -4,6 +4,7 @@ import {
   contenidosFormClasses,
   neutralButtonBase,
   helperTextBase,
+  typePillBase,
 } from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
@@ -21,6 +22,60 @@ const flattenComponents = (areas) => {
   return resultado;
 };
 
+const tipoDocenteTokens = {
+  aula: "bg-blue-100 text-blue-700",
+  especialista: "bg-purple-100 text-purple-700",
+  cultura: "bg-amber-100 text-amber-700",
+};
+
+const normalizarCodigoTipoDocente = (valor) => {
+  const texto = String(valor ?? "")
+    .toLowerCase()
+    .trim();
+
+  if (!texto || texto === "no") {
+    return "aula";
+  }
+
+  if (texto.includes("cultur")) {
+    return "cultura";
+  }
+
+  if (texto.includes("especial")) {
+    return "especialista";
+  }
+
+  if (texto.includes("aula")) {
+    return "aula";
+  }
+
+  return "especialista";
+};
+
+const obtenerMetaTipoDocente = (componente) => {
+  const codigo = componente?.tipo_docente
+    ? String(componente.tipo_docente)
+    : componente?.es_cultura
+    ? "cultura"
+    : componente?.requiere_especialista
+    ? "especialista"
+    : "aula";
+
+  const etiqueta = componente?.especialista
+    ? componente.especialista
+    : codigo === "cultura"
+    ? "Docente de cultura"
+    : codigo === "especialista"
+    ? "Docente especialista"
+    : "Docente de aula";
+
+  return {
+    codigo,
+    etiqueta,
+    pillClass: tipoDocenteTokens[codigo] || tipoDocenteTokens.especialista,
+  };
+};
+
 export const EspecialistaModal = ({
   isOpen,
   onClose,
@@ -35,6 +90,13 @@ export const EspecialistaModal = ({
     () => componentes.filter((item) => item.requiere_especialista),
     [componentes]
   );
+  const componentesPorId = useMemo(() => {
+    const mapa = new Map();
+    componentesEspecialistas.forEach((item) => {
+      mapa.set(String(item.id), item);
+    });
+    return mapa;
+  }, [componentesEspecialistas]);
   const opcionesComponentes = useMemo(() => {
     if (!componentesEspecialistas.length) {
       return [];
@@ -94,6 +156,61 @@ export const EspecialistaModal = ({
       }));
     }
   }, [formState.id_componente, isOpen, opcionesComponentes]);
+
+  const componenteActivo = useMemo(() => {
+    if (!formState.id_componente) {
+      return null;
+    }
+    return componentesPorId.get(String(formState.id_componente)) ?? null;
+  }, [componentesPorId, formState.id_componente]);
+
+  const especialistasTipados = useMemo(
+    () =>
+      especialistas.map((item) => ({
+        ...item,
+        tipo_docente: normalizarCodigoTipoDocente(item.funcion),
+      })),
+    [especialistas]
+  );
+
+  const especialistasFiltrados = useMemo(() => {
+    if (!componenteActivo) {
+      return especialistasTipados;
+    }
+
+    const tipoEsperado =
+      componenteActivo.tipo_docente === "cultura" ? "cultura" : "especialista";
+    return especialistasTipados.filter(
+      (item) => item.tipo_docente === tipoEsperado
+    );
+  }, [componenteActivo, especialistasTipados]);
+
+  useEffect(() => {
+    if (!isOpen || !formState.id_personal) {
+      return;
+    }
+
+    const sigueVigente = especialistasFiltrados.some(
+      (item) => String(item.id_personal) === formState.id_personal
+    );
+
+    if (!sigueVigente) {
+      setFormState((prev) => ({ ...prev, id_personal: "" }));
+    }
+  }, [especialistasFiltrados, formState.id_personal, isOpen]);
+
+  const opcionesEspecialistas = useMemo(() => {
+    if (!componenteActivo) {
+      return especialistasTipados;
+    }
+    if (especialistasFiltrados.length) {
+      return especialistasFiltrados;
+    }
+    return [];
+  }, [componenteActivo, especialistasFiltrados, especialistasTipados]);
+
+  const sinEspecialistasDisponibles =
+    Boolean(componenteActivo) && opcionesEspecialistas.length === 0;
 
   if (!isOpen) {
     return null;
@@ -180,34 +297,35 @@ export const EspecialistaModal = ({
 
         {formState.id_componente ? (
           <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
-            {(() => {
-              const componenteActivo = opcionesComponentes.find(
-                (item) => String(item.id) === formState.id_componente
-              );
-
-              if (!componenteActivo) {
-                return (
-                  <p className={`${helperTextBase} text-amber-600`}>
-                    Selecciona un componente para ver los detalles.
-                  </p>
-                );
-              }
-
-              return (
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-slate-700">
-                    {componenteActivo.nombre}
-                  </p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
-                    Area: {componenteActivo.areaNombre}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Este componente requiere la asignacion de un especialista
-                    para completar la cobertura del aula.
-                  </p>
-                </div>
-              );
-            })()}
+            {componenteActivo ? (
+              <div className="space-y-3">
+                {(() => {
+                  const meta = obtenerMetaTipoDocente(componenteActivo);
+                  return (
+                    <span
+                      className={`${typePillBase} ${meta.pillClass} inline-flex`}
+                    >
+                      {meta.etiqueta}
+                    </span>
+                  );
+                })()}
+                <p className="text-sm font-semibold text-slate-700">
+                  {componenteActivo.nombre}
+                </p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Area: {componenteActivo.areaNombre}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {componenteActivo.tipo_docente === "cultura"
+                    ? "Este componente solo puede ser impartido por docentes de cultura."
+                    : "Este componente requiere un docente especialista asignado."}
+                </p>
+              </div>
+            ) : (
+              <p className={`${helperTextBase} text-amber-600`}>
+                Selecciona un componente para ver los detalles.
+              </p>
+            )}
           </div>
         ) : null}
 
@@ -224,20 +342,29 @@ export const EspecialistaModal = ({
             className={contenidosFormClasses.select}
             value={formState.id_personal}
             onChange={manejarCambio}
+            disabled={sinEspecialistasDisponibles}
           >
             <option value="">Seleccione un especialista</option>
-            {especialistas.map((especialista) => (
+            {opcionesEspecialistas.map((especialista) => (
               <option
                 key={especialista.id_personal}
                 value={especialista.id_personal}
               >
                 {especialista.nombre_completo}
                 {especialista.cedula ? ` (${especialista.cedula})` : ""}
+                {especialista.tipo_docente === "cultura"
+                  ? " — Cultura"
+                  : " — Especialista"}
               </option>
             ))}
           </select>
           {errores?.id_personal && (
             <p className={helperTextBase}>{errores.id_personal.join(" ")}</p>
+          )}
+          {sinEspecialistasDisponibles && !errores?.id_personal && (
+            <p className={`${helperTextBase} mt-2 text-amber-600`}>
+              No hay especialistas disponibles para el tipo seleccionado.
+            </p>
           )}
         </div>
 
@@ -277,6 +404,7 @@ EspecialistaModal.propTypes = {
       id_personal: PropTypes.number.isRequired,
       nombre_completo: PropTypes.string.isRequired,
       cedula: PropTypes.string,
+      funcion: PropTypes.string,
     })
   ),
   areas: PropTypes.array,

@@ -14,7 +14,6 @@ trait ConsultasPersonal
         per.id_personal,
         per.fk_persona,
         per.fk_cargo,
-        per.fk_funcion,
         per.fecha_contratacion,
         per.nivel_academico,
         per.horas_trabajo,
@@ -40,13 +39,12 @@ trait ConsultasPersonal
         p.estado AS estado_persona,
         c.nombre_cargo,
         c.tipo AS tipo_cargo,
-        fp.nombre AS nombre_funcion,
-        fp.tipo AS tipo_funcion,
+        c.nombre_cargo AS nombre_funcion,
+        c.tipo AS tipo_funcion,
         TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad
       FROM personal per
       INNER JOIN personas p ON per.fk_persona = p.id_persona
       LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
-      LEFT JOIN funcion_personal fp ON per.fk_funcion = fp.id_funcion_personal
       ORDER BY p.primer_nombre, p.primer_apellido";
       $stmt = $pdo->prepare($sql);
       $stmt->execute();
@@ -117,7 +115,6 @@ trait ConsultasPersonal
         per.id_personal,
         per.fk_persona,
         per.fk_cargo,
-        per.fk_funcion,
         per.fecha_contratacion,
         per.nivel_academico,
         per.horas_trabajo,
@@ -143,13 +140,12 @@ trait ConsultasPersonal
         p.estado AS estado_persona,
         c.nombre_cargo,
         c.tipo AS tipo_cargo,
-        fp.nombre AS nombre_funcion,
-        fp.tipo AS tipo_funcion,
+        c.nombre_cargo AS nombre_funcion,
+        c.tipo AS tipo_funcion,
         TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad
       FROM personal per
       INNER JOIN personas p ON per.fk_persona = p.id_persona
       LEFT JOIN cargos c ON per.fk_cargo = c.id_cargo
-      LEFT JOIN funcion_personal fp ON per.fk_funcion = fp.id_funcion_personal
       WHERE per.id_personal = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id_personal]);
@@ -168,18 +164,6 @@ trait ConsultasPersonal
       return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
       throw new Exception("Error al consultar cargos: " . $e->getMessage());
-    }
-  }
-
-  public static function consultarFunciones($pdo)
-  {
-    try {
-      $sql = "SELECT id_funcion_personal, nombre, tipo FROM funcion_personal ORDER BY nombre";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute();
-      return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-      throw new Exception("Error al consultar funciones: " . $e->getMessage());
     }
   }
 }

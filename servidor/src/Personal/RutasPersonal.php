@@ -59,5 +59,4 @@ function registrarRutasPersonal(
   $mapAuthenticated('PATCH', '/personal/[i:id]/estado', [$controlador, 'cambiarEstadoPersonal']);
   $mapAuthenticated('DELETE', '/personal/[i:id]', [$controlador, 'eliminarPersonal']);
   $mapAuthenticated('GET', '/personal/cargos', [$controlador, 'listarCargos']);
-  $mapAuthenticated('GET', '/personal/funciones', [$controlador, 'listarFunciones']);
 }

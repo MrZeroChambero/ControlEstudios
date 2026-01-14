@@ -239,21 +239,21 @@ class Usuarios
   {
     try {
       $sql = "SELECT 
-                    p.id_personal,
-                    per.primer_nombre, 
-                    per.segundo_nombre, 
-                    per.primer_apellido, 
-                    per.segundo_apellido,
-                    per.cedula,
-                    car.nombre_cargo,
-                    fp.nombre as funcion,
-                    fp.tipo as tipo_funcion
-                FROM personal p
-                INNER JOIN personas per ON p.fk_persona = per.id_persona
-                LEFT JOIN cargos car ON p.fk_cargo = car.id_cargo
-                LEFT JOIN funcion_personal fp ON p.fk_funcion = fp.id_funcion_personal
-                WHERE p.estado = 'activo'
-                AND fp.tipo IN ('Docente', 'Especialista', 'Administrativo')
+              p.id_personal,
+              per.primer_nombre, 
+              per.segundo_nombre, 
+              per.primer_apellido, 
+              per.segundo_apellido,
+              per.cedula,
+              car.nombre_cargo,
+              car.nombre_cargo AS funcion,
+              car.tipo as tipo_funcion
+            FROM personal p
+            INNER JOIN personas per ON p.fk_persona = per.id_persona
+            LEFT JOIN cargos car ON p.fk_cargo = car.id_cargo
+            WHERE p.estado = 'activo'
+            AND car.tipo IS NOT NULL
+            AND LOWER(car.tipo) IN ('docente de aula', 'docente especialista', 'docente de cultura', 'administrativo')
                 AND p.id_personal NOT IN (
                     SELECT u.fk_personal 
                     FROM usuarios u 
@@ -273,10 +273,11 @@ class Usuarios
   {
     try {
       $sql = "SELECT COUNT(*) as count 
-                FROM personal p
-                INNER JOIN funcion_personal fp ON p.fk_funcion = fp.id_funcion_personal
-                WHERE p.id_personal = ? 
-                AND fp.tipo IN ('Docente', 'Especialista', 'Administrativo')";
+            FROM personal p
+            LEFT JOIN cargos car ON p.fk_cargo = car.id_cargo
+            WHERE p.id_personal = ? 
+            AND car.tipo IS NOT NULL
+            AND LOWER(car.tipo) IN ('docente de aula', 'docente especialista', 'docente de cultura', 'administrativo')";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id_personal]);
       $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -309,8 +310,8 @@ class Usuarios
                     per.email,
                     per.tipo_sangre,
                     car.nombre_cargo,
-                    fp.nombre as funcion_personal,
-                    fp.tipo as tipo_funcion,
+                    car.nombre_cargo as funcion_personal,
+                    car.tipo as tipo_funcion,
                     p.fecha_contratacion,
                     p.nivel_academico,
                     p.horas_trabajo,
@@ -322,7 +323,6 @@ class Usuarios
                 INNER JOIN personal p ON u.fk_personal = p.id_personal
                 INNER JOIN personas per ON p.fk_persona = per.id_persona
                 LEFT JOIN cargos car ON p.fk_cargo = car.id_cargo
-                LEFT JOIN funcion_personal fp ON p.fk_funcion = fp.id_funcion_personal
                 WHERE u.id_usuario = ?";
       $stmt = $pdo->prepare($sql);
       $stmt->execute([$id]);

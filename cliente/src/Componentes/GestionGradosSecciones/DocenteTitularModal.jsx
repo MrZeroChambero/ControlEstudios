@@ -4,8 +4,15 @@ import {
   contenidosFormClasses,
   neutralButtonBase,
   helperTextBase,
+  typePillBase,
 } from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+
+const tipoDocenteTokens = {
+  aula: "bg-blue-100 text-blue-700",
+  especialista: "bg-purple-100 text-purple-700",
+  cultura: "bg-amber-100 text-amber-700",
+};
 
 const buildComponentList = (areas) => {
   const resultado = [];
@@ -19,6 +26,32 @@ const buildComponentList = (areas) => {
     });
   });
   return resultado;
+};
+
+const obtenerMetaTipoDocente = (componente) => {
+  const codigo = componente?.tipo_docente
+    ? String(componente.tipo_docente)
+    : componente?.es_docente_aula
+    ? "aula"
+    : componente?.es_cultura
+    ? "cultura"
+    : componente?.requiere_especialista
+    ? "especialista"
+    : "aula";
+
+  const etiqueta = componente?.especialista
+    ? componente.especialista
+    : codigo === "cultura"
+    ? "Docente de cultura"
+    : codigo === "especialista"
+    ? "Docente especialista"
+    : "Docente de aula";
+
+  return {
+    codigo,
+    etiqueta,
+    pillClass: tipoDocenteTokens[codigo] || tipoDocenteTokens.aula,
+  };
 };
 
 export const DocenteTitularModal = ({
@@ -171,6 +204,16 @@ export const DocenteTitularModal = ({
                   key={`${componente.id}-${componente.areaId}`}
                   className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
+                  {(() => {
+                    const meta = obtenerMetaTipoDocente(componente);
+                    return (
+                      <span
+                        className={`${typePillBase} ${meta.pillClass} mb-2 w-max`}
+                      >
+                        {meta.etiqueta}
+                      </span>
+                    );
+                  })()}
                   <span className="block break-words text-sm font-semibold text-slate-800">
                     {componente.nombre}
                   </span>
@@ -261,6 +304,8 @@ DocenteTitularModal.propTypes = {
           nombre: PropTypes.string.isRequired,
           requiere_especialista: PropTypes.bool,
           es_docente_aula: PropTypes.bool,
+          tipo_docente: PropTypes.string,
+          es_cultura: PropTypes.bool,
         })
       ),
     })

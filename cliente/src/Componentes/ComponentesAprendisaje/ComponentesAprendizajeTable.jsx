@@ -12,6 +12,7 @@ import {
   componentesStatusClasses,
   componentesIconClasses,
   dataTableBaseStyles,
+  typePillBase,
 } from "../EstilosCliente/EstilosClientes";
 
 export const ComponentesAprendizajeTable = ({
@@ -34,12 +35,26 @@ export const ComponentesAprendizajeTable = ({
       item.nombre_componente,
       item.nombre_area,
       item.especialista,
+      item.tipo_docente,
     ];
 
     return campos.some(
       (campo) => campo && campo.toLowerCase().includes(filtro)
     );
   });
+
+  const tipoDocentePills = {
+    aula: "bg-blue-100 text-blue-700",
+    especialista: "bg-purple-100 text-purple-700",
+    cultura: "bg-amber-100 text-amber-700",
+  };
+
+  const obtenerTipoDocentePill = (row) => {
+    const codigo = row.tipo_docente || "aula";
+    const clases = tipoDocentePills[codigo] || tipoDocentePills.aula;
+    const etiqueta = row.especialista || "Docente de aula";
+    return <span className={`${typePillBase} ${clases}`}>{etiqueta}</span>;
+  };
 
   const columns = [
     {
@@ -56,11 +71,12 @@ export const ComponentesAprendizajeTable = ({
       grow: 2,
     },
     {
-      name: "Especialista",
-      selector: (row) => row.especialista || "N/A",
+      name: "Tipo de docente",
+      selector: (row) => row.especialista || "Docente de aula",
       sortable: true,
-      grow: 1.5,
+      grow: 1.4,
       wrap: true,
+      cell: obtenerTipoDocentePill,
     },
     {
       name: "Evalúa",
@@ -148,7 +164,7 @@ export const ComponentesAprendizajeTable = ({
     <div className={componentesTableClasses.filterContainer}>
       <input
         type="text"
-        placeholder="Buscar por nombre, área o especialista"
+        placeholder="Buscar por nombre, área o tipo"
         className={componentesTableClasses.filterInput}
         onChange={(e) => setFilterText(e.target.value)}
         value={filterText}

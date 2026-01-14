@@ -244,10 +244,6 @@ function registrarTodasLasRutas(): Router
   // Incluye y registra las rutas de cargos
   require_once __DIR__ . '/Cargo/RutasCargo.php';
   registrarRutasCargo($router);
-
-  // Incluye y registra las rutas de función del personal
-  require_once __DIR__ . '/FuncionPersonal/RutasFuncionPersonal.php';
-  registrarRutasFuncionPersonal($router);
   // Incluye y registra las rutas de áreas de aprendizaje
   require_once __DIR__ . '/AreasAprendizaje/RutasAreasAprendizaje.php';
   registrarRutasAreasAprendizaje($router, $mapAuthenticatedRole, $rolesDirectorAdminDocente);

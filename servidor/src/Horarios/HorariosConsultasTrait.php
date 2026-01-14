@@ -28,8 +28,8 @@ trait HorariosConsultasTrait
                    comp.nombre_componente,
                    comp.especialista,
                    per.estado AS estado_personal,
-                   fun.tipo AS tipo_funcion,
-                   fun.nombre AS nombre_funcion,
+                   c.tipo AS tipo_funcion,
+                   c.nombre_cargo AS nombre_funcion,
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
@@ -43,7 +43,7 @@ trait HorariosConsultasTrait
             INNER JOIN momentos m ON m.id_momento = h.fk_momento
             INNER JOIN componentes_aprendizaje comp ON comp.id_componente = h.fk_componente
             INNER JOIN personal per ON per.id_personal = h.fk_personal
-            INNER JOIN funcion_personal fun ON fun.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas ON personas.id_persona = per.fk_persona
             WHERE h.id_horario = ?
             LIMIT 1';
@@ -98,8 +98,8 @@ trait HorariosConsultasTrait
                    comp.nombre_componente,
                    comp.especialista,
                    per.estado AS estado_personal,
-                   fun.tipo AS tipo_funcion,
-                   fun.nombre AS nombre_funcion,
+                   c.tipo AS tipo_funcion,
+                   c.nombre_cargo AS nombre_funcion,
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
@@ -113,7 +113,7 @@ trait HorariosConsultasTrait
             INNER JOIN momentos m ON m.id_momento = h.fk_momento
             INNER JOIN componentes_aprendizaje comp ON comp.id_componente = h.fk_componente
             INNER JOIN personal per ON per.id_personal = h.fk_personal
-            INNER JOIN funcion_personal fun ON fun.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas ON personas.id_persona = per.fk_persona';
 
     if (!empty($filtros)) {
@@ -259,8 +259,8 @@ trait HorariosConsultasTrait
                    i.tipo_docente,
                    i.clases_totales
             FROM imparte i
-            INNER JOIN personal per ON per.id_personal = i.fk_personal
-            WHERE i.fk_aula = ?
+            INNER JOIN personal per ON per.id_personal = h.fk_personal
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
               AND i.fk_momento = ?
               AND i.fk_componente = ?
               AND i.fk_personal = ?

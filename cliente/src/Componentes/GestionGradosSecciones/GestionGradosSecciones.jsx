@@ -11,6 +11,7 @@ import {
   contenidosLayout,
   helperTextBase,
   neutralButtonBase,
+  typePillBase,
 } from "../EstilosCliente/EstilosClientes";
 import {
   obtenerGestionDocentes,
@@ -24,6 +25,87 @@ import { EspecialistaModal } from "./EspecialistaModal";
 import { formatearFechaCorta } from "../../utilidades/formatoFechas";
 
 const layout = contenidosLayout;
+
+const tipoDocenteTokens = {
+  aula: "bg-blue-100 text-blue-700",
+  especialista: "bg-purple-100 text-purple-700",
+  cultura: "bg-amber-100 text-amber-700",
+};
+
+const normalizarCodigoTipoDocente = (valor) => {
+  const texto = (valor ?? "").toString().toLowerCase().trim();
+
+  if (!texto || texto === "no") {
+    return null;
+  }
+
+  if (texto.includes("cultur")) {
+    return "cultura";
+  }
+
+  if (texto.includes("especial")) {
+    return "especialista";
+  }
+
+  if (texto.includes("aula")) {
+    return "aula";
+  }
+
+  if (texto.includes("admin")) {
+    return "administrativo";
+  }
+
+  return null;
+};
+
+const obtenerMetaTipoDocente = (componente) => {
+  const codigo = componente?.tipo_docente
+    ? String(componente.tipo_docente)
+    : componente?.es_docente_aula
+    ? "aula"
+    : componente?.es_cultura
+    ? "cultura"
+    : componente?.requiere_especialista
+    ? "especialista"
+    : "aula";
+
+  const etiqueta = componente?.especialista
+    ? componente.especialista
+    : codigo === "cultura"
+    ? "Docente de cultura"
+    : codigo === "especialista"
+    ? "Docente especialista"
+    : "Docente de aula";
+
+  return {
+    codigo,
+    etiqueta,
+    pillClass: tipoDocenteTokens[codigo] || tipoDocenteTokens.aula,
+  };
+};
+
+const obtenerMetaDesdePersonal = (personal) => {
+  if (!personal) {
+    return null;
+  }
+
+  const codigoNormalizado =
+    (personal.tipo_docente && String(personal.tipo_docente)) ||
+    normalizarCodigoTipoDocente(
+      personal.tipo_cargo || personal.nombre_cargo || personal.funcion
+    );
+
+  if (!codigoNormalizado) {
+    return null;
+  }
+
+  return obtenerMetaTipoDocente({
+    tipo_docente: codigoNormalizado,
+    es_cultura: codigoNormalizado === "cultura",
+    requiere_especialista: codigoNormalizado === "especialista",
+    especialista: personal.nombre_cargo || personal.funcion || null,
+  });
+};
 
 const crearResumenVacio = () => ({
   anio: null,
@@ -412,9 +494,30 @@ export const GestionGradosSecciones = () => {
                       mapaEspecialistas.get(componenteId);
                     const requiereEspecialista =
                       componente.requiere_especialista === true;
+                    const metaDocente = obtenerMetaTipoDocente(componente);
                     const especialistaNombre =
                       registroEspecialista?.personal?.nombre_completo ??
                       "Sin asignar";
+                    const metaEspecialistaAsignado = obtenerMetaDesdePersonal(
+                      registroEspecialista?.personal
+                    );
+                    const descripcion = (() => {
+                      if (cubiertoTitular) {
+                        return "A cargo del docente titular";
+                      }
+
+                      if (!requiereEspecialista) {
+                        return "Pendiente de asignar docente titular";
+                      }
+
+                      if (registroEspecialista) {
+                        return `Especialista asignado: ${especialistaNombre}`;
+                      }
+
+                      return metaDocente.codigo === "cultura"
+                        ? "Asigna un docente de cultura para este componente"
+                        : "Asignar un docente especialista para completar la cobertura.";
+                    })();
 
                     return (
                       <div
@@ -422,16 +525,33 @@ export const GestionGradosSecciones = () => {
                         className="flex flex-col gap-3 rounded-2xl border border-white bg-white p-5 shadow-sm"
                       >
                         <div className="space-y-2">
-                          <span className="block text-base font-semibold text-slate-800 break-words">
-                            {componente.nombre}
-                          </span>
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <span className="block break-words text-base font-semibold text-slate-800">
+                              {componente.nombre}
+                            </span>
+                            <span
+                              className={`${typePillBase} ${metaDocente.pillClass}`}
+                            >
+                              {metaDocente.etiqueta}
+                            </span>
+                          </div>
                           <p className="text-xs text-slate-500 break-words">
-                            {cubiertoTitular
-                              ? "A cargo del docente titular"
-                              : requiereEspecialista
-                              ? `Especialista: ${especialistaNombre}`
-                              : "Pendiente de asignar docente titular"}
+                            {descripcion}
                           </p>
+                          {registroEspecialista && (
+                            <div className="flex flex-wrap items-center gap-2">
+                              {metaEspecialistaAsignado && (
+                                <span
+                                  className={`${typePillBase} ${metaEspecialistaAsignado.pillClass}`}
+                                >
+                                  {metaEspecialistaAsignado.etiqueta}
+                                </span>
+                              )}
+                              <span className="text-[11px] font-semibold text-slate-600">
+                                {especialistaNombre}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
@@ -444,7 +564,9 @@ export const GestionGradosSecciones = () => {
                             requiereEspecialista &&
                             registroEspecialista && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 font-semibold text-sky-700">
-                                <FaUserCog className="h-4 w-4" /> Especialista
+                                <FaUserCog className="h-4 w-4" />
+                                {metaEspecialistaAsignado?.etiqueta ||
+                                  "Especialista"}
                               </span>
                             )}
                           {!cubiertoTitular && !requiereEspecialista && (
@@ -461,7 +583,9 @@ export const GestionGradosSecciones = () => {
                               <span
                                 className={`${helperTextBase} text-amber-600`}
                               >
-                                Pendiente de asignar especialista
+                                {metaDocente.codigo === "cultura"
+                                  ? "Pendiente de asignar docente de cultura"
+                                  : "Pendiente de asignar especialista"}
                               </span>
                             )}
                         </div>
@@ -477,7 +601,9 @@ export const GestionGradosSecciones = () => {
                             >
                               <FaUserCog />
                               {registroEspecialista
-                                ? "Cambiar"
+                                ? "Cambiar especialista"
+                                : metaDocente.codigo === "cultura"
+                                ? "Asignar docente de cultura"
                                 : "Asignar especialista"}
                             </button>
                           )}
@@ -561,7 +687,9 @@ export const GestionGradosSecciones = () => {
           const componenteNombre = registro?.componente?.nombre ?? "Componente";
           const especialistaNombre =
             registro?.personal?.nombre_completo ?? "Sin especialista";
-          return `${componenteNombre}: ${especialistaNombre}`;
+          const meta = obtenerMetaDesdePersonal(registro?.personal);
+          const tipo = meta?.etiqueta ? ` — ${meta.etiqueta}` : "";
+          return `${componenteNombre}: ${especialistaNombre}${tipo}`;
         }
       );
 

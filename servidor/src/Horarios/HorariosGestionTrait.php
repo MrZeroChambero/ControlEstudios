@@ -333,16 +333,16 @@ trait HorariosGestionTrait
     $parametros = [$aulaId];
 
     $sql = 'SELECT DISTINCT i.fk_personal,
-                            per.estado,
-                            fun.tipo,
-                            fun.nombre AS funcion,
+                per.estado,
+                c.tipo,
+                c.nombre_cargo AS funcion,
                             personas.primer_nombre,
                             personas.segundo_nombre,
                             personas.primer_apellido,
                             personas.segundo_apellido
             FROM imparte i
             INNER JOIN personal per ON per.id_personal = i.fk_personal
-            INNER JOIN funcion_personal fun ON fun.id_funcion_personal = per.fk_funcion
+        LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas ON personas.id_persona = per.fk_persona
             WHERE i.fk_aula = ?';
 

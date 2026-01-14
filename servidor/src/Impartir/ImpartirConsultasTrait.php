@@ -143,9 +143,9 @@ trait ImpartirConsultasTrait
   {
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   per.fk_funcion,
-                   fp.tipo AS tipo_funcion,
-                   fp.nombre AS nombre_funcion,
+                   per.fk_cargo,
+                   c.tipo AS tipo_funcion,
+                   c.nombre_cargo AS nombre_funcion,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
@@ -153,7 +153,7 @@ trait ImpartirConsultasTrait
                    p.cedula,
                    p.estado AS estado_persona
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.id_personal = ?
             LIMIT 1';
@@ -172,7 +172,7 @@ trait ImpartirConsultasTrait
       'estado_persona' => $registro['estado_persona'],
       'tipo_funcion' => $registro['tipo_funcion'],
       'nombre_funcion' => $registro['nombre_funcion'],
-      'fk_funcion' => (int) $registro['fk_funcion'],
+      'fk_cargo' => isset($registro['fk_cargo']) ? (int) $registro['fk_cargo'] : null,
       'primer_nombre' => $registro['primer_nombre'],
       'segundo_nombre' => $registro['segundo_nombre'],
       'primer_apellido' => $registro['primer_apellido'],
@@ -219,14 +219,16 @@ trait ImpartirConsultasTrait
     $registros = $sentencia->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     return array_map(function (array $fila): array {
+      $tipoComponente = $this->normalizarTipoComponente($fila['especialista'] ?? null);
       return [
         'id_componente' => (int) $fila['id_componente'],
         'fk_area' => (int) $fila['fk_area'],
         'nombre_componente' => $fila['nombre_componente'],
         'especialista' => $fila['especialista'],
         'estado' => $fila['estado_componente'],
+        'tipo_componente' => $tipoComponente,
         'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
-        'es_docente_aula' => $this->esEspecialidadDocenteAula($fila['especialista'] ?? null),
+        'es_docente_aula' => $tipoComponente === 'aula',
       ];
     }, $registros);
   }
@@ -261,12 +263,14 @@ trait ImpartirConsultasTrait
       }
 
       if (!empty($fila['id_componente']) && $fila['estado_componente'] === 'activo') {
+        $tipoComponente = $this->normalizarTipoComponente($fila['especialista'] ?? null);
         $agrupado[$areaId]['componentes'][] = [
           'id' => (int) $fila['id_componente'],
           'nombre' => $fila['nombre_componente'],
           'especialista' => $fila['especialista'],
+          'tipo_componente' => $tipoComponente,
           'requiere_especialista' => $this->determinarSiRequiereEspecialista($fila['especialista'] ?? null),
-          'es_docente_aula' => $this->esEspecialidadDocenteAula($fila['especialista'] ?? null),
+          'es_docente_aula' => $tipoComponente === 'aula',
         ];
       }
     }
@@ -289,7 +293,7 @@ trait ImpartirConsultasTrait
 
     $componentes = [];
     foreach ($filas as $fila) {
-      if (!$this->esEspecialidadDocenteAula($fila['especialista'] ?? null)) {
+      if ($this->normalizarTipoComponente($fila['especialista'] ?? null) !== 'aula') {
         continue;
       }
 
@@ -299,6 +303,7 @@ trait ImpartirConsultasTrait
         'nombre_componente' => $fila['nombre_componente'],
         'especialista' => $fila['especialista'],
         'estado' => $fila['estado_componente'],
+        'tipo_componente' => 'aula',
         'requiere_especialista' => false,
         'es_docente_aula' => true,
       ];
@@ -334,22 +339,27 @@ trait ImpartirConsultasTrait
 
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   fp.nombre AS funcion,
+                   c.nombre_cargo AS funcion,
+                   c.tipo AS tipo_cargo,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
                    p.segundo_apellido,
                    p.cedula
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.estado = "activo"
               AND p.estado = "activo"
-              AND fp.tipo = "Docente"
+              AND c.tipo IS NOT NULL
             ORDER BY p.primer_nombre, p.primer_apellido';
 
     $sentencia = $conexion->query($sql);
     $registros = $sentencia !== false ? $sentencia->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    $filtrados = array_filter($registros, function (array $fila): bool {
+      return $this->normalizarTipoDocente($fila['tipo_cargo'] ?? null) === 'aula';
+    });
 
     return array_map(function (array $fila) use ($mapaAsignaciones): array {
       $idPersonal = (int) $fila['id_personal'];
@@ -362,29 +372,34 @@ trait ImpartirConsultasTrait
         'ocupado' => $asignacion !== null,
         'aula' => $asignacion,
       ];
-    }, $registros);
+    }, array_values($filtrados));
   }
 
   public function obtenerEspecialistasDisponibles(PDO $conexion): array
   {
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   fp.nombre AS funcion,
+                   c.nombre_cargo AS funcion,
+                   c.tipo AS tipo_cargo,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
                    p.segundo_apellido,
                    p.cedula
             FROM personal per
-            INNER JOIN funcion_personal fp ON fp.id_funcion_personal = per.fk_funcion
+            LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
             WHERE per.estado = "activo"
               AND p.estado = "activo"
-              AND fp.tipo = "Especialista"
+              AND c.tipo IS NOT NULL
             ORDER BY p.primer_nombre, p.primer_apellido';
 
     $sentencia = $conexion->query($sql);
     $registros = $sentencia !== false ? $sentencia->fetchAll(PDO::FETCH_ASSOC) : [];
+
+    $filtrados = array_filter($registros, function (array $fila): bool {
+      return in_array($this->normalizarTipoDocente($fila['tipo_cargo'] ?? null), ['especialista', 'cultura'], true);
+    });
 
     return array_map(function (array $fila): array {
       return [
@@ -393,7 +408,7 @@ trait ImpartirConsultasTrait
         'cedula' => $fila['cedula'],
         'funcion' => $fila['funcion'],
       ];
-    }, $registros);
+    }, array_values($filtrados));
   }
 
   public function obtenerAsignacionesDocentes(PDO $conexion, array $aulaIds): array

@@ -32,8 +32,9 @@ trait ImpartirGestionTrait
       throw new RuntimeException('El docente seleccionado no existe.');
     }
 
-    if (strcasecmp($personal['tipo_funcion'] ?? '', 'Docente') !== 0) {
-      throw new RuntimeException('El personal seleccionado no tiene rol de docente.');
+    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_funcion'] ?? null);
+    if ($tipoDocente !== 'aula') {
+      throw new RuntimeException('El personal seleccionado no tiene un cargo de docente de aula.');
     }
 
     if ($personal['estado_personal'] !== 'activo' || $personal['estado_persona'] !== 'activo') {
@@ -148,8 +149,9 @@ trait ImpartirGestionTrait
       throw new RuntimeException('El especialista seleccionado no existe.');
     }
 
-    if (strcasecmp($personal['tipo_funcion'] ?? '', 'Especialista') !== 0) {
-      throw new RuntimeException('El personal seleccionado no corresponde a un especialista.');
+    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_funcion'] ?? null);
+    if (!in_array($tipoDocente, ['especialista', 'cultura'], true)) {
+      throw new RuntimeException('El personal seleccionado no corresponde a un docente especialista o de cultura.');
     }
 
     if ($personal['estado_personal'] !== 'activo' || $personal['estado_persona'] !== 'activo') {
@@ -164,6 +166,15 @@ trait ImpartirGestionTrait
     foreach ($componentes as $componente) {
       if (($componente['estado'] ?? '') !== 'activo') {
         throw new RuntimeException('Los componentes seleccionados deben estar activos.');
+      }
+
+      $tipoComponente = $componente['tipo_componente'] ?? $this->normalizarTipoComponente($componente['especialista'] ?? null);
+      if ($tipoDocente === 'cultura' && $tipoComponente !== 'cultura') {
+        throw new RuntimeException('Un docente de cultura solo puede impartir componentes asignados a cultura.');
+      }
+
+      if ($tipoDocente === 'especialista' && $tipoComponente !== 'especialista') {
+        throw new RuntimeException('El docente especialista solo puede impartir componentes para especialistas.');
       }
     }
 

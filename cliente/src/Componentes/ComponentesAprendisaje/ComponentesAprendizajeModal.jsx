@@ -1,6 +1,10 @@
 import React from "react";
 import { ComponentesAprendizajeForm } from "./ComponentesAprendizajeForm";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+import {
+  typePillBase,
+  componentesStatusClasses,
+} from "../EstilosCliente/EstilosClientes";
 
 export const ComponentesAprendizajeModal = ({
   isOpen,
@@ -21,6 +25,72 @@ export const ComponentesAprendizajeModal = ({
       : "Crear componente de aprendizaje";
   };
 
+  const tipoDocentePills = {
+    aula: "bg-blue-100 text-blue-700",
+    especialista: "bg-purple-100 text-purple-700",
+    cultura: "bg-amber-100 text-amber-700",
+  };
+
+  const renderMetadatos = () => {
+    if (!isViewMode || !currentComponente) {
+      return null;
+    }
+
+    const codigo = currentComponente.tipo_docente || "aula";
+    const tipoLabel = currentComponente.especialista || "Docente de aula";
+    const requiere = currentComponente.requiere_especialista === true;
+    const cultura = currentComponente.es_cultura === true;
+
+    return (
+      <div className="rounded-3xl border border-slate-100 bg-slate-50/60 p-5 shadow-inner">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Tipo de docente
+            </p>
+            <span
+              className={`${typePillBase} ${
+                tipoDocentePills[codigo] || tipoDocentePills.aula
+              }`}
+            >
+              {tipoLabel}
+            </span>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              ¿Requiere especialista?
+            </p>
+            <span
+              className={`${componentesStatusClasses.base} ${
+                requiere
+                  ? componentesStatusClasses.evalYes
+                  : componentesStatusClasses.evalNo
+              }`}
+            >
+              {requiere
+                ? "Sí, asignar especialista"
+                : "No, lo imparte el titular"}
+            </span>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Modalidad especial
+            </p>
+            <span
+              className={`${componentesStatusClasses.base} ${
+                cultura
+                  ? componentesStatusClasses.evalYes
+                  : componentesStatusClasses.warning
+              }`}
+            >
+              {cultura ? "Docente de cultura" : "General"}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <VentanaModal
       isOpen={isOpen}
@@ -30,6 +100,7 @@ export const ComponentesAprendizajeModal = ({
       bodyClassName={isViewMode ? "space-y-6" : "space-y-4"}
       contentClassName="max-w-3xl"
     >
+      {renderMetadatos()}
       <ComponentesAprendizajeForm
         onSubmit={onSubmit}
         onCancel={onClose}
