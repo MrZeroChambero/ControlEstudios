@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   competenciasIndicadoresTableClasses,
   competenciasIconClasses,
@@ -232,7 +232,7 @@ export const IndicadoresModal = ({
         contentClassName="max-w-5xl"
         bodyClassName="space-y-6"
       >
-        <DataTable
+        <DataTableSeguro
           columns={columnas}
           data={registrosFiltrados}
           progressPending={isLoading}

@@ -102,4 +102,3 @@ export const indicadoresViewModalClasses = {
   body: modalBodyBase,
   empty: helperMessage,
 };
-```},

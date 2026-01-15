@@ -45,3 +45,16 @@ export const calendarioResponsiveClases = {
     "rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm",
   mensajeVacio: "text-xs text-slate-500",
 };
+
+export const tablaDocentesSeccionClases = {
+  wrapper: "overflow-x-auto",
+  table:
+    "min-w-full border-separate border-spacing-0 rounded-3xl border border-slate-200 bg-white text-sm shadow-sm",
+  headRow:
+    "text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
+  headCell: "border-b border-slate-200 bg-slate-100 px-4 py-3 text-slate-600",
+  bodyRow: "text-sm text-slate-700",
+  cellStrong:
+    "border-t border-slate-100 px-4 py-3 font-semibold text-slate-800",
+  cell: "border-t border-slate-100 px-4 py-3 text-slate-600",
+};

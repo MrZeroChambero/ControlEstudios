@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { Fragment, useMemo } from "react";
 import {
   construirIntervalosSeccion,
   diasSemanaOrdenados,
@@ -9,11 +9,27 @@ import {
 import { horariosStatusClasses } from "../../EstilosCliente/EstilosClientes";
 import { tablaHorarioSemanalClases } from "./horariosEstilos";
 
+const unirBloquesSeccion = (bloquesFijos = [], bloques = []) => [
+  ...bloquesFijos,
+  ...bloques,
+];
+
+const crearRegistroSpansPendientes = () =>
+  diasSemanaOrdenados.reduce((acc, dia) => {
+    acc[dia] = 0;
+    return acc;
+  }, {});
+
 const esBloqueInicial = (bloque) =>
   bloque?.segmentoIndice === 0 ||
   bloque?.segmentoIndice === null ||
   typeof bloque?.segmentoIndice === "undefined";
 
+/**
+ * Cuando todos los días comparten la misma rutina diaria, se muestra como una sola celda que
+ * ocupa todo el ancho de la semana. Esta función valida la simetría y devuelve los datos listos
+ * para pintar esa celda unificada.
+ */
 const obtenerRutinaUnificada = (intervalo) => {
   if (!intervalo) {
     return null;
@@ -130,6 +146,169 @@ const renderContenidoDefault = (bloque, contexto) => (
   </>
 );
 
+const renderRutinaCelda = (rutinaUnificada) => {
+  const inicioTexto =
+    rutinaUnificada.bloque?.bloqueInicioTexto ||
+    rutinaUnificada.bloque?.segmentoInicioTexto ||
+    rutinaUnificada.bloque?.hora_inicio ||
+    "—";
+  const finTexto =
+    rutinaUnificada.bloque?.bloqueFinTexto ||
+    rutinaUnificada.bloque?.segmentoFinTexto ||
+    rutinaUnificada.bloque?.hora_fin ||
+    "—";
+
+  return (
+    <td
+      className={tablaHorarioSemanalClases.bloqueCell}
+      colSpan={diasSemanaOrdenados.length}
+      rowSpan={rutinaUnificada.rowspan}
+    >
+      <div className={tablaHorarioSemanalClases.rutinaCard}>
+        <p className="text-sm font-semibold text-slate-800">
+          {rutinaUnificada.bloque?.nombre_componente || "Rutina diaria"}
+        </p>
+        {rutinaUnificada.bloque?.descripcion_rutina ? (
+          <p className="mt-1 text-xs text-slate-500">
+            {rutinaUnificada.bloque.descripcion_rutina}
+          </p>
+        ) : null}
+        <p className="mt-1 text-xs font-medium text-slate-500">
+          {`Inicio: ${inicioTexto} - Fin: ${finTexto}`}
+        </p>
+      </div>
+    </td>
+  );
+};
+
+const renderBloqueTarjeta = ({
+  bloque,
+  dia,
+  indiceBloque,
+  renderContenidoBloque,
+  renderAcciones,
+}) => {
+  const esRutina = Boolean(bloque?.es_rutina);
+  const contexto = construirContextoBloque(bloque);
+  const contenidoPersonalizado =
+    !esRutina && typeof renderContenidoBloque === "function"
+      ? renderContenidoBloque(bloque, {
+          ...contexto,
+          dia,
+          indiceBloque,
+        })
+      : null;
+
+  return (
+    <div
+      key={`${bloque?.id_horario ?? indiceBloque}-${dia}`}
+      className={tablaHorarioSemanalClases.bloqueCard}
+    >
+      {esRutina ? (
+        <>
+          <p className="text-sm font-semibold text-slate-800">
+            {bloque?.nombre_componente ?? "Rutina diaria"}
+          </p>
+          <p className="mt-1 text-xs font-medium text-slate-500">
+            {`Inicio: ${contexto.horaInicioTexto} - Fin: ${contexto.horaFinTexto}`}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {bloque?.descripcion_rutina ?? ""}
+          </p>
+        </>
+      ) : (
+        contenidoPersonalizado ?? renderContenidoDefault(bloque, contexto)
+      )}
+      {!esRutina && typeof renderAcciones === "function" ? (
+        <div className={tablaHorarioSemanalClases.accionesWrapper}>
+          {renderAcciones(bloque)}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const renderCeldaDia = ({
+  dia,
+  intervalo,
+  spansPendientesPorDia,
+  renderContenidoBloque,
+  renderAcciones,
+}) => {
+  const keyBase = `${
+    intervalo.numero ?? intervalo.desdeTexto ?? "extra"
+  }-${dia}`;
+
+  if (spansPendientesPorDia[dia] > 0) {
+    spansPendientesPorDia[dia] -= 1;
+    return <Fragment key={keyBase} />;
+  }
+
+  const bloquesDia = intervalo.bloquesPorDia[dia] || [];
+  const bloquesInicio = bloquesDia.filter((bloque) => esBloqueInicial(bloque));
+
+  if (bloquesInicio.length === 0) {
+    if (bloquesDia.length > 0) {
+      return <Fragment key={keyBase} />;
+    }
+
+    return (
+      <td key={keyBase} className={tablaHorarioSemanalClases.bloqueCell}>
+        <span className={tablaHorarioSemanalClases.sinAsignacion}>
+          Sin asignación
+        </span>
+      </td>
+    );
+  }
+
+  const rowspanDia = Math.max(
+    1,
+    ...bloquesInicio.map((bloque) =>
+      Number.isFinite(bloque?.segmentoTotal) ? bloque.segmentoTotal : 1
+    )
+  );
+
+  if (rowspanDia > 1) {
+    spansPendientesPorDia[dia] = rowspanDia - 1;
+  }
+
+  return (
+    <td
+      key={keyBase}
+      rowSpan={rowspanDia}
+      className={tablaHorarioSemanalClases.bloqueCell}
+    >
+      <div className="space-y-2">
+        {bloquesInicio.map((bloque, indiceBloque) =>
+          renderBloqueTarjeta({
+            bloque,
+            dia,
+            indiceBloque,
+            renderContenidoBloque,
+            renderAcciones,
+          })
+        )}
+      </div>
+    </td>
+  );
+};
+
+const renderCeldasDias = ({
+  intervalo,
+  spansPendientesPorDia,
+  renderContenidoBloque,
+  renderAcciones,
+}) =>
+  diasSemanaOrdenados.map((dia) =>
+    renderCeldaDia({
+      dia,
+      intervalo,
+      spansPendientesPorDia,
+      renderContenidoBloque,
+      renderAcciones,
+    })
+  );
+
 const TablaHorarioSemanal = ({
   bloques = [],
   bloquesFijos = [],
@@ -138,7 +317,7 @@ const TablaHorarioSemanal = ({
   renderContenidoBloque,
 }) => {
   const dataset = useMemo(
-    () => [...bloquesFijos, ...bloques],
+    () => unirBloquesSeccion(bloquesFijos, bloques),
     [bloquesFijos, bloques]
   );
 
@@ -155,12 +334,8 @@ const TablaHorarioSemanal = ({
     );
   }
 
-  const spansRestantes = diasSemanaOrdenados.reduce((acc, dia) => {
-    acc[dia] = 0;
-    return acc;
-  }, {});
-
-  let spanGlobalRutina = 0;
+  const spansPendientesPorDia = crearRegistroSpansPendientes();
+  let filasRutinaPendientes = 0;
 
   return (
     <div className={tablaHorarioSemanalClases.wrapper}>
@@ -185,15 +360,24 @@ const TablaHorarioSemanal = ({
             let rutinaUnificada = null;
             let omitirColumnas = false;
 
-            if (spanGlobalRutina > 0) {
+            if (filasRutinaPendientes > 0) {
               omitirColumnas = true;
-              spanGlobalRutina -= 1;
+              filasRutinaPendientes -= 1;
             } else {
               rutinaUnificada = obtenerRutinaUnificada(intervalo);
               if (rutinaUnificada && rutinaUnificada.rowspan > 1) {
-                spanGlobalRutina = rutinaUnificada.rowspan - 1;
+                filasRutinaPendientes = rutinaUnificada.rowspan - 1;
               }
             }
+
+            const numeroTexto = intervalo.numero
+              ? intervalo.numero
+              : String(indice + 1).padStart(2, "0");
+            const desdeTexto = intervalo.desdeTexto || "—";
+            const hastaTexto = intervalo.hastaTexto || "—";
+            const duracionTexto = Number.isFinite(intervalo.duracionMinutos)
+              ? formatearDuracionMinutos(intervalo.duracionMinutos)
+              : intervalo.duracionTexto || "—";
 
             return (
               <tr
@@ -203,159 +387,27 @@ const TablaHorarioSemanal = ({
                 className="text-sm text-slate-700"
               >
                 <td className={tablaHorarioSemanalClases.numeroCell}>
-                  {intervalo.numero ?? String(indice + 1).padStart(2, "0")}
+                  {numeroTexto}
                 </td>
                 <td className={tablaHorarioSemanalClases.horarioCell}>
-                  {intervalo.desdeTexto}
+                  {desdeTexto}
                 </td>
                 <td className={tablaHorarioSemanalClases.horarioCell}>
-                  {intervalo.hastaTexto}
+                  {hastaTexto}
                 </td>
                 <td className={tablaHorarioSemanalClases.horarioCell}>
-                  {intervalo.duracionTexto ||
-                    formatearDuracionMinutos(intervalo.duracionMinutos)}
+                  {duracionTexto}
                 </td>
-                {rutinaUnificada ? (
-                  <td
-                    className={tablaHorarioSemanalClases.bloqueCell}
-                    colSpan={diasSemanaOrdenados.length}
-                    rowSpan={rutinaUnificada.rowspan}
-                  >
-                    <div className={tablaHorarioSemanalClases.rutinaCard}>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {rutinaUnificada.bloque?.nombre_componente ||
-                          "Rutina diaria"}
-                      </p>
-                      {rutinaUnificada.bloque?.descripcion_rutina ? (
-                        <p className="mt-1 text-xs text-slate-500">
-                          {rutinaUnificada.bloque.descripcion_rutina}
-                        </p>
-                      ) : null}
-                      <p className="mt-1 text-xs font-medium text-slate-500">
-                        {`Inicio: ${
-                          rutinaUnificada.bloque?.bloqueInicioTexto ||
-                          rutinaUnificada.bloque?.segmentoInicioTexto ||
-                          rutinaUnificada.bloque?.hora_inicio ||
-                          "—"
-                        } - Fin: ${
-                          rutinaUnificada.bloque?.bloqueFinTexto ||
-                          rutinaUnificada.bloque?.segmentoFinTexto ||
-                          rutinaUnificada.bloque?.hora_fin ||
-                          "—"
-                        }`}
-                      </p>
-                    </div>
-                  </td>
-                ) : omitirColumnas ? null : (
-                  diasSemanaOrdenados.map((dia) => {
-                    const keyBase = `${
-                      intervalo.numero ?? intervalo.desdeTexto ?? "extra"
-                    }-${dia}`;
-
-                    if (spansRestantes[dia] > 0) {
-                      spansRestantes[dia] -= 1;
-                      return <React.Fragment key={keyBase} />;
-                    }
-
-                    const bloquesDia = intervalo.bloquesPorDia[dia] || [];
-                    const bloquesInicio = bloquesDia.filter((bloque) =>
-                      esBloqueInicial(bloque)
-                    );
-
-                    if (bloquesInicio.length === 0) {
-                      if (bloquesDia.length > 0) {
-                        return <React.Fragment key={keyBase} />;
-                      }
-
-                      return (
-                        <td
-                          key={keyBase}
-                          className={tablaHorarioSemanalClases.bloqueCell}
-                        >
-                          <span
-                            className={tablaHorarioSemanalClases.sinAsignacion}
-                          >
-                            Sin asignación
-                          </span>
-                        </td>
-                      );
-                    }
-
-                    const rowspanDia = Math.max(
-                      1,
-                      ...bloquesInicio.map((bloque) =>
-                        Number.isFinite(bloque?.segmentoTotal)
-                          ? bloque.segmentoTotal
-                          : 1
-                      )
-                    );
-
-                    if (rowspanDia > 1) {
-                      spansRestantes[dia] = rowspanDia - 1;
-                    }
-
-                    return (
-                      <td
-                        key={keyBase}
-                        rowSpan={rowspanDia}
-                        className={tablaHorarioSemanalClases.bloqueCell}
-                      >
-                        <div className="space-y-2">
-                          {bloquesInicio.map((bloque, idx) => {
-                            const esRutina = Boolean(bloque?.es_rutina);
-                            const contextoBloque =
-                              construirContextoBloque(bloque);
-                            const contenidoPersonalizado =
-                              !esRutina &&
-                              typeof renderContenidoBloque === "function"
-                                ? renderContenidoBloque(bloque, {
-                                    ...contextoBloque,
-                                    dia,
-                                    indiceBloque: idx,
-                                  })
-                                : null;
-
-                            return (
-                              <div
-                                key={`${bloque?.id_horario ?? idx}-${dia}`}
-                                className={tablaHorarioSemanalClases.bloqueCard}
-                              >
-                                {esRutina ? (
-                                  <>
-                                    <p className="text-sm font-semibold text-slate-800">
-                                      {bloque?.nombre_componente ??
-                                        "Rutina diaria"}
-                                    </p>
-                                    <p className="mt-1 text-xs font-medium text-slate-500">
-                                      {`Inicio: ${contextoBloque.horaInicioTexto} - Fin: ${contextoBloque.horaFinTexto}`}
-                                    </p>
-                                    <p className="mt-1 text-xs text-slate-500">
-                                      {bloque?.descripcion_rutina ??
-                                        "Rutina diaria"}
-                                    </p>
-                                  </>
-                                ) : (
-                                  contenidoPersonalizado ??
-                                  renderContenidoDefault(bloque, contextoBloque)
-                                )}
-                                {!esRutina &&
-                                typeof renderAcciones === "function" ? (
-                                  <div
-                                    className={
-                                      tablaHorarioSemanalClases.accionesWrapper
-                                    }
-                                  >
-                                    {renderAcciones(bloque)}
-                                  </div>
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </td>
-                    );
-                  })
-                )}
+                {omitirColumnas
+                  ? null
+                  : rutinaUnificada
+                  ? renderRutinaCelda(rutinaUnificada)
+                  : renderCeldasDias({
+                      intervalo,
+                      spansPendientesPorDia,
+                      renderContenidoBloque,
+                      renderAcciones,
+                    })}
               </tr>
             );
           })}

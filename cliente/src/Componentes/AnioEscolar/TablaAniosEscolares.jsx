@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaEdit,
   FaEye,
@@ -226,7 +226,7 @@ export const TablaAniosEscolares = ({
   );
 
   return (
-    <DataTable
+    <DataTableSeguro
       columns={columnas}
       data={registrosFiltrados}
       progressPending={cargando}

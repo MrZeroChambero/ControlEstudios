@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaPlus,
   FaEdit,
@@ -213,7 +213,7 @@ export const TemasModal = ({
           </button>
         </div>
       ) : (
-        <DataTable
+        <DataTableSeguro
           columns={columnas}
           data={temasFiltrados}
           customStyles={dataTableBaseStyles}

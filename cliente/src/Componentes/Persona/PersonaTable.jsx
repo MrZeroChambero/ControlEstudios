@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import {
   personasTableClasses,
@@ -133,7 +133,7 @@ export const PersonaTable = ({
 
   return (
     <div className={personasTableClasses.wrapper}>
-      <DataTable
+      <DataTableSeguro
         columns={columns}
         data={filteredItems}
         customStyles={dataTableBaseStyles}

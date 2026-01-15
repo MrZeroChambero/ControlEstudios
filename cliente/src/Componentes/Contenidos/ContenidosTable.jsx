@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaEdit,
   FaTrash,
@@ -169,7 +169,7 @@ export const ContenidosTable = ({
   );
 
   return (
-    <DataTable
+    <DataTableSeguro
       columns={columnas}
       data={registrosFiltrados}
       progressPending={isLoading}

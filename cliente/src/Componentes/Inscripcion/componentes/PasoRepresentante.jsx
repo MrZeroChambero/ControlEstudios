@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../../utilidades/DataTableSeguro";
 import {
   inscripcionFormClasses,
   inscripcionTableClasses,
@@ -128,7 +128,7 @@ export const PasoRepresentante = ({
         name="tabla-paso-representante"
         className={inscripcionTableClasses.wrapper}
       >
-        <DataTable
+        <DataTableSeguro
           columns={columnas}
           data={datosFiltrados}
           progressPending={cargando}

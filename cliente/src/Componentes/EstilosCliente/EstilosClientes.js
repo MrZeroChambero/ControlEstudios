@@ -1,3 +1,5 @@
+import { contenidosIconClasses } from "../Contenidos/contenidosEstilos";
+
 // Design tokens keep typography tweaks centralized across the app.
 export const typographyScale = {
   xxs: "text-[10px]",
@@ -117,6 +119,8 @@ const baseStatusPills = {
 };
 
 const gradoPill = `inline-flex items-center justify-center rounded-full bg-blue-50 px-2.5 py-1 ${typography.pillTight} text-blue-600`;
+
+export const inscripcionLayout = createLayoutTokens("blue");
 
 const tableBase = {
   wrapper: "overflow-x-auto",

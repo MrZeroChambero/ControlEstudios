@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   indicadoresLayout,
   indicadoresFormClasses,
@@ -530,7 +530,7 @@ export const Indicadores = () => {
           </div>
         </div>
 
-        <DataTable
+        <DataTableSeguro
           columns={columnas}
           data={indicadoresFiltrados}
           progressPending={isLoadingCompetencias}

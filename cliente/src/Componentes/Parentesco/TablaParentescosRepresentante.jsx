@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import { FaEdit, FaTrash, FaSync } from "react-icons/fa";
 import {
   parentescosTableClasses,
@@ -151,7 +151,7 @@ const TablaParentescosRepresentante = ({
         Parentescos del Representante
       </h3>
       {representanteSeleccionado ? (
-        <DataTable
+        <DataTableSeguro
           data={data}
           columns={columns}
           dense

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaEye,
   FaEdit,
@@ -175,7 +175,7 @@ export const ComponentesAprendizajeTable = ({
   );
 
   return (
-    <DataTable
+    <DataTableSeguro
       columns={columns}
       data={filteredItems}
       progressPending={isLoading}

@@ -1,5 +1,5 @@
 import React from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import { AreasAprendizajeForm } from "./AreasAprendizajeForm";
 import { areasComponentTableClasses } from "./areasAprendizajeEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
@@ -63,7 +63,7 @@ export const AreasAprendizajeModal = ({
           <h3 className={areasComponentTableClasses.title}>
             Componentes de aprendizaje asociados
           </h3>
-          <DataTable
+          <DataTableSeguro
             columns={columnasComponentes}
             data={componentes}
             noDataComponent={

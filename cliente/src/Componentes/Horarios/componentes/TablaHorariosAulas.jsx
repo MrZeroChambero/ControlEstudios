@@ -1,13 +1,22 @@
 import React, { useMemo } from "react";
-import DataTable from "react-data-table-component";
-import { StyleSheetManager } from "styled-components";
+import DataTableSeguro from "../../../utilidades/DataTableSeguro";
 import { FaEye } from "react-icons/fa";
 import {
   dataTableBaseStyles,
   horariosIconClasses,
   horariosTableClasses,
 } from "../../EstilosCliente/EstilosClientes";
-import { filtrarPropsTabla } from "../utilidadesHorarios";
+
+const ResumenAula = ({ registro }) => (
+  <div className="flex flex-col text-left text-sm text-slate-700">
+    <p className="font-semibold text-slate-900">
+      {`Grado ${registro.grado ?? "?"} - Sección ${registro.seccion ?? "?"}`}
+    </p>
+    <p className="text-xs text-slate-500">
+      {registro.momento || "Momento sin definir"}
+    </p>
+  </div>
+);
 
 const TablaHorariosAulas = ({ datos, cargando, onVerCalendario }) => {
   const columnas = useMemo(
@@ -19,6 +28,7 @@ const TablaHorariosAulas = ({ datos, cargando, onVerCalendario }) => {
         sortable: true,
         grow: 1.4,
         wrap: true,
+        cell: (row) => <ResumenAula registro={row} />,
       },
       {
         name: "Momento",
@@ -60,31 +70,27 @@ const TablaHorariosAulas = ({ datos, cargando, onVerCalendario }) => {
   );
 
   return (
-    <StyleSheetManager shouldForwardProp={filtrarPropsTabla}>
-      <DataTable
-        columns={columnas}
-        data={datos}
-        progressPending={cargando}
-        progressComponent={
-          <p className={horariosTableClasses.helperText}>
-            Cargando horarios...
-          </p>
-        }
-        noDataComponent={
-          <p className={horariosTableClasses.helperText}>
-            No se encontraron horarios para las aulas consultadas.
-          </p>
-        }
-        customStyles={dataTableBaseStyles}
-        pagination
-        paginationPerPage={10}
-        paginationRowsPerPageOptions={[5, 10, 15, 20]}
-        highlightOnHover
-        striped
-        responsive
-        persistTableHead
-      />
-    </StyleSheetManager>
+    <DataTableSeguro
+      columns={columnas}
+      data={datos}
+      progressPending={cargando}
+      progressComponent={
+        <p className={horariosTableClasses.helperText}>Cargando horarios...</p>
+      }
+      noDataComponent={
+        <p className={horariosTableClasses.helperText}>
+          No se encontraron horarios para las aulas consultadas.
+        </p>
+      }
+      customStyles={dataTableBaseStyles}
+      pagination
+      paginationPerPage={10}
+      paginationRowsPerPageOptions={[5, 10, 15, 20]}
+      highlightOnHover
+      striped
+      responsive
+      persistTableHead
+    />
   );
 };
 

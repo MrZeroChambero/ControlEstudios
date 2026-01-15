@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaEdit,
   FaTrash,
@@ -129,7 +129,7 @@ export const AreasAprendizajeTable = ({
 
   return (
     <div className={areasTableClasses.wrapper}>
-      <DataTable
+      <DataTableSeguro
         columns={columns}
         customStyles={dataTableBaseStyles}
         data={filteredItems}

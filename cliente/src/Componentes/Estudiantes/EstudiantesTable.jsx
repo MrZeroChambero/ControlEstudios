@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import {
   FaEdit,
   FaTrash,
@@ -201,7 +201,7 @@ export const EstudiantesTable = ({
 
   return (
     <div className={estudiantesTableClasses.wrapper}>
-      <DataTable
+      <DataTableSeguro
         columns={columns}
         data={filteredItems}
         progressPending={isLoading}

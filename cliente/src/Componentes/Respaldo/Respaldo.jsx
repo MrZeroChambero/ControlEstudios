@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import Swal from "sweetalert2";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
@@ -395,7 +395,7 @@ export const Respaldo = () => {
           </div>
 
           <div className={respaldoLayoutClasses.tableWrapper}>
-            <DataTable
+            <DataTableSeguro
               columns={columnas}
               data={respaldosFiltrados}
               progressPending={cargando}

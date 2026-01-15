@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import { FaToggleOn, FaToggleOff, FaEdit } from "react-icons/fa";
 import {
   aulasTableClasses,
@@ -150,7 +150,7 @@ export const AulasTable = ({
   );
 
   return (
-    <DataTable
+    <DataTableSeguro
       columns={columnas}
       data={registros}
       progressPending={isLoading}

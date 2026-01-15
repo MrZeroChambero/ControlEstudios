@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { construirDocentesSeccion } from "../utilidadesHorarios";
+import { tablaDocentesSeccionClases } from "./horariosEstilos";
 
 const TablaDocentesSeccion = ({ bloques = [] }) => {
   const docentes = useMemo(() => construirDocentesSeccion(bloques), [bloques]);
@@ -13,31 +14,29 @@ const TablaDocentesSeccion = ({ bloques = [] }) => {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full border-separate border-spacing-0 rounded-3xl border border-slate-200 bg-white text-sm shadow-sm">
+    <div className={tablaDocentesSeccionClases.wrapper}>
+      <table className={tablaDocentesSeccionClases.table}>
         <thead>
-          <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <th className="border-b border-slate-200 bg-slate-100 px-4 py-3 text-slate-600">
+          <tr className={tablaDocentesSeccionClases.headRow}>
+            <th className={tablaDocentesSeccionClases.headCell}>
               Docente / Especialista
             </th>
-            <th className="border-b border-slate-200 bg-slate-100 px-4 py-3 text-slate-600">
-              Función
-            </th>
-            <th className="border-b border-slate-200 bg-slate-100 px-4 py-3 text-slate-600">
+            <th className={tablaDocentesSeccionClases.headCell}>Función</th>
+            <th className={tablaDocentesSeccionClases.headCell}>
               Componentes asignados
             </th>
           </tr>
         </thead>
         <tbody>
           {docentes.map((docente) => (
-            <tr key={docente.id} className="text-sm text-slate-700">
-              <td className="border-t border-slate-100 px-4 py-3 font-semibold text-slate-800">
+            <tr key={docente.id} className={tablaDocentesSeccionClases.bodyRow}>
+              <td className={tablaDocentesSeccionClases.cellStrong}>
                 {docente.nombre}
               </td>
-              <td className="border-t border-slate-100 px-4 py-3 text-slate-600">
+              <td className={tablaDocentesSeccionClases.cell}>
                 {docente.funcion}
               </td>
-              <td className="border-t border-slate-100 px-4 py-3 text-slate-600">
+              <td className={tablaDocentesSeccionClases.cell}>
                 {docente.componentes.length > 0
                   ? docente.componentes.join(", ")
                   : "Sin componentes registrados"}

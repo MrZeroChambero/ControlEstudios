@@ -1,5 +1,6 @@
 import { diasSemanaOrdenados, diasSemanaEtiquetas } from "./constantesHorarios";
 import { diasSemanaOpciones } from "./constantesHorarios";
+export { filtrarPropsTabla } from "../../utilidades/tablaProps";
 
 export const SEGMENTO_MINUTOS = 20;
 export const MIN_MINUTOS_COMPONENTE = 7 * 60 + 40;
@@ -148,9 +149,6 @@ export const obtenerOrdenHora = (bloque) => {
   const info = parseHoraTexto(coincidencia[1]);
   return info ? info.totalMinutos : Number.MAX_SAFE_INTEGER;
 };
-
-export const filtrarPropsTabla = (prop) =>
-  !["align", "center", "grow"].includes(prop);
 
 export const obtenerMensajeError = (fuente) => {
   if (!fuente) {
