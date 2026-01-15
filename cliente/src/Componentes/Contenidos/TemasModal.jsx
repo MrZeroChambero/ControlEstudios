@@ -12,8 +12,8 @@ import {
   temasTableClasses,
   contenidosStatusClasses,
   contenidosIconClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+} from "./contenidosEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const TemasModal = ({

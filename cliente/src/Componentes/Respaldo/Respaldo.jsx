@@ -2,13 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import DataTable from "react-data-table-component";
 import Swal from "sweetalert2";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 import {
-  contenidosLayout,
-  contenidosFormClasses,
-  contenidosTableClasses,
-  dataTableBaseStyles,
-  secondaryButton,
-} from "../EstilosCliente/EstilosClientes";
+  respaldoLayoutClasses,
+  respaldoTablaClasses,
+  respaldoModalClasses,
+} from "./respaldoEstilos";
 import {
   listarRespaldos,
   crearRespaldo,
@@ -259,9 +258,7 @@ export const Respaldo = () => {
         sortable: true,
         grow: 2,
         cell: (row) => (
-          <span className="text-sm font-semibold text-slate-800">
-            {row.nombre}
-          </span>
+          <span className={respaldoTablaClasses.fileName}>{row.nombre}</span>
         ),
       },
       {
@@ -270,7 +267,7 @@ export const Respaldo = () => {
         sortable: true,
         width: "140px",
         cell: (row) => (
-          <span className="text-sm text-slate-600">
+          <span className={respaldoTablaClasses.metaText}>
             {formatearFecha(row.timestamp)}
           </span>
         ),
@@ -281,7 +278,7 @@ export const Respaldo = () => {
         sortable: true,
         width: "120px",
         cell: (row) => (
-          <span className="text-sm text-slate-600">
+          <span className={respaldoTablaClasses.metaText}>
             {formatearHora(row.timestamp)}
           </span>
         ),
@@ -292,7 +289,9 @@ export const Respaldo = () => {
         sortable: true,
         width: "160px",
         cell: (row) => (
-          <span className="text-sm text-slate-600">{obtenerCreador(row)}</span>
+          <span className={respaldoTablaClasses.metaText}>
+            {obtenerCreador(row)}
+          </span>
         ),
       },
       {
@@ -302,7 +301,7 @@ export const Respaldo = () => {
         sortable: true,
         right: true,
         cell: (row) => (
-          <span className="text-sm text-slate-600">
+          <span className={respaldoTablaClasses.metaText}>
             {row.tamano_legible || formatearTamano(row.tamano_bytes)}
           </span>
         ),
@@ -312,10 +311,10 @@ export const Respaldo = () => {
         width: "220px",
         right: true,
         cell: (row) => (
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className={respaldoTablaClasses.actionsWrapper}>
             <button
               type="button"
-              className={`${contenidosFormClasses.ghostButton} px-3 py-1 text-xs`}
+              className={respaldoTablaClasses.downloadButton}
               onClick={() => manejarDescarga(row.nombre)}
               title="Descargar respaldo"
             >
@@ -323,7 +322,7 @@ export const Respaldo = () => {
             </button>
             <button
               type="button"
-              className={`${contenidosFormClasses.primaryButton} px-3 py-1 text-xs`}
+              className={respaldoTablaClasses.restoreButton}
               onClick={() => manejarRestaurar(row.nombre)}
               disabled={restaurando === row.nombre}
               title="Restaurar base de datos"
@@ -338,24 +337,24 @@ export const Respaldo = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <section className={contenidosLayout.container}>
-        <header className={contenidosLayout.header}>
+    <div className={respaldoLayoutClasses.page}>
+      <section className={respaldoLayoutClasses.section}>
+        <header className={respaldoLayoutClasses.header}>
           <div>
-            <h1 className={contenidosLayout.title}>
+            <h1 className={respaldoLayoutClasses.title}>
               Respaldos de la base de datos
             </h1>
-            <p className={contenidosLayout.description}>
+            <p className={respaldoLayoutClasses.description}>
               Genera copias de seguridad, sincroniza los archivos almacenados y
               restaura la información desde un respaldo existente.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={respaldoLayoutClasses.actions}>
             <button
               type="button"
               onClick={manejarCrearRespaldo}
               disabled={creando}
-              className={`${contenidosLayout.addButton} disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={respaldoLayoutClasses.createButton}
             >
               {creando ? "Creando respaldo..." : "Crear respaldo ahora"}
             </button>
@@ -363,39 +362,39 @@ export const Respaldo = () => {
               type="button"
               onClick={cargarRespaldos}
               disabled={cargando}
-              className={`${secondaryButton} disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={respaldoLayoutClasses.syncButton}
             >
               {cargando ? "Sincronizando..." : "Sincronizar carpeta"}
             </button>
             <button
               type="button"
               onClick={abrirModalRestaurarArchivo}
-              className={contenidosFormClasses.ghostButton}
+              className={respaldoLayoutClasses.restoreButton}
             >
               Restaurar desde archivo
             </button>
           </div>
         </header>
 
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="text-sm text-slate-500">
+        <div className={respaldoLayoutClasses.content}>
+          <div className={respaldoLayoutClasses.summaryRow}>
+            <div className={respaldoLayoutClasses.summaryText}>
               {respaldos.length === 0
                 ? "No hay respaldos disponibles."
                 : `Se encontraron ${respaldos.length} respaldos.`}
             </div>
-            <div className={contenidosTableClasses.filterContainer}>
+            <div className={respaldoLayoutClasses.filterContainer}>
               <input
                 type="search"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className={contenidosTableClasses.filterInput}
+                className={respaldoLayoutClasses.filterInput}
                 placeholder="Buscar por nombre o fecha"
               />
             </div>
           </div>
 
-          <div className={contenidosTableClasses.wrapper}>
+          <div className={respaldoLayoutClasses.tableWrapper}>
             <DataTable
               columns={columnas}
               data={respaldosFiltrados}
@@ -405,7 +404,7 @@ export const Respaldo = () => {
               pointerOnHover
               dense
               noDataComponent={
-                <p className={contenidosTableClasses.helperText}>
+                <p className={respaldoLayoutClasses.helperText}>
                   {cargando
                     ? "Cargando respaldos..."
                     : sinResultadosBusqueda
@@ -425,13 +424,13 @@ export const Respaldo = () => {
         title="Restaurar desde archivo SQL"
         subtitle="Selecciona un archivo .sql válido para restaurar el estado de la base de datos."
         size="md"
-        bodyClassName="space-y-5"
+        bodyClassName={respaldoModalClasses.body}
         footer={
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className={respaldoModalClasses.footer}>
             <button
               type="button"
               onClick={cerrarModalRestaurarArchivo}
-              className={contenidosFormClasses.secondaryButton}
+              className={respaldoModalClasses.secondaryButton}
               disabled={procesando}
             >
               Cancelar
@@ -439,7 +438,7 @@ export const Respaldo = () => {
             <button
               type="button"
               onClick={manejarSubmitArchivo}
-              className={`${contenidosFormClasses.primaryButton} disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={respaldoModalClasses.primaryButton}
               disabled={procesando || !archivoSeleccionado}
             >
               {procesando ? "Restaurando..." : "Restaurar"}
@@ -447,12 +446,12 @@ export const Respaldo = () => {
           </div>
         }
       >
-        <form className="space-y-4" onSubmit={manejarSubmitArchivo}>
-          <div className={contenidosFormClasses.group}>
-            <label
-              className={contenidosFormClasses.label}
-              htmlFor="archivo_sql"
-            >
+        <form
+          className={respaldoModalClasses.body}
+          onSubmit={manejarSubmitArchivo}
+        >
+          <div className={respaldoModalClasses.formGroup}>
+            <label className={respaldoModalClasses.label} htmlFor="archivo_sql">
               Archivo SQL
             </label>
             <input
@@ -463,22 +462,27 @@ export const Respaldo = () => {
                 const archivo = evento.target.files?.[0] ?? null;
                 setArchivoSeleccionado(archivo);
               }}
-              className={contenidosFormClasses.input}
+              className={respaldoModalClasses.input}
               disabled={procesando}
             />
-            <p className={contenidosFormClasses.helper}>
+            <p className={respaldoModalClasses.helper}>
               El archivo seleccionado se almacenará en la carpeta de respaldos y
               se ejecutará automáticamente para restaurar la base de datos.
             </p>
           </div>
 
           {archivoSeleccionado ? (
-            <div className="rounded-3xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700">
+            <div className={respaldoModalClasses.fileInfo}>
               <p>
-                <strong>Archivo:</strong> {archivoSeleccionado.name}
+                <span className={respaldoModalClasses.fileInfoHighlight}>
+                  Archivo:
+                </span>{" "}
+                {archivoSeleccionado.name}
               </p>
               <p>
-                <strong>Tamaño:</strong>{" "}
+                <span className={respaldoModalClasses.fileInfoHighlight}>
+                  Tamaño:
+                </span>{" "}
                 {formatearTamano(archivoSeleccionado.size)}
               </p>
             </div>

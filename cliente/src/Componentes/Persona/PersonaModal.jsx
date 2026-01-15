@@ -1,6 +1,7 @@
 import React from "react";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 import { PersonaForm } from "./PersonaForm";
+import { personaModalClasses } from "./personaEstilos";
 
 export const PersonaModal = ({
   isOpen,
@@ -19,7 +20,7 @@ export const PersonaModal = ({
       onClose={onClose}
       title={titulo}
       size="lg"
-      bodyClassName="pt-2"
+      bodyClassName={personaModalClasses.body}
     >
       <PersonaForm
         onSubmit={onSubmit}

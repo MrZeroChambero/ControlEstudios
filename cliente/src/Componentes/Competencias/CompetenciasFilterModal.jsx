@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  contenidosFormClasses,
-  neutralButtonBase,
-} from "../EstilosCliente/EstilosClientes";
+import { competenciasFormClasses } from "./competenciasEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const CompetenciasFilterModal = ({
@@ -66,13 +63,13 @@ export const CompetenciasFilterModal = ({
       contentClassName="max-w-xl"
     >
       <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
-        <div className={contenidosFormClasses.grid}>
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label className={contenidosFormClasses.label}>
+        <div className={competenciasFormClasses.grid}>
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>
               Area de aprendizaje
             </label>
             <select
-              className={contenidosFormClasses.select}
+              className={competenciasFormClasses.select}
               value={areaSeleccionada}
               onChange={(evento) => {
                 setAreaSeleccionada(evento.target.value);
@@ -88,12 +85,12 @@ export const CompetenciasFilterModal = ({
             </select>
           </div>
 
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label className={contenidosFormClasses.label}>
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>
               Componente de aprendizaje
             </label>
             <select
-              className={contenidosFormClasses.select}
+              className={competenciasFormClasses.select}
               value={componenteSeleccionado}
               onChange={(evento) =>
                 setComponenteSeleccionado(evento.target.value)
@@ -109,11 +106,11 @@ export const CompetenciasFilterModal = ({
           </div>
         </div>
 
-        <div className={`${contenidosFormClasses.actions} mt-6`}>
+        <div className={`${competenciasFormClasses.actions} mt-6`}>
           <button
             type="button"
             onClick={manejarLimpiar}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={competenciasFormClasses.secondaryButton}
           >
             Limpiar filtros
           </button>
@@ -121,13 +118,13 @@ export const CompetenciasFilterModal = ({
             <button
               type="button"
               onClick={manejarCerrar}
-              className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+              className={competenciasFormClasses.secondaryButton}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className={contenidosFormClasses.primaryButton}
+              className={competenciasFormClasses.primaryButton}
             >
               Aplicar filtros
             </button>

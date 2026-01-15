@@ -1,8 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  temaFormClasses,
-  contenidosFormClasses,
-} from "../EstilosCliente/EstilosClientes";
+import { temaFormClasses, contenidosFormClasses } from "./contenidosEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const TemaFormModal = ({

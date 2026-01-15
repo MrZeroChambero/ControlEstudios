@@ -13,7 +13,7 @@ import {
   MAX_MINUTOS_JORNADA,
   SEGMENTO_MINUTOS,
 } from "../utilidadesHorarios";
-import CalendarioSeccionDetallado from "./CalendarioSeccionDetallado";
+import TablaHorarioSemanal from "./TablaHorarioSemanal";
 
 const RUTINAS_PREDEFINIDAS = [
   {
@@ -602,7 +602,7 @@ const ModalFormularioHorario = ({
               aria-hidden="true"
             />
           ) : (
-            <CalendarioSeccionDetallado
+            <TablaHorarioSemanal
               bloques={bloquesAula}
               bloquesFijos={bloquesRutina}
               emptyMessage="Aún no se han registrado bloques académicos para este aula."

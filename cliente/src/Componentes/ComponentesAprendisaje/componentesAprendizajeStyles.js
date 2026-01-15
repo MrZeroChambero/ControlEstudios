@@ -1,10 +1,9 @@
-// Deprecated: preserve compatibility, prefer importing directly from
-// `../EstilosCliente/EstilosClientes`.
+// Deprecated: prefer importing directly from `./componentesAprendizajeEstilos`.
 export {
   componentesLayout as layoutClasses,
   componentesFormClasses as formClasses,
-  componentesModalClasses as modalClasses,
   componentesTableClasses as tableClasses,
   componentesStatusClasses as statusClasses,
   componentesIconClasses as iconClasses,
-} from "../EstilosCliente/EstilosClientes";
+  componentesTypePillBase as pillBase,
+} from "./componentesAprendizajeEstilos";

@@ -3,7 +3,8 @@ import Swal from "sweetalert2";
 import {
   aulasLayout,
   aulasFormClasses,
-} from "../EstilosCliente/EstilosClientes";
+  aulasInfoClasses,
+} from "./aulasEstilos";
 import {
   obtenerResumenAulas,
   aperturarAulas,
@@ -237,8 +238,8 @@ export const Aulas = () => {
         37 estudiantes.
       </p>
 
-      <section className="rounded-2xl bg-emerald-50/60 p-4 text-sm text-emerald-700">
-        <p className="font-semibold">Anio escolar en curso</p>
+      <section className={aulasInfoClasses.card}>
+        <p className={aulasInfoClasses.title}>Anio escolar en curso</p>
         <p>{formatearRangoFechas(anio)}</p>
       </section>
 
@@ -286,10 +287,10 @@ export const Aulas = () => {
           })}
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className={aulasFormClasses.actions}>
           <button
             type="submit"
-            className="inline-flex items-center rounded-2xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+            className={aulasFormClasses.submitButton}
             disabled={isLoading || isSubmitting || !hayAnioDisponible}
           >
             {isSubmitting ? "Procesando..." : "Habilitar secciones"}

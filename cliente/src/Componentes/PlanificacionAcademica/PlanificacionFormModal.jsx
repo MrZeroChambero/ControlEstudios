@@ -8,6 +8,7 @@ import React, {
 import Swal from "sweetalert2";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 import { contenidosFormClasses } from "../EstilosCliente/EstilosClientes";
+import { planificacionFormBaseClasses } from "./planificacionEstilos";
 import {
   obtenerCompetencias,
   actualizarCompetencia,
@@ -28,11 +29,14 @@ import { SelectorDocenteInteractivo } from "./componentes/SelectorDocenteInterac
 import { SeccionCompetencias } from "./componentes/SeccionCompetencias";
 import { ModalPlanificacionesDocente } from "./componentes/ModalPlanificacionesDocente";
 
-const rolePillBaseClass =
-  "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide";
-
-const competenciaMetaPillClass =
-  "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
+const {
+  rolePillBase: rolePillBaseClass,
+  competenciaMetaPill: competenciaMetaPillClass,
+  competenciaItemBase,
+  competenciaItemActive: competenciaItemActivo,
+  competenciaCard: competenciaCardClase,
+  indicadorRow: indicadorRowClase,
+} = planificacionFormBaseClasses;
 
 const defaultForm = {
   fk_momento: "",
@@ -355,14 +359,6 @@ export const PlanificacionFormModal = ({
 
   const submitLabel =
     modo === "editar" ? "Actualizar planificación" : "Guardar planificación";
-
-  const competenciaItemBase =
-    "flex cursor-pointer items-start gap-2 rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-600 shadow-sm transition hover:border-slate-300";
-  const competenciaItemActivo = "border-indigo-300 bg-indigo-50/40";
-  const competenciaCardClase =
-    "rounded-2xl border border-slate-100 bg-white shadow-sm";
-  const indicadorRowClase =
-    "flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2";
 
   const catalogoMomentos = useMemo(
     () =>

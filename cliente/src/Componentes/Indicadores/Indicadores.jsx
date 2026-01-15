@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import DataTable from "react-data-table-component";
 import {
-  contenidosLayout,
-  contenidosFormClasses,
-  contenidosTableClasses,
-  contenidosIconClasses,
-  primaryButtonBase,
-} from "../EstilosCliente/EstilosClientes";
+  indicadoresLayout,
+  indicadoresFormClasses,
+  indicadoresTableClasses,
+  indicadoresIconClasses,
+  indicadoresPrimaryButton,
+} from "./indicadoresEstilos";
 import {
   obtenerAreasSelect,
   obtenerComponentesSelect,
@@ -29,9 +29,9 @@ import {
 } from "react-icons/fa";
 import { IndicadorViewModal } from "./IndicadorViewModal";
 
-const layout = contenidosLayout;
-const formClasses = contenidosFormClasses;
-const tableClasses = contenidosTableClasses;
+const layout = indicadoresLayout;
+const formClasses = indicadoresFormClasses;
+const tableClasses = indicadoresTableClasses;
 
 export const Indicadores = () => {
   const [areas, setAreas] = useState([]);
@@ -350,7 +350,7 @@ export const Indicadores = () => {
               className={`${tableClasses.actionButton} ${tableClasses.viewButton}`}
               title="Ver detalle del indicador"
             >
-              <FaEye className={contenidosIconClasses.base} />
+              <FaEye className={indicadoresIconClasses.base} />
             </button>
             <button
               type="button"
@@ -365,9 +365,9 @@ export const Indicadores = () => {
               }
             >
               {row.ocultar === "si" ? (
-                <FaToggleOff className={contenidosIconClasses.base} />
+                <FaToggleOff className={indicadoresIconClasses.base} />
               ) : (
-                <FaToggleOn className={contenidosIconClasses.base} />
+                <FaToggleOn className={indicadoresIconClasses.base} />
               )}
             </button>
             <button
@@ -376,7 +376,7 @@ export const Indicadores = () => {
               className={`${tableClasses.actionButton} ${tableClasses.editButton}`}
               title="Editar indicador"
             >
-              <FaEdit className={contenidosIconClasses.base} />
+              <FaEdit className={indicadoresIconClasses.base} />
             </button>
             <button
               type="button"
@@ -384,7 +384,7 @@ export const Indicadores = () => {
               className={`${tableClasses.actionButton} ${tableClasses.deleteButton}`}
               title="Eliminar indicador"
             >
-              <FaTrash className={contenidosIconClasses.base} />
+              <FaTrash className={indicadoresIconClasses.base} />
             </button>
           </div>
         ),
@@ -436,7 +436,7 @@ export const Indicadores = () => {
             <button
               type="button"
               onClick={() => recargarIndicadores()}
-              className={`${formClasses.ghostButton} inline-flex items-center gap-2`}
+              className={formClasses.ghostButton}
               disabled={isLoadingCompetencias}
             >
               <FaSyncAlt className="h-4 w-4" />
@@ -445,7 +445,7 @@ export const Indicadores = () => {
             <button
               type="button"
               onClick={abrirModalCrear}
-              className={`${primaryButtonBase} bg-blue-600 hover:bg-blue-700 focus:ring-blue-300/60 inline-flex items-center gap-2`}
+              className={indicadoresPrimaryButton}
               disabled={!competenciaSeleccionada}
             >
               <FaPlus className="h-4 w-4" />

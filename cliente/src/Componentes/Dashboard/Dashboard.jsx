@@ -2,20 +2,21 @@ import React from "react";
 import { BotonesSection } from "./Secciones.jsx";
 import { GraficosSection } from "./Secciones.jsx";
 import { MultimediaSection } from "./Secciones.jsx";
+import { dashboardLayoutClasses } from "./dashboardEstilos";
 
 export const Dashboard = () => {
   return (
     // Agregar el return
     <>
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+      <div className={dashboardLayoutClasses.sectionWrapper}>
         <BotonesSection />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+      <div className={dashboardLayoutClasses.sectionWrapper}>
         <GraficosSection />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className={dashboardLayoutClasses.finalSection}>
         <MultimediaSection />
       </div>
     </>

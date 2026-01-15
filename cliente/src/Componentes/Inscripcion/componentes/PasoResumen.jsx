@@ -1,15 +1,12 @@
 import React, { useState } from "react";
+import VentanaModal from "../../EstilosCliente/VentanaModal";
+import { textosInscripcion } from "../textosInscripcion";
 import {
   inscripcionFormClasses,
   inscripcionSummaryClasses,
-  typography,
-  typographyScale,
-  textColors,
-  fontWeights,
-  typePillBase,
-} from "../../EstilosCliente/EstilosClientes";
-import VentanaModal from "../../EstilosCliente/VentanaModal";
-import { textosInscripcion } from "../textosInscripcion";
+  pasoResumenClasses,
+  pasoResumenDetailClasses,
+} from "../inscripcionEstilos";
 
 const traduccionTipo = (valor, catalogo = []) => {
   const encontrado = catalogo.find((item) => item.valor === valor);
@@ -74,25 +71,6 @@ const DOCUMENTOS = [
   { id: "cedula_estudiante", etiqueta: "Documento del estudiante" },
   { id: "cedula_representante", etiqueta: "Cédula del representante" },
 ];
-
-const summaryContainerClass =
-  "rounded-3xl border border-slate-100 bg-white p-6 shadow-md";
-const summaryTitleClass = typography.titleSm;
-const summaryDescriptionClass = typography.bodyMutedSm;
-const emptyStateContainerClass =
-  "rounded-3xl border border-dashed border-slate-200 bg-white p-6";
-const emptyStateTitleClass = `${typography.titleSm} mb-2`;
-const emptyStateBodyClass = typography.bodyMutedSm;
-const sectionTitleClass = `${typographyScale.base} ${fontWeights.semibold} ${textColors.secondary}`;
-const gridLabelClass = `${typography.pill} text-slate-400`;
-const gridValueClass = `${typographyScale.sm} ${fontWeights.medium} ${textColors.tertiary}`;
-const documentStatusDeliveredClass = `${typePillBase} bg-emerald-100 text-emerald-700`;
-const documentStatusPendingClass = `${typePillBase} bg-slate-200 text-slate-600`;
-const summaryStatusSuccessClass = `${typePillBase} bg-emerald-100 text-emerald-700`;
-const summaryStatusPendingClass = `${typePillBase} bg-amber-100 text-amber-700`;
-const warningHeadingClass = `${typographyScale.base} ${fontWeights.semibold} text-amber-700`;
-const warningBodyClass = `${typographyScale.sm} text-amber-700`;
-const ajustesBodyClass = `${typographyScale.sm} text-blue-800`;
 
 const TarjetasPrincipales = ({ resumen, tiposInscripcion }) => {
   const {
@@ -234,13 +212,18 @@ const DetalleResumen = ({ resumen, tiposInscripcion }) => {
   ];
 
   return (
-    <div name="contenedor-detalle-resumen" className="space-y-6">
+    <div
+      name="contenedor-detalle-resumen"
+      className={pasoResumenDetailClasses.container}
+    >
       {resultado?.id_inscripcion ? (
         <div
           name="resumen-mensaje-exito"
-          className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-700"
+          className={pasoResumenDetailClasses.successBanner}
         >
-          <p className="font-semibold">Inscripción registrada correctamente.</p>
+          <p className={pasoResumenDetailClasses.successTitle}>
+            Inscripción registrada correctamente.
+          </p>
           <p>
             Código interno: <strong>{resultado.id_inscripcion}</strong>. Fecha
             registrada: <strong>{resultado.fecha_inscripcion}</strong>.
@@ -254,84 +237,94 @@ const DetalleResumen = ({ resumen, tiposInscripcion }) => {
       />
 
       <section name="resumen-datos-hogar">
-        <h3 className={`mb-3 ${sectionTitleClass}`}>Datos del hogar</h3>
+        <h3 className={pasoResumenDetailClasses.sectionTitle}>
+          Datos del hogar
+        </h3>
         <div
           name="resumen-lista-hogar"
-          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+          className={pasoResumenDetailClasses.gridTwoCols}
         >
           {hogar.map((item) => (
             <div
               key={item.etiqueta}
               name={`resumen-hogar-${toSlug(item.etiqueta)}`}
-              className="rounded-3xl border border-slate-100 bg-slate-50 p-4"
+              className={pasoResumenDetailClasses.card}
             >
-              <p className={gridLabelClass}>{item.etiqueta}</p>
-              <p className={gridValueClass}>{item.valor || "Sin dato"}</p>
+              <p className={pasoResumenDetailClasses.label}>{item.etiqueta}</p>
+              <p className={pasoResumenDetailClasses.value}>
+                {item.valor || "Sin dato"}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       <section name="resumen-indicadores-antropometricos">
-        <h3 className={`mb-3 ${sectionTitleClass}`}>
+        <h3 className={pasoResumenDetailClasses.sectionTitle}>
           Indicadores antropométricos
         </h3>
         <div
           name="resumen-lista-antropometria"
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
+          className={pasoResumenDetailClasses.gridThreeCols}
         >
           {antropometria.map((item) => (
             <div
               key={item.etiqueta}
               name={`resumen-antropometria-${toSlug(item.etiqueta)}`}
-              className="rounded-3xl border border-slate-100 bg-slate-50 p-4"
+              className={pasoResumenDetailClasses.card}
             >
-              <p className={gridLabelClass}>{item.etiqueta}</p>
-              <p className={gridValueClass}>{item.valor || "Sin dato"}</p>
+              <p className={pasoResumenDetailClasses.label}>{item.etiqueta}</p>
+              <p className={pasoResumenDetailClasses.value}>
+                {item.valor || "Sin dato"}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       <section name="resumen-participacion-documentos">
-        <h3 className={`mb-3 ${sectionTitleClass}`}>
+        <h3 className={pasoResumenDetailClasses.sectionTitle}>
           Participación y documentos
         </h3>
         <div
           name="resumen-grid-participacion-documentos"
-          className="grid grid-cols-1 gap-4 md:grid-cols-2"
+          className={pasoResumenDetailClasses.gridTwoCols}
         >
           <div
             name="resumen-participacion"
-            className="space-y-3 rounded-3xl border border-slate-100 bg-slate-50 p-4"
+            className={pasoResumenDetailClasses.participacionCard}
           >
             {participacion.map((item) => (
               <div
                 key={item.etiqueta}
                 name={`resumen-participacion-${toSlug(item.etiqueta)}`}
               >
-                <p className={gridLabelClass}>{item.etiqueta}</p>
-                <p className={gridValueClass}>{item.valor || "Sin dato"}</p>
+                <p className={pasoResumenDetailClasses.label}>
+                  {item.etiqueta}
+                </p>
+                <p className={pasoResumenDetailClasses.value}>
+                  {item.valor || "Sin dato"}
+                </p>
               </div>
             ))}
           </div>
 
           <div
             name="resumen-documentos"
-            className="space-y-3 rounded-3xl border border-slate-100 bg-slate-50 p-4"
+            className={pasoResumenDetailClasses.documentsCard}
           >
             {DOCUMENTOS.map((doc) => (
               <div
                 key={doc.id}
                 name={`resumen-documento-${doc.id}`}
-                className="flex items-center justify-between"
+                className={pasoResumenDetailClasses.documentRow}
               >
-                <p className={gridValueClass}>{doc.etiqueta}</p>
+                <p className={pasoResumenDetailClasses.value}>{doc.etiqueta}</p>
                 <span
                   className={
                     (datos[doc.id] ?? "no") === "si"
-                      ? documentStatusDeliveredClass
-                      : documentStatusPendingClass
+                      ? pasoResumenDetailClasses.documentDelivered
+                      : pasoResumenDetailClasses.documentPending
                   }
                 >
                   {(datos[doc.id] ?? "no") === "si" ? "Entregado" : "Pendiente"}
@@ -344,20 +337,23 @@ const DetalleResumen = ({ resumen, tiposInscripcion }) => {
 
       {documentosPendientes.length > 0 ? (
         <section name="resumen-documentos-pendientes">
-          <h3 className={`mb-3 ${warningHeadingClass}`}>
+          <h3 className={pasoResumenDetailClasses.warningTitle}>
             Documentos pendientes para completar la inscripción
           </h3>
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4">
-            <p className={warningBodyClass}>
+          <div className={pasoResumenDetailClasses.warningCard}>
+            <p className={pasoResumenDetailClasses.warningBody}>
               Presenta{" "}
               {documentosPendientes.length === 1
                 ? "el siguiente"
                 : "los siguientes"}{" "}
               documento{documentosPendientes.length === 1 ? "" : "s"}:
             </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
+            <ul className={pasoResumenDetailClasses.warningList}>
               {documentosPendientes.map((doc) => (
-                <li key={toSlug(doc)} className={warningBodyClass}>
+                <li
+                  key={toSlug(doc)}
+                  className={pasoResumenDetailClasses.warningBody}
+                >
                   {doc}
                 </li>
               ))}
@@ -368,11 +364,16 @@ const DetalleResumen = ({ resumen, tiposInscripcion }) => {
 
       {ajustesAplicados.length > 0 ? (
         <section name="resumen-ajustes-aplicados">
-          <h3 className={`mb-3 ${sectionTitleClass}`}>Ajustes aplicados</h3>
-          <div className="rounded-3xl border border-blue-100 bg-blue-50 p-4">
-            <ul className="list-disc space-y-1 pl-5">
+          <h3 className={pasoResumenDetailClasses.sectionTitle}>
+            Ajustes aplicados
+          </h3>
+          <div className={pasoResumenDetailClasses.adjustmentsCard}>
+            <ul className={pasoResumenDetailClasses.adjustmentsList}>
               {ajustesAplicados.map((ajuste) => (
-                <li key={toSlug(String(ajuste))} className={ajustesBodyClass}>
+                <li
+                  key={toSlug(String(ajuste))}
+                  className={pasoResumenDetailClasses.adjustmentsItem}
+                >
                   {ajuste}
                 </li>
               ))}
@@ -397,9 +398,12 @@ export const PasoResumen = ({
     }
 
     return (
-      <section name="resumen-incompleto" className={emptyStateContainerClass}>
-        <h3 className={emptyStateTitleClass}>Resumen incompleto</h3>
-        <p className={emptyStateBodyClass}>
+      <section
+        name="resumen-incompleto"
+        className={pasoResumenClasses.emptyContainer}
+      >
+        <h3 className={pasoResumenClasses.emptyTitle}>Resumen incompleto</h3>
+        <p className={pasoResumenClasses.emptyBody}>
           {textosInscripcion.resumenIncompleto}
         </p>
       </section>
@@ -416,8 +420,8 @@ export const PasoResumen = ({
     : [];
   const documentosAlDia = documentosPendientes.length === 0;
   const statusClass = documentosAlDia
-    ? summaryStatusSuccessClass
-    : summaryStatusPendingClass;
+    ? pasoResumenClasses.statusChipSuccess
+    : pasoResumenClasses.statusChipPending;
   const statusLabel = documentosAlDia
     ? "Documentos al día"
     : `${documentosPendientes.length} pendiente${
@@ -426,16 +430,21 @@ export const PasoResumen = ({
 
   return (
     <>
-      <section name="resumen-visual" className={summaryContainerClass}>
-        <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <section
+        name="resumen-visual"
+        className={pasoResumenClasses.summaryContainer}
+      >
+        <header className={pasoResumenClasses.summaryHeader}>
           <div>
-            <h2 className={summaryTitleClass}>Resumen del registro</h2>
-            <p className={summaryDescriptionClass}>
+            <h2 className={pasoResumenClasses.summaryTitle}>
+              Resumen del registro
+            </h2>
+            <p className={pasoResumenClasses.summaryDescription}>
               Verifica los datos seleccionados antes de registrar la
               inscripción.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={pasoResumenClasses.actionGroup}>
             <span className={statusClass}>{statusLabel}</span>
             <button
               type="button"
@@ -453,7 +462,7 @@ export const PasoResumen = ({
         />
 
         {ajustesAplicados.length > 0 ? (
-          <div className="mt-5 rounded-3xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
+          <div className={pasoResumenClasses.infoAlert}>
             Se aplicaron {ajustesAplicados.length} ajuste
             {ajustesAplicados.length === 1 ? "" : "s"} al guardar la
             inscripción.
@@ -461,7 +470,7 @@ export const PasoResumen = ({
         ) : null}
 
         {!documentosAlDia ? (
-          <div className="mt-4 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+          <div className={pasoResumenClasses.warningAlert}>
             Asegúrate de consignar los documentos pendientes antes de finalizar.
           </div>
         ) : null}
@@ -473,7 +482,7 @@ export const PasoResumen = ({
         title="Detalle del resumen"
         subtitle="Revisa la información consolidada del proceso de inscripción."
         size="lg"
-        bodyClassName="space-y-6"
+        bodyClassName={pasoResumenDetailClasses.modalBody}
         footer={
           <button
             type="button"

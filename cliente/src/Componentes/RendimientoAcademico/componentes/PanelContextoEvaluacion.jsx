@@ -1,16 +1,11 @@
 import React from "react";
-import {
-  contenidosLayout,
-  contenidosFormClasses,
-  typography,
-} from "../../EstilosCliente/EstilosClientes";
-import { tarjetaDatoClass } from "../constantesRendimiento";
+import { panelContextoEvaluacionClasses } from "../rendimientoEstilos";
 import { formatearFechaCorta } from "../../../utilidades/formatoFechas";
 
 const DatoContexto = ({ etiqueta, valor }) => (
-  <div className={tarjetaDatoClass}>
-    <span className={contenidosFormClasses.label}>{etiqueta}</span>
-    <span className="text-sm font-semibold text-slate-800">{valor}</span>
+  <div className={panelContextoEvaluacionClasses.card}>
+    <span className={panelContextoEvaluacionClasses.label}>{etiqueta}</span>
+    <span className={panelContextoEvaluacionClasses.value}>{valor}</span>
   </div>
 );
 
@@ -31,15 +26,17 @@ export const PanelContextoEvaluacion = ({ contexto }) => {
       : "-";
 
   return (
-    <section className={`${contenidosLayout.container} space-y-4`}>
-      <header className="space-y-1">
-        <h2 className={typography.titleSm}>Contexto de evaluación</h2>
-        <p className={typography.bodyMutedSm}>
+    <section className={panelContextoEvaluacionClasses.container}>
+      <header className={panelContextoEvaluacionClasses.header}>
+        <h2 className={panelContextoEvaluacionClasses.title}>
+          Contexto de evaluación
+        </h2>
+        <p className={panelContextoEvaluacionClasses.description}>
           Confirma que los datos del periodo y del perfil sean los correctos
           antes de registrar los resultados.
         </p>
       </header>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className={panelContextoEvaluacionClasses.grid}>
         <DatoContexto etiqueta="Usuario" valor={usuario.nombre ?? "-"} />
         <DatoContexto etiqueta="Rol" valor={usuario.rol ?? "-"} />
         <DatoContexto etiqueta="Año escolar" valor={periodo} />

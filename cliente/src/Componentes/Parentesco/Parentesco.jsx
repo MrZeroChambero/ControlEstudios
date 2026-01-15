@@ -15,11 +15,12 @@ import {
 import SeleccionEntidad from "./SeleccionEntidad";
 import TablaParentescosEstudiante from "./TablaParentescosEstudiante";
 import TablaParentescosRepresentante from "./TablaParentescosRepresentante";
+import { contenidosFormClasses } from "../EstilosCliente/EstilosClientes";
 import {
-  contenidosLayout,
-  contenidosFormClasses,
-  primaryButtonBase,
-} from "../EstilosCliente/EstilosClientes";
+  parentescoLayout,
+  parentescoTabClasses,
+  parentescoSectionClasses,
+} from "./parentescoEstilos";
 
 // Componente principal de gestión de Parentescos
 export const Parentesco = () => {
@@ -325,39 +326,30 @@ export const Parentesco = () => {
 
   // Se sustituyen tablas tradicionales por componentes DataTable
 
-  const tabButtonBase = `${primaryButtonBase} bg-blue-500 text-white focus:ring-blue-200/60`;
-  const tabButtonInactive = "hover:bg-blue-600";
-  const tabActiveVariants = {
-    estudiante:
-      "bg-blue-700 hover:bg-blue-700 focus:ring-blue-400/60 shadow-lg",
-    representante:
-      "bg-blue-700 hover:bg-blue-700 focus:ring-blue-400/60 shadow-lg",
-  };
-
   return (
-    <div className={contenidosLayout.container}>
-      <div className={`${contenidosLayout.header} items-start`}>
-        <div className="flex flex-col gap-1">
-          <h2 className={contenidosLayout.title}>Gestión de Parentescos</h2>
-          <p className="text-sm text-slate-500">
+    <div className={parentescoLayout.container}>
+      <div className={parentescoLayout.header}>
+        <div className={parentescoLayout.headingWrapper}>
+          <h2 className={parentescoLayout.title}>Gestión de Parentescos</h2>
+          <p className={parentescoLayout.helperText}>
             Relaciona estudiantes con sus representantes y mantén control de los
             vínculos familiares registrados.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className={parentescoTabClasses.group}>
           <button
             onClick={() => {
               setTab("estudiante");
               setEditando(null);
               setTipoManual("");
             }}
-            className={`${tabButtonBase} ${
+            className={`${parentescoTabClasses.button} ${
               tab === "estudiante"
-                ? tabActiveVariants.estudiante
-                : tabButtonInactive
+                ? parentescoTabClasses.active
+                : parentescoTabClasses.inactive
             }`}
           >
-            <FaExchangeAlt className="h-4 w-4" />
+            <FaExchangeAlt className={parentescoTabClasses.icon} />
             <span>Por Estudiante</span>
           </button>
           <button
@@ -366,26 +358,26 @@ export const Parentesco = () => {
               setEditando(null);
               setTipoManual("");
             }}
-            className={`${tabButtonBase} ${
+            className={`${parentescoTabClasses.button} ${
               tab === "representante"
-                ? tabActiveVariants.representante
-                : tabButtonInactive
+                ? parentescoTabClasses.active
+                : parentescoTabClasses.inactive
             }`}
           >
-            <FaExchangeAlt className="h-4 w-4" />
+            <FaExchangeAlt className={parentescoTabClasses.icon} />
             <span>Por Representante</span>
           </button>
         </div>
       </div>
 
-      <p className={contenidosLayout.description}>
+      <p className={parentescoLayout.description}>
         Un estudiante solo puede registrar un padre y una madre. Los demás tipos
         de parentesco no tienen restricciones adicionales.
       </p>
 
       {tab === "estudiante" && (
-        <div className="space-y-6">
-          <div className="space-y-6">
+        <div className={parentescoSectionClasses.stack}>
+          <div className={parentescoSectionClasses.stack}>
             <SeleccionEntidad
               tipo="estudiante"
               items={estudiantes}
@@ -399,8 +391,8 @@ export const Parentesco = () => {
               onSelect={(i) => setRepresentanteSel(i)}
             />
           </div>
-          <div className="space-y-4 rounded-3xl border border-slate-100 bg-white/60 p-4 shadow-sm">
-            <div className="space-y-3">
+          <div className={parentescoSectionClasses.card}>
+            <div className={parentescoSectionClasses.form}>
               <div className={contenidosFormClasses.fieldWrapper}>
                 <label
                   className={contenidosFormClasses.label}
@@ -433,7 +425,7 @@ export const Parentesco = () => {
                 type="button"
                 disabled={!representanteSel || !estudianteSel}
                 onClick={agregarParentescoEstudiante}
-                className={`${contenidosFormClasses.primaryButton} flex w-full items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-60`}
+                className={parentescoSectionClasses.addButton}
               >
                 <FaPlus className="h-4 w-4" />
                 <span>Agregar parentesco</span>
@@ -456,8 +448,8 @@ export const Parentesco = () => {
       )}
 
       {tab === "representante" && (
-        <div className="space-y-6">
-          <div className="space-y-6">
+        <div className={parentescoSectionClasses.stack}>
+          <div className={parentescoSectionClasses.stack}>
             <SeleccionEntidad
               tipo="representante"
               items={representantes}
@@ -471,8 +463,8 @@ export const Parentesco = () => {
               onSelect={(i) => setEstudianteSel(i)}
             />
           </div>
-          <div className="space-y-4 rounded-3xl border border-slate-100 bg-white/60 p-4 shadow-sm">
-            <div className="space-y-3">
+          <div className={parentescoSectionClasses.card}>
+            <div className={parentescoSectionClasses.form}>
               <div className={contenidosFormClasses.fieldWrapper}>
                 <label
                   className={contenidosFormClasses.label}
@@ -505,7 +497,7 @@ export const Parentesco = () => {
                 type="button"
                 disabled={!representanteSel || !estudianteSel}
                 onClick={agregarParentescoRepresentante}
-                className={`${contenidosFormClasses.primaryButton} flex w-full items-center justify-center gap-2 disabled:pointer-events-none disabled:opacity-60`}
+                className={parentescoSectionClasses.addButton}
               >
                 <FaPlus className="h-4 w-4" />
                 <span>Agregar parentesco</span>

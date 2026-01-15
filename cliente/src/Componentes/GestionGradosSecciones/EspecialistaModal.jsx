@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  contenidosFormClasses,
-  neutralButtonBase,
-  helperTextBase,
-  typePillBase,
-} from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+import { especialistaModalClasses } from "./gestionDocentesEstilos";
 
 const flattenComponents = (areas) => {
   const resultado = [];
@@ -259,10 +254,14 @@ export const EspecialistaModal = ({
       size="lg"
       contentClassName="max-w-3xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-4" autoComplete="off">
-        <div className={contenidosFormClasses.fieldWrapper}>
+      <form
+        onSubmit={manejarSubmit}
+        className={especialistaModalClasses.form}
+        autoComplete="off"
+      >
+        <div className={especialistaModalClasses.componenteSelect.wrapper}>
           <label
-            className={contenidosFormClasses.label}
+            className={especialistaModalClasses.componenteSelect.label}
             htmlFor="componente-select"
           >
             Componente de aprendizaje
@@ -270,7 +269,7 @@ export const EspecialistaModal = ({
           <select
             id="componente-select"
             name="id_componente"
-            className={contenidosFormClasses.select}
+            className={especialistaModalClasses.componenteSelect.select}
             value={formState.id_componente}
             onChange={manejarCambio}
             disabled={
@@ -286,52 +285,68 @@ export const EspecialistaModal = ({
             ))}
           </select>
           {errores?.componentes && (
-            <p className={helperTextBase}>{errores.componentes.join(" ")}</p>
+            <p className={especialistaModalClasses.componenteSelect.helper}>
+              {errores.componentes.join(" ")}
+            </p>
           )}
           {opcionesComponentes.length === 0 && !errores?.componentes && (
-            <p className={`${helperTextBase} mt-2 text-amber-600`}>
+            <p className={especialistaModalClasses.componenteSelect.warning}>
               No hay componentes configurados que requieran especialista.
             </p>
           )}
         </div>
 
         {formState.id_componente ? (
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+          <div className={especialistaModalClasses.componenteInfoCard.wrapper}>
             {componenteActivo ? (
-              <div className="space-y-3">
+              <div
+                className={especialistaModalClasses.componenteInfoCard.content}
+              >
                 {(() => {
                   const meta = obtenerMetaTipoDocente(componenteActivo);
                   return (
                     <span
-                      className={`${typePillBase} ${meta.pillClass} inline-flex`}
+                      className={`${especialistaModalClasses.componenteInfoCard.typePillBase} ${meta.pillClass} inline-flex`}
                     >
                       {meta.etiqueta}
                     </span>
                   );
                 })()}
-                <p className="text-sm font-semibold text-slate-700">
+                <p
+                  className={
+                    especialistaModalClasses.componenteInfoCard.componentName
+                  }
+                >
                   {componenteActivo.nombre}
                 </p>
-                <p className="text-xs uppercase tracking-wide text-slate-500">
+                <p
+                  className={
+                    especialistaModalClasses.componenteInfoCard.areaLabel
+                  }
+                >
                   Area: {componenteActivo.areaNombre}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p
+                  className={
+                    especialistaModalClasses.componenteInfoCard.helperText
+                  }
+                >
                   {componenteActivo.tipo_docente === "cultura"
                     ? "Este componente solo puede ser impartido por docentes de cultura."
                     : "Este componente requiere un docente especialista asignado."}
                 </p>
               </div>
             ) : (
-              <p className={`${helperTextBase} text-amber-600`}>
+              <p className={especialistaModalClasses.componenteSelect.warning}>
                 Selecciona un componente para ver los detalles.
               </p>
             )}
           </div>
         ) : null}
 
-        <div className={contenidosFormClasses.fieldWrapper}>
+        <div className={especialistaModalClasses.especialistaSelect.wrapper}>
           <label
-            className={contenidosFormClasses.label}
+            className={especialistaModalClasses.especialistaSelect.label}
             htmlFor="especialista-select"
           >
             Especialista asignado
@@ -339,7 +354,7 @@ export const EspecialistaModal = ({
           <select
             id="especialista-select"
             name="id_personal"
-            className={contenidosFormClasses.select}
+            className={especialistaModalClasses.especialistaSelect.select}
             value={formState.id_personal}
             onChange={manejarCambio}
             disabled={sinEspecialistasDisponibles}
@@ -359,32 +374,34 @@ export const EspecialistaModal = ({
             ))}
           </select>
           {errores?.id_personal && (
-            <p className={helperTextBase}>{errores.id_personal.join(" ")}</p>
+            <p className={especialistaModalClasses.especialistaSelect.helper}>
+              {errores.id_personal.join(" ")}
+            </p>
           )}
           {sinEspecialistasDisponibles && !errores?.id_personal && (
-            <p className={`${helperTextBase} mt-2 text-amber-600`}>
+            <p className={especialistaModalClasses.especialistaSelect.warning}>
               No hay especialistas disponibles para el tipo seleccionado.
             </p>
           )}
         </div>
 
         {errores?.generales && (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700">
+          <div className={especialistaModalClasses.errorBanner}>
             {errores.generales.join(" ")}
           </div>
         )}
 
-        <div className={`${contenidosFormClasses.actions} mt-6`}>
+        <div className={especialistaModalClasses.actions.wrapper}>
           <button
             type="button"
             onClick={onClose}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={especialistaModalClasses.actions.cancelButton}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className={contenidosFormClasses.primaryButton}
+            className={especialistaModalClasses.actions.submitButton}
             disabled={!formState.id_componente || !formState.id_personal}
           >
             Guardar asignacion

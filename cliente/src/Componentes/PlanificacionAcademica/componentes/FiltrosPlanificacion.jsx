@@ -1,5 +1,6 @@
 import React from "react";
 import { FaFilter } from "react-icons/fa";
+import { filtrosPlanificacionClasses } from "../planificacionEstilos";
 
 export const FiltrosPlanificacion = ({
   filtros,
@@ -19,33 +20,35 @@ export const FiltrosPlanificacion = ({
   return (
     <form
       onSubmit={alEnviarFiltros}
-      className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      className={filtrosPlanificacionClasses.container}
     >
-      <div className="mb-4 flex items-center gap-2 text-slate-600">
+      <div className={filtrosPlanificacionClasses.headingRow}>
         <FaFilter />
-        <span className="text-sm font-semibold">Filtros rápidos</span>
+        <span className={filtrosPlanificacionClasses.headingLabel}>
+          Filtros rápidos
+        </span>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <label className="flex flex-col text-sm text-slate-600">
+      <div className={filtrosPlanificacionClasses.fieldsGrid}>
+        <label className={filtrosPlanificacionClasses.fieldLabel}>
           Tipo
           <select
             name="tipo"
             value={filtros.tipo}
             onChange={alCambiarFiltro}
-            className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
+            className={filtrosPlanificacionClasses.select}
           >
             <option value="">Todos</option>
             <option value="aula">Aula completa</option>
             <option value="individual">Individual</option>
           </select>
         </label>
-        <label className="flex flex-col text-sm text-slate-600">
+        <label className={filtrosPlanificacionClasses.fieldLabel}>
           Momento
           <select
             name="fk_momento"
             value={filtros.fk_momento}
             onChange={alCambiarFiltro}
-            className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
+            className={filtrosPlanificacionClasses.select}
             disabled={catalogosLoading || !catalogos.momentos.length}
           >
             <option value="">Todos</option>
@@ -56,13 +59,13 @@ export const FiltrosPlanificacion = ({
             ))}
           </select>
         </label>
-        <label className="flex flex-col text-sm text-slate-600">
+        <label className={filtrosPlanificacionClasses.fieldLabel}>
           Docente responsable
           <select
             name="fk_personal"
             value={filtros.fk_personal}
             onChange={alCambiarFiltro}
-            className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
+            className={filtrosPlanificacionClasses.select}
             disabled={catalogosLoading || !catalogos.personal.length}
           >
             <option value="">Todos</option>
@@ -73,13 +76,13 @@ export const FiltrosPlanificacion = ({
             ))}
           </select>
         </label>
-        <label className="flex flex-col text-sm text-slate-600">
+        <label className={filtrosPlanificacionClasses.fieldLabel}>
           Aula
           <select
             name="fk_aula"
             value={filtros.fk_aula}
             onChange={alCambiarFiltro}
-            className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
+            className={filtrosPlanificacionClasses.select}
             disabled={catalogosLoading || !catalogos.aulas.length}
           >
             <option value="">Todas</option>
@@ -90,13 +93,13 @@ export const FiltrosPlanificacion = ({
             ))}
           </select>
         </label>
-        <label className="flex flex-col text-sm text-slate-600">
+        <label className={filtrosPlanificacionClasses.fieldLabel}>
           Componente de aprendizaje
           <select
             name="fk_componente"
             value={filtros.fk_componente}
             onChange={alCambiarFiltro}
-            className="mt-1 rounded-lg border border-slate-200 px-3 py-2 text-slate-700 focus:border-indigo-500 focus:outline-none"
+            className={filtrosPlanificacionClasses.select}
             disabled={catalogosLoading || !catalogos.componentes.length}
           >
             <option value="">Todos</option>
@@ -108,39 +111,47 @@ export const FiltrosPlanificacion = ({
           </select>
         </label>
         {filtros.fk_personal && (
-          <div className="md:col-span-3 rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className={filtrosPlanificacionClasses.docenteInfoPanel}>
             {docenteAsignacion.loading ? (
-              <span>Buscando asignación del docente...</span>
+              <span className={filtrosPlanificacionClasses.docenteInfoLoading}>
+                Buscando asignación del docente...
+              </span>
             ) : docenteAsignacion.error ? (
-              <span className="text-red-600">{docenteAsignacion.error}</span>
+              <span className={filtrosPlanificacionClasses.docenteInfoError}>
+                {docenteAsignacion.error}
+              </span>
             ) : asignacionAula ? (
-              <div className="space-y-3">
+              <div className={filtrosPlanificacionClasses.docenteInfoWrapper}>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                  <p className={filtrosPlanificacionClasses.docenteMetaLabel}>
                     Aula asignada
                   </p>
-                  <p className="font-semibold text-slate-700">
+                  <p className={filtrosPlanificacionClasses.docenteMetaValue}>
                     Grado {asignacionAula.grado ?? "N/D"} - Sección{" "}
                     {asignacionAula.seccion ?? "N/D"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                  <p className={filtrosPlanificacionClasses.docenteMetaLabel}>
                     Componentes vinculados
                   </p>
                   {componentesAsignados.length ? (
-                    <div className="mt-1 flex flex-wrap gap-2">
+                    <div
+                      className={
+                        filtrosPlanificacionClasses.docenteComponentesWrapper
+                      }
+                    >
                       {componentesAsignados.map((componente) => (
                         <span
                           key={componente.id}
-                          className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700"
+                          className={filtrosPlanificacionClasses.docenteChip}
                         >
                           {componente.nombre}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500">
+                    <p className={filtrosPlanificacionClasses.docenteChipEmpty}>
                       El docente no tiene componentes registrados para este
                       momento.
                     </p>
@@ -148,7 +159,7 @@ export const FiltrosPlanificacion = ({
                 </div>
               </div>
             ) : (
-              <span className="text-xs text-slate-500">
+              <span className={filtrosPlanificacionClasses.docenteEmptyText}>
                 No se encontró aula ni componentes asociados al docente para el
                 contexto seleccionado.
               </span>
@@ -157,14 +168,14 @@ export const FiltrosPlanificacion = ({
         )}
       </div>
       {(catalogosLoading || catalogosError) && (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className={filtrosPlanificacionClasses.catalogNotice}>
           {catalogosLoading ? "Cargando catálogos de apoyo..." : catalogosError}
         </p>
       )}
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className={filtrosPlanificacionClasses.actionsRow}>
         <button
           type="submit"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          className={filtrosPlanificacionClasses.applyButton}
           disabled={accionesDeshabilitadas}
         >
           Aplicar filtros
@@ -172,7 +183,7 @@ export const FiltrosPlanificacion = ({
         <button
           type="button"
           onClick={alReiniciarFiltros}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+          className={filtrosPlanificacionClasses.resetButton}
           disabled={accionesDeshabilitadas}
         >
           Limpiar

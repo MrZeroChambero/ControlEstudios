@@ -1,7 +1,7 @@
 import React from "react";
 import DataTable from "react-data-table-component";
 import { AreasAprendizajeForm } from "./AreasAprendizajeForm";
-import { areasComponentTableClasses } from "../EstilosCliente/EstilosClientes";
+import { areasComponentTableClasses } from "./areasAprendizajeEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const AreasAprendizajeModal = ({

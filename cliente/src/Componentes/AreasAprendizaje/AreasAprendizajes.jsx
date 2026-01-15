@@ -7,10 +7,7 @@ import { AreasAprendizajeModal } from "./AreasAprendizajeModal";
 import { solicitudAreasAprendizaje } from "./Solicitudes/solicitudAreasAprendizaje";
 import { eliminarAreasAprendizaje } from "./Solicitudes/eliminarAreasAprendizaje";
 import { EnviarAreasAprendizaje } from "./Solicitudes/EnviarAreasAprendizaje";
-import {
-  areasLayout,
-  contenidosIconClasses,
-} from "../EstilosCliente/EstilosClientes";
+import { areasLayout, areasIconClasses } from "./areasAprendizajeEstilos";
 
 export const AreasAprendizajes = () => {
   const [areas, setAreas] = useState([]);
@@ -110,7 +107,7 @@ export const AreasAprendizajes = () => {
         <div className={areasLayout.header}>
           <h2 className={areasLayout.title}>Gestión de Áreas de Aprendizaje</h2>
           <button onClick={() => openModal()} className={areasLayout.addButton}>
-            <FaPlus className={contenidosIconClasses.base} />
+            <FaPlus className={areasIconClasses.base} />
             <span>Agregar Área</span>
           </button>
         </div>

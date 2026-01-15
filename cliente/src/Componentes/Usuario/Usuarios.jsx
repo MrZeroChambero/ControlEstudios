@@ -13,7 +13,7 @@ import {
   obtenerUsuarioCompleto,
   obtenerPreguntasSeguridad,
 } from "./usuariosService";
-import { contenidosLayout } from "../EstilosCliente/EstilosClientes";
+import { usuariosGestionClasses } from "./usuariosEstilos";
 
 export const Usuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -299,17 +299,17 @@ export const Usuarios = () => {
 
   return (
     <>
-      <div className={contenidosLayout.container}>
-        <div className={contenidosLayout.header}>
-          <h2 className={contenidosLayout.title}>Gestión de Usuarios</h2>
+      <div className={usuariosGestionClasses.container}>
+        <div className={usuariosGestionClasses.header}>
+          <h2 className={usuariosGestionClasses.title}>Gestión de Usuarios</h2>
           <button
             onClick={() => openModal()}
-            className={contenidosLayout.addButton}
+            className={usuariosGestionClasses.addButton}
           >
             <FaPlus className="h-4 w-4" /> <span>Agregar Usuario</span>
           </button>
         </div>
-        <p className={contenidosLayout.description}>
+        <p className={usuariosGestionClasses.description}>
           Aquí puedes crear, ver, actualizar y eliminar los usuarios del
           sistema.
         </p>

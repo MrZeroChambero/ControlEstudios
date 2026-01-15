@@ -3,9 +3,9 @@ import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import { FaList, FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import {
-  contenidosTableClasses,
-  contenidosIconClasses,
-} from "../EstilosCliente/EstilosClientes";
+  competenciasTableClasses,
+  competenciasIconClasses,
+} from "./competenciasEstilos";
 
 const columnasBase = (onView, onEdit, onDelete, onViewIndicators) => [
   {
@@ -44,34 +44,34 @@ const columnasBase = (onView, onEdit, onDelete, onViewIndicators) => [
         <button
           type="button"
           onClick={() => onView(row)}
-          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.viewButton}`}
+          className={`${competenciasTableClasses.actionButton} ${competenciasTableClasses.viewButton}`}
           title="Ver detalle de la competencia"
         >
-          <FaEye className={contenidosIconClasses.base} />
+          <FaEye className={competenciasIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onViewIndicators(row)}
-          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.temasButton}`}
+          className={`${competenciasTableClasses.actionButton} ${competenciasTableClasses.indicatorsButton}`}
           title="Gestionar indicadores"
         >
-          <FaList className={contenidosIconClasses.base} />
+          <FaList className={competenciasIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onEdit(row)}
-          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.editButton}`}
+          className={`${competenciasTableClasses.actionButton} ${competenciasTableClasses.editButton}`}
           title="Editar competencia"
         >
-          <FaEdit className={contenidosIconClasses.base} />
+          <FaEdit className={competenciasIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onDelete(row)}
-          className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.deleteButton}`}
+          className={`${competenciasTableClasses.actionButton} ${competenciasTableClasses.deleteButton}`}
           title="Eliminar competencia"
         >
-          <FaTrash className={contenidosIconClasses.base} />
+          <FaTrash className={competenciasIconClasses.base} />
         </button>
       </div>
     ),
@@ -110,13 +110,13 @@ export const CompetenciasTable = ({
   );
 
   const barraBusqueda = (
-    <div className={contenidosTableClasses.filterContainer}>
+    <div className={competenciasTableClasses.filterContainer}>
       <input
         type="search"
         value={filtro}
         onChange={(evento) => setFiltro(evento.target.value)}
         placeholder="Buscar por nombre, descripcion o componente"
-        className={contenidosTableClasses.filterInput}
+        className={competenciasTableClasses.filterInput}
       />
     </div>
   );
@@ -150,12 +150,12 @@ export const CompetenciasTable = ({
       data={registrosFiltrados}
       progressPending={isLoading}
       progressComponent={
-        <p className={contenidosTableClasses.helperText}>
+        <p className={competenciasTableClasses.helperText}>
           Cargando competencias...
         </p>
       }
       noDataComponent={
-        <p className={contenidosTableClasses.helperText}>
+        <p className={competenciasTableClasses.helperText}>
           No hay competencias registradas para los filtros seleccionados.
         </p>
       }

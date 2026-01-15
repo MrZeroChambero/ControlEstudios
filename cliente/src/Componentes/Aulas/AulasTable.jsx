@@ -5,8 +5,8 @@ import {
   aulasTableClasses,
   aulasStatusClasses,
   aulasIconClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+} from "./aulasEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 
 const formatearGrado = (valor) => `Grado ${valor}`;
 

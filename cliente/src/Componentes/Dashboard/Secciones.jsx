@@ -4,26 +4,27 @@ import {
   MdSettings,
   MdVideocam,
 } from "react-icons/md";
+import {
+  dashboardSectionClasses,
+  dashboardQuickActionClasses,
+} from "./dashboardEstilos";
 
 export const MultimediaSection = () => {
   return (
     <>
-      {" "}
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Sección Multimedia
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
+      <h2 className={dashboardSectionClasses.heading}>Sección Multimedia</h2>
+      <div className={dashboardSectionClasses.mediaGrid}>
+        <div className={dashboardSectionClasses.mediaCard}>
           <h3 className="text-xl font-semibold mb-2">Imagen de Muestra</h3>
           <img
             src="https://placehold.co/600x400/22c55e/ffffff?text=Imagen+Multimedia"
             alt="Placeholder"
-            className="w-full h-auto rounded-lg"
+            className={dashboardSectionClasses.mediaImage}
           />
         </div>
-        <div className="bg-gray-100 p-6 rounded-lg shadow-inner">
+        <div className={dashboardSectionClasses.mediaCard}>
           <h3 className="text-xl font-semibold mb-2">Video de Muestra</h3>
-          <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+          <div className={dashboardSectionClasses.mediaPlaceholder}>
             <p className="text-gray-500">Espacio para video</p>
           </div>
         </div>
@@ -31,36 +32,44 @@ export const MultimediaSection = () => {
     </>
   );
 };
+
 export const GraficosSection = () => {
   return (
     <>
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Sección de Gráficos
-      </h2>
-      <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center mt-4">
+      <h2 className={dashboardSectionClasses.heading}>Sección de Gráficos</h2>
+      <div className={dashboardSectionClasses.graphContainer}>
         <p className="text-gray-500">Espacio para gráfico</p>
       </div>
     </>
   );
 };
+
 export const BotonesSection = () => {
   return (
     <>
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        Sección de Botones
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <button className="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow border-2 border-transparent hover:border-blue-500">
-          <MdAddCircle className="h-10 w-10 text-blue-500 mb-2" />
-          <span className="text-sm font-semibold">Crear Nuevo</span>
+      <h2 className={dashboardSectionClasses.heading}>Sección de Botones</h2>
+      <div className={dashboardQuickActionClasses.grid}>
+        <button className={dashboardQuickActionClasses.create}>
+          <MdAddCircle
+            className={`${dashboardQuickActionClasses.icon} text-blue-500`}
+          />
+          <span className={dashboardQuickActionClasses.label}>Crear Nuevo</span>
         </button>
-        <button className="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow border-2 border-transparent hover:border-green-500">
-          <MdBarChart className="h-10 w-10 text-green-500 mb-2" />
-          <span className="text-sm font-semibold">Generar Informe</span>
+        <button className={dashboardQuickActionClasses.report}>
+          <MdBarChart
+            className={`${dashboardQuickActionClasses.icon} text-green-500`}
+          />
+          <span className={dashboardQuickActionClasses.label}>
+            Generar Informe
+          </span>
         </button>
-        <button className="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow border-2 border-transparent hover:border-yellow-500">
-          <MdSettings className="h-10 w-10 text-yellow-500 mb-2" />
-          <span className="text-sm font-semibold">Configuración</span>
+        <button className={dashboardQuickActionClasses.settings}>
+          <MdSettings
+            className={`${dashboardQuickActionClasses.icon} text-yellow-500`}
+          />
+          <span className={dashboardQuickActionClasses.label}>
+            Configuración
+          </span>
         </button>
       </div>
     </>

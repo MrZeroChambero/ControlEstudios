@@ -2,9 +2,9 @@ import { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
-  contenidosLayout,
-  contenidosFormClasses,
-} from "../EstilosCliente/EstilosClientes";
+  competenciasLayout,
+  competenciasFormClasses,
+} from "./competenciasEstilos";
 import { CompetenciasTable } from "./CompetenciasTable";
 import { CompetenciaFormModal } from "./CompetenciaFormModal";
 import { IndicadoresModal } from "./IndicadoresModal";
@@ -22,7 +22,7 @@ import {
   actualizarVisibilidadIndicador,
 } from "./competenciasService";
 
-const layout = contenidosLayout;
+const layout = competenciasLayout;
 
 export const Competencias = () => {
   const {
@@ -335,7 +335,7 @@ export const Competencias = () => {
             <button
               type="button"
               onClick={() => setIsFilterModalOpen(true)}
-              className={contenidosFormClasses.ghostButton}
+              className={competenciasFormClasses.ghostButton}
             >
               Abrir filtros
             </button>
@@ -343,7 +343,7 @@ export const Competencias = () => {
               <button
                 type="button"
                 onClick={resetFilters}
-                className={contenidosFormClasses.ghostButton}
+                className={competenciasFormClasses.ghostButton}
               >
                 Limpiar filtros
               </button>

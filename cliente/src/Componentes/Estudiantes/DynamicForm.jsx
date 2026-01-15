@@ -1,6 +1,6 @@
 import React from "react";
 
-import { estudiantesFormClasses } from "../EstilosCliente/EstilosClientes";
+import { estudiantesFormClasses } from "./estudiantesEstilos";
 
 export const DynamicForm = ({
   schema,

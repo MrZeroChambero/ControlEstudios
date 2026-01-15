@@ -9,10 +9,8 @@ import {
   obtenerEstudianteCompleto,
   cambioEstadoEstudiante,
 } from "./estudianteService";
-import {
-  estudiantesLayout,
-  contenidosIconClasses,
-} from "../EstilosCliente/EstilosClientes";
+import { contenidosIconClasses } from "../EstilosCliente/EstilosClientes";
+import { estudiantesLayout } from "./estudiantesEstilos";
 
 export const Estudiantes = () => {
   const [estudiantes, setEstudiantes] = useState([]);

@@ -35,7 +35,7 @@ import {
   formatearFechaHoraCorta,
   calcularEdad,
 } from "../../utilidades/formatoFechas";
-import { estudiantesModalClasses } from "../EstilosCliente/EstilosClientes";
+import { estudiantesModalClasses } from "./estudiantesEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const DOCUMENTOS_CRITICOS = new Set([

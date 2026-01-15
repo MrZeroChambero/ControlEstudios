@@ -2,7 +2,7 @@ import React from "react";
 import {
   anioEscolarFormClasses,
   anioEscolarModalClasses,
-} from "../EstilosCliente/EstilosClientes";
+} from "./anioEscolarEstilos";
 import { transformarErrores } from "./utilidadesAnioEscolar";
 
 const obtenerClaseCampo = (errores, campo) =>

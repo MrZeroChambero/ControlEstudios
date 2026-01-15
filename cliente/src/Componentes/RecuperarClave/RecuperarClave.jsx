@@ -9,6 +9,7 @@ import {
   formatAttemptMessage,
   buildAttemptHtml,
 } from "../../utils/attemptMessages";
+import { recuperarClaveClasses } from "./recuperarClaveEstilos";
 
 const initialFormState = {
   nombreUsuario: "",
@@ -183,23 +184,21 @@ export const RecuperarClave = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-12">
-      <div className="w-full max-w-lg space-y-6 rounded-3xl bg-white p-8 shadow-2xl">
-        <h1 className="text-center text-2xl font-bold text-slate-900">
-          Recuperar contrasena
-        </h1>
-        <p className="text-center text-sm text-slate-500">
+    <div className={recuperarClaveClasses.page}>
+      <div className={recuperarClaveClasses.card}>
+        <h1 className={recuperarClaveClasses.title}>Recuperar contrasena</h1>
+        <p className={recuperarClaveClasses.subtitle}>
           Usa tus preguntas de seguridad para restablecer tu acceso.
         </p>
 
         {paso === "usuario" ? (
           <form
-            className="space-y-6"
+            className={recuperarClaveClasses.form}
             onSubmit={manejarBusquedaUsuario}
             autoComplete="off"
           >
             <div>
-              <label className="block text-sm font-semibold text-slate-700">
+              <label className={recuperarClaveClasses.label}>
                 Nombre de usuario
               </label>
               <input
@@ -208,72 +207,70 @@ export const RecuperarClave = () => {
                 onChange={(e) =>
                   actualizarCampo("nombreUsuario", e.target.value)
                 }
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className={recuperarClaveClasses.input}
                 placeholder="Ingresa tu usuario"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
+              className={recuperarClaveClasses.primaryButton}
             >
               Buscar preguntas
             </button>
 
             {infoIntentos && (
               <div
-                className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                className={recuperarClaveClasses.attemptNotice}
                 style={{ whiteSpace: "pre-line" }}
               >
                 {infoIntentos}
               </div>
             )}
 
-            <div className="text-center text-sm">
-              <Link to="/Login" className="text-blue-600 hover:underline">
+            <div className={recuperarClaveClasses.linkWrapper}>
+              <Link to="/Login" className={recuperarClaveClasses.link}>
                 Volver al inicio de sesion
               </Link>
             </div>
           </form>
         ) : (
           <form
-            className="space-y-6"
+            className={recuperarClaveClasses.form}
             onSubmit={manejarRestablecimiento}
             autoComplete="off"
           >
-            <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+            <div className={recuperarClaveClasses.infoAlert}>
               Respondiendo como
-              <span className="font-semibold text-slate-800">
+              <span className={recuperarClaveClasses.infoHighlight}>
                 {" "}
                 {usuarioObjetivo?.nombre_usuario}
               </span>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700">
+              <label className={recuperarClaveClasses.label}>
                 Pregunta de seguridad
               </label>
-              <div className="mt-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm">
+              <div className={recuperarClaveClasses.questionBox}>
                 {preguntaActiva?.pregunta || "Sin pregunta disponible."}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700">
-                Respuesta
-              </label>
+              <label className={recuperarClaveClasses.label}>Respuesta</label>
               <input
                 type="password"
                 value={form.respuesta}
                 onChange={(e) => actualizarCampo("respuesta", e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className={recuperarClaveClasses.input}
                 placeholder="Escribe tu respuesta secreta"
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className={recuperarClaveClasses.passwordGrid}>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className={recuperarClaveClasses.label}>
                   Nueva contrasena
                 </label>
                 <input
@@ -282,12 +279,12 @@ export const RecuperarClave = () => {
                   onChange={(e) =>
                     actualizarCampo("nuevaContrasena", e.target.value)
                   }
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className={recuperarClaveClasses.input}
                   placeholder="Minimo 8 caracteres"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className={recuperarClaveClasses.label}>
                   Confirmar contrasena
                 </label>
                 <input
@@ -296,23 +293,23 @@ export const RecuperarClave = () => {
                   onChange={(e) =>
                     actualizarCampo("confirmarContrasena", e.target.value)
                   }
-                  className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className={recuperarClaveClasses.input}
                   placeholder="Repite la contrasena"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:justify-between">
+            <div className={recuperarClaveClasses.buttonRow}>
               <button
                 type="button"
                 onClick={reiniciarProceso}
-                className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className={recuperarClaveClasses.secondaryButton}
               >
                 Buscar otro usuario
               </button>
               <button
                 type="submit"
-                className="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                className={recuperarClaveClasses.primaryButton}
               >
                 Restablecer contrasena
               </button>
@@ -320,7 +317,7 @@ export const RecuperarClave = () => {
 
             {infoIntentos && (
               <div
-                className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                className={recuperarClaveClasses.attemptNotice}
                 style={{ whiteSpace: "pre-line" }}
               >
                 {infoIntentos}

@@ -4,6 +4,7 @@ import {
   diasSemanaOrdenados,
   diasSemanaEtiquetas,
 } from "../utilidadesHorarios";
+import { calendarioResponsiveClases } from "./horariosEstilos";
 
 const CalendarioResponsive = ({ bloques = [], emptyMessage, renderBloque }) => {
   const calendario = useMemo(
@@ -12,27 +13,24 @@ const CalendarioResponsive = ({ bloques = [], emptyMessage, renderBloque }) => {
   );
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <div className={calendarioResponsiveClases.grid}>
       {diasSemanaOrdenados.map((dia) => {
         const bloquesDia = calendario[dia] ?? [];
         return (
-          <div
-            key={dia}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <p className="text-sm font-semibold text-slate-700">
+          <div key={dia} className={calendarioResponsiveClases.card}>
+            <p className={calendarioResponsiveClases.diaTitulo}>
               {diasSemanaEtiquetas[dia]}
             </p>
-            <div className="mt-3 space-y-3">
+            <div className={calendarioResponsiveClases.bloquesWrapper}>
               {bloquesDia.length === 0 ? (
-                <p className="text-xs text-slate-500">
+                <p className={calendarioResponsiveClases.mensajeVacio}>
                   {emptyMessage || "Sin bloques programados."}
                 </p>
               ) : (
                 bloquesDia.map((bloque, indice) => (
                   <div
                     key={`${bloque?.id_horario ?? indice}-${indice}`}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm"
+                    className={calendarioResponsiveClases.bloqueCard}
                   >
                     {renderBloque ? renderBloque(bloque) : null}
                   </div>

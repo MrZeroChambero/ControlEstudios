@@ -1,14 +1,8 @@
 import React from "react";
 import {
-  contenidosLayout,
-  typography,
-} from "../../EstilosCliente/EstilosClientes";
-import {
-  badgePlanClass,
+  tablaRendimientoClasses,
   controlDeshabilitado,
-  selectEncabezadoClass,
-  selectTablaClass,
-} from "../constantesRendimiento";
+} from "../rendimientoEstilos";
 import { obtenerEtiquetaPlan } from "../helpersRendimiento";
 
 export const TablaRendimientoAcademico = ({
@@ -22,8 +16,8 @@ export const TablaRendimientoAcademico = ({
 }) => {
   if (!grid) {
     return (
-      <section className={contenidosLayout.container}>
-        <p className={`${typography.bodyMutedSm} text-center`}>
+      <section className={tablaRendimientoClasses.emptyWrapper}>
+        <p className={tablaRendimientoClasses.emptyText}>
           Selecciona un componente y un aula para mostrar la matriz de
           evaluación.
         </p>
@@ -36,8 +30,8 @@ export const TablaRendimientoAcademico = ({
 
   if (!indicadores.length || !estudiantes.length) {
     return (
-      <section className={contenidosLayout.container}>
-        <p className={`${typography.bodyMutedSm} text-center`}>
+      <section className={tablaRendimientoClasses.emptyWrapper}>
+        <p className={tablaRendimientoClasses.emptyText}>
           No hay indicadores o estudiantes registrados para este contexto.
         </p>
       </section>
@@ -50,39 +44,39 @@ export const TablaRendimientoAcademico = ({
   const aula = grid.metadata?.aula?.descripcion ?? grid.metadata?.aula?.nombre;
 
   return (
-    <section className={`${contenidosLayout.container} space-y-4`}>
-      <header className="space-y-1">
-        <h2 className={typography.titleSm}>Matriz de calificación</h2>
-        <p className={typography.bodyMutedSm}>
+    <section className={tablaRendimientoClasses.container}>
+      <header className={tablaRendimientoClasses.header}>
+        <h2 className={tablaRendimientoClasses.title}>
+          Matriz de calificación
+        </h2>
+        <p className={tablaRendimientoClasses.description}>
           Aplica una literal a todos los estudiantes desde el encabezado del
           indicador o ajusta los valores individualmente.
         </p>
-        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+        <div className={tablaRendimientoClasses.metaList}>
           {componente ? <span>Componente: {componente}</span> : null}
           {aula ? <span>Aula: {aula}</span> : null}
           {momento ? <span>Momento: {momento}</span> : null}
         </div>
       </header>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] table-fixed border-collapse">
+      <div className={tablaRendimientoClasses.tableWrapper}>
+        <table className={tablaRendimientoClasses.table}>
           <thead>
-            <tr className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
-              <th className="border-b border-slate-200 px-4 py-3">
-                Estudiante
-              </th>
+            <tr className={tablaRendimientoClasses.headRow}>
+              <th className={tablaRendimientoClasses.headCell}>Estudiante</th>
               {indicadores.map((indicador) => {
                 const id = indicador.id_indicador;
                 return (
                   <th
                     key={id}
-                    className="border-b border-slate-200 px-4 py-3 align-top"
+                    className={tablaRendimientoClasses.indicatorCell}
                   >
-                    <div className="flex flex-col gap-2">
-                      <span className="text-xs font-semibold text-slate-600">
+                    <div className={tablaRendimientoClasses.indicatorControls}>
+                      <span className={tablaRendimientoClasses.indicatorName}>
                         {indicador.nombre_indicador ?? `Indicador ${id}`}
                       </span>
                       <select
-                        className={`${selectEncabezadoClass} ${controlDeshabilitado}`}
+                        className={`${tablaRendimientoClasses.selectHeader} ${controlDeshabilitado}`}
                         defaultValue=""
                         onChange={(event) => {
                           onAplicarColumna(id, event.target.value);
@@ -115,13 +109,18 @@ export const TablaRendimientoAcademico = ({
               const permitidosEstudiante = permitidos[estudianteKey];
               const planLabel = obtenerEtiquetaPlan(estudiante.planificacion);
               return (
-                <tr key={estudianteKey} className="border-b border-slate-100">
-                  <td className="px-4 py-3 align-top">
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-slate-800">
+                <tr
+                  key={estudianteKey}
+                  className={tablaRendimientoClasses.studentRow}
+                >
+                  <td className={tablaRendimientoClasses.studentCell}>
+                    <div className={tablaRendimientoClasses.studentInfo}>
+                      <p className={tablaRendimientoClasses.studentName}>
                         {estudiante.nombre}
                       </p>
-                      <span className={badgePlanClass}>{planLabel}</span>
+                      <span className={tablaRendimientoClasses.badgePlan}>
+                        {planLabel}
+                      </span>
                     </div>
                   </td>
                   {indicadores.map((indicador) => {
@@ -133,11 +132,11 @@ export const TablaRendimientoAcademico = ({
                     return (
                       <td
                         key={`${estudianteKey}-${indicadorKey}`}
-                        className="px-4 py-3 align-top"
+                        className={tablaRendimientoClasses.studentCell}
                       >
                         <select
                           value={valor}
-                          className={`${selectTablaClass} ${controlDeshabilitado}`}
+                          className={`${tablaRendimientoClasses.selectBody} ${controlDeshabilitado}`}
                           onChange={(event) =>
                             onActualizar(
                               estudiante.id_estudiante,
@@ -155,7 +154,7 @@ export const TablaRendimientoAcademico = ({
                           ))}
                         </select>
                         {!habilitado ? (
-                          <p className="mt-2 text-xs text-slate-400">
+                          <p className={tablaRendimientoClasses.disabledHint}>
                             Este indicador no está habilitado para el
                             estudiante.
                           </p>

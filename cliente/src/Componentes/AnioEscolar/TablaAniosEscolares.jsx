@@ -11,8 +11,8 @@ import {
   anioEscolarIconClasses,
   anioEscolarStatusClasses,
   anioEscolarTableClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+} from "./anioEscolarEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 import {
   construirNombrePeriodo,
   formatearFecha,

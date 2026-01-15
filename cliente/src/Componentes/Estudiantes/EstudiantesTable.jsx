@@ -8,10 +8,10 @@ import {
   FaEye,
 } from "react-icons/fa";
 import {
-  estudiantesTableClasses,
   contenidosIconClasses,
   dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
+import { estudiantesTableClasses } from "./estudiantesEstilos";
 import { calcularEdad } from "../../utilidades/formatoFechas";
 
 export const EstudiantesTable = ({

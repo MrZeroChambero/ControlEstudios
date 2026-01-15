@@ -7,12 +7,7 @@ import {
   actualizarHabilidad,
 } from "./representanteService";
 import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from "react-icons/fa";
-import {
-  contenidosFormClasses,
-  contenidosTableClasses,
-  contenidosIconClasses,
-  primaryButtonBase,
-} from "../EstilosCliente/EstilosClientes";
+import { habilidadesFormClasses } from "./representantesEstilos";
 
 export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
   const SwalUsed = Swal ?? SwalDefault;
@@ -91,61 +86,49 @@ export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
   };
 
   const total = useMemo(() => habilidades.length, [habilidades]);
-  const formClasses = contenidosFormClasses;
-  const tableClasses = contenidosTableClasses;
-  const inlinePrimary = `${primaryButtonBase} bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300/60`;
-  const inlineGhost = `${formClasses.ghostButton} px-3 py-1 text-xs`;
+  const clases = habilidadesFormClasses;
 
   return (
-    <div className="rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-sm">
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div className={clases.container}>
+      <header className={clases.header}>
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Habilidades</h3>
-          <p className="text-xs text-slate-500">
+          <h3 className={clases.title}>Habilidades</h3>
+          <p className={clases.description}>
             Registre y edite las habilidades asociadas al representante.
           </p>
         </div>
-        <span className="text-xs font-semibold text-slate-500">
+        <span className={clases.counter}>
           {total} {total === 1 ? "registrada" : "registradas"}
         </span>
       </header>
 
-      <div className="mb-5 flex flex-col gap-3 md:flex-row">
+      <div className={clases.formRow}>
         <input
           value={nuevo}
           onChange={(e) => setNuevo(e.target.value)}
-          className={formClasses.input}
+          className={clases.input}
           placeholder="Nueva habilidad"
         />
-        <button
-          type="button"
-          onClick={agregar}
-          className={`${formClasses.primaryButton} md:w-auto`}
-        >
+        <button type="button" onClick={agregar} className={clases.addButton}>
           <FaPlus className="h-4 w-4" />
           <span>Agregar</span>
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className={clases.list}>
         {habilidades.map((h) => {
           const enEdicion = editandoId === h.id_habilidad;
           return (
-            <div
-              key={h.id_habilidad}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-blue-200 hover:bg-blue-50/50"
-            >
+            <div key={h.id_habilidad} className={clases.item}>
               {enEdicion ? (
                 <input
                   value={editNombre}
                   onChange={(e) => setEditNombre(e.target.value)}
-                  className={`${formClasses.input} md:flex-1`}
+                  className={clases.editInput}
                   autoFocus
                 />
               ) : (
-                <span className="flex-1 text-sm font-medium text-slate-700">
-                  {h.nombre_habilidad}
-                </span>
+                <span className={clases.itemName}>{h.nombre_habilidad}</span>
               )}
 
               {enEdicion ? (
@@ -153,7 +136,7 @@ export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
                   <button
                     type="button"
                     onClick={guardarEdicion}
-                    className={inlinePrimary}
+                    className={clases.inlinePrimary}
                   >
                     <FaSave className="h-3.5 w-3.5" />
                     Guardar
@@ -161,29 +144,29 @@ export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
                   <button
                     type="button"
                     onClick={cancelarEdicion}
-                    className={inlineGhost}
+                    className={clases.inlineGhost}
                   >
                     <FaTimes className="h-3.5 w-3.5" />
                     Cancelar
                   </button>
                 </div>
               ) : (
-                <div className={tableClasses.actionGroup}>
+                <div className={clases.actionGroup}>
                   <button
                     type="button"
                     onClick={() => iniciarEdicion(h)}
-                    className={`${tableClasses.actionButton} ${tableClasses.editButton}`}
+                    className={`${clases.actionButton} ${clases.editButton}`}
                     title="Editar habilidad"
                   >
-                    <FaEdit className={contenidosIconClasses.base} />
+                    <FaEdit className={clases.icon} />
                   </button>
                   <button
                     type="button"
                     onClick={() => quitar(h.id_habilidad)}
-                    className={`${tableClasses.actionButton} ${tableClasses.deleteButton}`}
+                    className={`${clases.actionButton} ${clases.deleteButton}`}
                     title="Eliminar habilidad"
                   >
-                    <FaTrash className={contenidosIconClasses.base} />
+                    <FaTrash className={clases.icon} />
                   </button>
                 </div>
               )}
@@ -192,9 +175,7 @@ export const HabilidadesForm = ({ fk_representante, Swal, onChange }) => {
         })}
 
         {habilidades.length === 0 && (
-          <p className={tableClasses.helperText}>
-            Sin habilidades registradas aún.
-          </p>
+          <p className={clases.helperText}>Sin habilidades registradas aún.</p>
         )}
       </div>
     </div>

@@ -20,7 +20,7 @@ import {
   cambioEstadoTema,
 } from "./temasService";
 import { solicitudAreasComponentes } from "../ComponentesAprendisaje/solicitudAreasComponentes";
-import { contenidosLayout } from "../EstilosCliente/EstilosClientes";
+import { contenidosLayout } from "./contenidosEstilos";
 
 const opcionesGrado = [
   { valor: "general", etiqueta: "General" },

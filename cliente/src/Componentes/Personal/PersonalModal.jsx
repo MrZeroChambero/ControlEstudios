@@ -17,7 +17,9 @@ import {
 import {
   personalModalClasses,
   personalFormClasses,
-} from "../EstilosCliente/EstilosClientes";
+  personalWizardClasses,
+  personalWizardModalClasses,
+} from "./personalEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const initialPersonaState = {
@@ -660,7 +662,7 @@ export const PersonalModal = ({
   const fieldGroupClass = `${personalFormClasses.group} mb-0`;
 
   const renderPersonaFields = () => (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className={personalWizardClasses.gridTwoCols}>
       <div className={fieldGroupClass}>
         <label className={personalFormClasses.label} htmlFor="primer_nombre">
           Primer Nombre *
@@ -886,7 +888,7 @@ export const PersonalModal = ({
   );
 
   const renderPersonalFields = () => (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className={personalWizardClasses.gridTwoCols}>
       <div className={fieldGroupClass}>
         <label className={personalFormClasses.label} htmlFor="fk_cargo">
           Cargo *
@@ -1079,23 +1081,23 @@ export const PersonalModal = ({
   );
 
   const renderPersonaSelectionStep = () => (
-    <div className="flex flex-col gap-6">
+    <div className={personalWizardClasses.selectionLayout}>
       <button
         type="button"
         onClick={handleCrearNuevaPersona}
-        className={`${personalFormClasses.primaryButton} w-full sm:w-auto`}
+        className={`${personalFormClasses.primaryButton} ${personalWizardClasses.buttonBlock}`}
       >
-        <FaUserPlus className="h-4 w-4" />
+        <FaUserPlus className={personalWizardClasses.iconSmall} />
         <span>Crear nueva persona</span>
       </button>
 
-      <div className="flex flex-col gap-3">
+      <div className={personalWizardClasses.stackSm}>
         <div className={personalModalClasses.searchWrapper}>
           <FaSearch className={personalModalClasses.searchIcon} />
           <input
             type="text"
             placeholder="Buscar persona (nombre, apellido, cédula)..."
-            className={`${personalModalClasses.searchInput} placeholder:text-slate-400`}
+            className={personalWizardClasses.searchInput}
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
           />
@@ -1112,7 +1114,7 @@ export const PersonalModal = ({
             No hay personas disponibles.
           </p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className={personalWizardClasses.listDivider}>
             {personasFiltradas.map((persona) => {
               const isSelected =
                 personaSeleccionada?.id_persona === persona.id_persona;
@@ -1130,7 +1132,7 @@ export const PersonalModal = ({
                   key={persona.id_persona}
                   onClick={() => handleSeleccionarPersona(persona)}
                   className={`${personalModalClasses.listItem} ${
-                    isSelected ? "bg-amber-50 ring-2 ring-amber-200" : ""
+                    isSelected ? personalWizardClasses.listItemSelected : ""
                   }`}
                 >
                   <div className={personalModalClasses.listPerson}>
@@ -1156,17 +1158,17 @@ export const PersonalModal = ({
       </div>
 
       <div className={personalModalClasses.actionBar}>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={personalWizardClasses.actionLeft}>
           <button
             type="button"
             onClick={handleCancelar}
-            className={`${personalFormClasses.cancelButton} w-full sm:w-auto`}
+            className={`${personalFormClasses.cancelButton} ${personalWizardClasses.buttonBlock}`}
           >
-            <FaArrowLeft className="h-4 w-4" />
+            <FaArrowLeft className={personalWizardClasses.iconSmall} />
             <span>Cancelar</span>
           </button>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className={personalWizardClasses.actionRight}>
           <button
             type="button"
             onClick={handleSiguiente}
@@ -1175,12 +1177,12 @@ export const PersonalModal = ({
               Boolean(busqueda) &&
               personasFiltradas.length === 0
             }
-            className={`${personalFormClasses.primaryButton} disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto`}
+            className={`${personalFormClasses.primaryButton} ${personalWizardClasses.buttonBlock} ${personalWizardClasses.buttonDisabled}`}
           >
             <span>
               {personaSeleccionada ? "Continuar" : "Crear nueva persona"}
             </span>
-            <FaArrowRight className="h-4 w-4" />
+            <FaArrowRight className={personalWizardClasses.iconSmall} />
           </button>
         </div>
       </div>
@@ -1190,36 +1192,36 @@ export const PersonalModal = ({
   const renderPersonaFormStep = () => (
     <form
       onSubmit={handleSubmitPersona}
-      className="flex flex-col gap-6"
+      className={personalWizardClasses.stepForm}
       autoComplete="off"
     >
       <h3 className={personalFormClasses.sectionTitle}>Datos de la persona</h3>
       {renderPersonaFields()}
       <div className={personalModalClasses.actionBar}>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={personalWizardClasses.actionLeft}>
           <button
             type="button"
             onClick={handleAnterior}
-            className={`${personalFormClasses.backButton} w-full sm:w-auto`}
+            className={`${personalFormClasses.backButton} ${personalWizardClasses.buttonBlock}`}
           >
-            <FaArrowLeft className="h-4 w-4" />
+            <FaArrowLeft className={personalWizardClasses.iconSmall} />
             <span>Atrás</span>
           </button>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className={personalWizardClasses.actionRight}>
           <button
             type="button"
             onClick={handleCancelar}
-            className={`${personalFormClasses.cancelButton} w-full sm:w-auto`}
+            className={`${personalFormClasses.cancelButton} ${personalWizardClasses.buttonBlock}`}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className={`${personalFormClasses.primaryButton} w-full sm:w-auto`}
+            className={`${personalFormClasses.primaryButton} ${personalWizardClasses.buttonBlock}`}
           >
             <span>Continuar</span>
-            <FaArrowRight className="h-4 w-4" />
+            <FaArrowRight className={personalWizardClasses.iconSmall} />
           </button>
         </div>
       </div>
@@ -1232,15 +1234,15 @@ export const PersonalModal = ({
     return (
       <form
         onSubmit={handleSubmitPersonal}
-        className="flex flex-col gap-6"
+        className={personalWizardClasses.stepForm}
         autoComplete="off"
       >
         {!modoEdicion && personaResumen && (
           <div className={personalFormClasses.highlightCard}>
-            <span className="text-sm font-semibold uppercase tracking-wide">
+            <span className={personalWizardClasses.summaryLabel}>
               Persona seleccionada
             </span>
-            <span className="text-sm">
+            <span className={personalWizardClasses.summaryText}>
               {personaResumen.primer_nombre} {personaResumen.primer_apellido} -{" "}
               {personaResumen.cedula}
             </span>
@@ -1249,10 +1251,10 @@ export const PersonalModal = ({
 
         {modoEdicion && currentPersonal && (
           <div className={personalModalClasses.bannerWarning}>
-            <span className="text-sm font-semibold uppercase tracking-wide">
+            <span className={personalWizardClasses.summaryLabel}>
               Editando personal
             </span>
-            <span className="text-sm">
+            <span className={personalWizardClasses.summaryText}>
               {currentPersonal.primer_nombre} {currentPersonal.primer_apellido}{" "}
               - {currentPersonal.cedula}
             </span>
@@ -1260,7 +1262,7 @@ export const PersonalModal = ({
         )}
 
         {modoEdicion && (
-          <div className="flex flex-col gap-4">
+          <div className={personalWizardClasses.stackMd}>
             <h3 className={personalFormClasses.sectionTitle}>
               Información personal
             </h3>
@@ -1268,7 +1270,7 @@ export const PersonalModal = ({
           </div>
         )}
 
-        <div className="flex flex-col gap-4">
+        <div className={personalWizardClasses.stackMd}>
           <h3 className={personalFormClasses.sectionTitle}>
             Información laboral
           </h3>
@@ -1276,30 +1278,30 @@ export const PersonalModal = ({
         </div>
 
         <div className={personalModalClasses.actionBar}>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={personalWizardClasses.actionLeft}>
             {!modoEdicion && (
               <button
                 type="button"
                 onClick={handleAnterior}
-                className={`${personalFormClasses.backButton} w-full sm:w-auto`}
+                className={`${personalFormClasses.backButton} ${personalWizardClasses.buttonBlock}`}
               >
-                <FaArrowLeft className="h-4 w-4" />
+                <FaArrowLeft className={personalWizardClasses.iconSmall} />
                 <span>Atrás</span>
               </button>
             )}
           </div>
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className={personalWizardClasses.actionRight}>
             <button
               type="button"
               onClick={handleCancelar}
-              className={`${personalFormClasses.cancelButton} w-full sm:w-auto`}
+              className={`${personalFormClasses.cancelButton} ${personalWizardClasses.buttonBlock}`}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`${personalFormClasses.primaryButton} disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto`}
+              className={`${personalFormClasses.primaryButton} ${personalWizardClasses.buttonBlock} ${personalWizardClasses.buttonDisabled}`}
             >
               <span>
                 {isSubmitting
@@ -1321,9 +1323,9 @@ export const PersonalModal = ({
       onClose={handleCancelar}
       title={modalTitle}
       size="xl"
-      bodyClassName="space-y-6"
+      bodyClassName={personalWizardModalClasses.body}
       headerSlot={renderStepIndicator()}
-      contentClassName="max-w-5xl"
+      contentClassName={personalWizardModalClasses.content}
     >
       <>
         {!modoEdicion && paso === 1 && renderPersonaSelectionStep()}

@@ -2,11 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import {
-  contenidosTableClasses,
-  temasTableClasses,
-  contenidosIconClasses,
-  neutralButtonBase,
-} from "../EstilosCliente/EstilosClientes";
+  competenciasIndicadoresTableClasses,
+  competenciasIconClasses,
+  competenciasTableClasses,
+  competenciasFormClasses,
+} from "./competenciasEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 import {
   FaPlus,
@@ -49,40 +49,40 @@ const construirColumnas = (onEditar, onEliminar, onToggle) => [
     width: "160px",
     center: true,
     cell: (row) => (
-      <div className={temasTableClasses.actionGroup}>
+      <div className={competenciasIndicadoresTableClasses.actionGroup}>
         <button
           type="button"
           onClick={() => onToggle(row)}
-          className={`${temasTableClasses.actionButton} ${
+          className={`${competenciasIndicadoresTableClasses.actionButton} ${
             row.ocultar === "si"
-              ? temasTableClasses.toggleOff
-              : temasTableClasses.toggleOn
+              ? competenciasIndicadoresTableClasses.toggleOff
+              : competenciasIndicadoresTableClasses.toggleOn
           }`}
           title={
             row.ocultar === "si" ? "Mostrar indicador" : "Ocultar indicador"
           }
         >
           {row.ocultar === "si" ? (
-            <FaToggleOff className={contenidosIconClasses.base} />
+            <FaToggleOff className={competenciasIconClasses.base} />
           ) : (
-            <FaToggleOn className={contenidosIconClasses.base} />
+            <FaToggleOn className={competenciasIconClasses.base} />
           )}
         </button>
         <button
           type="button"
           onClick={() => onEditar(row)}
-          className={`${temasTableClasses.actionButton} ${temasTableClasses.editButton}`}
+          className={`${competenciasIndicadoresTableClasses.actionButton} ${competenciasIndicadoresTableClasses.editButton}`}
           title="Editar indicador"
         >
-          <FaEdit className={contenidosIconClasses.base} />
+          <FaEdit className={competenciasIconClasses.base} />
         </button>
         <button
           type="button"
           onClick={() => onEliminar(row)}
-          className={`${temasTableClasses.actionButton} ${temasTableClasses.deleteButton}`}
+          className={`${competenciasIndicadoresTableClasses.actionButton} ${competenciasIndicadoresTableClasses.deleteButton}`}
           title="Eliminar indicador"
         >
-          <FaTrash className={contenidosIconClasses.base} />
+          <FaTrash className={competenciasIconClasses.base} />
         </button>
       </div>
     ),
@@ -167,24 +167,24 @@ export const IndicadoresModal = ({
   }
 
   const barraHerramientas = (
-    <div className={temasTableClasses.filterContainer}>
+    <div className={competenciasIndicadoresTableClasses.filterContainer}>
       <input
         type="search"
         value={filtro}
         onChange={(evento) => setFiltro(evento.target.value)}
         placeholder="Filtrar indicadores por nombre o aspecto"
-        className={temasTableClasses.filterInput}
+        className={competenciasIndicadoresTableClasses.filterInput}
       />
-      <span className={temasTableClasses.stats}>
+      <span className={competenciasIndicadoresTableClasses.stats}>
         {registrosFiltrados.length} indicador
         {registrosFiltrados.length === 1 ? "" : "es"} encontrados
       </span>
       <button
         type="button"
         onClick={handleCrear}
-        className={temasTableClasses.addButton}
+        className={competenciasIndicadoresTableClasses.addButton}
       >
-        <FaPlus className={contenidosIconClasses.base} />
+        <FaPlus className={competenciasIconClasses.base} />
         <span>Agregar indicador</span>
       </button>
     </div>
@@ -237,12 +237,12 @@ export const IndicadoresModal = ({
           data={registrosFiltrados}
           progressPending={isLoading}
           progressComponent={
-            <p className={contenidosTableClasses.helperText}>
+            <p className={competenciasTableClasses.helperText}>
               Cargando indicadores...
             </p>
           }
           noDataComponent={
-            <p className={contenidosTableClasses.helperText}>
+            <p className={competenciasTableClasses.helperText}>
               No hay indicadores registrados para esta competencia.
             </p>
           }
@@ -262,7 +262,7 @@ export const IndicadoresModal = ({
           <button
             type="button"
             onClick={onClose}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={competenciasFormClasses.secondaryButton}
           >
             Cerrar
           </button>

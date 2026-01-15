@@ -1,5 +1,8 @@
 import React from "react";
-import { inscripcionFormClasses } from "../../EstilosCliente/EstilosClientes";
+import {
+  inscripcionFormClasses,
+  pasoFamiliaClasses,
+} from "../inscripcionEstilos";
 
 const crearCampo = (id, etiqueta, tipo = "text", placeholder = "") => ({
   id,
@@ -69,7 +72,7 @@ export const PasoDatosFamilia = ({
       "";
 
     return (
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className={pasoFamiliaClasses.sectionHeader}>
         <h3 className={inscripcionFormClasses.sectionTitle}>{texto}</h3>
         <span className={pillClase}>{etiquetas[estado] || "Pendiente"}</span>
       </div>
@@ -84,7 +87,7 @@ export const PasoDatosFamilia = ({
   return (
     <form
       name="formulario-datos-familia"
-      className="space-y-6"
+      className={pasoFamiliaClasses.form}
       autoComplete="off"
     >
       <section name="seccion-tipo-inscripcion" className={claseSeccion("tipo")}>
@@ -171,7 +174,7 @@ export const PasoDatosFamilia = ({
         {renderEncabezado("Indicadores socioeconómicos", "indicadores")}
         <div
           name="contenedor-indicadores-socioeconomicos"
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
+          className={pasoFamiliaClasses.indicatorGrid}
         >
           {camposNumericos.map((campo) => {
             const minPermitido = [

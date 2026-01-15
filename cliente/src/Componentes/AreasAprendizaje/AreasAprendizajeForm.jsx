@@ -1,5 +1,5 @@
 import React from "react";
-import { areasFormClasses } from "../EstilosCliente/EstilosClientes";
+import { areasFormClasses } from "./areasAprendizajeEstilos";
 
 export const AreasAprendizajeForm = ({
   onSubmit,

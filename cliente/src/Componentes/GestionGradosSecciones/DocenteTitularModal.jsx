@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  contenidosFormClasses,
-  neutralButtonBase,
-  helperTextBase,
-  typePillBase,
-} from "../EstilosCliente/EstilosClientes";
 import VentanaModal from "../EstilosCliente/VentanaModal";
+import { docenteTitularModalClasses } from "./gestionDocentesEstilos";
 
 const tipoDocenteTokens = {
   aula: "bg-blue-100 text-blue-700",
@@ -146,17 +141,21 @@ export const DocenteTitularModal = ({
       size="xl"
       contentClassName="max-w-4xl"
     >
-      <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
-        <div className={contenidosFormClasses.fieldWrapper}>
+      <form
+        onSubmit={manejarSubmit}
+        className={docenteTitularModalClasses.form}
+        autoComplete="off"
+      >
+        <div className={docenteTitularModalClasses.docenteSelect.wrapper}>
           <label
-            className={contenidosFormClasses.label}
+            className={docenteTitularModalClasses.docenteSelect.label}
             htmlFor="docente-select"
           >
             Docente titular
           </label>
           <select
             id="docente-select"
-            className={contenidosFormClasses.select}
+            className={docenteTitularModalClasses.docenteSelect.select}
             value={formState.id_personal}
             onChange={manejarSeleccionDocente}
           >
@@ -183,48 +182,74 @@ export const DocenteTitularModal = ({
             })}
           </select>
           {errores?.id_personal && (
-            <p className={helperTextBase}>{errores.id_personal.join(" ")}</p>
+            <p className={docenteTitularModalClasses.docenteSelect.helper}>
+              {errores.id_personal.join(" ")}
+            </p>
           )}
         </div>
 
-        <div className="rounded-3xl border border-slate-100 bg-slate-50/60 p-4">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold text-slate-700">
+        <div className={docenteTitularModalClasses.componentesCard.wrapper}>
+          <div
+            className={
+              docenteTitularModalClasses.componentesCard.header.container
+            }
+          >
+            <p
+              className={
+                docenteTitularModalClasses.componentesCard.header.title
+              }
+            >
               Componentes a cargo del docente de aula
             </p>
-            <p className="text-xs text-slate-500">
+            <p
+              className={
+                docenteTitularModalClasses.componentesCard.header.helper
+              }
+            >
               Se asignan automaticamente segun la especialidad configurada.
             </p>
           </div>
 
           {componentesDocenteAula.length ? (
-            <div className="mt-4 grid gap-3 sm:grid-cols-1 md:grid-cols-2">
+            <div className={docenteTitularModalClasses.componentesCard.list}>
               {componentesDocenteAula.map((componente) => (
                 <div
                   key={`${componente.id}-${componente.areaId}`}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className={docenteTitularModalClasses.componentesCard.item}
                 >
                   {(() => {
                     const meta = obtenerMetaTipoDocente(componente);
                     return (
                       <span
-                        className={`${typePillBase} ${meta.pillClass} mb-2 w-max`}
+                        className={`${docenteTitularModalClasses.componentesCard.typePillBase} ${meta.pillClass} mb-2 w-max`}
                       >
                         {meta.etiqueta}
                       </span>
                     );
                   })()}
-                  <span className="block break-words text-sm font-semibold text-slate-800">
+                  <span
+                    className={
+                      docenteTitularModalClasses.componentesCard.componentName
+                    }
+                  >
                     {componente.nombre}
                   </span>
-                  <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <span
+                    className={
+                      docenteTitularModalClasses.componentesCard.areaLabel
+                    }
+                  >
                     {componente.areaNombre}
                   </span>
                   <span
-                    className={`mt-3 inline-flex w-max items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                    className={`${
+                      docenteTitularModalClasses.componentesCard.statusPillBase
+                    } ${
                       componentesAsignadosDocente.has(Number(componente.id))
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
+                        ? docenteTitularModalClasses.componentesCard
+                            .statusVariants.assigned
+                        : docenteTitularModalClasses.componentesCard
+                            .statusVariants.pending
                     }`}
                   >
                     {componentesAsignadosDocente.has(Number(componente.id))
@@ -235,36 +260,40 @@ export const DocenteTitularModal = ({
               ))}
             </div>
           ) : (
-            <p className={`${helperTextBase} mt-3 text-amber-600`}>
+            <p
+              className={docenteTitularModalClasses.componentesCard.emptyHelper}
+            >
               No hay componentes configurados con especialidad de docente de
               aula. Revise el catalogo de componentes antes de continuar.
             </p>
           )}
 
           {errores?.componentes && (
-            <p className={`${helperTextBase} mt-3 text-rose-600`}>
+            <p
+              className={docenteTitularModalClasses.componentesCard.errorHelper}
+            >
               {errores.componentes.join(" ")}
             </p>
           )}
         </div>
 
         {errores?.generales && (
-          <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-3 text-sm text-rose-700">
+          <div className={docenteTitularModalClasses.errorBanner}>
             {errores.generales.join(" ")}
           </div>
         )}
 
-        <div className={`${contenidosFormClasses.actions} mt-6`}>
+        <div className={docenteTitularModalClasses.actions.wrapper}>
           <button
             type="button"
             onClick={onClose}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={docenteTitularModalClasses.actions.cancelButton}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className={contenidosFormClasses.primaryButton}
+            className={docenteTitularModalClasses.actions.submitButton}
             disabled={
               !docenteSeleccionado || componentesDocenteAulaIds.length === 0
             }

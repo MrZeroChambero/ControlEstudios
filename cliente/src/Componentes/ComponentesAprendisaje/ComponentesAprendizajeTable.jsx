@@ -11,9 +11,9 @@ import {
   componentesTableClasses,
   componentesStatusClasses,
   componentesIconClasses,
-  dataTableBaseStyles,
-  typePillBase,
-} from "../EstilosCliente/EstilosClientes";
+  componentesTypePillBase,
+} from "./componentesAprendizajeEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 
 export const ComponentesAprendizajeTable = ({
   componentes,
@@ -53,7 +53,9 @@ export const ComponentesAprendizajeTable = ({
     const codigo = row.tipo_docente || "aula";
     const clases = tipoDocentePills[codigo] || tipoDocentePills.aula;
     const etiqueta = row.especialista || "Docente de aula";
-    return <span className={`${typePillBase} ${clases}`}>{etiqueta}</span>;
+    return (
+      <span className={`${componentesTypePillBase} ${clases}`}>{etiqueta}</span>
+    );
   };
 
   const columns = [

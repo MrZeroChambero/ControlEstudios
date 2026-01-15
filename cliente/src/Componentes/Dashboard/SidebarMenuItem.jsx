@@ -1,6 +1,7 @@
 import React from "react";
 import { MdArrowRight } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { dashboardMenuItemClasses } from "./dashboardEstilos";
 
 export const SidebarMenuItem = ({
   title,
@@ -19,26 +20,23 @@ export const SidebarMenuItem = ({
 
   return (
     <div>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-colors hover:bg-gray-700 focus:outline-none"
-      >
-        <div className="flex items-center">
+      <button onClick={onToggle} className={dashboardMenuItemClasses.button}>
+        <div className={dashboardMenuItemClasses.titleWrapper}>
           {icon}
           <span>{title}</span>
         </div>
         <MdArrowRight
-          className={`w-4 h-4 transform transition-transform ${
+          className={`${dashboardMenuItemClasses.arrow} ${
             isOpen ? "rotate-90" : "rotate-0"
           }`}
         />
       </button>
       {isOpen && (
-        <div className="ml-4 mt-1 space-y-1">
+        <div className={dashboardMenuItemClasses.content}>
           {subItems.map((item) => (
             <button
               key={item.path} // Usar path como clave única
-              className="w-full p-2 text-sm text-left rounded-lg transition-colors hover:bg-gray-700 focus:outline-none"
+              className={dashboardMenuItemClasses.subItem}
               onClick={() => handleSubItemClick(item)}
             >
               {item.name} {/* Mostrar el nombre */}

@@ -1,7 +1,10 @@
 import React from "react";
 import { formatearFechaCorta } from "../../../utilidades/formatoFechas";
-import { inscripcionLayout } from "../../EstilosCliente/EstilosClientes";
 import { textosInscripcion } from "../textosInscripcion";
+import {
+  inscripcionLayout,
+  pasoPrecondicionesClasses,
+} from "../inscripcionEstilos";
 
 export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
   if (cargando) {
@@ -11,7 +14,7 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
         className={inscripcionLayout.container}
       >
         <h2 className={inscripcionLayout.title}>Verificando precondiciones</h2>
-        <p className="text-sm text-slate-500">
+        <p className={pasoPrecondicionesClasses.helperText}>
           Consultando el estado del año escolar y las secciones disponibles...
         </p>
       </div>
@@ -25,7 +28,7 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
         className={inscripcionLayout.container}
       >
         <h2 className={inscripcionLayout.title}>Sin información disponible</h2>
-        <p className="text-sm text-slate-500">
+        <p className={pasoPrecondicionesClasses.helperText}>
           Intenta consultar nuevamente para conocer el estado del sistema de
           inscripción.
         </p>
@@ -48,7 +51,10 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
   );
 
   return (
-    <div name="contenedor-precondiciones" className="space-y-4">
+    <div
+      name="contenedor-precondiciones"
+      className={pasoPrecondicionesClasses.container}
+    >
       <header className={inscripcionLayout.header}>
         <div name="precondiciones-descripcion">
           <h2 className={inscripcionLayout.title}>
@@ -62,10 +68,10 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
         </div>
         <div
           name="precondiciones-estado"
-          className={`rounded-full px-4 py-2 text-sm font-semibold ${
+          className={`${pasoPrecondicionesClasses.statusPill.base} ${
             listo
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-amber-100 text-amber-700"
+              ? pasoPrecondicionesClasses.statusPill.ready
+              : pasoPrecondicionesClasses.statusPill.pending
           }`}
         >
           {listo ? "Listo para inscribir" : "Pendientes por resolver"}
@@ -74,7 +80,7 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
 
       <section
         name="precondiciones-resumen"
-        className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600"
+        className={pasoPrecondicionesClasses.summaryCard}
       >
         <p>
           Año escolar activo: <strong>{inicioAnio || "-"}</strong> a{" "}
@@ -89,7 +95,7 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
       {listo ? (
         <article
           name="precondiciones-listo"
-          className="space-y-3 text-sm text-slate-600"
+          className={pasoPrecondicionesClasses.readyText}
         >
           <p>
             Ya puedes gestionar la inscripción de estudiantes. Revisa las
@@ -104,10 +110,13 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
           </button>
         </article>
       ) : (
-        <article name="precondiciones-pendientes" className="space-y-4">
+        <article
+          name="precondiciones-pendientes"
+          className={pasoPrecondicionesClasses.container}
+        >
           <div
             name="precondiciones-recomendaciones"
-            className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700"
+            className={pasoPrecondicionesClasses.warningCard}
           >
             <p className="font-semibold">Acciones recomendadas</p>
             <p>
@@ -117,16 +126,16 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
             </p>
           </div>
           <div name="precondiciones-pendientes-detalle" className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">
+            <p className={pasoPrecondicionesClasses.pendingTitle}>
               Secciones sin docente asignado:
             </p>
             {resultado.faltantes_docentes?.length ? (
-              <ul className="grid gap-2 md:grid-cols-2">
+              <ul className={pasoPrecondicionesClasses.pendingList}>
                 {resultado.faltantes_docentes.map((aula) => (
                   <li
                     key={aula.id_aula}
                     name={`precondiciones-aula-${aula.id_aula}`}
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600"
+                    className={pasoPrecondicionesClasses.pendingItem}
                   >
                     Sección{" "}
                     <strong>
@@ -137,7 +146,7 @@ export const PasoPrecondiciones = ({ resultado, cargando, onReintentar }) => {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-500">
+              <p className={pasoPrecondicionesClasses.fallbackText}>
                 No se pudo obtener el detalle de las secciones pendientes.
               </p>
             )}

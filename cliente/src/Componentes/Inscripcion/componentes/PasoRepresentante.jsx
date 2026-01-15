@@ -3,7 +3,9 @@ import DataTable from "react-data-table-component";
 import {
   inscripcionFormClasses,
   inscripcionTableClasses,
-} from "../../EstilosCliente/EstilosClientes";
+  inscripcionDataTableStyles,
+  pasoRepresentanteClasses,
+} from "../inscripcionEstilos";
 
 const columnasBase = (seleccionId) => [
   {
@@ -12,10 +14,8 @@ const columnasBase = (seleccionId) => [
     sortable: true,
     cell: (row) => (
       <div name="celda-representante-datos">
-        <p className="text-sm font-semibold text-slate-800">
-          {row.nombre_completo}
-        </p>
-        <p className="text-xs text-slate-500">
+        <p className={pasoRepresentanteClasses.name}>{row.nombre_completo}</p>
+        <p className={pasoRepresentanteClasses.meta}>
           C.I.: {row.cedula || "Sin cédula"}
         </p>
       </div>
@@ -26,7 +26,7 @@ const columnasBase = (seleccionId) => [
     selector: (row) => row.tipo_parentesco,
     width: "140px",
     cell: (row) => (
-      <span className="inline-flex items-center justify-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-600">
+      <span className={pasoRepresentanteClasses.badge}>
         {row.tipo_parentesco}
       </span>
     ),
@@ -36,7 +36,7 @@ const columnasBase = (seleccionId) => [
     selector: (row) => row.profesion,
     grow: 1,
     cell: (row) => (
-      <p className="text-xs text-slate-500">
+      <p className={pasoRepresentanteClasses.profession}>
         {row.profesion || "Sin registrar"}
       </p>
     ),
@@ -47,7 +47,7 @@ const columnasBase = (seleccionId) => [
     cell: (row) => (
       <button
         type="button"
-        className={`${inscripcionFormClasses.primaryButton} px-3 py-1 text-xs`}
+        className={pasoRepresentanteClasses.selectButton}
         disabled={seleccionId === row.id_representante}
         data-id={row.id_representante}
       >
@@ -56,26 +56,6 @@ const columnasBase = (seleccionId) => [
     ),
   },
 ];
-
-const estilosTabla = {
-  headCells: {
-    style: {
-      fontSize: "12px",
-      fontWeight: 600,
-      textTransform: "uppercase",
-      color: "#475569",
-    },
-  },
-  rows: {
-    style: {
-      fontSize: "13px",
-      color: "#1f2937",
-    },
-    highlightOnHoverStyle: {
-      backgroundColor: "#f8fafc",
-    },
-  },
-};
 
 export const PasoRepresentante = ({
   representantes,
@@ -120,16 +100,16 @@ export const PasoRepresentante = ({
   return (
     <div
       name="contenedor-paso-representante"
-      className="space-y-4"
+      className={pasoRepresentanteClasses.container}
       onClick={manejarClick}
       role="presentation"
     >
-      <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <header className={pasoRepresentanteClasses.header}>
         <div name="paso-representante-descripcion">
-          <h2 className="text-base font-semibold text-slate-800">
+          <h2 className={pasoRepresentanteClasses.title}>
             Representantes vinculados ({datosFiltrados.length})
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className={pasoRepresentanteClasses.description}>
             Selecciona al representante autorizado que firmará la inscripción
             del estudiante
             <strong> {estudiante?.nombre_completo || ""}</strong>.
@@ -140,7 +120,7 @@ export const PasoRepresentante = ({
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar representante"
-          className="w-full max-w-xs rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          className={pasoRepresentanteClasses.searchInput}
         />
       </header>
 
@@ -163,12 +143,12 @@ export const PasoRepresentante = ({
                 : "No hay representantes registrados para este estudiante."}
             </p>
           }
-          customStyles={estilosTabla}
+          customStyles={inscripcionDataTableStyles}
           conditionalRowStyles={[
             {
               when: (row) => seleccionado?.id === row.id_representante,
               style: {
-                backgroundColor: "#e0e7ff",
+                backgroundColor: pasoRepresentanteClasses.selectedRowColor,
               },
             },
           ]}
@@ -178,7 +158,7 @@ export const PasoRepresentante = ({
       {seleccionado ? (
         <div
           name="paso-representante-seleccion"
-          className="rounded-3xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-700"
+          className={pasoRepresentanteClasses.selectionCard}
         >
           Representante seleccionado:{" "}
           <strong>{seleccionado.nombre_completo}</strong> ({" "}

@@ -1,5 +1,8 @@
 import React from "react";
-import { inscripcionFormClasses } from "../../EstilosCliente/EstilosClientes";
+import {
+  inscripcionFormClasses,
+  pasoCompromisosClasses,
+} from "../inscripcionEstilos";
 
 const documentosRequeridos = [
   {
@@ -28,25 +31,25 @@ export const PasoCompromisos = ({ datos, onToggle, errores = {} }) => (
     <h3 className={inscripcionFormClasses.sectionTitle}>
       Documentos consignados
     </h3>
-    <p className="mb-4 text-sm text-slate-600">
+    <p className={pasoCompromisosClasses.description}>
       Marca los documentos y confirmaciones recibidos durante el proceso de
       inscripción. Puedes actualizarlos más tarde desde el módulo de
       estudiantes.
     </p>
 
-    <ul className="space-y-4">
+    <ul className={pasoCompromisosClasses.list}>
       {documentosRequeridos.map((documento) => (
-        <li key={documento.id} className="flex items-start gap-3">
+        <li key={documento.id} className={pasoCompromisosClasses.item}>
           <input
             type="checkbox"
             id={documento.id}
             checked={(datos[documento.id] ?? "no") === "si"}
             onChange={() => onToggle(documento.id)}
-            className="mt-1 h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            className={pasoCompromisosClasses.checkbox}
           />
           <label
             htmlFor={documento.id}
-            className="text-sm leading-5 text-slate-800"
+            className={pasoCompromisosClasses.label}
           >
             {documento.etiqueta}
           </label>

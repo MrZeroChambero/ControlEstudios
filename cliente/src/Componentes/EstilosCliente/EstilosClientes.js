@@ -67,13 +67,6 @@ const filterInputBase =
 const helperMessageBase = `py-6 text-center ${typography.bodyMutedSm}`;
 export const typePillBase = `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`;
 
-const estudiantesFieldBase =
-  "w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
-const estudiantesFieldValid =
-  "w-full rounded-2xl border border-blue-300 bg-blue-50 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
-const estudiantesFieldInvalid =
-  "w-full rounded-2xl border border-rose-400 bg-rose-50 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-200";
-
 const accentTokens = {
   blue: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-300/60",
   emerald: "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-300/60",
@@ -216,234 +209,17 @@ const detailModalBase = {
 };
 
 // Contenidos
-export const contenidosLayout = createLayoutTokens("blue");
-
-export const contenidosModalClasses = {
-  ...detailModalBase,
-  content:
-    "flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[92vh]",
-  body: "flex-1 overflow-y-auto px-10 py-8",
-  footer: "border-t border-slate-100 px-10 py-6",
-};
-
-export const contenidosFormClasses = createFormTokens("blue");
-
-export const contenidosTableClasses = {
-  ...tableBase,
-  temasButton: "text-purple-600 hover:text-purple-700",
-};
-
-export const contenidosStatusClasses = {
-  ...baseStatusPills,
-  gradoTag: gradoPill,
-};
-
-export const contenidosIconClasses = {
-  base: "h-5 w-5",
-};
-
-export const temasModalClasses = {
-  overlay: modalOverlayBase,
-  content: "w-full max-w-6xl rounded-3xl bg-white p-8 shadow-2xl",
-  header: "mb-6 flex flex-wrap items-start justify-between gap-4",
-  title: "text-2xl font-semibold text-slate-900",
-  subtitle: typography.bodyMutedSm,
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
-  emptyIcon: "mb-4 text-6xl",
-  footer: "mt-6 flex justify-end border-t border-slate-100 pt-4",
-  footerButton: `${buttonBase} bg-slate-600 hover:bg-slate-700 focus:ring-slate-400/60`,
-};
-
-export const temasTableClasses = temasTableBase;
-
-export const temaFormClasses = {
-  overlay: modalOverlayBase,
-  content: "w-full max-w-lg rounded-3xl bg-white px-8 py-6 shadow-2xl",
-  header: "mb-6 flex items-center justify-between gap-4",
-  title: "text-2xl font-semibold text-slate-900",
-  closeButton:
-    "inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
-  ...createFormTokens("blue"),
-};
-
-// Años escolares
-export const anioEscolarLayout = createLayoutTokens("blue");
-
-export const anioEscolarFormClasses = {
-  ...createFormTokens("blue"),
-  momentosGrid: "mt-4 grid grid-cols-1 gap-4 md:grid-cols-3",
-  momentoCard:
-    "flex flex-col gap-3 rounded-3xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm",
-  momentoTitle: "text-sm font-semibold text-blue-700",
-};
-
-export const anioEscolarModalClasses = {
-  overlay: modalOverlayBase,
-  content:
-    "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
-  header: "mb-6 flex flex-wrap items-center justify-between gap-4",
-  title: "text-2xl font-semibold text-slate-900",
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
-  errorBox: "mb-6 rounded-3xl border border-rose-200 bg-rose-50/70 p-4",
-  errorList: "space-y-2 text-sm text-rose-600",
-  errorItem: "leading-snug",
-  section: "mt-6",
-  sectionHeader: "mb-4 flex flex-col gap-1",
-  sectionTitle: "text-lg font-semibold text-slate-800",
-  warning: "mt-3 text-sm font-semibold text-amber-600",
-};
-
-export const anioEscolarTableClasses = {
-  ...tableBase,
-  filterContainer: "w-full max-w-md",
-  filterInput: filterInputBase,
-  actionGroup: actionGroupBase,
-  actionButton: actionButtonBase,
-  viewButton: "text-blue-600 hover:text-blue-700",
-  editButton:
-    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
-  deleteButton: "text-rose-500 hover:text-rose-600",
-  toggleOn: "text-emerald-600 hover:text-emerald-700",
-  toggleOff: "text-slate-400 hover:text-slate-500",
-};
-
-export const anioEscolarStatusClasses = {
-  base: baseStatusPills.base,
-  activo: baseStatusPills.active,
-  incompleto: baseStatusPills.warning,
-  inactivo: baseStatusPills.inactive,
-  planificado: "bg-blue-100 text-blue-700",
-  desconocido: "bg-slate-200 text-slate-600",
-};
-
-export const anioEscolarIconClasses = contenidosIconClasses;
-
-// Aulas
-export const aulasLayout = createLayoutTokens("blue");
-
-export const aulasFormClasses = {
-  ...createFormTokens("blue"),
-  grid: "grid grid-cols-1 gap-4 md:grid-cols-3",
-  section: "mt-6",
-  sectionTitle: "text-base font-semibold text-slate-800",
-  note: typography.helper,
-};
-
-export const aulasTableClasses = {
-  ...tableBase,
-  helperText: helperMessageBase,
-  editButton:
-    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
-  toggleOn: "text-emerald-600 hover:text-emerald-700",
-  toggleOff: "text-slate-400 hover:text-slate-500",
-};
-
-export const aulasStatusClasses = {
-  base: baseStatusPills.base,
-  activo: baseStatusPills.active,
-  inactivo: baseStatusPills.inactive,
-};
-
-export const aulasIconClasses = contenidosIconClasses;
-
-// Áreas de aprendizaje
-export const areasLayout = createLayoutTokens("blue");
-
-export const areasFormClasses = {
-  ...createFormTokens("blue"),
-  infoGroup: "mt-4",
-};
-
-export const areasTableClasses = {
-  ...tableBase,
-  filterWrapper: tableBase.filterContainer,
-  viewButton: "text-blue-600 hover:text-blue-700",
-};
-
-export const areasBadgeClasses = {
-  ...baseStatusPills,
-  pendiente: "bg-amber-100 text-amber-700",
-};
-
-export const areasModalClasses = {
-  overlay: modalOverlayBase,
-  content: "w-full max-w-2xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
-  contentWide: "w-full max-w-5xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
-  title: "mb-6 text-center text-2xl font-semibold text-slate-900",
-  footer: "mt-6 flex justify-end",
-  closeButton: secondaryButton,
-};
-
-export const areasComponentTableClasses = {
-  wrapper: "mt-6",
-  title: "text-base font-semibold text-slate-700",
-  emptyState: typography.bodyMutedSm,
-};
-
-// Componentes de aprendizaje
-export const componentesLayout = createLayoutTokens("blue");
-
-export const componentesFormClasses = {
-  ...createFormTokens("blue"),
-};
-
-export const componentesModalClasses = {
-  overlay: modalOverlayBase,
-  content: "w-full max-w-2xl rounded-3xl bg-white px-10 py-8 shadow-2xl",
-  header: "mb-6 flex items-center justify-between gap-4",
-  title: "text-2xl font-semibold text-slate-900",
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
-};
-
-export const componentesTableClasses = {
-  ...tableBase,
-};
-
-export const componentesStatusClasses = {
-  ...baseStatusPills,
-  evalYes: "bg-blue-100 text-blue-700",
-  evalNo: "bg-amber-100 text-amber-700",
-};
-
-export const componentesIconClasses = contenidosIconClasses;
-
-// Estudiantes
-export const estudiantesLayout = createLayoutTokens("blue");
-
-export const estudiantesFormClasses = {
-  ...createFormTokens("blue"),
-  input: estudiantesFieldBase,
-  inputValid: estudiantesFieldValid,
-  inputInvalid: estudiantesFieldInvalid,
-  select: estudiantesFieldBase,
-  selectInvalid: estudiantesFieldInvalid,
-  textArea: estudiantesFieldBase,
-  textAreaInvalid: estudiantesFieldInvalid,
-  textAreaAuto: "min-h-[112px]",
-  backButton: `${buttonBase} bg-transparent text-blue-600 hover:bg-blue-50 focus:ring-blue-200/60`,
-  cancelButton: `${buttonBase} bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-300/60`,
-};
-
-export const estudiantesTableClasses = {
-  ...tableBase,
-  filterInputWide: `${filterInputBase} md:max-w-sm`,
-  viewButton: "text-blue-600 hover:text-blue-700",
-  editButton:
-    "text-[color:var(--color-amber-500)] hover:text-[color:var(--color-amber-500)]",
-  deleteButton: "text-rose-500 hover:text-rose-600",
-  status: {
-    base: `inline-flex items-center justify-center rounded-full px-3 py-1 ${typography.pill}`,
-    activo: "bg-blue-100 text-blue-700",
-    incompleto: "bg-amber-100 text-amber-700",
-    inactivo: "bg-rose-100 text-rose-700",
-    desconocido: "bg-slate-200 text-slate-600",
-  },
-  toggleOn: tableBase.toggleOn,
-  toggleOff: tableBase.toggleOff,
-};
+export {
+  contenidosLayout,
+  contenidosModalClasses,
+  contenidosFormClasses,
+  contenidosTableClasses,
+  contenidosStatusClasses,
+  contenidosIconClasses,
+  temasModalClasses,
+  temasTableClasses,
+  temaFormClasses,
+} from "../Contenidos/contenidosEstilos";
 
 export const personasTableClasses = {
   ...tableBase,
@@ -498,125 +274,6 @@ export const seleccionEntidadClasses = {
   listItem:
     "flex cursor-pointer items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50",
   listItemActive: "bg-blue-50/70",
-  itemName: "text-sm font-semibold text-slate-800",
-  itemMeta: typography.helper,
-  activeTag: `${typography.pill} text-blue-600`,
-  empty: helperMessageBase,
-};
-
-export const estudiantesFichaClasses = {
-  card: "rounded-3xl border border-slate-100 bg-white p-4 shadow-md",
-  header: "mb-4 flex items-center gap-3",
-  avatar:
-    "flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold",
-  fieldLabel: `${typography.pill} text-slate-400`,
-  fieldValue: "text-sm font-medium text-slate-700",
-  chip: `inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 ${typography.tag} text-slate-600`,
-};
-
-export const estudiantesModalClasses = {
-  overlay: modalOverlayBase,
-  content:
-    "w-full max-w-5xl rounded-3xl bg-white p-8 shadow-2xl max-h-[90vh] overflow-y-auto",
-  header: "mb-6 flex items-center justify-between gap-3",
-  title: "text-2xl font-semibold text-slate-900",
-  subtitle: typography.bodyMutedSm,
-  closeButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:ring-offset-2",
-  body: "space-y-6",
-  footer: "mt-6 flex justify-end",
-  footerButton: secondaryButton,
-  stepper: {
-    container: "flex flex-wrap items-center gap-3",
-    item: "flex min-w-[160px] flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500",
-    active: "border-blue-300 bg-blue-50 text-blue-600",
-    bullet:
-      "flex h-8 w-8 items-center justify-center rounded-full border border-current text-base font-bold",
-    label: "flex-1 text-left",
-    helper: "text-xs font-normal text-slate-400",
-  },
-  candidates: {
-    title: "text-lg font-semibold text-slate-800",
-    controls: "flex flex-col gap-3 md:flex-row md:items-center",
-    input: filterInputBase,
-    button: `${primaryButtonBase} ${accentTokens.blue}`,
-    list: "max-h-64 overflow-y-auto rounded-3xl border border-slate-200",
-    item: "flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 hover:bg-slate-50",
-    name: "text-sm font-semibold text-slate-800",
-    meta: typography.helper,
-    selectButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
-    empty: helperMessageBase,
-  },
-  form: {
-    wrapper: "space-y-4",
-    actions: "flex justify-end gap-3",
-    title: "text-lg font-semibold text-slate-800",
-    secondaryButton: secondaryButton,
-    primaryButton: `${primaryButtonBase} ${accentTokens.blue}`,
-  },
-  sections: {
-    grid: "grid grid-cols-1 gap-6 md:grid-cols-2",
-    card: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm",
-    title: "text-lg font-semibold text-slate-800",
-    body: "mt-4 space-y-4",
-  },
-  documents: {
-    container:
-      "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2",
-    title: "text-lg font-semibold text-slate-800",
-    formGrid: "mb-3 grid grid-cols-1 gap-2 md:grid-cols-3",
-    select:
-      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
-    checkbox:
-      "inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200",
-    input:
-      "rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
-    addButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
-    list: "mt-3 space-y-2 max-h-56 overflow-y-auto",
-    item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
-    name: "text-sm font-semibold text-slate-800",
-    meta: typography.helper,
-    delivered:
-      "inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700",
-    pending:
-      "inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700",
-    deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
-    empty: helperMessageBase,
-  },
-  salud: {
-    grid: "grid grid-cols-1 gap-6 md:grid-cols-2",
-    card: "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm",
-    title: "text-lg font-semibold text-slate-800",
-    formGrid: "mb-3 grid gap-2",
-    input: estudiantesFormClasses.input,
-    select: estudiantesFormClasses.select,
-    textarea: `${estudiantesFormClasses.textArea} min-h-[60px]`,
-    list: "space-y-2 max-h-56 overflow-y-auto",
-    item: "flex items-center justify-between rounded-2xl border border-slate-200 px-3 py-2",
-    details: "flex flex-col gap-1 text-xs text-slate-600",
-    headline: "text-sm font-semibold text-slate-800",
-    meta: typography.helper,
-    deleteButton: "text-xs font-semibold text-rose-600 hover:text-rose-700",
-    addButton: `${primaryButtonBase} ${accentTokens.blue} px-3 py-1 text-xs`,
-    empty: helperMessageBase,
-  },
-};
-
-// Inscripción estudiantil
-export const inscripcionLayout = createLayoutTokens("blue");
-
-export const inscripcionStepClasses = {
-  container:
-    "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-  card: "flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 transition shadow-sm",
-  cardActivo:
-    "border-blue-400 bg-blue-50/80 text-blue-700 shadow-md ring-2 ring-blue-100",
-  cardCompletado:
-    "border-emerald-300 bg-emerald-50/80 text-emerald-700 shadow-md",
-  cardPendiente: "border-slate-200 bg-white text-slate-500",
-  bullet:
-    "flex h-10 w-10 items-center justify-center rounded-full border border-current text-sm font-semibold text-current",
-  bulletActivo: "border-blue-500 bg-blue-500 text-white",
   bulletCompletado: "border-emerald-500 bg-emerald-500 text-white",
   bulletPendiente: "border-slate-300 bg-slate-100 text-slate-500",
   title: "text-sm font-semibold leading-tight text-slate-800",
@@ -663,27 +320,6 @@ export const inscripcionSummaryClasses = {
   title: "mb-2 text-sm font-semibold text-slate-700",
   itemLabel: `${typography.pill} text-slate-400`,
   itemValue: "text-sm font-medium text-slate-700",
-};
-
-export const estudiantesViewModalClasses = {
-  ...detailModalBase,
-  bodyLayout: "space-y-8",
-  field: "flex flex-col gap-1.5",
-  section: {
-    wrapper: detailSectionWrapper,
-    title: detailSectionTitleBase,
-    body: "space-y-3",
-  },
-  label: detailLabelClass,
-  value: detailValueClass,
-  row: {
-    container: "grid gap-1 md:grid-cols-[200px_1fr] md:items-start",
-    label: detailLabelClass,
-    value: detailValueClass,
-  },
-  card: detailCardBase,
-  empty: helperMessageBase,
-  valueBox: `${readOnlyBase} flex items-center gap-2`,
 };
 
 // Personal
@@ -946,26 +582,6 @@ export const competenciasViewModalClasses = {
     title: "text-base font-semibold text-slate-800",
     meta: "text-sm text-slate-600",
   },
-  empty: helperMessageBase,
-};
-
-export const indicadoresViewModalClasses = {
-  ...detailModalBase,
-  bodyLayout: "space-y-6",
-  field: "flex flex-col gap-1.5",
-  section: {
-    wrapper: detailSectionWrapper,
-    title: detailSectionTitleBase,
-    body: "grid gap-4 md:grid-cols-2",
-  },
-  label: detailLabelClass,
-  value: detailValueClass,
-  valueBox: `${readOnlyBase} flex items-center gap-2`,
-  descriptionBox:
-    "rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700",
-  tag: `${typePillBase} bg-slate-100 text-slate-600`,
-  highlightTag: `${typePillBase} bg-emerald-100 text-emerald-700`,
-  warnTag: `${typePillBase} bg-amber-100 text-amber-700`,
   empty: helperMessageBase,
 };
 

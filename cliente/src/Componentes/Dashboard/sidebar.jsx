@@ -12,6 +12,10 @@ import {
 import { SidebarMenuItem } from "./SidebarMenuItem";
 import { menuSections } from "./configuracion";
 import {
+  dashboardSidebarClasses,
+  dashboardMenuItemClasses,
+} from "./dashboardEstilos";
+import {
   filtrarPorNivel,
   obtenerNivelesUsuario,
   interpretarNivelesEntrada,
@@ -47,11 +51,11 @@ export const Sidebar = () => {
   );
 
   const menuIcons = {
-    Entrada: <MdInput className="w-5 h-5 mr-3" />,
-    Proceso: <MdMenu className="w-5 h-5 mr-3" />,
-    Salidas: <MdReport className="w-5 h-5 mr-3" />,
-    Servicios: <MdSupport className="w-5 h-5 mr-3" />,
-    "Cerrar sesión": <MdLogout className="w-5 h-5 mr-3" />,
+    Entrada: <MdInput className={dashboardMenuItemClasses.icon} />,
+    Proceso: <MdMenu className={dashboardMenuItemClasses.icon} />,
+    Salidas: <MdReport className={dashboardMenuItemClasses.icon} />,
+    Servicios: <MdSupport className={dashboardMenuItemClasses.icon} />,
+    "Cerrar sesión": <MdLogout className={dashboardMenuItemClasses.icon} />,
   };
 
   const toggleDropdown = (section) => {
@@ -77,20 +81,24 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-gray-900 text-gray-300 flex flex-col h-full">
+    <div className={dashboardSidebarClasses.container}>
       {/* Cabecera y Perfil */}
-      <div className="p-6 bg-gray-800 flex items-center space-x-4">
+      <div className={dashboardSidebarClasses.header}>
         <div className="flex-shrink-0">
-          <MdAccountCircle className="h-10 w-10 text-white rounded-full bg-blue-500 p-1" />
+          <MdAccountCircle className={dashboardSidebarClasses.avatar} />
         </div>
         <div>
-          <div className="font-semibold text-white">{usuario || "Usuario"}</div>
-          <div className="text-xs text-gray-400">{nivel || "Nivel 5"}</div>
+          <div className={dashboardSidebarClasses.username}>
+            {usuario || "Usuario"}
+          </div>
+          <div className={dashboardSidebarClasses.level}>
+            {nivel || "Nivel 5"}
+          </div>
         </div>
       </div>
 
       {/* Enlaces del menú con secciones */}
-      <nav className="flex-1 mt-6 px-4 space-y-2 overflow-y-auto sidebar-scroll">
+      <nav className={dashboardSidebarClasses.nav}>
         {seccionesFiltradas.map(({ nombre, items }) => {
           if (!items.length) {
             return null;
@@ -107,10 +115,10 @@ export const Sidebar = () => {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-gray-800">
+      <div className={dashboardSidebarClasses.footer}>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className={dashboardSidebarClasses.logoutButton}
         >
           {menuIcons["Cerrar sesión"]}
           <span>Cerrar sesión</span>

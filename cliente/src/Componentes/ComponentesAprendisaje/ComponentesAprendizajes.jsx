@@ -15,7 +15,7 @@ import {
 import {
   componentesLayout,
   componentesIconClasses,
-} from "../EstilosCliente/EstilosClientes";
+} from "./componentesAprendizajeEstilos";
 
 const defaultFormulario = {
   fk_area: "",

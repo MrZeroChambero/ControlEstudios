@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  primaryButtonBase,
-  neutralButtonBase,
-  fieldBase,
-  helperTextBase,
-} from "../EstilosCliente/EstilosClientes";
+import { competenciasFormClasses } from "./competenciasEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 const aspectos = [
@@ -103,81 +98,77 @@ export const IndicadorFormModal = ({
       contentClassName="max-w-2xl"
     >
       <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
-        <div className="grid gap-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Nombre del indicador
-            </label>
-            <input
-              type="text"
-              name="nombre_indicador"
-              value={formData.nombre_indicador}
+        <div className={competenciasFormClasses.fieldWrapper}>
+          <label className={competenciasFormClasses.label}>
+            Nombre del indicador
+          </label>
+          <input
+            type="text"
+            name="nombre_indicador"
+            value={formData.nombre_indicador}
+            onChange={manejarCambio}
+            className={competenciasFormClasses.input}
+            placeholder="Ingrese el nombre del indicador"
+          />
+          {errores?.nombre_indicador && (
+            <p className={competenciasFormClasses.helper}>
+              {errores.nombre_indicador.join(" ")}
+            </p>
+          )}
+        </div>
+
+        <div className={competenciasFormClasses.grid}>
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>Aspecto</label>
+            <select
+              name="aspecto"
+              value={formData.aspecto}
               onChange={manejarCambio}
-              className={fieldBase}
-              placeholder="Ingrese el nombre del indicador"
+              className={competenciasFormClasses.select}
+            >
+              {aspectos.map((item) => (
+                <option key={item.valor} value={item.valor}>
+                  {item.etiqueta}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>Orden</label>
+            <input
+              type="number"
+              name="orden"
+              value={formData.orden}
+              onChange={manejarCambio}
+              className={competenciasFormClasses.input}
+              placeholder="Defina el orden de presentación"
+              min={1}
+              max={999}
             />
-            {errores?.nombre_indicador && (
-              <p className={helperTextBase}>
-                {errores.nombre_indicador.join(" ")}
+            <p className={competenciasFormClasses.helper}>
+              El orden debe estar entre 1 y 999. Déjalo vacío para asignarlo
+              automáticamente.
+            </p>
+            {errores?.orden && (
+              <p className={competenciasFormClasses.helper}>
+                {errores.orden.join(" ")}
               </p>
             )}
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Aspecto
-              </label>
-              <select
-                name="aspecto"
-                value={formData.aspecto}
-                onChange={manejarCambio}
-                className={fieldBase}
-              >
-                {aspectos.map((item) => (
-                  <option key={item.valor} value={item.valor}>
-                    {item.etiqueta}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Orden
-              </label>
-              <input
-                type="number"
-                name="orden"
-                value={formData.orden}
-                onChange={manejarCambio}
-                className={fieldBase}
-                placeholder="Defina el orden de presentación"
-                min={1}
-                max={999}
-              />
-              <p className={helperTextBase}>
-                El orden debe estar entre 1 y 999. Déjalo vacío para asignarlo
-                automáticamente.
-              </p>
-              {errores?.orden && (
-                <p className={helperTextBase}>{errores.orden.join(" ")}</p>
-              )}
-            </div>
-          </div>
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className={competenciasFormClasses.actions}>
           <button
             type="button"
             onClick={onClose}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={competenciasFormClasses.secondaryButton}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className={`${primaryButtonBase} bg-blue-600 hover:bg-blue-700`}
+            className={competenciasFormClasses.primaryButton}
           >
             Guardar indicador
           </button>

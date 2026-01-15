@@ -1,39 +1,36 @@
 import React from "react";
 import { FaTimes } from "react-icons/fa";
-import {
-  typography,
-  typographyScale,
-  textColors,
-  typePillBase,
-  fontWeights,
-} from "../EstilosCliente/EstilosClientes";
-
-const infoRowLabelClass = `${typography.pill} ${textColors.muted}`;
-const infoRowValueClass = `${typographyScale.sm} ${fontWeights.medium} ${textColors.tertiary}`;
-const chipListTitleClass = `${typography.pill} ${textColors.muted}`;
-const chipBadgeClass = `${typePillBase} border border-slate-200 bg-white text-slate-600`;
-const mutedBodyTextClass = typography.bodyMutedSm;
+import { planificacionDetallePanelClasses } from "./planificacionEstilos";
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex flex-col rounded-lg border border-slate-100 p-3">
-    <span className={infoRowLabelClass}>{label}</span>
-    <span className={infoRowValueClass}>{value ?? "-"}</span>
+  <div className={planificacionDetallePanelClasses.infoRow}>
+    <span className={planificacionDetallePanelClasses.infoRowLabel}>
+      {label}
+    </span>
+    <span className={planificacionDetallePanelClasses.infoRowValue}>
+      {value ?? "-"}
+    </span>
   </div>
 );
 
 const ChipsList = ({ title, items = [], emptyLabel }) => (
   <div>
-    <p className={chipListTitleClass}>{title}</p>
+    <p className={planificacionDetallePanelClasses.chipListTitle}>{title}</p>
     {items.length ? (
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className={planificacionDetallePanelClasses.chipListWrapper}>
         {items.map((item) => (
-          <span key={item} className={chipBadgeClass}>
+          <span
+            key={item}
+            className={planificacionDetallePanelClasses.chipBadge}
+          >
             #{item}
           </span>
         ))}
       </div>
     ) : (
-      <p className={`mt-2 ${mutedBodyTextClass}`}>{emptyLabel}</p>
+      <p className={planificacionDetallePanelClasses.chipEmptyText}>
+        {emptyLabel}
+      </p>
     )}
   </div>
 );
@@ -81,38 +78,40 @@ export const PlanificacionDetallePanel = ({
   const resolverMomento = resolvers.momento ?? buildFallbackResolver("Momento");
 
   return (
-    <div className="fixed inset-0 z-40 flex">
+    <div className={planificacionDetallePanelClasses.overlay}>
       <div
-        className="absolute inset-0 bg-slate-900/40"
+        className={planificacionDetallePanelClasses.backdrop}
         onClick={onClose}
         aria-hidden="true"
       />
-      <aside className="relative ml-auto flex h-full w-full max-w-md flex-col bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+      <aside className={planificacionDetallePanelClasses.panel}>
+        <header className={planificacionDetallePanelClasses.header}>
           <div>
-            <p className={`${typography.pill} text-indigo-500`}>
+            <p className={planificacionDetallePanelClasses.headerEyebrow}>
               Detalle de planificación
             </p>
-            <h2 className={`${typography.titleSm} ${fontWeights.bold}`}>
+            <h2 className={planificacionDetallePanelClasses.headerTitle}>
               #{detalle.id_planificacion ?? "-"}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-slate-400 hover:text-slate-700"
+            className={planificacionDetallePanelClasses.closeButton}
             aria-label="Cerrar panel"
           >
             <FaTimes />
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className={planificacionDetallePanelClasses.body}>
           {isLoading ? (
-            <p className={mutedBodyTextClass}>Cargando detalle...</p>
+            <p className={planificacionDetallePanelClasses.loadingText}>
+              Cargando detalle...
+            </p>
           ) : (
-            <div className="space-y-6">
-              <div className="grid gap-3">
+            <div className={planificacionDetallePanelClasses.contentWrapper}>
+              <div className={planificacionDetallePanelClasses.infoGrid}>
                 <InfoRow
                   label="Docente"
                   value={resolverDocente(detalle.fk_personal)}
@@ -155,7 +154,7 @@ export const PlanificacionDetallePanel = ({
                   emptyLabel="No se registraron estudiantes para esta planificación."
                 />
               ) : (
-                <p className={mutedBodyTextClass}>
+                <p className={planificacionDetallePanelClasses.loadingText}>
                   Esta planificación es por aula completa, por lo que no lista
                   estudiantes individuales.
                 </p>

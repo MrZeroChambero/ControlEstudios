@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { LoginForm } from "./Formulario.jsx";
 import { verificarSesion } from "./verificarSesion.jsx";
 import { Solicitud } from "./Solicitud.jsx";
-// Importar useNavigate para la redirección
+import { IntentosSeguridad } from "./IntentosSeguridad.jsx";
+import { loginLayoutClasses, loginSupportClasses } from "./loginEstilos";
 import { useNavigate, Link } from "react-router-dom";
 import "sweetalert2/dist/sweetalert2.min.css";
 
@@ -35,32 +36,32 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
-        <LoginForm
-          username={username}
-          password={password}
-          showPassword={showPassword}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          setShowPassword={setShowPassword}
-          setUsername={setUsername}
-          setPassword={setPassword}
-        />
-        {attemptInfo && (
-          <div
-            className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
-            style={{ whiteSpace: "pre-line" }}
-          >
-            {attemptInfo}
+    <div className={loginLayoutClasses.page}>
+      <div className={loginLayoutClasses.wrapper}>
+        <div className={loginLayoutClasses.card}>
+          <div className={loginLayoutClasses.header}>
+            <h2 className={loginLayoutClasses.title}>Iniciar Sesión</h2>
+            <p className={loginLayoutClasses.description}>
+              Ingresa tus credenciales para acceder al panel de control.
+            </p>
           </div>
-        )}
-        <p className="mt-4 text-center text-sm text-blue-600">
-          <Link to="/recuperar-clave" className="hover:underline">
-            Olvidaste tu contraseña?
-          </Link>
-        </p>
+          <LoginForm
+            username={username}
+            password={password}
+            showPassword={showPassword}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            setShowPassword={setShowPassword}
+            setUsername={setUsername}
+            setPassword={setPassword}
+          />
+          <IntentosSeguridad mensaje={attemptInfo} />
+          <p className={loginSupportClasses.forgotPassword}>
+            <Link to="/recuperar-clave" className={loginSupportClasses.link}>
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,20 +1,5 @@
 import React from "react";
-
-// Estilos reutilizables para el formulario
-const formStyles = {
-  label: "block text-gray-700 text-sm font-bold mb-2",
-  input:
-    "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
-  inputError: "border-red-500",
-  inputSuccess: "border-green-500",
-  errorMessage: "text-red-500 text-xs italic mt-1",
-  grid: "grid grid-cols-1 md:grid-cols-2 gap-4",
-  buttonContainer: "flex items-center justify-end mt-6",
-  cancelButton:
-    "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2",
-  submitButton:
-    "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg",
-};
+import { personaFormClasses } from "./personaEstilos";
 
 export const PersonaForm = ({
   onSubmit,
@@ -23,24 +8,29 @@ export const PersonaForm = ({
   handleInputChange,
   errors,
 }) => {
-  // Función para determinar la clase del input
-  const getInputClass = (fieldName) => {
-    let classes = formStyles.input;
+  const buildFieldClass = (baseClass, fieldName) => {
+    let classes = baseClass;
     if (errors[fieldName]) {
-      classes += ` ${formStyles.inputError}`;
+      classes += ` ${personaFormClasses.inputError}`;
     } else if (formData[fieldName] && formData[fieldName].trim() !== "") {
-      // Opcional: añadir clase de éxito si el campo tiene valor y no hay error
-      // classes += ` ${formStyles.inputSuccess}`;
+      classes += ` ${personaFormClasses.inputSuccess}`;
     }
     return classes;
   };
+  const getInputClass = (fieldName) =>
+    buildFieldClass(personaFormClasses.input, fieldName);
+  const getTextAreaClass = (fieldName) =>
+    buildFieldClass(personaFormClasses.textArea, fieldName);
   return (
-    <form onSubmit={onSubmit} autoComplete="off">
-      <div className={formStyles.grid}>
-        {/* Columna 1 */}
-        <div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="primer_nombre">
+    <form
+      onSubmit={onSubmit}
+      autoComplete="off"
+      className={personaFormClasses.form}
+    >
+      <div className={personaFormClasses.grid}>
+        <div className={personaFormClasses.column}>
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="primer_nombre">
               Primer Nombre
             </label>
             <input
@@ -52,11 +42,16 @@ export const PersonaForm = ({
               required
             />
             {errors.primer_nombre && (
-              <p className={formStyles.errorMessage}>{errors.primer_nombre}</p>
+              <p className={personaFormClasses.errorMessage}>
+                {errors.primer_nombre}
+              </p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="segundo_nombre">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="segundo_nombre"
+            >
               Segundo Nombre
             </label>
             <input
@@ -64,11 +59,14 @@ export const PersonaForm = ({
               name="segundo_nombre"
               value={formData.segundo_nombre}
               onChange={handleInputChange}
-              className={formStyles.input}
+              className={personaFormClasses.input}
             />
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="primer_apellido">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="primer_apellido"
+            >
               Primer Apellido
             </label>
             <input
@@ -80,13 +78,16 @@ export const PersonaForm = ({
               required
             />
             {errors.primer_apellido && (
-              <p className={formStyles.errorMessage}>
+              <p className={personaFormClasses.errorMessage}>
                 {errors.primer_apellido}
               </p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="segundo_apellido">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="segundo_apellido"
+            >
               Segundo Apellido
             </label>
             <input
@@ -94,11 +95,11 @@ export const PersonaForm = ({
               name="segundo_apellido"
               value={formData.segundo_apellido}
               onChange={handleInputChange}
-              className={formStyles.input}
+              className={personaFormClasses.input}
             />
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="cedula">
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="cedula">
               Cédula
             </label>
             <input
@@ -109,11 +110,14 @@ export const PersonaForm = ({
               className={getInputClass("cedula")}
             />
             {errors.cedula && (
-              <p className={formStyles.errorMessage}>{errors.cedula}</p>
+              <p className={personaFormClasses.errorMessage}>{errors.cedula}</p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="fecha_nacimiento">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="fecha_nacimiento"
+            >
               Fecha de Nacimiento
             </label>
             <input
@@ -125,24 +129,23 @@ export const PersonaForm = ({
               required
             />
             {errors.fecha_nacimiento && (
-              <p className={formStyles.errorMessage}>
+              <p className={personaFormClasses.errorMessage}>
                 {errors.fecha_nacimiento}
               </p>
             )}
           </div>
         </div>
 
-        {/* Columna 2 */}
-        <div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="genero">
+        <div className={personaFormClasses.column}>
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="genero">
               Género
             </label>
             <select
               name="genero"
               value={formData.genero}
               onChange={handleInputChange}
-              className={formStyles.input}
+              className={personaFormClasses.select}
               required
             >
               <option value="M">Masculino</option>
@@ -150,8 +153,8 @@ export const PersonaForm = ({
               <option value="Otro">Otro</option>
             </select>
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="nacionalidad">
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="nacionalidad">
               Nacionalidad
             </label>
             <input
@@ -163,11 +166,16 @@ export const PersonaForm = ({
               required
             />
             {errors.nacionalidad && (
-              <p className={formStyles.errorMessage}>{errors.nacionalidad}</p>
+              <p className={personaFormClasses.errorMessage}>
+                {errors.nacionalidad}
+              </p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="telefono_principal">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="telefono_principal"
+            >
               Teléfono Principal
             </label>
             <input
@@ -179,13 +187,16 @@ export const PersonaForm = ({
               required
             />
             {errors.telefono_principal && (
-              <p className={formStyles.errorMessage}>
+              <p className={personaFormClasses.errorMessage}>
                 {errors.telefono_principal}
               </p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="telefono_secundario">
+          <div className={personaFormClasses.field}>
+            <label
+              className={personaFormClasses.label}
+              htmlFor="telefono_secundario"
+            >
               Teléfono Secundario
             </label>
             <input
@@ -198,13 +209,13 @@ export const PersonaForm = ({
               )} [appearance:textfield]`}
             />
             {errors.telefono_secundario && (
-              <p className={formStyles.errorMessage}>
+              <p className={personaFormClasses.errorMessage}>
                 {errors.telefono_secundario}
               </p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="email">
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="email">
               Email
             </label>
             <input
@@ -215,18 +226,18 @@ export const PersonaForm = ({
               className={getInputClass("email")}
             />
             {errors.email && (
-              <p className={formStyles.errorMessage}>{errors.email}</p>
+              <p className={personaFormClasses.errorMessage}>{errors.email}</p>
             )}
           </div>
-          <div className="mb-4">
-            <label className={formStyles.label} htmlFor="tipo_persona">
+          <div className={personaFormClasses.field}>
+            <label className={personaFormClasses.label} htmlFor="tipo_persona">
               Tipo de Persona
             </label>
             <select
               name="tipo_persona"
               value={formData.tipo_persona}
               onChange={handleInputChange}
-              className={formStyles.input}
+              className={personaFormClasses.select}
             >
               <option value="">(Ninguno)</option>
               <option value="estudiante">Estudiante</option>
@@ -237,33 +248,31 @@ export const PersonaForm = ({
         </div>
       </div>
 
-      {/* Dirección (ocupa todo el ancho) */}
-      <div className="mb-4">
-        <label className={formStyles.label} htmlFor="direccion">
+      <div className={personaFormClasses.field}>
+        <label className={personaFormClasses.label} htmlFor="direccion">
           Dirección
         </label>
         <textarea
           name="direccion"
           value={formData.direccion}
           onChange={handleInputChange}
-          className={getInputClass("direccion")}
+          className={getTextAreaClass("direccion")}
           required
         />
         {errors.direccion && (
-          <p className={formStyles.errorMessage}>{errors.direccion}</p>
+          <p className={personaFormClasses.errorMessage}>{errors.direccion}</p>
         )}
       </div>
 
-      {/* Botones */}
-      <div className={formStyles.buttonContainer}>
+      <div className={personaFormClasses.actions}>
         <button
           type="button"
           onClick={onCancel}
-          className={formStyles.cancelButton}
+          className={personaFormClasses.cancelButton}
         >
           Cancelar
         </button>
-        <button type="submit" className={formStyles.submitButton}>
+        <button type="submit" className={personaFormClasses.submitButton}>
           Guardar
         </button>
       </div>

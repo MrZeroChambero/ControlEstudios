@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  contenidosLayout,
-  contenidosFormClasses,
-  typography,
-} from "../../EstilosCliente/EstilosClientes";
-import { controlDeshabilitado } from "../constantesRendimiento";
+import { panelFiltrosEvaluacionClasses } from "../rendimientoEstilos";
 
 const CampoSeleccion = ({
   id,
@@ -15,14 +10,14 @@ const CampoSeleccion = ({
   deshabilitado,
   ayuda,
 }) => (
-  <label htmlFor={id} className="flex flex-col gap-2">
-    <span className={contenidosFormClasses.label}>{etiqueta}</span>
+  <label htmlFor={id} className={panelFiltrosEvaluacionClasses.field}>
+    <span className={panelFiltrosEvaluacionClasses.label}>{etiqueta}</span>
     <select
       id={id}
       name={id}
       value={valor}
       onChange={onChange}
-      className={`${contenidosFormClasses.select} ${controlDeshabilitado}`}
+      className={panelFiltrosEvaluacionClasses.select}
       disabled={deshabilitado}
     >
       {opciones.map((opcion) => (
@@ -31,7 +26,9 @@ const CampoSeleccion = ({
         </option>
       ))}
     </select>
-    {ayuda ? <p className={contenidosFormClasses.helper}>{ayuda}</p> : null}
+    {ayuda ? (
+      <p className={panelFiltrosEvaluacionClasses.helper}>{ayuda}</p>
+    ) : null}
   </label>
 );
 
@@ -46,15 +43,17 @@ export const PanelFiltrosEvaluacion = ({
   onSeleccionComponente,
   onSeleccionAula,
 }) => (
-  <section className={`${contenidosLayout.container} space-y-4`}>
-    <header className="space-y-1">
-      <h2 className={typography.titleSm}>Selecciona el componente y el aula</h2>
-      <p className={typography.bodyMutedSm}>
+  <section className={panelFiltrosEvaluacionClasses.container}>
+    <header className={panelFiltrosEvaluacionClasses.header}>
+      <h2 className={panelFiltrosEvaluacionClasses.title}>
+        Selecciona el componente y el aula
+      </h2>
+      <p className={panelFiltrosEvaluacionClasses.description}>
         Primero elige el componente de aprendizaje; luego selecciona el aula
         disponible para cargar la lista de estudiantes.
       </p>
     </header>
-    <div className={contenidosFormClasses.grid}>
+    <div className={panelFiltrosEvaluacionClasses.grid}>
       <CampoSeleccion
         id="seleccion-componente"
         etiqueta="Componente"

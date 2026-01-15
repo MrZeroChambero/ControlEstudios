@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import VentanaModal from "../EstilosCliente/VentanaModal";
-import { competenciasViewModalClasses } from "../EstilosCliente/EstilosClientes";
+import { competenciasViewModalClasses } from "./competenciasEstilos";
 
 const getDisplayValue = (value, fallback = "No especificado") => {
   if (value === null || value === undefined || value === "") {

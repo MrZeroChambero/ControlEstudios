@@ -1,5 +1,5 @@
 import React from "react";
-import { contenidosFormClasses } from "../EstilosCliente/EstilosClientes";
+import { contenidosFormClasses } from "./contenidosEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const ContenidosModal = ({

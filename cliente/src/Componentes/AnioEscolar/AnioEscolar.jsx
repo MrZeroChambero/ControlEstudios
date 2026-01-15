@@ -1,6 +1,6 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
-import { anioEscolarLayout } from "../EstilosCliente/EstilosClientes";
+import { anioEscolarLayout } from "./anioEscolarEstilos";
 import { ModalAnioEscolar } from "./ModalAnioEscolar";
 import { TablaAniosEscolares } from "./TablaAniosEscolares";
 import { useGestionAniosEscolares } from "./useGestionAniosEscolares";

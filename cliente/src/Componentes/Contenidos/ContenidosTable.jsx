@@ -12,8 +12,8 @@ import {
   contenidosTableClasses,
   contenidosStatusClasses,
   contenidosIconClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+} from "./contenidosEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 
 export const ContenidosTable = ({
   contenidos,

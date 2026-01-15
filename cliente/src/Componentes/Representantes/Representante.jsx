@@ -11,6 +11,7 @@ import RepresentanteTable from "./RepresentanteTable";
 import { RepresentanteModal } from "./RepresentanteModal";
 import RepresentanteViewModal from "./RepresentanteViewModal";
 import { representantesLayout } from "../EstilosCliente/EstilosClientes";
+import { representantesGestionClasses } from "./representantesEstilos";
 
 export const Representante = () => {
   const [representantes, setRepresentantes] = useState([]);
@@ -103,9 +104,10 @@ export const Representante = () => {
   };
 
   const layout = representantesLayout;
+  const gestionClasses = representantesGestionClasses;
 
   return (
-    <section className="p-6">
+    <section className={gestionClasses.page}>
       <div className={layout.container}>
         <header className={layout.header}>
           <div>
@@ -125,8 +127,8 @@ export const Representante = () => {
           </button>
         </header>
 
-        <div className="mb-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-4">
-          <p className="text-sm text-slate-600">
+        <div className={gestionClasses.infoCard}>
+          <p className={gestionClasses.infoText}>
             Puedes agregar habilidades una vez creado el representante. Usa los
             controles de la tabla para ver, editar o ajustar el estado.
           </p>

@@ -4,7 +4,7 @@ import {
   formatearFechaCorta,
   formatearFechaHoraCorta,
 } from "../../utilidades/formatoFechas";
-import { estudiantesViewModalClasses } from "../EstilosCliente/EstilosClientes";
+import { estudiantesViewModalClasses } from "./estudiantesEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const EstudianteViewModal = ({ isOpen, onClose, estudiante }) => {

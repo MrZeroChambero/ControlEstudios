@@ -1,6 +1,6 @@
 import React from "react";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
-import CalendarioSeccionDetallado from "./CalendarioSeccionDetallado";
+import TablaHorarioSemanal from "./TablaHorarioSemanal";
 import TablaDocentesSeccion from "./TablaDocentesSeccion";
 
 const ModalCalendarioAula = ({ abierto, alCerrar, seccion }) => (
@@ -33,7 +33,7 @@ const ModalCalendarioAula = ({ abierto, alCerrar, seccion }) => (
             </div>
           </div>
         </div>
-        <CalendarioSeccionDetallado
+        <TablaHorarioSemanal
           bloques={seccion.horarios}
           emptyMessage="Sin bloques programados para esta sección."
         />

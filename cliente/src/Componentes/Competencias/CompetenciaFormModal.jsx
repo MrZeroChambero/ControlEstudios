@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  contenidosFormClasses,
-  neutralButtonBase,
-  helperTextBase,
-} from "../EstilosCliente/EstilosClientes";
+import { competenciasFormClasses } from "./competenciasEstilos";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 
 export const CompetenciaFormModal = ({
@@ -99,13 +95,13 @@ export const CompetenciaFormModal = ({
       contentClassName="max-w-3xl"
     >
       <form onSubmit={manejarSubmit} className="space-y-6" autoComplete="off">
-        <div className={contenidosFormClasses.grid}>
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label className={contenidosFormClasses.label}>
+        <div className={competenciasFormClasses.grid}>
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>
               Area de aprendizaje
             </label>
             <select
-              className={contenidosFormClasses.select}
+              className={competenciasFormClasses.select}
               value={areaSeleccionada}
               onChange={(evento) => {
                 setAreaSeleccionada(evento.target.value);
@@ -120,21 +116,21 @@ export const CompetenciaFormModal = ({
               ))}
             </select>
             {errores?.fk_componente && (
-              <p className={helperTextBase}>
+              <p className={competenciasFormClasses.helper}>
                 {errores.fk_componente.join(" ")}
               </p>
             )}
           </div>
 
-          <div className={contenidosFormClasses.fieldWrapper}>
-            <label className={contenidosFormClasses.label}>
+          <div className={competenciasFormClasses.fieldWrapper}>
+            <label className={competenciasFormClasses.label}>
               Componente de aprendizaje
             </label>
             <select
               name="fk_componente"
               value={formData.fk_componente}
               onChange={manejarCambio}
-              className={contenidosFormClasses.select}
+              className={competenciasFormClasses.select}
             >
               <option value="">Seleccione un componente</option>
               {componentesFiltrados.map((componente) => (
@@ -146,9 +142,9 @@ export const CompetenciaFormModal = ({
           </div>
 
           <div
-            className={`${contenidosFormClasses.fieldWrapper} md:col-span-2`}
+            className={`${competenciasFormClasses.fieldWrapper} md:col-span-2`}
           >
-            <label className={contenidosFormClasses.label}>
+            <label className={competenciasFormClasses.label}>
               Nombre de la competencia
             </label>
             <input
@@ -156,46 +152,49 @@ export const CompetenciaFormModal = ({
               name="nombre_competencia"
               value={formData.nombre_competencia}
               onChange={manejarCambio}
-              className={contenidosFormClasses.input}
+              className={competenciasFormClasses.input}
               placeholder="Ingrese el nombre de la competencia"
             />
             {errores?.nombre_competencia && (
-              <p className={helperTextBase}>
+              <p className={competenciasFormClasses.helper}>
                 {errores.nombre_competencia.join(" ")}
               </p>
             )}
           </div>
 
           <div
-            className={`${contenidosFormClasses.fieldWrapper} md:col-span-2`}
+            className={`${competenciasFormClasses.fieldWrapper} md:col-span-2`}
           >
-            <label className={contenidosFormClasses.label}>
+            <label className={competenciasFormClasses.label}>
               Descripcion de la competencia
             </label>
             <textarea
               name="descripcion_competencia"
               value={formData.descripcion_competencia}
               onChange={manejarCambio}
-              className={`${contenidosFormClasses.textArea} min-h-[120px]`}
+              className={competenciasFormClasses.textArea}
               placeholder="Describa brevemente la competencia"
             />
             {errores?.descripcion_competencia && (
-              <p className={helperTextBase}>
+              <p className={competenciasFormClasses.helper}>
                 {errores.descripcion_competencia.join(" ")}
               </p>
             )}
           </div>
         </div>
 
-        <div className={contenidosFormClasses.actions}>
+        <div className={competenciasFormClasses.actions}>
           <button
             type="button"
             onClick={onClose}
-            className={`${neutralButtonBase} border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`}
+            className={competenciasFormClasses.secondaryButton}
           >
             Cancelar
           </button>
-          <button type="submit" className={contenidosFormClasses.primaryButton}>
+          <button
+            type="submit"
+            className={competenciasFormClasses.primaryButton}
+          >
             Guardar cambios
           </button>
         </div>

@@ -2,9 +2,9 @@ import React from "react";
 import { ComponentesAprendizajeForm } from "./ComponentesAprendizajeForm";
 import VentanaModal from "../EstilosCliente/VentanaModal";
 import {
-  typePillBase,
   componentesStatusClasses,
-} from "../EstilosCliente/EstilosClientes";
+  componentesTypePillBase,
+} from "./componentesAprendizajeEstilos";
 
 export const ComponentesAprendizajeModal = ({
   isOpen,
@@ -49,7 +49,7 @@ export const ComponentesAprendizajeModal = ({
               Tipo de docente
             </p>
             <span
-              className={`${typePillBase} ${
+              className={`${componentesTypePillBase} ${
                 tipoDocentePills[codigo] || tipoDocentePills.aula
               }`}
             >

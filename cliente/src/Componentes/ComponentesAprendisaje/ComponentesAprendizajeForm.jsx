@@ -1,5 +1,5 @@
 import React from "react";
-import { componentesFormClasses } from "../EstilosCliente/EstilosClientes";
+import { componentesFormClasses } from "./componentesAprendizajeEstilos";
 
 const tipoDocenteOpciones = [
   { value: "Docente de aula", label: "Docente de aula" },

@@ -1,18 +1,5 @@
 import React from "react";
-import {
-  typography,
-  typographyScale,
-  textColors,
-  fontWeights,
-} from "../../EstilosCliente/EstilosClientes";
-
-const eyebrowClass = `${typography.pill} text-indigo-500`;
-const titleHighlightClass = `${typographyScale.sm} ${fontWeights.semibold} ${textColors.tertiary}`;
-const helperTextClass = typography.helper;
-const warningTextClass = `${typography.helper} ${fontWeights.semibold} text-amber-600`;
-const assignmentBadgeClass = `${typography.pill} text-emerald-600`;
-const assignmentSubtitleClass = `${typographyScale.xs} ${textColors.muted}`;
-const chipListTitleClass = `${typography.pill} ${textColors.muted}`;
+import { panelContextoActualClasses } from "../planificacionEstilos";
 
 export const PanelContextoActual = ({
   contexto,
@@ -24,56 +11,85 @@ export const PanelContextoActual = ({
   resumenComponentesAsignados,
 }) => {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-      <p className={eyebrowClass}>Contexto actual</p>
-      <p className={`mt-1 ${titleHighlightClass}`}>
+    <div className={panelContextoActualClasses.container}>
+      <p className={panelContextoActualClasses.eyebrow}>Contexto actual</p>
+      <p
+        className={`${panelContextoActualClasses.spacingSm} ${panelContextoActualClasses.titleHighlight}`}
+      >
         {contexto?.momento?.nombre ??
           contexto?.momento?.momento_nombre ??
           contexto?.momento?.nombre_momento ??
           "Sin momento asignado"}
       </p>
-      <p className={`mt-2 ${helperTextClass}`}>
+      <p
+        className={`${panelContextoActualClasses.spacingMd} ${panelContextoActualClasses.helperText}`}
+      >
         {modo === "clonar"
           ? "Se generará una nueva planificación basada en la selección indicada."
           : "Selecciona los catálogos y competencias para esta planificación."}
       </p>
-      {bloqueado && <p className={`mt-2 ${warningTextClass}`}>{bloqueado}</p>}
+      {bloqueado && (
+        <p
+          className={`${panelContextoActualClasses.spacingMd} ${panelContextoActualClasses.warningText}`}
+        >
+          {bloqueado}
+        </p>
+      )}
       {cargandoAsignacion ? (
-        <p className={`mt-3 ${helperTextClass}`}>
+        <p
+          className={`${panelContextoActualClasses.spacingLg} ${panelContextoActualClasses.helperText}`}
+        >
           Verificando asignación del docente seleccionado...
         </p>
       ) : asignacion ? (
-        <div className="mt-3 rounded-2xl border border-emerald-100 bg-white/70 px-4 py-3 text-sm text-slate-600">
-          <p className={assignmentBadgeClass}>Asignación detectada</p>
+        <div className={panelContextoActualClasses.assignmentCard}>
+          <p className={panelContextoActualClasses.assignmentBadge}>
+            Asignación detectada
+          </p>
           {asignacion.tiene_asignaciones ? (
             <>
-              <p className={`mt-1 ${titleHighlightClass}`}>
+              <p
+                className={`${panelContextoActualClasses.spacingSm} ${panelContextoActualClasses.titleHighlight}`}
+              >
                 Aula: {descripcionAulaAsignada ?? "Sin aula vinculada"}
               </p>
-              <div className="mt-2 text-sm text-slate-600">
-                <p className={chipListTitleClass}>Componentes vinculados:</p>
+              <div className={panelContextoActualClasses.assignmentInfoWrapper}>
+                <p className={panelContextoActualClasses.chipListTitle}>
+                  Componentes vinculados:
+                </p>
                 {resumenComponentesAsignados.length > 0 ? (
-                  <div className="mt-1 space-y-1">
+                  <div className={panelContextoActualClasses.chipListWrapper}>
                     {resumenComponentesAsignados.map((item) => (
-                      <p key={item.id}>{item.nombre}</p>
+                      <p
+                        key={item.id}
+                        className={panelContextoActualClasses.chipListItem}
+                      >
+                        {item.nombre}
+                      </p>
                     ))}
                   </div>
                 ) : (
-                  <p className={`mt-1 ${assignmentSubtitleClass}`}>
+                  <p
+                    className={`${panelContextoActualClasses.spacingSm} ${panelContextoActualClasses.assignmentSubtitle}`}
+                  >
                     El docente no posee componentes asociados para este momento.
                   </p>
                 )}
               </div>
             </>
           ) : (
-            <p className={`mt-2 ${assignmentSubtitleClass}`}>
+            <p
+              className={`${panelContextoActualClasses.spacingMd} ${panelContextoActualClasses.assignmentSubtitle}`}
+            >
               El docente no tiene asignaciones registradas para el momento
               seleccionado.
             </p>
           )}
         </div>
       ) : (
-        <p className={`mt-3 ${helperTextClass}`}>
+        <p
+          className={`${panelContextoActualClasses.spacingLg} ${panelContextoActualClasses.helperText}`}
+        >
           Selecciona un docente para consultar las asignaciones disponibles en
           este contexto.
         </p>

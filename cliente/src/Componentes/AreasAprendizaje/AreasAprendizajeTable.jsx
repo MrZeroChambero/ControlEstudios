@@ -10,9 +10,9 @@ import {
 import {
   areasTableClasses,
   areasBadgeClasses,
-  contenidosIconClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+  areasIconClasses,
+} from "./areasAprendizajeEstilos";
+import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 
 export const AreasAprendizajeTable = ({
   areas,
@@ -79,7 +79,7 @@ export const AreasAprendizajeTable = ({
             className={`${areasTableClasses.actionButton} ${areasTableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye className={contenidosIconClasses.base} />
+            <FaEye className={areasIconClasses.base} />
           </button>
           <button
             onClick={() => cambioEstados(row)}
@@ -91,9 +91,9 @@ export const AreasAprendizajeTable = ({
             title={row.estado_area === "activo" ? "Desactivar" : "Activar"}
           >
             {row.estado_area === "activo" ? (
-              <FaToggleOn className={contenidosIconClasses.base} />
+              <FaToggleOn className={areasIconClasses.base} />
             ) : (
-              <FaToggleOff className={contenidosIconClasses.base} />
+              <FaToggleOff className={areasIconClasses.base} />
             )}
           </button>
           <button
@@ -101,14 +101,14 @@ export const AreasAprendizajeTable = ({
             className={`${areasTableClasses.actionButton} ${areasTableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit className={contenidosIconClasses.base} />
+            <FaEdit className={areasIconClasses.base} />
           </button>
           <button
             onClick={() => onDelete(row.id_area_aprendizaje)}
             className={`${areasTableClasses.actionButton} ${areasTableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash className={contenidosIconClasses.base} />
+            <FaTrash className={areasIconClasses.base} />
           </button>
         </div>
       ),
