@@ -4,6 +4,9 @@ namespace Micodigo\Horarios;
 
 use PDO;
 use Valitron\Validator;
+use function Micodigo\Horarios\Config\obtenerBloquePorCodigo;
+use function Micodigo\Horarios\Config\esBloqueClase;
+use const Micodigo\Horarios\Config\BLOQUES_DEPENDENCIAS;
 
 trait HorariosValidacionesTrait
 {
@@ -45,6 +48,8 @@ trait HorariosValidacionesTrait
 
     $errores = [];
 
+    $this->codigo_bloque = null;
+
     if ($datos['hora_inicio'] === null || $datos['hora_fin'] === null) {
       $errores['horario'][] = 'Las horas de inicio y fin son obligatorias.';
     } else {
@@ -52,8 +57,18 @@ trait HorariosValidacionesTrait
         $errores['horario'][] = 'La hora de finalización debe ser mayor a la hora de inicio.';
       }
 
+      $codigoBloque = $this->obtenerCodigoBloqueDesdeHoras($datos['hora_inicio'], $datos['hora_fin']);
+      if ($codigoBloque === null) {
+        $errores['horario'][] = 'Selecciona un bloque válido del cronograma preconfigurado (03, 04, 05, 06, 08 o 09).';
+      } else {
+        $this->codigo_bloque = $codigoBloque;
+        if (!esBloqueClase($codigoBloque)) {
+          $errores['horario'][] = 'Solo se permiten bloques de tipo "clase" para registrar Componentes de Aprendizaje.';
+        }
+      }
+
       if (!$this->duracionBloqueValida($datos['hora_inicio'], $datos['hora_fin'])) {
-        $errores['horario'][] = 'La duración del bloque debe estar entre 40 y 80 minutos.';
+        $errores['horario'][] = 'Respeta las duraciones oficiales (40-80 min) o la extensión autorizada del bloque 05.';
       }
 
       if (!$this->validarHorarioLaboral($datos['hora_inicio'], $datos['hora_fin'])) {
@@ -148,7 +163,31 @@ trait HorariosValidacionesTrait
       }
     }
 
-    if ($datos['fk_aula'] !== null && $datos['dia_semana'] !== null && $datos['hora_inicio'] !== null && $datos['hora_fin'] !== null) {
+    $codigoBloque = $this->codigo_bloque ?? $this->obtenerCodigoBloqueDesdeHoras($datos['hora_inicio'], $datos['hora_fin']);
+    $bloqueDuplicado = null;
+
+    if ($codigoBloque !== null && $datos['fk_aula'] !== null && $datos['dia_semana'] !== null) {
+      $bloqueDuplicado = $this->consultarBloquePorCodigo(
+        $conexion,
+        (int) $datos['fk_aula'],
+        $datos['dia_semana'],
+        $codigoBloque,
+        $ignorarId
+      );
+
+      if ($bloqueDuplicado !== null) {
+        $bloqueConfig = obtenerBloquePorCodigo($codigoBloque) ?? [];
+        $etiqueta = sprintf(
+          '%s (%s - %s)',
+          $codigoBloque,
+          $bloqueConfig['inicio'] ?? '—',
+          $bloqueConfig['fin'] ?? '—'
+        );
+        $errores['horario'][] = sprintf('El bloque %s ya está asignado en este día. Selecciona otro bloque disponible.', $etiqueta);
+      }
+    }
+
+    if ($bloqueDuplicado === null && $datos['fk_aula'] !== null && $datos['dia_semana'] !== null && $datos['hora_inicio'] !== null && $datos['hora_fin'] !== null) {
       if ($this->existeConflictoAula(
         $conexion,
         (int) $datos['fk_aula'],
@@ -186,6 +225,61 @@ trait HorariosValidacionesTrait
 
       if (!empty($conflictos)) {
         $errores['estudiantes'][] = 'Los estudiantes ya tienen actividades en el mismo rango horario: ' . implode(', ', $conflictos) . '.';
+      }
+    }
+
+    if (
+      $codigoBloque !== null &&
+      $datos['fk_aula'] !== null &&
+      $datos['dia_semana'] !== null &&
+      $datos['fk_componente'] !== null
+    ) {
+      $erroresDependencias = $this->validarDependenciasBloque(
+        $conexion,
+        $codigoBloque,
+        $datos,
+        $ignorarId
+      );
+
+      if (!empty($erroresDependencias)) {
+        $errores = array_merge_recursive($errores, $erroresDependencias);
+      }
+    }
+
+    return $errores;
+  }
+
+  protected function validarDependenciasBloque(PDO $conexion, string $codigoBloque, array $datos, ?int $ignorarId): array
+  {
+    $errores = [];
+
+    foreach (BLOQUES_DEPENDENCIAS as $principal => $extensiones) {
+      $aulaId = (int) $datos['fk_aula'];
+      $dia = $datos['dia_semana'];
+
+      if ($codigoBloque === $principal) {
+        foreach ($extensiones as $extension) {
+          $relacionado = $this->consultarBloquePorCodigo($conexion, $aulaId, $dia, $extension, $ignorarId);
+          if ($relacionado !== null && (int) $relacionado['fk_componente'] !== (int) $datos['fk_componente']) {
+            $errores['fk_componente'][] = sprintf(
+              'El bloque %s y su extensión %s deben compartir el mismo Componente de Aprendizaje.',
+              $principal,
+              $extension
+            );
+            break;
+          }
+        }
+      } elseif (in_array($codigoBloque, (array) $extensiones, true)) {
+        $principalRegistrado = $this->consultarBloquePorCodigo($conexion, $aulaId, $dia, $principal, $ignorarId);
+        if ($principalRegistrado === null) {
+          $errores['horario'][] = sprintf('Registra primero el bloque %s antes de su extensión %s.', $principal, $codigoBloque);
+        } elseif ((int) $principalRegistrado['fk_componente'] !== (int) $datos['fk_componente']) {
+          $errores['fk_componente'][] = sprintf(
+            'El bloque %s debe utilizar el mismo Componente de Aprendizaje que el bloque %s.',
+            $codigoBloque,
+            $principal
+          );
+        }
       }
     }
 

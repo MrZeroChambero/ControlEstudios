@@ -1,6 +1,7 @@
 import React from "react";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
 import TablaDocentesSeccion from "./TablaDocentesSeccion";
+import { filtrarBloquesClase } from "../config/bloquesHorario";
 
 const buildMetaItems = (seccion) => [
   {
@@ -36,6 +37,7 @@ const CalendarioSeccionDetallado = ({
 
   const metaItems = buildMetaItems(seccion);
   const bloques = seccion.horarios || [];
+  const bloquesClase = filtrarBloquesClase(bloques);
   const bloquesFijos = seccion.bloquesFijos || [];
 
   return (
@@ -54,7 +56,7 @@ const CalendarioSeccionDetallado = ({
       </section>
 
       <TablaHorarioSemanal
-        bloques={bloques}
+        bloques={bloquesClase}
         bloquesFijos={bloquesFijos}
         emptyMessage={emptyMessage}
       />
@@ -64,7 +66,7 @@ const CalendarioSeccionDetallado = ({
           <h4 className="text-sm font-semibold text-slate-700">
             Docentes y especialistas asignados
           </h4>
-          <TablaDocentesSeccion bloques={bloques} />
+          <TablaDocentesSeccion bloques={bloquesClase} />
         </section>
       ) : null}
     </div>

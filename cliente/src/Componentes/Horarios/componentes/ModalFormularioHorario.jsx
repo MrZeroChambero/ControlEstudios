@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { FaTrash, FaEye } from "react-icons/fa";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
 import {
@@ -6,38 +6,20 @@ import {
   horariosTableClasses,
   horariosIconClasses,
 } from "../../EstilosCliente/EstilosClientes";
-import {
-  diasSemanaOrdenados,
-  diasSemanaOpciones,
-  MIN_MINUTOS_COMPONENTE,
-  MAX_MINUTOS_JORNADA,
-  SEGMENTO_BLOQUE_MINUTOS,
-  DURACIONES_AULA_MINUTOS,
-} from "../utilidadesHorarios";
+import { diasSemanaOrdenados, diasSemanaOpciones } from "../utilidadesHorarios";
 import {
   obtenerRutinasPorContexto,
   RUTINA_CONTEXTO_AULA,
 } from "../config/rutinasConfig";
+import {
+  construirOpcionesBloquesClase,
+  esBloqueRegistroClase,
+  obtenerBloquePorCodigo,
+  obtenerCodigoBloquePorRango,
+  formatearEtiquetaBloque,
+} from "../config/bloquesHorario";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
 const rutinasAula = obtenerRutinasPorContexto(RUTINA_CONTEXTO_AULA);
-
-const generarOpcionesHoras = () => {
-  const opciones = [];
-  for (
-    let minuto = MIN_MINUTOS_COMPONENTE;
-    minuto <= MAX_MINUTOS_JORNADA;
-    minuto += SEGMENTO_BLOQUE_MINUTOS
-  ) {
-    const hora = Math.floor(minuto / 60)
-      .toString()
-      .padStart(2, "0");
-    const min = (minuto % 60).toString().padStart(2, "0");
-    opciones.push(`${hora}:${min}`);
-  }
-  return opciones;
-};
-
-const opcionesHorasSegmentadas = generarOpcionesHoras();
 
 const bloquesRutinaBase = diasSemanaOrdenados.flatMap((dia) =>
   rutinasAula.map((rutina, indice) => ({
@@ -154,13 +136,11 @@ const ModalFormularioHorario = ({
   componentesDisponibles,
   personalDisponible,
   estudiantesDisponibles,
-  duracionesPermitidas = DURACIONES_AULA_MINUTOS,
   esEspecialistaSeleccionado = false,
   calendarioPorDia,
   cargandoHorariosAula,
   onCambio,
   onCambioEstudiantes,
-  onBlurHora,
   onSubmit,
   onVerDetalle,
   onEliminar,
@@ -172,15 +152,40 @@ const ModalFormularioHorario = ({
 
   const descripcionMomento = construirDescripcionMomento(momentoSeleccionado);
 
-  const opcionesHora = useMemo(() => opcionesHorasSegmentadas, []);
-
   const calendarioNormalizado = calendarioPorDia || {};
+
+  const bloquesAcademicosPorDia = useMemo(() => {
+    return diasSemanaOrdenados.reduce((acc, dia) => {
+      const registrosDia = calendarioNormalizado[dia] || [];
+      acc[dia] = registrosDia.filter((bloque) => esBloqueRegistroClase(bloque));
+      return acc;
+    }, {});
+  }, [calendarioNormalizado]);
 
   const bloquesRegistrados = useMemo(
     () =>
-      diasSemanaOrdenados.flatMap((dia) => calendarioNormalizado[dia] || []),
-    [calendarioPorDia]
+      diasSemanaOrdenados.flatMap((dia) => bloquesAcademicosPorDia[dia] || []),
+    [bloquesAcademicosPorDia]
   );
+
+  const bloquesOcupadosPorDia = useMemo(() => {
+    return diasSemanaOrdenados.reduce((acc, dia) => {
+      const registrosDia = bloquesAcademicosPorDia[dia] || [];
+      acc[dia] = new Set(
+        registrosDia
+          .map(
+            (bloque) =>
+              bloque?.codigo_bloque ??
+              obtenerCodigoBloquePorRango(
+                bloque?.hora_inicio_texto ?? bloque?.hora_inicio,
+                bloque?.hora_fin_texto ?? bloque?.hora_fin
+              )
+          )
+          .filter(Boolean)
+      );
+      return acc;
+    }, {});
+  }, [bloquesAcademicosPorDia]);
 
   const bloquesAula = useMemo(
     () => (formulario.fk_aula ? bloquesRegistrados : []),
@@ -198,23 +203,50 @@ const ModalFormularioHorario = ({
     [formulario.fk_aula]
   );
 
-  const mensajeDuraciones = useMemo(() => {
-    const lista = Array.isArray(duracionesPermitidas)
-      ? duracionesPermitidas.slice().sort((a, b) => a - b)
-      : [];
+  const bloquesClaseOpciones = useMemo(
+    () => construirOpcionesBloquesClase(),
+    []
+  );
 
-    if (lista.length === 0) {
-      return "Respeta los segmentos de 20 minutos y finaliza antes del mediodía.";
-    }
+  const bloqueSeleccionado = useMemo(
+    () =>
+      obtenerCodigoBloquePorRango(formulario.hora_inicio, formulario.hora_fin),
+    [formulario.hora_inicio, formulario.hora_fin]
+  );
 
-    const textoLista = lista.map((valor) => `${valor} min`).join(", ");
+  const bloqueSeleccionadoConfig = bloqueSeleccionado
+    ? obtenerBloquePorCodigo(bloqueSeleccionado)
+    : null;
 
-    if (esEspecialistaSeleccionado) {
-      return `Especialistas: bloques permitidos de ${textoLista}.`;
-    }
+  const manejarCambioBloque = useCallback(
+    (evento) => {
+      const codigo = evento.target.value;
+      const bloque = codigo ? obtenerBloquePorCodigo(codigo) : null;
 
-    return `Docentes de aula: bloques permitidos de ${textoLista}.`;
-  }, [duracionesPermitidas, esEspecialistaSeleccionado]);
+      onCambio({
+        target: { name: "hora_inicio", value: bloque?.inicio ?? "" },
+      });
+      onCambio({ target: { name: "hora_fin", value: bloque?.fin ?? "" } });
+    },
+    [onCambio]
+  );
+
+  const bloqueDisponibleEnDia = useCallback(
+    (codigo) => {
+      if (!formulario.dia_semana) {
+        return true;
+      }
+      const ocupados = bloquesOcupadosPorDia[formulario.dia_semana];
+      if (!ocupados) {
+        return true;
+      }
+      if (codigo === bloqueSeleccionado) {
+        return true;
+      }
+      return !ocupados.has(codigo);
+    },
+    [bloquesOcupadosPorDia, formulario.dia_semana, bloqueSeleccionado]
+  );
 
   const renderAccionesBloque = (bloque) => (
     <div className="flex gap-2">
@@ -476,83 +508,61 @@ const ModalFormularioHorario = ({
 
         <div className={horariosFormClasses.grid}>
           <div className={horariosFormClasses.fieldWrapper}>
-            <label className={horariosFormClasses.label} htmlFor="hora_inicio">
-              Hora de inicio
+            <label
+              className={horariosFormClasses.label}
+              htmlFor="codigo_bloque"
+            >
+              Bloque académico disponible
             </label>
-            <input
-              type="text"
-              id="hora_inicio"
-              name="hora_inicio"
-              value={formulario.hora_inicio}
-              onChange={onCambio}
-              onBlur={onBlurHora}
+            <select
+              id="codigo_bloque"
+              name="codigo_bloque"
+              value={bloqueSeleccionado ?? ""}
+              onChange={manejarCambioBloque}
               className={
-                errores.hora_inicio || errores.horario || errores.duracion
-                  ? horariosFormClasses.inputInvalid
-                  : horariosFormClasses.input
+                errores.horario || errores.hora_inicio || errores.hora_fin
+                  ? horariosFormClasses.selectInvalid
+                  : horariosFormClasses.select
               }
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="hh:mm"
-              list="horarios-academicos"
-              maxLength={5}
+              disabled={
+                !formulario.fk_aula ||
+                !formulario.dia_semana ||
+                catalogosCargando
+              }
               required
-            />
+            >
+              <option value="">Selecciona un bloque del cronograma</option>
+              {bloquesClaseOpciones.map((opcion) => (
+                <option
+                  key={opcion.value}
+                  value={opcion.value}
+                  disabled={!bloqueDisponibleEnDia(opcion.value)}
+                >
+                  {opcion.label}
+                  {opcion.esExtension ? " — Extensión" : ""}
+                  {` · ${opcion.duracion} min`}
+                </option>
+              ))}
+            </select>
             {errores.hora_inicio ? (
               <p className={horariosFormClasses.error}>{errores.hora_inicio}</p>
-            ) : (
-              <p className={horariosFormClasses.helper}>
-                Ajusta el bloque a la lista sugerida: comienzan 7:40 a. m. y
-                avanzan cada 20 minutos.
-              </p>
-            )}
-          </div>
-
-          <div className={horariosFormClasses.fieldWrapper}>
-            <label className={horariosFormClasses.label} htmlFor="hora_fin">
-              Hora de finalización
-            </label>
-            <input
-              type="text"
-              id="hora_fin"
-              name="hora_fin"
-              value={formulario.hora_fin}
-              onChange={onCambio}
-              onBlur={onBlurHora}
-              className={
-                errores.hora_fin || errores.horario || errores.duracion
-                  ? horariosFormClasses.inputInvalid
-                  : horariosFormClasses.input
-              }
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="hh:mm"
-              list="horarios-academicos"
-              maxLength={5}
-              required
-            />
+            ) : null}
             {errores.hora_fin ? (
               <p className={horariosFormClasses.error}>{errores.hora_fin}</p>
+            ) : null}
+            {errores.horario ? (
+              <p className={horariosFormClasses.error}>{errores.horario}</p>
             ) : (
-              <p className={horariosFormClasses.helper}>
-                Finaliza antes del mediodía y respeta saltos de 20 minutos.
-              </p>
+              <>
+                <p className={horariosFormClasses.helper}>
+                  {formulario.dia_semana
+                    ? "Los bloques ocupados aparecen deshabilitados para este día."
+                    : "Selecciona un día para revisar la disponibilidad."}
+                </p>
+              </>
             )}
           </div>
         </div>
-
-        {errores.horario ? (
-          <p className={horariosFormClasses.error}>{errores.horario}</p>
-        ) : null}
-        {errores.duracion ? (
-          <p className={horariosFormClasses.error}>{errores.duracion}</p>
-        ) : !errores.horario ? (
-          <p className={horariosFormClasses.helper}>
-            {mensajeDuraciones} Mantén los segmentos de 20 minutos y concluye
-            antes de las 12:00 m.
-          </p>
-        ) : null}
-
         {formulario.grupo === "subgrupo" ? (
           <div className={horariosFormClasses.group}>
             <label className={horariosFormClasses.label} htmlFor="estudiantes">
@@ -623,12 +633,6 @@ const ModalFormularioHorario = ({
             />
           )}
         </div>
-
-        <datalist id="horarios-academicos">
-          {opcionesHora.map((hora) => (
-            <option key={hora} value={hora} />
-          ))}
-        </datalist>
 
         <div className={horariosFormClasses.actions}>
           <button

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { FaEye, FaTrash } from "react-icons/fa";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
+import { filtrarBloquesClase } from "../config/bloquesHorario";
 import {
   horariosIconClasses,
   horariosStatusClasses,
@@ -130,6 +131,11 @@ const ModalAgendaDocente = ({
     [onVerDetalle, onEliminar]
   );
 
+  const horariosFiltrados = useMemo(
+    () => (docente?.horarios ? filtrarBloquesClase(docente.horarios) : []),
+    [docente]
+  );
+
   return (
     <VentanaModal
       isOpen={abierto}
@@ -163,7 +169,7 @@ const ModalAgendaDocente = ({
             </div>
           </div>
           <TablaHorarioSemanal
-            bloques={docente.horarios}
+            bloques={horariosFiltrados}
             emptyMessage="Sin clases registradas para este docente."
             renderAcciones={renderAcciones || undefined}
             renderContenidoBloque={renderContenidoDocente}

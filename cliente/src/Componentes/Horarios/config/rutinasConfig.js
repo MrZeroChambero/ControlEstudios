@@ -28,7 +28,7 @@ export const RUTINAS_PREDEFINIDAS = Object.freeze([
   crearRutinaPredefinida({
     clave: "desayuno",
     nombre: "Desayuno",
-    inicio: "07:20",
+    inicio: "07:25",
     fin: "07:45",
     contextos: [RUTINA_CONTEXTO_AULA, RUTINA_CONTEXTO_GENERAL],
   }),
@@ -36,7 +36,7 @@ export const RUTINAS_PREDEFINIDAS = Object.freeze([
     clave: "recreo",
     nombre: "Recreo",
     inicio: "10:10",
-    fin: "10:30",
+    fin: "10:35",
     contextos: [RUTINA_CONTEXTO_AULA],
   }),
   crearRutinaPredefinida({

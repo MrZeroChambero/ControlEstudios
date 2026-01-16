@@ -10,6 +10,7 @@ require_once __DIR__ . '/HorariosValidacionesTrait.php';
 require_once __DIR__ . '/HorariosConsultasTrait.php';
 require_once __DIR__ . '/HorariosGestionTrait.php';
 require_once __DIR__ . '/OperacionesBDTrait.php';
+require_once __DIR__ . '/config/bloques_horario.php';
 
 class Horarios
 {

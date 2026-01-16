@@ -23,10 +23,12 @@ export const tablaHorarioSemanalClases = {
   bloqueCell: "border-t border-slate-100 px-4 py-3 align-top",
   sinAsignacion: "text-xs text-slate-400",
   bloqueCard:
-    "rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm",
+    "rounded-2xl border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-800 shadow-sm transition hover:shadow-md",
   rutinaCard:
     "rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm",
   accionesWrapper: "mt-3 flex justify-center",
+  bloqueVacioCard:
+    "rounded-2xl border border-dashed border-slate-300 bg-white/70 px-3 py-2 text-center text-xs font-semibold text-slate-400",
 };
 
 export const agendaDocenteClases = {

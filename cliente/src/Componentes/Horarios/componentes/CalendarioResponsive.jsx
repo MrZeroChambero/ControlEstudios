@@ -4,12 +4,18 @@ import {
   diasSemanaOrdenados,
   diasSemanaEtiquetas,
 } from "../utilidadesHorarios";
+import { filtrarBloquesClase } from "../config/bloquesHorario";
 import { calendarioResponsiveClases } from "./horariosEstilos";
 
 const CalendarioResponsive = ({ bloques = [], emptyMessage, renderBloque }) => {
-  const calendario = useMemo(
-    () => construirCalendarioDesdeBloques(bloques),
+  const bloquesFiltrados = useMemo(
+    () => filtrarBloquesClase(bloques),
     [bloques]
+  );
+
+  const calendario = useMemo(
+    () => construirCalendarioDesdeBloques(bloquesFiltrados),
+    [bloquesFiltrados]
   );
 
   return (

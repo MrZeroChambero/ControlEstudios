@@ -56,6 +56,10 @@ trait HorariosConsultasTrait
     $registro['estudiantes'] = $this->consultarEstudiantesPorHorario($conexion, $idHorario);
     $registro['hora_inicio_texto'] = $this->formatearHora((float) $registro['hora_inicio']);
     $registro['hora_fin_texto'] = $this->formatearHora((float) $registro['hora_fin']);
+    $registro['codigo_bloque'] = $this->obtenerCodigoBloqueDesdeHoras(
+      (float) $registro['hora_inicio'],
+      (float) $registro['hora_fin']
+    );
 
     return $registro;
   }
@@ -136,6 +140,10 @@ trait HorariosConsultasTrait
       $fila['estudiantes'] = $estudiantesPorHorario[$id] ?? [];
       $fila['hora_inicio_texto'] = $this->formatearHora((float) $fila['hora_inicio']);
       $fila['hora_fin_texto'] = $this->formatearHora((float) $fila['hora_fin']);
+      $fila['codigo_bloque'] = $this->obtenerCodigoBloqueDesdeHoras(
+        (float) $fila['hora_inicio'],
+        (float) $fila['hora_fin']
+      );
       return $fila;
     }, $registros);
   }
@@ -417,5 +425,31 @@ trait HorariosConsultasTrait
     return array_map(function (array $fila) {
       return trim($fila['primer_nombre'] . ' ' . $fila['primer_apellido']);
     }, $conflictos);
+  }
+
+  protected function consultarBloquePorCodigo(PDO $conexion, int $aulaId, string $diaSemana, string $codigoBloque, ?int $ignorarId): ?array
+  {
+    $horas = $this->obtenerHorasDecimalDesdeCodigo($codigoBloque);
+    if ($horas === null) {
+      return null;
+    }
+
+    $parametros = [$aulaId, $diaSemana, $horas['inicio'], $horas['fin']];
+
+    $sql = 'SELECT h.id_horario, h.fk_componente, h.fk_personal, h.grupo
+            FROM horarios h
+            WHERE h.fk_aula = ?
+              AND h.dia_semana = ?
+              AND ABS(h.hora_inicio - ?) < 0.001
+              AND ABS(h.hora_fin - ?) < 0.001';
+
+    if ($ignorarId !== null) {
+      $sql .= ' AND h.id_horario <> ?';
+      $parametros[] = $ignorarId;
+    }
+
+    $sql .= ' LIMIT 1';
+
+    return $this->ejecutarConsultaUnica($conexion, $sql, $parametros);
   }
 }

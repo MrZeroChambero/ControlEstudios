@@ -15,6 +15,7 @@ trait HorariosAtributosTrait
   protected ?float $hora_fin = null;
   protected array $estudiantes = [];
   protected ?string $tipo_docente = null;
+  protected ?string $codigo_bloque = null;
   protected array $errores = [];
 
   protected const GRUPOS_VALIDOS = ['completo', 'subgrupo'];
@@ -156,6 +157,7 @@ trait HorariosAtributosTrait
       'hora_fin' => $this->hora_fin,
       'estudiantes' => $this->estudiantes,
       'tipo_docente' => $this->tipo_docente,
+      'codigo_bloque' => $this->codigo_bloque,
     ];
   }
 }

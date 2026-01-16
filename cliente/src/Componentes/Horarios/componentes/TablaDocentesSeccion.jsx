@@ -1,9 +1,15 @@
 import React, { useMemo } from "react";
 import { construirDocentesSeccion } from "../utilidadesHorarios";
 import { tablaDocentesSeccionClases } from "./horariosEstilos";
+import { filtrarBloquesClase } from "../config/bloquesHorario";
 
 const TablaDocentesSeccion = ({ bloques = [] }) => {
-  const docentes = useMemo(() => construirDocentesSeccion(bloques), [bloques]);
+  const bloquesClase = useMemo(() => filtrarBloquesClase(bloques), [bloques]);
+
+  const docentes = useMemo(
+    () => construirDocentesSeccion(bloquesClase),
+    [bloquesClase]
+  );
 
   if (docentes.length === 0) {
     return (
