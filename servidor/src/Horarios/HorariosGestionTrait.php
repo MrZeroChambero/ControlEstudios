@@ -18,6 +18,7 @@ trait HorariosGestionTrait
     $aulaId = isset($opciones['fk_aula']) ? (int) $opciones['fk_aula'] : null;
     $momentoId = isset($opciones['fk_momento']) ? (int) $opciones['fk_momento'] : null;
     $componenteId = isset($opciones['fk_componente']) ? (int) $opciones['fk_componente'] : null;
+    $personalId = isset($opciones['fk_personal']) ? (int) $opciones['fk_personal'] : null;
 
     $catalogos = [
       'aulas' => $this->consultarCatalogoAulas($conexion, $anioId),
@@ -25,7 +26,12 @@ trait HorariosGestionTrait
     ];
 
     if ($aulaId !== null && $aulaId > 0) {
-      $catalogos['componentes'] = $this->consultarCatalogoComponentes($conexion, $aulaId);
+      $catalogos['componentes'] = $this->consultarCatalogoComponentes(
+        $conexion,
+        $aulaId,
+        $momentoId,
+        $personalId
+      );
       $catalogos['personal'] = $this->consultarCatalogoPersonal(
         $conexion,
         $aulaId,
@@ -303,23 +309,57 @@ trait HorariosGestionTrait
     }, $registros);
   }
 
-  protected function consultarCatalogoComponentes(PDO $conexion, int $aulaId): array
-  {
-    $sql = 'SELECT DISTINCT i.fk_componente,
-                            comp.nombre_componente,
-                            comp.especialista
-            FROM imparte i
-            INNER JOIN componentes_aprendizaje comp ON comp.id_componente = i.fk_componente
-            WHERE i.fk_aula = ?
-            ORDER BY comp.nombre_componente';
+  protected function consultarCatalogoComponentes(
+    PDO $conexion,
+    int $aulaId,
+    ?int $momentoId = null,
+    ?int $personalId = null
+  ): array {
+    $parametros = [$aulaId];
 
-    $registros = $this->ejecutarConsulta($conexion, $sql, [$aulaId]);
+    $sql = 'SELECT i.fk_componente,
+             comp.nombre_componente,
+             comp.especialista,
+             GROUP_CONCAT(DISTINCT i.fk_personal) AS personal_ids,
+             GROUP_CONCAT(DISTINCT i.fk_momento) AS momento_ids
+        FROM imparte i
+        INNER JOIN componentes_aprendizaje comp ON comp.id_componente = i.fk_componente
+        WHERE i.fk_aula = ?';
 
-    return array_map(function (array $fila) {
+    if ($momentoId !== null && $momentoId > 0) {
+      $sql .= ' AND i.fk_momento = ?';
+      $parametros[] = $momentoId;
+    }
+
+    if ($personalId !== null && $personalId > 0) {
+      $sql .= ' AND i.fk_personal = ?';
+      $parametros[] = $personalId;
+    }
+
+    $sql .= ' GROUP BY i.fk_componente, comp.nombre_componente, comp.especialista
+              ORDER BY comp.nombre_componente';
+
+    $registros = $this->ejecutarConsulta($conexion, $sql, $parametros);
+
+    $normalizarLista = static function (?string $cadena): array {
+      if ($cadena === null || $cadena === '') {
+        return [];
+      }
+
+      $partes = array_filter(array_map('trim', explode(',', $cadena)), static function ($valor) {
+        return $valor !== '' && $valor !== null;
+      });
+
+      return array_values(array_map('intval', $partes));
+    };
+
+    return array_map(function (array $fila) use ($normalizarLista) {
       return [
         'id' => (int) $fila['fk_componente'],
         'nombre' => $fila['nombre_componente'],
         'especialista' => $fila['especialista'],
+        'personal_ids' => $normalizarLista($fila['personal_ids'] ?? null),
+        'momento_ids' => $normalizarLista($fila['momento_ids'] ?? null),
       ];
     }, $registros);
   }

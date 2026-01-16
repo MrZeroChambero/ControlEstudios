@@ -328,6 +328,7 @@ const ModalFormularioHorario = ({
               disabled={
                 catalogosCargando ||
                 !formulario.fk_aula ||
+                !formulario.fk_personal ||
                 componentesDisponibles.length === 0
               }
             >
@@ -346,11 +347,14 @@ const ModalFormularioHorario = ({
               </p>
             ) : componentesDisponibles.length === 0 && formulario.fk_aula ? (
               <p className={horariosFormClasses.helper}>
-                El aula seleccionada aún no tiene componentes asignados.
+                {formulario.fk_personal
+                  ? "El docente seleccionado no tiene componentes asignados en el momento activo."
+                  : "Selecciona un docente para ver los componentes disponibles."}
               </p>
             ) : (
               <p className={horariosFormClasses.helper}>
-                Solo se muestran los componentes asignados a este aula.
+                Solo se muestran los componentes asignados al docente en el
+                momento activo del aula.
               </p>
             )}
           </div>

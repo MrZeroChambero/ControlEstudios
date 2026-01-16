@@ -5,6 +5,9 @@ import {
   secondaryButton,
 } from "../EstilosCliente/EstilosClientes";
 
+const smallFilledButtonBase =
+  "inline-flex items-center gap-2 rounded-2xl px-3 py-1 text-xs font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 disabled:opacity-60 disabled:cursor-not-allowed";
+
 export const respaldoLayoutClasses = {
   page: "space-y-6",
   section: contenidosLayout.container,
@@ -29,8 +32,8 @@ export const respaldoTablaClasses = {
   fileName: "text-sm font-semibold text-slate-800",
   metaText: "text-sm text-slate-600",
   actionsWrapper: "flex flex-wrap items-center justify-end gap-2",
-  downloadButton: `${contenidosFormClasses.ghostButton} px-3 py-1 text-xs`,
-  restoreButton: `${contenidosFormClasses.primaryButton} px-3 py-1 text-xs`,
+  downloadButton: `${smallFilledButtonBase} bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-300/60`,
+  restoreButton: `${smallFilledButtonBase} bg-blue-600 hover:bg-blue-700 focus:ring-blue-300/60`,
 };
 
 export const respaldoModalClasses = {

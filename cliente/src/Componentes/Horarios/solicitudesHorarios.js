@@ -30,18 +30,89 @@ const extraerColeccion = (payload) => {
 const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 const HORARIOS_URL = `${BASE_URL}/horarios`;
 
+const obtenerDetalleServidor = (compat, respuestaOriginal) => {
+  const candidatos = [
+    compat?.errorDetails,
+    compat?.raw?.error_details,
+    compat?.raw?.error_detail,
+    compat?.raw?.detalle,
+    compat?.raw?.error,
+    typeof compat?.raw === "string" ? compat.raw : null,
+    typeof respuestaOriginal === "string" ? respuestaOriginal : null,
+  ];
+
+  for (const candidato of candidatos) {
+    if (typeof candidato === "string" && candidato.trim()) {
+      return candidato.trim();
+    }
+  }
+
+  return null;
+};
+
+const construirMensajeServidor = (compat, fallback, respuestaOriginal) => {
+  const base = (compat?.message || fallback || "").trim();
+  const detalle = obtenerDetalleServidor(compat, respuestaOriginal);
+
+  if (detalle && base) {
+    if (detalle.includes(base)) {
+      return detalle;
+    }
+    return `${base}\n${detalle}`;
+  }
+
+  if (detalle) {
+    return detalle;
+  }
+
+  return base || fallback || "Solicitud procesada.";
+};
+
+const registrarErrorServidor = (contexto, detalle) => {
+  if (!detalle) {
+    return;
+  }
+  const etiqueta = contexto ? `[Horarios/${contexto}]` : "[Horarios]";
+  console.error(`${etiqueta} ${detalle}`);
+};
+
+const registrarErroresValidacion = (contexto, errores, detalle = null) => {
+  const etiqueta = contexto ? `[Horarios/${contexto}]` : "[Horarios]";
+  const cuerpo = errores
+    ? JSON.stringify(errores, null, 2)
+    : "Sin detalle de validación.";
+  if (detalle) {
+    console.error(`${etiqueta} Validaciones fallidas. ${detalle}\n${cuerpo}`);
+  } else {
+    console.error(`${etiqueta} Validaciones fallidas.\n${cuerpo}`);
+  }
+};
+
 export const listarHorarios = async ({
   filtros = {},
   setHorarios,
   setIsLoading,
   Swal,
 }) => {
+  const mensajeFallo = "No fue posible cargar los horarios.";
   try {
     setIsLoading?.(true);
     const params = new URLSearchParams();
 
     if (filtros.fk_aula) {
       params.append("fk_aula", filtros.fk_aula);
+    }
+
+    if (filtros.fk_momento) {
+      params.append("fk_momento", filtros.fk_momento);
+    }
+
+    if (filtros.fk_componente) {
+      params.append("fk_componente", filtros.fk_componente);
+    }
+
+    if (filtros.fk_personal) {
+      params.append("fk_personal", filtros.fk_personal);
     }
 
     if (filtros.fk_momento) {
@@ -62,7 +133,7 @@ export const listarHorarios = async ({
       }
     );
 
-    const compat = compatRespuesta(data, "No fue posible cargar los horarios.");
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       const registros = extraerColeccion(compat.data);
@@ -72,6 +143,16 @@ export const listarHorarios = async ({
       return registros;
     }
 
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("listarHorarios", mensajeServidor);
+    }
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -79,7 +160,7 @@ export const listarHorarios = async ({
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
 
     if (typeof setHorarios === "function") {
@@ -88,10 +169,15 @@ export const listarHorarios = async ({
     return [];
   } catch (error) {
     console.error("Error al obtener horarios:", error);
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible cargar los horarios."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
+    registrarErrorServidor("listarHorarios", mensajeServidor);
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -99,7 +185,7 @@ export const listarHorarios = async ({
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
 
     if (typeof setHorarios === "function") {
@@ -114,6 +200,7 @@ export const listarHorarios = async ({
 };
 
 export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
+  const mensajeFallo = "No fue posible cargar los catálogos.";
   try {
     const params = new URLSearchParams();
 
@@ -134,16 +221,23 @@ export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
       }
     );
 
-    const compat = compatRespuesta(
-      data,
-      "No fue posible cargar los catálogos."
-    );
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       const registros = compat.data ?? {};
       return registros;
     }
 
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("catalogosHorarios", mensajeServidor);
+    }
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -151,15 +245,20 @@ export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
     return {};
   } catch (error) {
     console.error("Error al obtener catálogos de horarios:", error);
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible cargar los catálogos."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
+    registrarErrorServidor("catalogosHorarios", mensajeServidor);
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -167,22 +266,20 @@ export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
     return {};
   }
 };
 
 export const crearHorario = async ({ datos, Swal }) => {
+  const mensajeFallo = "No fue posible registrar el horario.";
   try {
     const { data } = await axios.post(HORARIOS_URL, datos, {
       withCredentials: true,
     });
 
-    const compat = compatRespuesta(
-      data,
-      "No fue posible registrar el horario."
-    );
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       Swal?.fire(
@@ -194,7 +291,22 @@ export const crearHorario = async ({ datos, Swal }) => {
     }
 
     if (compat.errors) {
+      registrarErroresValidacion(
+        "crearHorario",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
+    }
+
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("crearHorario", mensajeServidor);
     }
 
     if (compat.raw?.blocked) {
@@ -204,17 +316,27 @@ export const crearHorario = async ({ datos, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
     return null;
   } catch (error) {
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible registrar el horario."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
     if (compat.errors) {
+      registrarErroresValidacion(
+        "crearHorario",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
     }
+
+    registrarErrorServidor("crearHorario", mensajeServidor);
 
     if (compat.raw?.blocked) {
       Swal?.fire(
@@ -223,22 +345,20 @@ export const crearHorario = async ({ datos, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
     return null;
   }
 };
 
 export const actualizarHorario = async ({ idHorario, datos, Swal }) => {
+  const mensajeFallo = "No fue posible actualizar el horario.";
   try {
     const { data } = await axios.put(`${HORARIOS_URL}/${idHorario}`, datos, {
       withCredentials: true,
     });
 
-    const compat = compatRespuesta(
-      data,
-      "No fue posible actualizar el horario."
-    );
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       Swal?.fire("Hecho", compat.message || "Horario actualizado.", "success");
@@ -246,7 +366,22 @@ export const actualizarHorario = async ({ idHorario, datos, Swal }) => {
     }
 
     if (compat.errors) {
+      registrarErroresValidacion(
+        "actualizarHorario",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
+    }
+
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("actualizarHorario", mensajeServidor);
     }
 
     if (compat.raw?.blocked) {
@@ -256,17 +391,27 @@ export const actualizarHorario = async ({ idHorario, datos, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
     return null;
   } catch (error) {
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible actualizar el horario."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
     if (compat.errors) {
+      registrarErroresValidacion(
+        "actualizarHorario",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
     }
+
+    registrarErrorServidor("actualizarHorario", mensajeServidor);
 
     if (compat.raw?.blocked) {
       Swal?.fire(
@@ -275,25 +420,36 @@ export const actualizarHorario = async ({ idHorario, datos, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
     return null;
   }
 };
 
 export const eliminarHorario = async ({ idHorario, Swal }) => {
+  const mensajeFallo = "No fue posible eliminar el horario.";
   try {
     const { data } = await axios.delete(`${HORARIOS_URL}/${idHorario}`, {
       withCredentials: true,
     });
 
-    const compat = compatRespuesta(data, "No fue posible eliminar el horario.");
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       Swal?.fire("Hecho", compat.message || "Horario eliminado.", "success");
       return true;
     }
 
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("eliminarHorario", mensajeServidor);
+    }
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -301,14 +457,19 @@ export const eliminarHorario = async ({ idHorario, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
     return false;
   } catch (error) {
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible eliminar el horario."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
+    registrarErrorServidor("eliminarHorario", mensajeServidor);
+
     if (compat.raw?.blocked) {
       Swal?.fire(
         "Sesión requerida",
@@ -316,13 +477,14 @@ export const eliminarHorario = async ({ idHorario, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
     return false;
   }
 };
 
 export const sincronizarSubgrupo = async ({ idHorario, estudiantes, Swal }) => {
+  const mensajeFallo = "No fue posible actualizar el subgrupo.";
   try {
     const { data } = await axios.patch(
       `${HORARIOS_URL}/${idHorario}/subgrupo`,
@@ -330,10 +492,7 @@ export const sincronizarSubgrupo = async ({ idHorario, estudiantes, Swal }) => {
       { withCredentials: true }
     );
 
-    const compat = compatRespuesta(
-      data,
-      "No fue posible actualizar el subgrupo."
-    );
+    const compat = compatRespuesta(data, mensajeFallo);
 
     if (compat.success) {
       Swal?.fire(
@@ -345,7 +504,22 @@ export const sincronizarSubgrupo = async ({ idHorario, estudiantes, Swal }) => {
     }
 
     if (compat.errors) {
+      registrarErroresValidacion(
+        "sincronizarSubgrupo",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
+    }
+
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("sincronizarSubgrupo", mensajeServidor);
     }
 
     if (compat.raw?.blocked) {
@@ -355,17 +529,27 @@ export const sincronizarSubgrupo = async ({ idHorario, estudiantes, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Aviso", compat.message, "warning");
+      Swal?.fire("Aviso", mensajeFallo, "warning");
     }
     return null;
   } catch (error) {
-    const compat = compatRespuesta(
-      error.response?.data,
-      "No fue posible actualizar el subgrupo."
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
     );
     if (compat.errors) {
+      registrarErroresValidacion(
+        "sincronizarSubgrupo",
+        compat.errors,
+        compat.message || mensajeFallo
+      );
       return Promise.reject(compat.errors);
     }
+
+    registrarErrorServidor("sincronizarSubgrupo", mensajeServidor);
 
     if (compat.raw?.blocked) {
       Swal?.fire(
@@ -374,7 +558,7 @@ export const sincronizarSubgrupo = async ({ idHorario, estudiantes, Swal }) => {
         "warning"
       );
     } else {
-      Swal?.fire("Error", compat.message, "error");
+      Swal?.fire("Error", mensajeFallo, "error");
     }
     return null;
   }

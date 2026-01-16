@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEdit,
   FaTrash,
@@ -12,30 +11,17 @@ import {
   personalBadgeClasses,
   estadoGenericoClases,
   contenidosIconClasses,
-  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const PersonalTable = ({
-  personal,
+  personal = [],
   isLoading,
   onEdit,
   onDelete,
   cambioEstados,
   onView,
 }) => {
-  const [filterText, setFilterText] = useState("");
-
-  const filteredItems = personal.filter(
-    (item) =>
-      item.primer_nombre.toLowerCase().includes(filterText.toLowerCase()) ||
-      item.primer_apellido.toLowerCase().includes(filterText.toLowerCase()) ||
-      item.cedula.toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.nombre_cargo &&
-        item.nombre_cargo.toLowerCase().includes(filterText.toLowerCase())) ||
-      (item.nombre_funcion &&
-        item.nombre_funcion.toLowerCase().includes(filterText.toLowerCase()))
-  );
-
   const resolveEstadoBadge = (estado, fallback = "") => {
     const normalized = (estado || fallback || "").toString().toLowerCase();
     const base = estadoGenericoClases.base;
@@ -176,25 +162,31 @@ export const PersonalTable = ({
     },
   ];
 
-  const subHeaderComponent = (
-    <div className={personalTableClasses.filterContainer}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, cédula, cargo o función..."
-        className={personalTableClasses.filterInput}
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-    </div>
-  );
+  const filterConfig = {
+    placeholder: "Buscar por nombre, cédula, cargo o función...",
+    wrapperClassName: personalTableClasses.filterContainer,
+    inputClassName: personalTableClasses.filterInput,
+    matcher: (item, term) => {
+      const campos = [
+        item.primer_nombre,
+        item.primer_apellido,
+        item.cedula,
+        item.nombre_cargo,
+        item.nombre_funcion,
+      ];
+      return campos.some(
+        (campo) => campo && campo.toLowerCase().includes(term)
+      );
+    },
+  };
 
   return (
     <div className={personalTableClasses.wrapper}>
-      <DataTableSeguro
+      <TablaEntradas
         columns={columns}
-        data={filteredItems}
-        customStyles={dataTableBaseStyles}
-        progressPending={isLoading}
+        isLoading={isLoading}
+        data={personal}
+        filterConfig={filterConfig}
         progressComponent={
           <p className={personalTableClasses.helperText}>
             Cargando personal...
@@ -205,16 +197,9 @@ export const PersonalTable = ({
             No hay personal para mostrar.
           </p>
         }
-        pagination
-        paginationComponentOptions={{
-          rowsPerPageText: "Filas por página:",
-          rangeSeparatorText: "de",
+        dataTableProps={{
+          responsive: true,
         }}
-        subHeader
-        subHeaderComponent={subHeaderComponent}
-        striped
-        highlightOnHover
-        responsive
       />
     </div>
   );

@@ -43,6 +43,7 @@ class ControladoraHorarios
         'fk_aula' => isset($_GET['fk_aula']) ? (int) $_GET['fk_aula'] : null,
         'fk_momento' => isset($_GET['fk_momento']) ? (int) $_GET['fk_momento'] : null,
         'fk_componente' => isset($_GET['fk_componente']) ? (int) $_GET['fk_componente'] : null,
+        'fk_personal' => isset($_GET['fk_personal']) ? (int) $_GET['fk_personal'] : null,
       ];
 
       $resultado = $modelo->obtenerCatalogos($conexion, $opciones);

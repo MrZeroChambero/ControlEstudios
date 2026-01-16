@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEdit,
   FaTrash,
@@ -10,31 +9,17 @@ import {
 import {
   usuariosTableClasses,
   contenidosIconClasses,
-  dataTableBaseStyles,
 } from "../EstilosCliente/EstilosClientes";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const UsuariosTable = ({
-  usuarios,
+  usuarios = [],
   isLoading,
   onEdit,
   onDelete,
   cambioEstados,
   onView,
 }) => {
-  const [filterText, setFilterText] = useState("");
-
-  const filteredItems = usuarios.filter(
-    (item) =>
-      item.nombre_usuario.toLowerCase().includes(filterText.toLowerCase()) ||
-      (item.nombre_completo &&
-        item.nombre_completo
-          .toLowerCase()
-          .includes(filterText.toLowerCase())) ||
-      (item.cedula &&
-        item.cedula.toLowerCase().includes(filterText.toLowerCase())) ||
-      (item.rol && item.rol.toLowerCase().includes(filterText.toLowerCase()))
-  );
-
   const columns = [
     {
       name: "Nombre de Usuario",
@@ -118,25 +103,30 @@ export const UsuariosTable = ({
     },
   ];
 
-  const subHeaderComponent = (
-    <div className={usuariosTableClasses.filterContainer}>
-      <input
-        type="text"
-        placeholder="Buscar por usuario, nombre, cédula o rol..."
-        className={usuariosTableClasses.filterInput}
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-    </div>
-  );
+  const filterConfig = {
+    placeholder: "Buscar por usuario, nombre, cédula o rol...",
+    wrapperClassName: usuariosTableClasses.filterContainer,
+    inputClassName: usuariosTableClasses.filterInput,
+    matcher: (item, term) => {
+      const campos = [
+        item.nombre_usuario,
+        item.nombre_completo,
+        item.cedula,
+        item.rol,
+      ];
+      return campos.some(
+        (campo) => campo && campo.toLowerCase().includes(term)
+      );
+    },
+  };
 
   return (
     <div className={usuariosTableClasses.wrapper}>
-      <DataTableSeguro
+      <TablaEntradas
         columns={columns}
-        data={filteredItems}
-        customStyles={dataTableBaseStyles}
-        progressPending={isLoading}
+        isLoading={isLoading}
+        data={usuarios}
+        filterConfig={filterConfig}
         progressComponent={
           <p className={usuariosTableClasses.helperText}>
             Cargando usuarios...
@@ -147,16 +137,9 @@ export const UsuariosTable = ({
             No hay usuarios para mostrar.
           </p>
         }
-        pagination
-        paginationComponentOptions={{
-          rowsPerPageText: "Filas por página:",
-          rangeSeparatorText: "de",
+        dataTableProps={{
+          responsive: true,
         }}
-        subHeader
-        subHeaderComponent={subHeaderComponent}
-        striped
-        highlightOnHover
-        responsive
       />
     </div>
   );

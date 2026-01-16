@@ -30,6 +30,87 @@ header('Access-Control-Expose-Headers: Content-Length, Content-Type');
 
 RespuestaJson::habilitarBuffer();
 
+$emitirErrorJson = static function (string $mensaje, string $detalle, array $extra = []): void {
+  static $respuestaEmitida = false;
+  if ($respuestaEmitida) {
+    return;
+  }
+
+  $respuestaEmitida = true;
+
+  while (ob_get_level() > 0) {
+    ob_end_clean();
+  }
+
+  RespuestaJson::error(
+    $mensaje,
+    200,
+    null,
+    $detalle,
+    array_merge([
+      'php_error' => true,
+      'error_detail' => $detalle,
+    ], $extra)
+  );
+};
+
+set_exception_handler(static function (Throwable $ex) use ($emitirErrorJson): void {
+  $detalle = sprintf('%s en %s:%d', $ex->getMessage(), $ex->getFile(), $ex->getLine());
+  $emitirErrorJson('Se produjo una excepción en el servidor.', $detalle, [
+    'exception' => get_class($ex),
+  ]);
+});
+
+set_error_handler(static function (
+  int $severity,
+  string $message,
+  ?string $file = null,
+  ?int $line = null
+) use ($emitirErrorJson) {
+  $tiposCriticos = [
+    E_ERROR,
+    E_PARSE,
+    E_CORE_ERROR,
+    E_COMPILE_ERROR,
+    E_USER_ERROR,
+    E_RECOVERABLE_ERROR,
+  ];
+
+  if (!in_array($severity, $tiposCriticos, true)) {
+    return false;
+  }
+
+  $detalle = sprintf('%s en %s:%d', $message, $file ?? 'archivo_desconocido', $line ?? 0);
+  $emitirErrorJson('Se produjo un error crítico en el servidor.', $detalle, [
+    'severity' => $severity,
+  ]);
+  return true;
+});
+
+register_shutdown_function(static function () use ($emitirErrorJson): void {
+  $ultimoError = error_get_last();
+  if (!$ultimoError) {
+    return;
+  }
+
+  $tiposFatales = [
+    E_ERROR,
+    E_PARSE,
+    E_CORE_ERROR,
+    E_COMPILE_ERROR,
+    E_USER_ERROR,
+  ];
+
+  if (!in_array($ultimoError['type'], $tiposFatales, true)) {
+    return;
+  }
+
+  $detalle = sprintf('%s en %s:%d', $ultimoError['message'], $ultimoError['file'], $ultimoError['line']);
+  $emitirErrorJson('Se produjo un error fatal en el servidor.', $detalle, [
+    'severity' => $ultimoError['type'],
+  ]);
+});
+
 // Responder preflight y salir
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   // Devuelve 200 con cabeceras CORS ya enviadas arriba

@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEdit,
   FaTrash,
@@ -13,10 +12,10 @@ import {
   contenidosStatusClasses,
   contenidosIconClasses,
 } from "./contenidosEstilos";
-import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const ContenidosTable = ({
-  contenidos,
+  contenidos = [],
   isLoading,
   onEdit,
   onDelete,
@@ -25,29 +24,6 @@ export const ContenidosTable = ({
   onViewTemas,
   formatearGrado,
 }) => {
-  const [filtro, setFiltro] = useState("");
-
-  const registrosFiltrados = useMemo(() => {
-    const termino = filtro.trim().toLowerCase();
-    if (termino === "") {
-      return contenidos;
-    }
-
-    return contenidos.filter((item) => {
-      const nombre = item.nombre_contenido?.toLowerCase() ?? "";
-      const componente = item.nombre_componente?.toLowerCase() ?? "";
-      const area = item.nombre_area?.toLowerCase() ?? "";
-      const grado = item.grado?.toLowerCase() ?? "";
-
-      return (
-        nombre.includes(termino) ||
-        componente.includes(termino) ||
-        area.includes(termino) ||
-        grado.includes(termino)
-      );
-    });
-  }, [contenidos, filtro]);
-
   const columnas = [
     {
       name: "Contenido",
@@ -156,23 +132,30 @@ export const ContenidosTable = ({
     },
   ];
 
-  const barraBusqueda = (
-    <div className={contenidosTableClasses.filterContainer}>
-      <input
-        type="text"
-        placeholder="Buscar por contenido, componente o área"
-        className={contenidosTableClasses.filterInput}
-        value={filtro}
-        onChange={(evento) => setFiltro(evento.target.value)}
-      />
-    </div>
-  );
+  const filterConfig = {
+    placeholder: "Buscar por contenido, componente, área o grado",
+    wrapperClassName: contenidosTableClasses.filterContainer,
+    inputClassName: contenidosTableClasses.filterInput,
+    matcher: (item, term) => {
+      const nombre = item.nombre_contenido?.toLowerCase() ?? "";
+      const componente = item.nombre_componente?.toLowerCase() ?? "";
+      const area = item.nombre_area?.toLowerCase() ?? "";
+      const grado = item.grado?.toLowerCase() ?? "";
+      return (
+        nombre.includes(term) ||
+        componente.includes(term) ||
+        area.includes(term) ||
+        grado.includes(term)
+      );
+    },
+  };
 
   return (
-    <DataTableSeguro
+    <TablaEntradas
       columns={columnas}
-      data={registrosFiltrados}
-      progressPending={isLoading}
+      isLoading={isLoading}
+      data={contenidos}
+      filterConfig={filterConfig}
       progressComponent={
         <p className={contenidosTableClasses.helperText}>
           Cargando contenidos...
@@ -183,16 +166,12 @@ export const ContenidosTable = ({
           No hay contenidos registrados.
         </p>
       }
-      customStyles={dataTableBaseStyles}
-      pagination
-      paginationPerPage={10}
-      paginationRowsPerPageOptions={[5, 10, 15, 20]}
-      subHeader
-      subHeaderComponent={barraBusqueda}
-      highlightOnHover
-      striped
-      responsive
-      persistTableHead
+      dataTableProps={{
+        paginationPerPage: 10,
+        paginationRowsPerPageOptions: [5, 10, 15, 20],
+        responsive: true,
+        persistTableHead: true,
+      }}
     />
   );
 };

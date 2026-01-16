@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEye,
   FaEdit,
@@ -13,36 +12,16 @@ import {
   componentesIconClasses,
   componentesTypePillBase,
 } from "./componentesAprendizajeEstilos";
-import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const ComponentesAprendizajeTable = ({
-  componentes,
+  componentes = [],
   isLoading,
   onEdit,
   onDelete,
   onStatusChange,
   onView,
 }) => {
-  const [filterText, setFilterText] = useState("");
-
-  const filtro = filterText.trim().toLowerCase();
-  const filteredItems = componentes.filter((item) => {
-    if (filtro === "") {
-      return true;
-    }
-
-    const campos = [
-      item.nombre_componente,
-      item.nombre_area,
-      item.especialista,
-      item.tipo_docente,
-    ];
-
-    return campos.some(
-      (campo) => campo && campo.toLowerCase().includes(filtro)
-    );
-  });
-
   const tipoDocentePills = {
     aula: "bg-blue-100 text-blue-700",
     especialista: "bg-purple-100 text-purple-700",
@@ -162,23 +141,29 @@ export const ComponentesAprendizajeTable = ({
     },
   ];
 
-  const subHeaderComponent = (
-    <div className={componentesTableClasses.filterContainer}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, área o tipo"
-        className={componentesTableClasses.filterInput}
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-    </div>
-  );
+  const filterConfig = {
+    placeholder: "Buscar por nombre, área o tipo",
+    wrapperClassName: componentesTableClasses.filterContainer,
+    inputClassName: componentesTableClasses.filterInput,
+    matcher: (item, term) => {
+      const campos = [
+        item.nombre_componente,
+        item.nombre_area,
+        item.especialista,
+        item.tipo_docente,
+      ];
+      return campos.some(
+        (campo) => campo && campo.toLowerCase().includes(term)
+      );
+    },
+  };
 
   return (
-    <DataTableSeguro
+    <TablaEntradas
       columns={columns}
-      data={filteredItems}
-      progressPending={isLoading}
+      isLoading={isLoading}
+      data={componentes}
+      filterConfig={filterConfig}
       progressComponent={
         <p className={componentesTableClasses.helperText}>
           Cargando componentes...
@@ -189,17 +174,9 @@ export const ComponentesAprendizajeTable = ({
           No hay componentes para mostrar.
         </p>
       }
-      pagination
-      paginationComponentOptions={{
-        rowsPerPageText: "Filas por página:",
-        rangeSeparatorText: "de",
+      dataTableProps={{
+        responsive: true,
       }}
-      subHeader
-      subHeaderComponent={subHeaderComponent}
-      striped
-      highlightOnHover
-      responsive
-      customStyles={dataTableBaseStyles}
     />
   );
 };

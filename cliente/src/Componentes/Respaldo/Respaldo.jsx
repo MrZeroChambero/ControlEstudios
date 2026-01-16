@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
 import Swal from "sweetalert2";
 import VentanaModal from "../EstilosCliente/VentanaModal";
-import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
 import {
   respaldoLayoutClasses,
   respaldoTablaClasses,
   respaldoModalClasses,
 } from "./respaldoEstilos";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 import {
   listarRespaldos,
   crearRespaldo,
@@ -108,21 +107,7 @@ export const Respaldo = () => {
     cargarRespaldos();
   }, [cargarRespaldos]);
 
-  const respaldosFiltrados = useMemo(() => {
-    if (!busqueda) {
-      return respaldos;
-    }
-
-    const termino = busqueda.toLowerCase();
-    return respaldos.filter((item) =>
-      [item.nombre, item.fecha]
-        .filter(Boolean)
-        .some((campo) => campo.toLowerCase().includes(termino))
-    );
-  }, [busqueda, respaldos]);
-
-  const sinResultadosBusqueda =
-    !cargando && respaldosFiltrados.length === 0 && respaldos.length > 0;
+  const hayBusqueda = busqueda.trim() !== "";
 
   const manejarCrearRespaldo = async () => {
     const confirmacion = await Swal.fire({
@@ -336,6 +321,25 @@ export const Respaldo = () => {
     [restaurando]
   );
 
+  const filterConfig = useMemo(
+    () => ({
+      value: busqueda,
+      onChange: setBusqueda,
+      placeholder: "Buscar por nombre o fecha",
+      renderInput: () => null,
+      matcher: (item, normalizedValue) => {
+        if (!normalizedValue) {
+          return true;
+        }
+        const termino = normalizedValue.toLowerCase();
+        const nombre = item.nombre?.toLowerCase() ?? "";
+        const fecha = item.fecha?.toLowerCase() ?? "";
+        return nombre.includes(termino) || fecha.includes(termino);
+      },
+    }),
+    [busqueda]
+  );
+
   return (
     <div className={respaldoLayoutClasses.page}>
       <section className={respaldoLayoutClasses.section}>
@@ -395,24 +399,31 @@ export const Respaldo = () => {
           </div>
 
           <div className={respaldoLayoutClasses.tableWrapper}>
-            <DataTableSeguro
+            <TablaEntradas
               columns={columnas}
-              data={respaldosFiltrados}
-              progressPending={cargando}
-              pagination
-              highlightOnHover
-              pointerOnHover
-              dense
+              data={respaldos}
+              isLoading={cargando}
+              filterConfig={filterConfig}
+              progressComponent={
+                <p className={respaldoLayoutClasses.helperText}>
+                  Cargando respaldos...
+                </p>
+              }
               noDataComponent={
                 <p className={respaldoLayoutClasses.helperText}>
                   {cargando
                     ? "Cargando respaldos..."
-                    : sinResultadosBusqueda
+                    : respaldos.length === 0
+                    ? "No se han generado respaldos aún."
+                    : hayBusqueda
                     ? "No se encontraron respaldos que coincidan con la búsqueda."
-                    : "No se han generado respaldos aún."}
+                    : "No hay respaldos disponibles."}
                 </p>
               }
-              customStyles={dataTableBaseStyles}
+              dataTableProps={{
+                pointerOnHover: true,
+                dense: true,
+              }}
             />
           </div>
         </div>

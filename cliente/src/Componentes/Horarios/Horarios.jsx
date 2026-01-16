@@ -179,7 +179,7 @@ export const Horarios = () => {
   }, []);
 
   const construirFiltrosCatalogo = useCallback(
-    (aulaId, momentoId = null, componenteId = null) => {
+    (aulaId, momentoId = null, componenteId = null, personalId = null) => {
       if (!aulaId) {
         return {};
       }
@@ -202,6 +202,10 @@ export const Horarios = () => {
 
       if (componenteId) {
         filtros.fk_componente = Number(componenteId);
+      }
+
+      if (personalId) {
+        filtros.fk_personal = Number(personalId);
       }
 
       return filtros;
@@ -414,10 +418,60 @@ export const Horarios = () => {
     );
   }, [aulaSeleccionada, catalogos.momentos]);
 
-  const componentesDisponibles = useMemo(
-    () => (Array.isArray(catalogos.componentes) ? catalogos.componentes : []),
-    [catalogos.componentes]
-  );
+  const componentesDisponibles = useMemo(() => {
+    const listaBase = Array.isArray(catalogos.componentes)
+      ? catalogos.componentes
+      : [];
+
+    if (!formulario.fk_aula) {
+      return listaBase;
+    }
+
+    const personalSeleccionado = formulario.fk_personal
+      ? String(formulario.fk_personal)
+      : null;
+    const momentoSeleccionado = formulario.fk_momento
+      ? String(formulario.fk_momento)
+      : null;
+
+    const normalizarColeccionIds = (valor) => {
+      if (Array.isArray(valor)) {
+        return valor.map((item) => String(item));
+      }
+
+      if (typeof valor === "string" && valor.trim() !== "") {
+        return valor
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item !== "");
+      }
+
+      return [];
+    };
+
+    return listaBase.filter((componente) => {
+      const personales = normalizarColeccionIds(
+        componente.personal_ids ?? componente.personalIds
+      );
+      const momentos = normalizarColeccionIds(
+        componente.momento_ids ?? componente.momentoIds
+      );
+
+      const coincidePersonal = personalSeleccionado
+        ? personales.includes(personalSeleccionado)
+        : true;
+      const coincideMomento = momentoSeleccionado
+        ? momentos.includes(momentoSeleccionado)
+        : true;
+
+      return coincidePersonal && coincideMomento;
+    });
+  }, [
+    catalogos.componentes,
+    formulario.fk_aula,
+    formulario.fk_personal,
+    formulario.fk_momento,
+  ]);
 
   const personalDisponible = useMemo(
     () => (Array.isArray(catalogos.personal) ? catalogos.personal : []),
@@ -462,22 +516,34 @@ export const Horarios = () => {
       setCatalogos(normalizados);
 
       setFormulario((previo) => {
-        if (!previo.fk_personal) {
-          return previo;
+        let modificado = false;
+        const actualizado = { ...previo };
+
+        if (previo.fk_personal) {
+          const docenteDisponible = normalizados.personal.some(
+            (docente) =>
+              docente.id?.toString() === previo.fk_personal.toString()
+          );
+
+          if (!docenteDisponible) {
+            actualizado.fk_personal = "";
+            actualizado.fk_componente = "";
+            modificado = true;
+          }
         }
 
-        const sigueDisponible = normalizados.personal.some(
-          (docente) => docente.id?.toString() === previo.fk_personal.toString()
-        );
+        if (previo.fk_componente) {
+          const componenteDisponible = normalizados.componentes.some(
+            (comp) => comp.id?.toString() === previo.fk_componente.toString()
+          );
 
-        if (sigueDisponible) {
-          return previo;
+          if (!componenteDisponible) {
+            actualizado.fk_componente = "";
+            modificado = true;
+          }
         }
 
-        return {
-          ...previo,
-          fk_personal: "",
-        };
+        return modificado ? actualizado : previo;
       });
 
       return normalizados;
@@ -684,6 +750,50 @@ export const Horarios = () => {
       return;
     }
 
+    if (name === "fk_momento") {
+      setFormulario((previo) => ({
+        ...previo,
+        fk_momento: value,
+        fk_componente: "",
+        fk_personal: "",
+        estudiantes: [],
+      }));
+
+      if (formulario.fk_aula) {
+        const filtrosCatalogo = construirFiltrosCatalogo(
+          formulario.fk_aula,
+          value || null
+        );
+
+        if (Object.keys(filtrosCatalogo).length > 0) {
+          await cargarCatalogos(filtrosCatalogo);
+        }
+      }
+      return;
+    }
+
+    if (name === "fk_personal") {
+      setFormulario((previo) => ({
+        ...previo,
+        fk_personal: value,
+        fk_componente: "",
+      }));
+
+      if (formulario.fk_aula) {
+        const filtrosCatalogo = construirFiltrosCatalogo(
+          formulario.fk_aula,
+          formulario.fk_momento,
+          null,
+          value || null
+        );
+
+        if (Object.keys(filtrosCatalogo).length > 0) {
+          await cargarCatalogos(filtrosCatalogo);
+        }
+      }
+      return;
+    }
+
     setFormulario((previo) => ({
       ...previo,
       [name]: value,
@@ -693,7 +803,8 @@ export const Horarios = () => {
       const filtrosCatalogo = construirFiltrosCatalogo(
         formulario.fk_aula,
         formulario.fk_momento,
-        value || null
+        value || null,
+        formulario.fk_personal
       );
 
       if (Object.keys(filtrosCatalogo).length > 0) {

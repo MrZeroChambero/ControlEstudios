@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   MdAccountCircle,
-  MdInput,
-  MdMenu,
-  MdReport,
-  MdSupport,
+  MdAssignmentAdd,
+  MdWorkOutline,
+  MdDescription,
+  MdSettings,
   MdLogout,
 } from "react-icons/md";
 import { SidebarMenuItem } from "./SidebarMenuItem";
@@ -51,11 +51,29 @@ export const Sidebar = () => {
   );
 
   const menuIcons = {
-    Entrada: <MdInput className={dashboardMenuItemClasses.icon} />,
-    Proceso: <MdMenu className={dashboardMenuItemClasses.icon} />,
-    Salidas: <MdReport className={dashboardMenuItemClasses.icon} />,
-    Servicios: <MdSupport className={dashboardMenuItemClasses.icon} />,
-    "Cerrar sesión": <MdLogout className={dashboardMenuItemClasses.icon} />,
+    Entrada: (
+      <MdAssignmentAdd
+        className={`${dashboardMenuItemClasses.icon} text-blue-300`}
+      />
+    ),
+    Proceso: (
+      <MdWorkOutline
+        className={`${dashboardMenuItemClasses.icon} text-amber-300`}
+      />
+    ),
+    Salidas: (
+      <MdDescription
+        className={`${dashboardMenuItemClasses.icon} text-emerald-300`}
+      />
+    ),
+    Servicios: (
+      <MdSettings
+        className={`${dashboardMenuItemClasses.icon} text-purple-300`}
+      />
+    ),
+    "Cerrar sesión": (
+      <MdLogout className={`${dashboardMenuItemClasses.icon} text-rose-300`} />
+    ),
   };
 
   const toggleDropdown = (section) => {

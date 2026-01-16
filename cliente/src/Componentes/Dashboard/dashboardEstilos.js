@@ -2,7 +2,7 @@ const cardBase = "bg-white p-6 rounded-lg shadow-md";
 const headingBase = "text-2xl font-bold mb-4 text-gray-800";
 const gridGap = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6";
 const buttonBase =
-  "flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow transition-shadow border-2 border-transparent";
+  "flex flex-col items-center justify-center p-6 rounded-lg shadow transition-shadow border-2";
 const mediaCardBase = "bg-gray-100 p-6 rounded-lg shadow-inner";
 const mediaPlaceholder =
   "w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center";
@@ -12,9 +12,9 @@ const navBase = "flex-1 mt-6 px-4 space-y-2 overflow-y-auto sidebar-scroll";
 const mainLayoutBase = "font-sans flex h-screen bg-gray-100 text-gray-800";
 const mainContentBase = "flex-1 p-8 overflow-y-auto space-y-8";
 const dropdownButtonBase =
-  "w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-colors focus:outline-none";
+  "w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-colors focus:outline-none border";
 const dropdownSubitemBase =
-  "w-full p-2 text-sm text-left rounded-lg transition-colors focus:outline-none";
+  "w-full p-2 text-sm text-left rounded-lg transition-colors focus:outline-none border";
 
 export const dashboardLayoutClasses = {
   container: mainLayoutBase,
@@ -37,9 +37,9 @@ export const dashboardQuickActionClasses = {
   grid: gridGap,
   buttonBase,
   icon: "h-10 w-10 mb-2",
-  create: `${buttonBase} hover:shadow-lg hover:border-blue-500`,
-  report: `${buttonBase} hover:shadow-lg hover:border-green-500`,
-  settings: `${buttonBase} hover:shadow-lg hover:border-yellow-500`,
+  create: `${buttonBase} border-blue-200 bg-blue-50/50 hover:shadow-lg hover:border-blue-500`,
+  report: `${buttonBase} border-green-200 bg-green-50/50 hover:shadow-lg hover:border-green-500`,
+  settings: `${buttonBase} border-yellow-200 bg-yellow-50/50 hover:shadow-lg hover:border-yellow-500`,
   label: "text-sm font-semibold",
 };
 
@@ -57,10 +57,34 @@ export const dashboardSidebarClasses = {
 };
 
 export const dashboardMenuItemClasses = {
-  button: `${dropdownButtonBase} hover:bg-gray-700`,
+  button: `${dropdownButtonBase} hover:bg-gray-700 border-gray-700`,
   content: "ml-4 mt-1 space-y-1",
-  subItem: `${dropdownSubitemBase} hover:bg-gray-700`,
+  subItem: `${dropdownSubitemBase} hover:bg-gray-700 border-gray-700`,
   titleWrapper: "flex items-center",
   icon: "w-5 h-5 mr-3",
   arrow: "w-4 h-4 transform transition-transform",
+  variants: {
+    Entrada: {
+      button: "border-blue-500/60 bg-blue-900/30 hover:border-blue-300",
+      subItem: "border-blue-500/40 bg-blue-900/10 hover:bg-blue-900/30",
+    },
+    Proceso: {
+      button: "border-amber-500/60 bg-amber-900/20 hover:border-amber-300",
+      subItem: "border-amber-500/40 bg-amber-900/10 hover:bg-amber-900/30",
+    },
+    Salidas: {
+      button:
+        "border-emerald-500/60 bg-emerald-900/20 hover:border-emerald-300",
+      subItem:
+        "border-emerald-500/40 bg-emerald-900/10 hover:bg-emerald-900/30",
+    },
+    Servicios: {
+      button: "border-purple-500/60 bg-purple-900/20 hover:border-purple-300",
+      subItem: "border-purple-500/40 bg-purple-900/10 hover:bg-purple-900/30",
+    },
+    default: {
+      button: "border-gray-700 bg-gray-900/30",
+      subItem: "border-gray-700 bg-gray-900/20",
+    },
+  },
 };

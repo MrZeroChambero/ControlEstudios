@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEdit,
   FaTrash,
@@ -8,36 +7,20 @@ import {
   FaEye,
 } from "react-icons/fa";
 import {
-  areasTableClasses,
-  areasBadgeClasses,
-  areasIconClasses,
-} from "./areasAprendizajeEstilos";
-import { dataTableBaseStyles } from "../EstilosCliente/EstilosClientes";
+  BadgeClasses,
+  IconClasses,
+  TableClasses,
+} from "../Tablas/EstilosTablas.js";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const AreasAprendizajeTable = ({
-  areas,
+  areas = [],
   isLoading,
   onEdit,
   onDelete,
   cambioEstados,
   onView,
 }) => {
-  const [filterText, setFilterText] = useState("");
-
-  const filterValue = filterText.toLowerCase();
-  const obtenerNombresComponentes = (item) =>
-    (item.componentes ?? [])
-      .map((componente) => componente.nombre_componente)
-      .join(", ");
-
-  const filteredItems = areas.filter((item) => {
-    const nombresComponentes = obtenerNombresComponentes(item);
-    return (
-      item.nombre_area.toLowerCase().includes(filterValue) ||
-      nombresComponentes.toLowerCase().includes(filterValue)
-    );
-  });
-
   const columns = [
     {
       name: "Nombre del Área",
@@ -57,10 +40,10 @@ export const AreasAprendizajeTable = ({
       name: "Estado",
       cell: (row) => (
         <span
-          className={`${areasBadgeClasses.base} ${
+          className={`${BadgeClasses.base} ${
             row.estado_area === "activo"
-              ? areasBadgeClasses.active
-              : areasBadgeClasses.inactive
+              ? BadgeClasses.active
+              : BadgeClasses.inactive
           }`}
         >
           {row.estado_area}
@@ -73,87 +56,70 @@ export const AreasAprendizajeTable = ({
     {
       name: "Acciones",
       cell: (row) => (
-        <div className={areasTableClasses.actionGroup}>
+        <div className={TableClasses.actionGroup}>
           <button
             onClick={() => onView(row)}
-            className={`${areasTableClasses.actionButton} ${areasTableClasses.viewButton}`}
+            className={`${TableClasses.actionButton} ${TableClasses.viewButton}`}
             title="Ver"
           >
-            <FaEye className={areasIconClasses.base} />
+            <FaEye className={IconClasses} />
           </button>
           <button
             onClick={() => cambioEstados(row)}
-            className={`${areasTableClasses.actionButton} ${
+            className={`${TableClasses.actionButton} ${
               row.estado_area === "activo"
-                ? areasTableClasses.toggleOn
-                : areasTableClasses.toggleOff
+                ? TableClasses.toggleOn
+                : TableClasses.toggleOff
             }`}
             title={row.estado_area === "activo" ? "Desactivar" : "Activar"}
           >
             {row.estado_area === "activo" ? (
-              <FaToggleOn className={areasIconClasses.base} />
+              <FaToggleOn className={IconClasses} />
             ) : (
-              <FaToggleOff className={areasIconClasses.base} />
+              <FaToggleOff className={IconClasses} />
             )}
           </button>
           <button
             onClick={() => onEdit(row)}
-            className={`${areasTableClasses.actionButton} ${areasTableClasses.editButton}`}
+            className={`${TableClasses.actionButton} ${TableClasses.editButton}`}
             title="Editar"
           >
-            <FaEdit className={areasIconClasses.base} />
+            <FaEdit className={IconClasses} />
           </button>
           <button
             onClick={() => onDelete(row.id_area_aprendizaje)}
-            className={`${areasTableClasses.actionButton} ${areasTableClasses.deleteButton}`}
+            className={`${TableClasses.actionButton} ${TableClasses.deleteButton}`}
             title="Eliminar"
           >
-            <FaTrash className={areasIconClasses.base} />
+            <FaTrash className={IconClasses} />
           </button>
         </div>
       ),
     },
   ];
 
-  const subHeaderComponent = (
-    <div className={areasTableClasses.filterWrapper}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre o componente..."
-        className={areasTableClasses.filterInput}
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-    </div>
-  );
+  const obtenerNombresComponentes = (item) =>
+    (item.componentes ?? [])
+      .map((componente) => componente.nombre_componente)
+      .join(", ");
 
+  const filterConfig = {
+    placeholder: "Buscar por área o componente...",
+    matcher: (item, normalizedValue) => {
+      const nombre = item.nombre_area?.toLowerCase() ?? "";
+      const componentes = obtenerNombresComponentes(item).toLowerCase();
+      return (
+        nombre.includes(normalizedValue) ||
+        componentes.includes(normalizedValue)
+      );
+    },
+  };
   return (
-    <div className={areasTableClasses.wrapper}>
-      <DataTableSeguro
-        columns={columns}
-        customStyles={dataTableBaseStyles}
-        data={filteredItems}
-        progressPending={isLoading}
-        progressComponent={
-          <p className={areasTableClasses.helperText}>
-            Cargando áreas de aprendizaje...
-          </p>
-        }
-        noDataComponent={
-          <p className={areasTableClasses.helperText}>
-            No hay áreas de aprendizaje para mostrar.
-          </p>
-        }
-        pagination
-        paginationComponentOptions={{
-          rowsPerPageText: "Filas por página:",
-          rangeSeparatorText: "de",
-        }}
-        subHeader
-        subHeaderComponent={subHeaderComponent}
-        striped
-        highlightOnHover
-      />
-    </div>
+    <TablaEntradas
+      columns={columns}
+      isLoading={isLoading}
+      data={areas}
+      filterConfig={filterConfig}
+    />
   );
 };

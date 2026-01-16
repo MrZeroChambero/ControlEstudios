@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import DataTableSeguro from "../../utilidades/DataTableSeguro";
+import React from "react";
 import {
   FaEdit,
   FaTrash,
@@ -7,39 +6,19 @@ import {
   FaToggleOff,
   FaEye,
 } from "react-icons/fa";
-import {
-  contenidosIconClasses,
-  dataTableBaseStyles,
-} from "../EstilosCliente/EstilosClientes";
+import { contenidosIconClasses } from "../EstilosCliente/EstilosClientes";
 import { estudiantesTableClasses } from "./estudiantesEstilos";
 import { calcularEdad } from "../../utilidades/formatoFechas";
+import { TablaEntradas } from "../Tablas/Tablas.jsx";
 
 export const EstudiantesTable = ({
-  estudiantes,
+  estudiantes = [],
   isLoading,
   onEdit,
   onDelete,
   cambioEstados,
   onView,
 }) => {
-  const [filterText, setFilterText] = useState("");
-
-  const filteredItems = (estudiantes || []).filter((item) => {
-    const nombreCompleto = `${item.primer_nombre || ""} ${
-      item.segundo_nombre || ""
-    } ${item.primer_apellido || ""} ${
-      item.segundo_apellido || ""
-    }`.toLowerCase();
-    const grado = (item.grado || "").toString().toLowerCase();
-    const seccion = (item.seccion || "").toString().toLowerCase();
-    return (
-      nombreCompleto.includes(filterText.toLowerCase()) ||
-      (item.cedula || "").toLowerCase().includes(filterText.toLowerCase()) ||
-      grado.includes(filterText.toLowerCase()) ||
-      seccion.includes(filterText.toLowerCase())
-    );
-  });
-
   const obtenerEdad = (row) => {
     const fecha = row.fecha_nacimiento || row.persona?.fecha_nacimiento || null;
     const edad = calcularEdad(fecha);
@@ -187,24 +166,33 @@ export const EstudiantesTable = ({
     },
   ];
 
-  const subHeaderComponent = (
-    <div className={estudiantesTableClasses.filterContainer}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, cédula o grado/sección..."
-        className={estudiantesTableClasses.filterInputWide}
-        onChange={(e) => setFilterText(e.target.value)}
-        value={filterText}
-      />
-    </div>
-  );
+  const filterConfig = {
+    placeholder: "Buscar por nombre, cédula o grado/sección...",
+    wrapperClassName: estudiantesTableClasses.filterContainer,
+    inputClassName: estudiantesTableClasses.filterInputWide,
+    matcher: (item, term) => {
+      const nombreCompleto = `${item.primer_nombre || ""} ${
+        item.segundo_nombre || ""
+      } ${item.primer_apellido || ""} ${
+        item.segundo_apellido || ""
+      }`.toLowerCase();
+      const cedula = (item.cedula || "").toLowerCase();
+      const etiquetaGrado = obtenerEtiquetaGradoSeccion(item).toLowerCase();
+      return (
+        nombreCompleto.includes(term) ||
+        cedula.includes(term) ||
+        etiquetaGrado.includes(term)
+      );
+    },
+  };
 
   return (
     <div className={estudiantesTableClasses.wrapper}>
-      <DataTableSeguro
+      <TablaEntradas
         columns={columns}
-        data={filteredItems}
-        progressPending={isLoading}
+        isLoading={isLoading}
+        data={estudiantes}
+        filterConfig={filterConfig}
         progressComponent={
           <p className={estudiantesTableClasses.helperText}>
             Cargando estudiantes...
@@ -215,17 +203,9 @@ export const EstudiantesTable = ({
             No hay estudiantes para mostrar.
           </p>
         }
-        pagination
-        paginationComponentOptions={{
-          rowsPerPageText: "Filas por página:",
-          rangeSeparatorText: "de",
+        dataTableProps={{
+          responsive: true,
         }}
-        subHeader
-        subHeaderComponent={subHeaderComponent}
-        striped
-        highlightOnHover
-        responsive
-        customStyles={dataTableBaseStyles}
       />
     </div>
   );

@@ -11,6 +11,9 @@ export const SidebarMenuItem = ({
   onToggle,
 }) => {
   const navigate = useNavigate();
+  const variant =
+    dashboardMenuItemClasses.variants[title] ??
+    dashboardMenuItemClasses.variants.default;
 
   const handleSubItemClick = (item) => {
     // Ahora item es un objeto, navegamos usando item.path
@@ -20,7 +23,10 @@ export const SidebarMenuItem = ({
 
   return (
     <div>
-      <button onClick={onToggle} className={dashboardMenuItemClasses.button}>
+      <button
+        onClick={onToggle}
+        className={`${dashboardMenuItemClasses.button} ${variant.button}`}
+      >
         <div className={dashboardMenuItemClasses.titleWrapper}>
           {icon}
           <span>{title}</span>
@@ -35,8 +41,8 @@ export const SidebarMenuItem = ({
         <div className={dashboardMenuItemClasses.content}>
           {subItems.map((item) => (
             <button
-              key={item.path} // Usar path como clave única
-              className={dashboardMenuItemClasses.subItem}
+              key={item.path}
+              className={`${dashboardMenuItemClasses.subItem} ${variant.subItem}`}
               onClick={() => handleSubItemClick(item)}
             >
               {item.name} {/* Mostrar el nombre */}

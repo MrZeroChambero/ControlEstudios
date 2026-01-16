@@ -257,10 +257,14 @@ trait HorariosConsultasTrait
   {
     $sql = 'SELECT i.id_imparte,
                    i.tipo_docente,
-                   i.clases_totales
+                   i.clases_totales,
+                   per.estado AS estado_personal,
+                   c.tipo AS tipo_funcion,
+                   c.nombre_cargo
             FROM imparte i
-            INNER JOIN personal per ON per.id_personal = h.fk_personal
+            INNER JOIN personal per ON per.id_personal = i.fk_personal
             LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
+            WHERE i.fk_aula = ?
               AND i.fk_momento = ?
               AND i.fk_componente = ?
               AND i.fk_personal = ?

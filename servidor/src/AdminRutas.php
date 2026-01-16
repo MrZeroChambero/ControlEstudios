@@ -97,13 +97,34 @@ function registrarTodasLasRutas(): Router
     }
   };
 
+  // Centraliza el manejo de errores de handlers para responder siempre en JSON
+  $manejarExcepcionHandler = static function (\Throwable $e, string $method, string $route): void {
+    $detalle = sprintf('%s en %s:%d', $e->getMessage(), $e->getFile(), $e->getLine());
+    RespuestaJson::error(
+      'No se pudo completar la solicitud. Verifique el detalle del error.',
+      200,
+      null,
+      $detalle,
+      [
+        'handler_error' => true,
+        'route' => $route,
+        'method' => $method,
+      ]
+    );
+    exit;
+  };
+
   // Wrapper para mapear rutas que requieren autenticación
-  $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware) {
-    $router->map($method, $route, function (...$params) use ($authMiddleware, $target) {
-      // Ejecuta middleware que bloqueará si no está autorizado
-      $authMiddleware();
-      // Si no salió, llama al handler original con los parámetros de ruta
-      call_user_func_array($target, $params);
+  $mapAuthenticated = function (string $method, string $route, callable $target) use ($router, $authMiddleware, $manejarExcepcionHandler) {
+    $router->map($method, $route, function (...$params) use ($authMiddleware, $target, $manejarExcepcionHandler, $method, $route) {
+      try {
+        // Ejecuta middleware que bloqueará si no está autorizado
+        $authMiddleware();
+        // Si no salió, llama al handler original con los parámetros de ruta
+        call_user_func_array($target, $params);
+      } catch (\Throwable $e) {
+        $manejarExcepcionHandler($e, $method, $route);
+      }
     });
   };
 
@@ -114,66 +135,70 @@ function registrarTodasLasRutas(): Router
     string $route,
     callable $target,
     array $allowedRoles = []
-  ) use ($router, $authMiddleware) {
-    $router->map($method, $route, function (...$params) use ($authMiddleware, $target, $allowedRoles) {
-      // Valida sesión básica
-      $authMiddleware();
-
-      // Obtener usuario nuevamente para comprobar rol (evita depender de estado global)
+  ) use ($router, $authMiddleware, $manejarExcepcionHandler) {
+    $router->map($method, $route, function (...$params) use ($authMiddleware, $target, $allowedRoles, $manejarExcepcionHandler, $method, $route) {
       try {
-        $hash = $_COOKIE['session_token'] ?? null;
-        if (!$hash) {
+        // Valida sesión básica
+        $authMiddleware();
+
+        // Obtener usuario nuevamente para comprobar rol (evita depender de estado global)
+        try {
+          $hash = $_COOKIE['session_token'] ?? null;
+          if (!$hash) {
+            RespuestaJson::error(
+              'Acceso bloqueado: credenciales requeridas.',
+              403,
+              null,
+              null,
+              [
+                'blocked' => true,
+                'msg' => 'Acceso bloqueado: credenciales requeridas.'
+              ]
+            );
+            return;
+          }
+
+          $pdo = \Micodigo\Config\Conexion::obtener();
+          $login = new \Micodigo\Login\Login($pdo);
+          $usuario = $login->obtenerUsuarioPorHash($hash);
+
+          $rolUsuario = null;
+          if (is_array($usuario)) {
+            // intentar varios campos posibles
+            $rolUsuario = $usuario['rol'] ?? $usuario['nivel'] ?? $usuario['nivel_acceso'] ?? null;
+          }
+
+          if (!empty($allowedRoles) && !in_array($rolUsuario, $allowedRoles, true)) {
+            RespuestaJson::error(
+              'Acceso bloqueado: nivel de usuario insuficiente.',
+              403,
+              null,
+              null,
+              [
+                'blocked' => true,
+                'msg' => 'Acceso bloqueado: nivel de usuario insuficiente.'
+              ]
+            );
+            return;
+          }
+
+          // Llamar handler original
+          call_user_func_array($target, $params);
+        } catch (Exception $e) {
           RespuestaJson::error(
-            'Acceso bloqueado: credenciales requeridas.',
-            403,
+            'Error del servidor al validar el rol de usuario.',
+            500,
             null,
-            null,
+            $e,
             [
               'blocked' => true,
-              'msg' => 'Acceso bloqueado: credenciales requeridas.'
+              'msg' => 'Error del servidor al validar el rol de usuario.'
             ]
           );
           return;
         }
-
-        $pdo = \Micodigo\Config\Conexion::obtener();
-        $login = new \Micodigo\Login\Login($pdo);
-        $usuario = $login->obtenerUsuarioPorHash($hash);
-
-        $rolUsuario = null;
-        if (is_array($usuario)) {
-          // intentar varios campos posibles
-          $rolUsuario = $usuario['rol'] ?? $usuario['nivel'] ?? $usuario['nivel_acceso'] ?? null;
-        }
-
-        if (!empty($allowedRoles) && !in_array($rolUsuario, $allowedRoles, true)) {
-          RespuestaJson::error(
-            'Acceso bloqueado: nivel de usuario insuficiente.',
-            403,
-            null,
-            null,
-            [
-              'blocked' => true,
-              'msg' => 'Acceso bloqueado: nivel de usuario insuficiente.'
-            ]
-          );
-          return;
-        }
-
-        // Llamar handler original
-        call_user_func_array($target, $params);
-      } catch (Exception $e) {
-        RespuestaJson::error(
-          'Error del servidor al validar el rol de usuario.',
-          500,
-          null,
-          $e,
-          [
-            'blocked' => true,
-            'msg' => 'Error del servidor al validar el rol de usuario.'
-          ]
-        );
-        return;
+      } catch (\Throwable $e) {
+        $manejarExcepcionHandler($e, $method, $route);
       }
     });
   };
