@@ -11,33 +11,22 @@ import {
   diasSemanaOpciones,
   MIN_MINUTOS_COMPONENTE,
   MAX_MINUTOS_JORNADA,
-  SEGMENTO_MINUTOS,
+  SEGMENTO_BLOQUE_MINUTOS,
+  DURACIONES_AULA_MINUTOS,
 } from "../utilidadesHorarios";
+import {
+  obtenerRutinasPorContexto,
+  RUTINA_CONTEXTO_AULA,
+} from "../config/rutinasConfig";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
-
-const RUTINAS_PREDEFINIDAS = [
-  {
-    clave: "ingreso",
-    nombre: "Entrada, Acto Cívico, Ingreso a los salones",
-    descripcion: "",
-    inicio: "07:00",
-    fin: "07:20",
-  },
-  {
-    clave: "desayuno",
-    nombre: "Desayuno",
-    descripcion: "",
-    inicio: "07:20",
-    fin: "08:00",
-  },
-];
+const rutinasAula = obtenerRutinasPorContexto(RUTINA_CONTEXTO_AULA);
 
 const generarOpcionesHoras = () => {
   const opciones = [];
   for (
     let minuto = MIN_MINUTOS_COMPONENTE;
     minuto <= MAX_MINUTOS_JORNADA;
-    minuto += SEGMENTO_MINUTOS
+    minuto += SEGMENTO_BLOQUE_MINUTOS
   ) {
     const hora = Math.floor(minuto / 60)
       .toString()
@@ -51,7 +40,7 @@ const generarOpcionesHoras = () => {
 const opcionesHorasSegmentadas = generarOpcionesHoras();
 
 const bloquesRutinaBase = diasSemanaOrdenados.flatMap((dia) =>
-  RUTINAS_PREDEFINIDAS.map((rutina, indice) => ({
+  rutinasAula.map((rutina, indice) => ({
     id_horario: `rutina-${dia}-${rutina.clave}`,
     dia_semana: dia,
     hora_inicio: rutina.inicio,
@@ -165,6 +154,8 @@ const ModalFormularioHorario = ({
   componentesDisponibles,
   personalDisponible,
   estudiantesDisponibles,
+  duracionesPermitidas = DURACIONES_AULA_MINUTOS,
+  esEspecialistaSeleccionado = false,
   calendarioPorDia,
   cargandoHorariosAula,
   onCambio,
@@ -206,6 +197,24 @@ const ModalFormularioHorario = ({
         : [],
     [formulario.fk_aula]
   );
+
+  const mensajeDuraciones = useMemo(() => {
+    const lista = Array.isArray(duracionesPermitidas)
+      ? duracionesPermitidas.slice().sort((a, b) => a - b)
+      : [];
+
+    if (lista.length === 0) {
+      return "Respeta los segmentos de 20 minutos y finaliza antes del mediodía.";
+    }
+
+    const textoLista = lista.map((valor) => `${valor} min`).join(", ");
+
+    if (esEspecialistaSeleccionado) {
+      return `Especialistas: bloques permitidos de ${textoLista}.`;
+    }
+
+    return `Docentes de aula: bloques permitidos de ${textoLista}.`;
+  }, [duracionesPermitidas, esEspecialistaSeleccionado]);
 
   const renderAccionesBloque = (bloque) => (
     <div className="flex gap-2">
@@ -539,8 +548,8 @@ const ModalFormularioHorario = ({
           <p className={horariosFormClasses.error}>{errores.duracion}</p>
         ) : !errores.horario ? (
           <p className={horariosFormClasses.helper}>
-            Los bloques deben durar entre 20 y 40 minutos y concluir antes de
-            las 12:00 m.
+            {mensajeDuraciones} Mantén los segmentos de 20 minutos y concluye
+            antes de las 12:00 m.
           </p>
         ) : null}
 

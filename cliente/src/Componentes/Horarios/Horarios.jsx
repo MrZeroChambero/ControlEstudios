@@ -24,6 +24,7 @@ import {
   completarHoraBlur,
   validarHorasFormulario,
   obtenerOrdenHora,
+  obtenerDuracionesPermitidas,
 } from "./utilidadesHorarios";
 import {
   listarHorarios,
@@ -473,6 +474,46 @@ export const Horarios = () => {
     formulario.fk_momento,
   ]);
 
+  const componenteSeleccionado = useMemo(() => {
+    if (!formulario.fk_componente) {
+      return null;
+    }
+
+    return (
+      componentesDisponibles.find(
+        (componente) =>
+          String(componente.id) === String(formulario.fk_componente)
+      ) || null
+    );
+  }, [componentesDisponibles, formulario.fk_componente]);
+
+  const esComponenteEspecialista = useMemo(() => {
+    if (!componenteSeleccionado) {
+      return false;
+    }
+
+    const indicador =
+      componenteSeleccionado.especialista ??
+      componenteSeleccionado.esEspecialista ??
+      componenteSeleccionado.es_especialista ??
+      componenteSeleccionado.especialista_activo;
+
+    if (typeof indicador === "string") {
+      return indicador.trim().toLowerCase() === "si";
+    }
+
+    if (typeof indicador === "number") {
+      return indicador === 1;
+    }
+
+    return Boolean(indicador);
+  }, [componenteSeleccionado]);
+
+  const duracionesPermitidas = useMemo(
+    () => obtenerDuracionesPermitidas(esComponenteEspecialista),
+    [esComponenteEspecialista]
+  );
+
   const personalDisponible = useMemo(
     () => (Array.isArray(catalogos.personal) ? catalogos.personal : []),
     [catalogos.personal]
@@ -844,7 +885,9 @@ export const Horarios = () => {
   const manejarSubmit = async (evento) => {
     evento.preventDefault();
 
-    const erroresLocales = validarHorasFormulario(formulario);
+    const erroresLocales = validarHorasFormulario(formulario, {
+      esEspecialista: esComponenteEspecialista,
+    });
     if (Object.keys(erroresLocales).length > 0) {
       setErroresFormulario(erroresLocales);
       return;
@@ -1090,6 +1133,8 @@ export const Horarios = () => {
         componentesDisponibles={componentesDisponibles}
         personalDisponible={personalDisponible}
         estudiantesDisponibles={estudiantesDisponibles}
+        esEspecialistaSeleccionado={esComponenteEspecialista}
+        duracionesPermitidas={duracionesPermitidas}
         calendarioPorDia={calendarioPorDia}
         cargandoHorariosAula={cargandoHorariosAula}
         onCambio={manejarCambio}

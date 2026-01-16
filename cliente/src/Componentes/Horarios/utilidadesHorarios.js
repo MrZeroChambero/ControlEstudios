@@ -2,9 +2,15 @@ import { diasSemanaOrdenados, diasSemanaEtiquetas } from "./constantesHorarios";
 import { diasSemanaOpciones } from "./constantesHorarios";
 export { filtrarPropsTabla } from "../../utilidades/tablaProps";
 
-export const SEGMENTO_MINUTOS = 20;
+export const SEGMENTO_CALENDARIO_MINUTOS = 5;
+export const SEGMENTO_BLOQUE_MINUTOS = 20;
 export const MIN_MINUTOS_COMPONENTE = 7 * 60 + 40;
 export const MAX_MINUTOS_JORNADA = 12 * 60;
+export const DURACIONES_AULA_MINUTOS = Object.freeze([40, 60, 80]);
+export const DURACIONES_ESPECIALISTA_MINUTOS = Object.freeze([40, 80]);
+
+export const obtenerDuracionesPermitidas = (esEspecialista = false) =>
+  esEspecialista ? DURACIONES_ESPECIALISTA_MINUTOS : DURACIONES_AULA_MINUTOS;
 const TABLA_MINUTO_INICIO = 7 * 60;
 const TABLA_MINUTO_FIN = 12 * 60;
 
@@ -27,17 +33,25 @@ export const formatearMinutosA12Horas = (totalMin) => {
   return `${horas}:${String(minutos).padStart(2, "0")} ${sufijo}`;
 };
 
-export const alinearMinutosASegmento = (totalMin, haciaArriba = false) => {
+export const alinearMinutosASegmento = (
+  totalMin,
+  haciaArriba = false,
+  segmentoMinutos = SEGMENTO_CALENDARIO_MINUTOS
+) => {
   if (!Number.isFinite(totalMin)) {
     return totalMin;
   }
 
-  const resto = totalMin % SEGMENTO_MINUTOS;
+  if (!Number.isFinite(segmentoMinutos) || segmentoMinutos <= 0) {
+    return totalMin;
+  }
+
+  const resto = totalMin % segmentoMinutos;
   if (resto === 0) {
     return totalMin;
   }
 
-  return haciaArriba ? totalMin + (SEGMENTO_MINUTOS - resto) : totalMin - resto;
+  return haciaArriba ? totalMin + (segmentoMinutos - resto) : totalMin - resto;
 };
 
 export const crearFormularioInicial = () => ({
@@ -239,12 +253,21 @@ export const formatearDuracionMinutos = (minutos) => {
   return `${String(horas)}:${String(resto).padStart(2, "0")}`;
 };
 
-const generarPlantillaIntervalos = (inicioMin, finMin) => {
+const generarPlantillaIntervalos = (
+  inicioMin,
+  finMin,
+  segmentoMinutos = SEGMENTO_CALENDARIO_MINUTOS
+) => {
   const segmentos = [];
   let indice = 1;
 
-  for (let actual = inicioMin; actual < finMin; actual += SEGMENTO_MINUTOS) {
-    const hasta = Math.min(actual + SEGMENTO_MINUTOS, finMin);
+  const paso =
+    Number.isFinite(segmentoMinutos) && segmentoMinutos > 0
+      ? segmentoMinutos
+      : SEGMENTO_CALENDARIO_MINUTOS;
+
+  for (let actual = inicioMin; actual < finMin; actual += paso) {
+    const hasta = Math.min(actual + paso, finMin);
     const duracion = hasta - actual;
 
     segmentos.push({
@@ -265,7 +288,8 @@ const generarPlantillaIntervalos = (inicioMin, finMin) => {
 
 export const plantillaBloquesSeccion = generarPlantillaIntervalos(
   TABLA_MINUTO_INICIO,
-  TABLA_MINUTO_FIN
+  TABLA_MINUTO_FIN,
+  SEGMENTO_CALENDARIO_MINUTOS
 );
 
 export const normalizarDiaSemana = (valor) => {
@@ -341,11 +365,13 @@ export const construirIntervalosSeccion = (bloques = []) => {
     const nuevoSegmento = {
       numero: "",
       desdeTexto: formatearMinutosA12Horas(inicioMin),
-      hastaTexto: formatearMinutosA12Horas(inicioMin + SEGMENTO_MINUTOS),
-      duracionMinutos: SEGMENTO_MINUTOS,
-      duracionTexto: formatearDuracionMinutos(SEGMENTO_MINUTOS),
+      hastaTexto: formatearMinutosA12Horas(
+        inicioMin + SEGMENTO_CALENDARIO_MINUTOS
+      ),
+      duracionMinutos: SEGMENTO_CALENDARIO_MINUTOS,
+      duracionTexto: formatearDuracionMinutos(SEGMENTO_CALENDARIO_MINUTOS),
       desdeMin: inicioMin,
-      hastaMin: inicioMin + SEGMENTO_MINUTOS,
+      hastaMin: inicioMin + SEGMENTO_CALENDARIO_MINUTOS,
     };
 
     const fila = crearFilaDesdeSegmento(nuevoSegmento);
@@ -372,17 +398,20 @@ export const construirIntervalosSeccion = (bloques = []) => {
     const duracionTotal = Math.max(finMin - inicioMin, 0);
     const segmentosTotales = Math.max(
       1,
-      Math.ceil(duracionTotal / SEGMENTO_MINUTOS)
+      Math.ceil(duracionTotal / SEGMENTO_CALENDARIO_MINUTOS)
     );
 
     for (let offset = 0; offset < segmentosTotales; offset += 1) {
-      const segmentoInicio = inicioMin + offset * SEGMENTO_MINUTOS;
+      const segmentoInicio = inicioMin + offset * SEGMENTO_CALENDARIO_MINUTOS;
       const fila = obtenerFilaPorInicio(segmentoInicio);
       if (!fila) {
         continue;
       }
 
-      const segmentoFin = Math.min(segmentoInicio + SEGMENTO_MINUTOS, finMin);
+      const segmentoFin = Math.min(
+        segmentoInicio + SEGMENTO_CALENDARIO_MINUTOS,
+        finMin
+      );
 
       fila.bloquesPorDia[dia].push({
         ...bloque,
@@ -517,7 +546,10 @@ export const completarHoraBlur = (valor) => {
   return `${horas}:${minutos}`;
 };
 
-export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
+export const validarHorasFormulario = (
+  { hora_inicio, hora_fin },
+  { esEspecialista = false } = {}
+) => {
   const errores = {};
 
   const inicio = parseHoraTexto(hora_inicio);
@@ -535,7 +567,7 @@ export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
     } else if (inicio.totalMinutos < MIN_MINUTOS_COMPONENTE) {
       errores.hora_inicio =
         "Las actividades académicas comienzan a las 07:40 a. m.";
-    } else if (inicio.totalMinutos % SEGMENTO_MINUTOS !== 0) {
+    } else if (inicio.totalMinutos % SEGMENTO_BLOQUE_MINUTOS !== 0) {
       errores.hora_inicio =
         "La hora de inicio debe coincidir con los bloques de 20 minutos.";
     }
@@ -553,7 +585,7 @@ export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
     ) {
       errores.hora_fin =
         "La hora de finalización debe estar entre las 07:00 y las 12:00 m (máximo 12:00).";
-    } else if (fin.totalMinutos % SEGMENTO_MINUTOS !== 0) {
+    } else if (fin.totalMinutos % SEGMENTO_BLOQUE_MINUTOS !== 0) {
       errores.hora_fin =
         "La hora de finalización debe coincidir con los bloques de 20 minutos.";
     }
@@ -567,17 +599,25 @@ export const validarHorasFormulario = ({ hora_inicio, hora_fin }) => {
       errores.hora_fin = errores.hora_fin || mensaje;
     } else {
       const duracion = fin.totalMinutos - inicio.totalMinutos;
-      if (duracion < 20 || duracion > 40) {
-        const mensaje =
-          "La duración del bloque debe estar entre 20 y 40 minutos.";
-        errores.duracion = mensaje;
-        errores.hora_fin = errores.hora_fin || mensaje;
-      } else if (duracion % SEGMENTO_MINUTOS !== 0) {
+      const duracionesPermitidas = obtenerDuracionesPermitidas(esEspecialista);
+
+      if (duracion % SEGMENTO_BLOQUE_MINUTOS !== 0) {
         const mensaje = "Las horas deben ajustarse a múltiplos de 20 minutos.";
         errores.duracion = mensaje;
         errores.hora_fin = errores.hora_fin || mensaje;
+      } else if (!duracionesPermitidas.includes(duracion)) {
+        const etiquetaDuraciones = duracionesPermitidas
+          .slice()
+          .sort((a, b) => a - b)
+          .map((valor) => `${valor} minutos`)
+          .join(", ");
+        const mensaje = esEspecialista
+          ? `Los especialistas solo pueden registrar bloques de ${etiquetaDuraciones}.`
+          : `Los docentes de aula solo pueden registrar bloques de ${etiquetaDuraciones}.`;
+        errores.duracion = mensaje;
+        errores.hora_fin = errores.hora_fin || mensaje;
       }
-      if (fin.totalMinutos < MIN_MINUTOS_COMPONENTE + SEGMENTO_MINUTOS) {
+      if (fin.totalMinutos < MIN_MINUTOS_COMPONENTE + SEGMENTO_BLOQUE_MINUTOS) {
         errores.hora_fin =
           errores.hora_fin ||
           "Los bloques deben culminar después de las 08:00 a. m.";
