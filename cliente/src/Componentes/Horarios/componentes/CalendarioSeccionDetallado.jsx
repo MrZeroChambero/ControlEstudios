@@ -25,6 +25,7 @@ const buildMetaItems = (seccion) => [
 const CalendarioSeccionDetallado = ({
   seccion,
   mostrarDocentes = true,
+  bloquesConfig,
   emptyMessage = "Sin bloques programados para esta sección.",
 }) => {
   if (!seccion) {
@@ -37,7 +38,7 @@ const CalendarioSeccionDetallado = ({
 
   const metaItems = buildMetaItems(seccion);
   const bloques = seccion.horarios || [];
-  const bloquesClase = filtrarBloquesClase(bloques);
+  const bloquesClase = filtrarBloquesClase(bloques, bloquesConfig);
   const bloquesFijos = seccion.bloquesFijos || [];
 
   return (
@@ -58,6 +59,7 @@ const CalendarioSeccionDetallado = ({
       <TablaHorarioSemanal
         bloques={bloquesClase}
         bloquesFijos={bloquesFijos}
+        bloquesConfig={bloquesConfig}
         emptyMessage={emptyMessage}
       />
 
@@ -66,7 +68,10 @@ const CalendarioSeccionDetallado = ({
           <h4 className="text-sm font-semibold text-slate-700">
             Docentes y especialistas asignados
           </h4>
-          <TablaDocentesSeccion bloques={bloquesClase} />
+          <TablaDocentesSeccion
+            bloques={bloquesClase}
+            bloquesConfig={bloquesConfig}
+          />
         </section>
       ) : null}
     </div>

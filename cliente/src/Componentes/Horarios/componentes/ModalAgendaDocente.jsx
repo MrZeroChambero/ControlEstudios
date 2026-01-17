@@ -125,6 +125,7 @@ const ModalAgendaDocente = ({
   docente,
   onVerDetalle,
   onEliminar,
+  bloquesConfig,
 }) => {
   const renderAcciones = useMemo(
     () => crearRenderAcciones(onVerDetalle, onEliminar),
@@ -132,8 +133,11 @@ const ModalAgendaDocente = ({
   );
 
   const horariosFiltrados = useMemo(
-    () => (docente?.horarios ? filtrarBloquesClase(docente.horarios) : []),
-    [docente]
+    () =>
+      docente?.horarios
+        ? filtrarBloquesClase(docente.horarios, bloquesConfig)
+        : [],
+    [docente, bloquesConfig]
   );
 
   return (
@@ -170,6 +174,7 @@ const ModalAgendaDocente = ({
           </div>
           <TablaHorarioSemanal
             bloques={horariosFiltrados}
+            bloquesConfig={bloquesConfig}
             emptyMessage="Sin clases registradas para este docente."
             renderAcciones={renderAcciones || undefined}
             renderContenidoBloque={renderContenidoDocente}

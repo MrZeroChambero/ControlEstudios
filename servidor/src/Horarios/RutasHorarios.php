@@ -24,6 +24,7 @@ function registrarRutasHorarios(
 
   $map('GET', '/horarios', [$controlador, 'listar']);
   $map('GET', '/horarios/catalogos', [$controlador, 'catalogos']);
+  $map('GET', '/horarios/bloques', [$controlador, 'bloques']);
   $map('POST', '/horarios', [$controlador, 'crear']);
 
   $map('PUT', '/horarios/[i:id_horario]', function (int $id_horario) use ($controlador) {
@@ -40,6 +41,7 @@ function registrarRutasHorarios(
 
   $map('GET', '/horarios', [$controlador, 'listar']);
   $map('GET', '/horarios/catalogos', [$controlador, 'catalogos']);
+  $map('GET', '/horarios/bloques', [$controlador, 'bloques']);
   $map('POST', '/horarios', [$controlador, 'crear']);
 
   $map('PUT', '/horarios/[i:id_horario]', function (int $id_horario) use ($controlador) {

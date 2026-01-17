@@ -8,6 +8,9 @@ use Micodigo\Utils\RespuestaJson;
 use PDO;
 use Exception;
 use PDOException;
+use const Micodigo\Horarios\Config\BLOQUES_HORARIO;
+use const Micodigo\Horarios\Config\BLOQUES_DEPENDENCIAS;
+use const Micodigo\Horarios\Config\BLOQUES_CLASE;
 
 require_once __DIR__ . '/Horarios.php';
 
@@ -50,6 +53,20 @@ class ControladoraHorarios
       RespuestaJson::exito($resultado['datos'], 'Catálogos obtenidos correctamente.');
     } catch (Exception | PDOException $excepcion) {
       RespuestaJson::error('No fue posible obtener los catálogos de horarios.', 500, null, $excepcion);
+    }
+  }
+
+  public function bloques(): void
+  {
+    try {
+      $datos = [
+        'bloques' => BLOQUES_HORARIO,
+        'dependencias' => BLOQUES_DEPENDENCIAS,
+        'bloques_clase' => BLOQUES_CLASE,
+      ];
+      RespuestaJson::exito($datos, 'Bloques de horario obtenidos correctamente.');
+    } catch (Exception $excepcion) {
+      RespuestaJson::error('No fue posible obtener los bloques de horario.', 500, null, $excepcion);
     }
   }
 

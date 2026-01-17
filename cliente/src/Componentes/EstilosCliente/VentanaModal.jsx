@@ -3,11 +3,12 @@ import PropTypes from "prop-types";
 import { contenidosModalClasses } from "./EstilosClientes";
 
 const sizeMap = {
-  sm: "max-w-lg",
-  md: "max-w-2xl",
-  lg: "max-w-4xl",
-  xl: "max-w-6xl",
-  full: "max-w-7xl",
+  sm: "max-w-xl",
+  md: "max-w-3xl",
+  lg: "max-w-5xl",
+  xl: "max-w-7xl",
+  full: "max-w-[90vw]",
+  "2xl": "max-w-screen-2xl",
 };
 
 const bodyBaseClass = "space-y-4";
@@ -23,13 +24,14 @@ export const VentanaModal = ({
   showClose = true,
   contentClassName = "",
   bodyClassName = "",
+  maxWidthClass = "",
   headerSlot = null,
 }) => {
   if (!isOpen) {
     return null;
   }
 
-  const resolvedSizeClass = sizeMap[size] || sizeMap.md;
+  const resolvedSizeClass = maxWidthClass || sizeMap[size] || sizeMap.md;
   const contentClasses =
     `${contenidosModalClasses.content} ${resolvedSizeClass} ${contentClassName}`.trim();
   const bodyClasses =
@@ -87,10 +89,11 @@ VentanaModal.propTypes = {
   subtitle: PropTypes.node,
   children: PropTypes.node.isRequired,
   footer: PropTypes.node,
-  size: PropTypes.oneOf(["sm", "md", "lg", "xl", "full"]),
+  size: PropTypes.oneOf(["sm", "md", "lg", "xl", "full", "2xl"]),
   showClose: PropTypes.bool,
   contentClassName: PropTypes.string,
   bodyClassName: PropTypes.string,
+  maxWidthClass: PropTypes.string,
   headerSlot: PropTypes.node,
 };
 

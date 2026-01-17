@@ -10,16 +10,17 @@ import {
 } from "../config/bloquesHorario";
 import { tablaHorarioSemanalClases } from "./horariosEstilos";
 
-const BLOQUES_COLSPAN = new Set(["01", "02", "07", "10"]);
+const BLOQUES_COLSPAN = new Set(["01", "02", "07", "11"]);
 
-const obtenerCodigoDesdeRegistro = (registro) =>
+const obtenerCodigoDesdeRegistro = (registro, bloquesConfig) =>
   registro?.codigo_bloque ??
   obtenerCodigoBloquePorRango(
     registro?.hora_inicio_texto ?? registro?.hora_inicio,
-    registro?.hora_fin_texto ?? registro?.hora_fin
+    registro?.hora_fin_texto ?? registro?.hora_fin,
+    bloquesConfig
   );
 
-const agruparPorDiaYCodigo = (registros = [], filtro) => {
+const agruparPorDiaYCodigo = (registros = [], filtro, bloquesConfig) => {
   const base = diasSemanaOrdenados.reduce((acc, dia) => {
     acc[dia] = {};
     return acc;
@@ -31,7 +32,7 @@ const agruparPorDiaYCodigo = (registros = [], filtro) => {
       return;
     }
 
-    const codigo = obtenerCodigoDesdeRegistro(registro);
+    const codigo = obtenerCodigoDesdeRegistro(registro, bloquesConfig);
     if (!codigo) {
       return;
     }
@@ -195,24 +196,32 @@ const FilaBloqueHorario = ({
 const TablaHorarioSemanal = ({
   bloques = [],
   bloquesFijos = [],
+  bloquesConfig,
   emptyMessage = "Sin bloques registrados para esta seccion.",
   renderAcciones,
   renderContenidoBloque,
 }) => {
+  const bloquesBase = useMemo(
+    () => bloquesConfig || BLOQUES_HORARIO_BASE,
+    [bloquesConfig]
+  );
+
   const clasesAgrupadas = useMemo(
     () =>
-      agruparPorDiaYCodigo(bloques, (registro) =>
-        esBloqueRegistroClase(registro)
+      agruparPorDiaYCodigo(
+        bloques,
+        (registro) => esBloqueRegistroClase(registro, bloquesBase),
+        bloquesBase
       ),
-    [bloques]
+    [bloques, bloquesBase]
   );
 
   const rutinasAgrupadas = useMemo(
-    () => agruparPorDiaYCodigo(bloquesFijos),
-    [bloquesFijos]
+    () => agruparPorDiaYCodigo(bloquesFijos, undefined, bloquesBase),
+    [bloquesFijos, bloquesBase]
   );
 
-  const hayContenido = BLOQUES_HORARIO_BASE.some((bloque) =>
+  const hayContenido = bloquesBase.some((bloque) =>
     diasSemanaOrdenados.some((dia) => {
       const codigo = bloque.codigo;
       const hayRutina = (rutinasAgrupadas[dia]?.[codigo] || []).length > 0;
@@ -241,7 +250,7 @@ const TablaHorarioSemanal = ({
           </tr>
         </thead>
         <tbody>
-          {BLOQUES_HORARIO_BASE.map((bloque) => (
+          {bloquesBase.map((bloque) => (
             <FilaBloqueHorario
               key={bloque.codigo}
               bloque={bloque}

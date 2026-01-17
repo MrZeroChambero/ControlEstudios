@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 13-01-2026 a las 21:39:15
+-- Tiempo de generación: 17-01-2026 a las 00:57:28
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -370,6 +370,7 @@ CREATE TABLE `componentes_aprendizaje` (
   `nombre_componente` varchar(100) NOT NULL,
   `especialista` enum('Docente de Aula','Docente Especilista','Docente de Cultura') NOT NULL DEFAULT 'Docente de Aula',
   `evalua` enum('si','no') NOT NULL,
+  `grupo` enum('Completo','Sub Grupo') NOT NULL DEFAULT 'Completo',
   `estado_componente` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -377,20 +378,20 @@ CREATE TABLE `componentes_aprendizaje` (
 -- Volcado de datos para la tabla `componentes_aprendizaje`
 --
 
-INSERT INTO `componentes_aprendizaje` (`id_componente`, `fk_area`, `nombre_componente`, `especialista`, `evalua`, `estado_componente`) VALUES
-(1, 1, 'Lengua y Literatura', 'Docente de Aula', 'si', 'activo'),
-(2, 1, 'Inglés y otros Idiomas', '', 'si', 'activo'),
-(3, 2, 'Matemática', 'Docente de Aula', 'si', 'activo'),
-(4, 3, 'Ciencias Naturales', 'Docente de Aula', 'si', 'activo'),
-(5, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'activo'),
-(6, 4, 'Formación Ciudadana', 'Docente de Aula', 'si', 'activo'),
-(7, 5, 'Educación Física', '', 'si', 'activo'),
-(8, 6, 'Artes Plásticas', '', 'si', 'activo'),
-(9, 6, 'Música', '', 'si', 'activo'),
-(10, 6, 'Danza y Expresión Corporal', '', 'si', 'activo'),
-(11, 6, 'Teatro y Dramatización', '', 'si', 'activo'),
-(12, 3, 'Tecnología y Computación', '', 'si', 'activo'),
-(106, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'activo');
+INSERT INTO `componentes_aprendizaje` (`id_componente`, `fk_area`, `nombre_componente`, `especialista`, `evalua`, `grupo`, `estado_componente`) VALUES
+(1, 1, 'Lengua y Literatura', 'Docente de Aula', 'si', 'Completo', 'activo'),
+(2, 1, 'Inglés y otros Idiomas', '', 'si', 'Completo', 'activo'),
+(3, 2, 'Matemática', 'Docente de Aula', 'si', 'Completo', 'activo'),
+(4, 3, 'Ciencias Naturales', 'Docente de Aula', 'si', 'Completo', 'activo'),
+(5, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'Completo', 'activo'),
+(6, 4, 'Formación Ciudadana', 'Docente de Aula', 'si', 'Completo', 'activo'),
+(7, 5, 'Educación Física', '', 'si', 'Completo', 'activo'),
+(8, 6, 'Artes Plásticas', '', 'si', 'Completo', 'activo'),
+(9, 6, 'Música', '', 'si', 'Completo', 'activo'),
+(10, 6, 'Danza y Expresión Corporal', '', 'si', 'Completo', 'activo'),
+(11, 6, 'Teatro y Dramatización', '', 'si', 'Completo', 'activo'),
+(12, 3, 'Tecnología y Computación', '', 'si', 'Completo', 'activo'),
+(106, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'Completo', 'activo');
 
 -- --------------------------------------------------------
 
@@ -743,7 +744,7 @@ CREATE TABLE `horarios` (
 --
 
 INSERT INTO `horarios` (`id_horario`, `fk_aula`, `fk_momento`, `fk_componente`, `fk_personal`, `grupo`, `dia_semana`, `hora_inicio`, `hora_fin`) VALUES
-(3, 8, 11, 5, 39, 'completo', 'lunes', 7.66667, 8.33333);
+(4, 1, 11, 12, 18, 'completo', 'lunes', 7.66667, 8.33333);
 
 -- --------------------------------------------------------
 
@@ -1610,7 +1611,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(59, 43, '52ab5c04c520e26e4bb7edcd82d475721958ea30e07302e9464f47c71562f89c', '2026-01-12', '2026-01-13');
+(72, 43, '97a339292d8c75f0b6f3101006448cfad49cc58f9eb9c021e9c4240417632c0c', '2026-01-16', '2026-01-17');
 
 -- --------------------------------------------------------
 
@@ -2287,7 +2288,7 @@ ALTER TABLE `habilidades`
 -- AUTO_INCREMENT de la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `imparte`
@@ -2383,7 +2384,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

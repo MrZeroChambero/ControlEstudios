@@ -194,7 +194,6 @@ export const ComponentesAprendizajeForm = ({
             : "Activo"}
         </div>
       </div>
-
       {!isViewMode && (
         <div className={componentesFormClasses.actions}>
           <button

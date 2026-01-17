@@ -16,7 +16,6 @@ import {
   esBloqueRegistroClase,
   obtenerBloquePorCodigo,
   obtenerCodigoBloquePorRango,
-  formatearEtiquetaBloque,
 } from "../config/bloquesHorario";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
 const rutinasAula = obtenerRutinasPorContexto(RUTINA_CONTEXTO_AULA);
@@ -136,7 +135,7 @@ const ModalFormularioHorario = ({
   componentesDisponibles,
   personalDisponible,
   estudiantesDisponibles,
-  esEspecialistaSeleccionado = false,
+  bloquesConfig,
   calendarioPorDia,
   cargandoHorariosAula,
   onCambio,
@@ -152,15 +151,16 @@ const ModalFormularioHorario = ({
 
   const descripcionMomento = construirDescripcionMomento(momentoSeleccionado);
 
-  const calendarioNormalizado = calendarioPorDia || {};
-
   const bloquesAcademicosPorDia = useMemo(() => {
+    const calendarioNormalizado = calendarioPorDia || {};
     return diasSemanaOrdenados.reduce((acc, dia) => {
       const registrosDia = calendarioNormalizado[dia] || [];
-      acc[dia] = registrosDia.filter((bloque) => esBloqueRegistroClase(bloque));
+      acc[dia] = registrosDia.filter((bloque) =>
+        esBloqueRegistroClase(bloque, bloquesConfig)
+      );
       return acc;
     }, {});
-  }, [calendarioNormalizado]);
+  }, [calendarioPorDia, bloquesConfig]);
 
   const bloquesRegistrados = useMemo(
     () =>
@@ -178,14 +178,15 @@ const ModalFormularioHorario = ({
               bloque?.codigo_bloque ??
               obtenerCodigoBloquePorRango(
                 bloque?.hora_inicio_texto ?? bloque?.hora_inicio,
-                bloque?.hora_fin_texto ?? bloque?.hora_fin
+                bloque?.hora_fin_texto ?? bloque?.hora_fin,
+                bloquesConfig
               )
           )
           .filter(Boolean)
       );
       return acc;
     }, {});
-  }, [bloquesAcademicosPorDia]);
+  }, [bloquesAcademicosPorDia, bloquesConfig]);
 
   const bloquesAula = useMemo(
     () => (formulario.fk_aula ? bloquesRegistrados : []),
@@ -204,31 +205,33 @@ const ModalFormularioHorario = ({
   );
 
   const bloquesClaseOpciones = useMemo(
-    () => construirOpcionesBloquesClase(),
-    []
+    () => construirOpcionesBloquesClase(bloquesConfig),
+    [bloquesConfig]
   );
 
   const bloqueSeleccionado = useMemo(
     () =>
-      obtenerCodigoBloquePorRango(formulario.hora_inicio, formulario.hora_fin),
-    [formulario.hora_inicio, formulario.hora_fin]
+      obtenerCodigoBloquePorRango(
+        formulario.hora_inicio,
+        formulario.hora_fin,
+        bloquesConfig
+      ),
+    [formulario.hora_inicio, formulario.hora_fin, bloquesConfig]
   );
-
-  const bloqueSeleccionadoConfig = bloqueSeleccionado
-    ? obtenerBloquePorCodigo(bloqueSeleccionado)
-    : null;
 
   const manejarCambioBloque = useCallback(
     (evento) => {
       const codigo = evento.target.value;
-      const bloque = codigo ? obtenerBloquePorCodigo(codigo) : null;
+      const bloque = codigo
+        ? obtenerBloquePorCodigo(codigo, bloquesConfig)
+        : null;
 
       onCambio({
         target: { name: "hora_inicio", value: bloque?.inicio ?? "" },
       });
       onCambio({ target: { name: "hora_fin", value: bloque?.fin ?? "" } });
     },
-    [onCambio]
+    [onCambio, bloquesConfig]
   );
 
   const bloqueDisponibleEnDia = useCallback(
@@ -275,6 +278,7 @@ const ModalFormularioHorario = ({
       onClose={alCerrar}
       title="Crear horario"
       size="lg"
+      maxWidthClass="max-w-[90vw]"
       bodyClassName="space-y-6"
     >
       <form onSubmit={onSubmit} className="space-y-5" autoComplete="off">
@@ -562,7 +566,17 @@ const ModalFormularioHorario = ({
               </>
             )}
           </div>
+          <div className={horariosFormClasses.actions}>
+            <button
+              type="submit"
+              className={horariosFormClasses.primaryButton}
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Crear horario"}
+            </button>
+          </div>
         </div>
+
         {formulario.grupo === "subgrupo" ? (
           <div className={horariosFormClasses.group}>
             <label className={horariosFormClasses.label} htmlFor="estudiantes">
@@ -628,28 +642,11 @@ const ModalFormularioHorario = ({
             <TablaHorarioSemanal
               bloques={bloquesAula}
               bloquesFijos={bloquesRutina}
+              bloquesConfig={bloquesConfig}
               emptyMessage="Aún no se han registrado bloques académicos para este aula."
               renderAcciones={renderAccionesBloque}
             />
           )}
-        </div>
-
-        <div className={horariosFormClasses.actions}>
-          <button
-            type="button"
-            className={horariosFormClasses.ghostButton}
-            onClick={alCerrar}
-            disabled={guardando}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className={horariosFormClasses.primaryButton}
-            disabled={guardando}
-          >
-            {guardando ? "Guardando..." : "Crear horario"}
-          </button>
         </div>
       </form>
     </VentanaModal>

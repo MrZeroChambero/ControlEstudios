@@ -22,7 +22,6 @@ const defaultFormulario = {
   nombre_componente: "",
   especialista: "",
   evalua: "no",
-  estado_componente: "activo",
 };
 
 const formatearErrores = (errores) => {
@@ -121,7 +120,6 @@ export const ComponentesAprendizajes = () => {
             nombre_componente: componente.nombre_componente ?? "",
             especialista: componente.especialista ?? "",
             evalua: componente.evalua ?? "no",
-            estado_componente: componente.estado_componente ?? "activo",
           }
         : { ...defaultFormulario }
     );

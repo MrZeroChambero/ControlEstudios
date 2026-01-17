@@ -3,8 +3,11 @@ import { construirDocentesSeccion } from "../utilidadesHorarios";
 import { tablaDocentesSeccionClases } from "./horariosEstilos";
 import { filtrarBloquesClase } from "../config/bloquesHorario";
 
-const TablaDocentesSeccion = ({ bloques = [] }) => {
-  const bloquesClase = useMemo(() => filtrarBloquesClase(bloques), [bloques]);
+const TablaDocentesSeccion = ({ bloques = [], bloquesConfig }) => {
+  const bloquesClase = useMemo(
+    () => filtrarBloquesClase(bloques, bloquesConfig),
+    [bloques, bloquesConfig]
+  );
 
   const docentes = useMemo(
     () => construirDocentesSeccion(bloquesClase),

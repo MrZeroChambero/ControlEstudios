@@ -7,10 +7,15 @@ import {
 import { filtrarBloquesClase } from "../config/bloquesHorario";
 import { calendarioResponsiveClases } from "./horariosEstilos";
 
-const CalendarioResponsive = ({ bloques = [], emptyMessage, renderBloque }) => {
+const CalendarioResponsive = ({
+  bloques = [],
+  emptyMessage,
+  renderBloque,
+  bloquesConfig,
+}) => {
   const bloquesFiltrados = useMemo(
-    () => filtrarBloquesClase(bloques),
-    [bloques]
+    () => filtrarBloquesClase(bloques, bloquesConfig),
+    [bloques, bloquesConfig]
   );
 
   const calendario = useMemo(

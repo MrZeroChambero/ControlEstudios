@@ -1,5 +1,9 @@
 import { diasSemanaOrdenados, diasSemanaEtiquetas } from "./constantesHorarios";
 import { diasSemanaOpciones } from "./constantesHorarios";
+import {
+  obtenerBloquePorCodigo,
+  obtenerCodigoBloquePorRango,
+} from "./config/bloquesHorario";
 export { filtrarPropsTabla } from "../../utilidades/tablaProps";
 
 export const SEGMENTO_CALENDARIO_MINUTOS = 5;
@@ -548,7 +552,7 @@ export const completarHoraBlur = (valor) => {
 
 export const validarHorasFormulario = (
   { hora_inicio, hora_fin },
-  { esEspecialista = false } = {}
+  { esEspecialista = false, bloquesConfig } = {}
 ) => {
   const errores = {};
 
@@ -564,12 +568,6 @@ export const validarHorasFormulario = (
     ) {
       errores.hora_inicio =
         "La hora de inicio debe estar entre las 07:00 y las 12:00 m.";
-    } else if (inicio.totalMinutos < MIN_MINUTOS_COMPONENTE) {
-      errores.hora_inicio =
-        "Las actividades académicas comienzan a las 07:40 a. m.";
-    } else if (inicio.totalMinutos % SEGMENTO_BLOQUE_MINUTOS !== 0) {
-      errores.hora_inicio =
-        "La hora de inicio debe coincidir con los bloques de 20 minutos.";
     }
   }
 
@@ -585,9 +583,6 @@ export const validarHorasFormulario = (
     ) {
       errores.hora_fin =
         "La hora de finalización debe estar entre las 07:00 y las 12:00 m (máximo 12:00).";
-    } else if (fin.totalMinutos % SEGMENTO_BLOQUE_MINUTOS !== 0) {
-      errores.hora_fin =
-        "La hora de finalización debe coincidir con los bloques de 20 minutos.";
     }
   }
 
@@ -598,29 +593,43 @@ export const validarHorasFormulario = (
       errores.horario = mensaje;
       errores.hora_fin = errores.hora_fin || mensaje;
     } else {
-      const duracion = fin.totalMinutos - inicio.totalMinutos;
-      const duracionesPermitidas = obtenerDuracionesPermitidas(esEspecialista);
-
-      if (duracion % SEGMENTO_BLOQUE_MINUTOS !== 0) {
-        const mensaje = "Las horas deben ajustarse a múltiplos de 20 minutos.";
-        errores.duracion = mensaje;
+      const codigo = obtenerCodigoBloquePorRango(
+        hora_inicio,
+        hora_fin,
+        bloquesConfig
+      );
+      if (!codigo) {
+        const mensaje =
+          "Selecciona un bloque válido del cronograma preconfigurado.";
+        errores.horario = mensaje;
         errores.hora_fin = errores.hora_fin || mensaje;
-      } else if (!duracionesPermitidas.includes(duracion)) {
-        const etiquetaDuraciones = duracionesPermitidas
-          .slice()
-          .sort((a, b) => a - b)
-          .map((valor) => `${valor} minutos`)
-          .join(", ");
-        const mensaje = esEspecialista
-          ? `Los especialistas solo pueden registrar bloques de ${etiquetaDuraciones}.`
-          : `Los docentes de aula solo pueden registrar bloques de ${etiquetaDuraciones}.`;
-        errores.duracion = mensaje;
-        errores.hora_fin = errores.hora_fin || mensaje;
-      }
-      if (fin.totalMinutos < MIN_MINUTOS_COMPONENTE + SEGMENTO_BLOQUE_MINUTOS) {
-        errores.hora_fin =
-          errores.hora_fin ||
-          "Los bloques deben culminar después de las 08:00 a. m.";
+      } else {
+        const bloque = obtenerBloquePorCodigo(codigo, bloquesConfig);
+        if (bloque?.tipo && bloque.tipo !== "clase") {
+          const mensaje =
+            'Solo se permiten bloques de tipo "clase" para registrar Componentes de Aprendizaje.';
+          errores.horario = mensaje;
+          errores.hora_fin = errores.hora_fin || mensaje;
+        } else if (bloque?.duracion) {
+          const duracionesPermitidas =
+            obtenerDuracionesPermitidas(esEspecialista);
+          if (
+            bloque.duracion >= 40 &&
+            bloque.duracion <= 80 &&
+            !duracionesPermitidas.includes(bloque.duracion)
+          ) {
+            const etiquetaDuraciones = duracionesPermitidas
+              .slice()
+              .sort((a, b) => a - b)
+              .map((valor) => `${valor} minutos`)
+              .join(", ");
+            const mensaje = esEspecialista
+              ? `Los especialistas solo pueden registrar bloques de ${etiquetaDuraciones}.`
+              : `Los docentes de aula solo pueden registrar bloques de ${etiquetaDuraciones}.`;
+            errores.duracion = mensaje;
+            errores.hora_fin = errores.hora_fin || mensaje;
+          }
+        }
       }
     }
   }

@@ -31,6 +31,7 @@ import {
   eliminarHorario,
   obtenerCatalogosHorarios,
   crearHorario,
+  listarBloquesHorario,
 } from "./solicitudesHorarios";
 
 const obtenerAnioDesdeFecha = (valor) => {
@@ -157,6 +158,7 @@ export const Horarios = () => {
   const [seccionSeleccionada, setSeccionSeleccionada] = useState(null);
   const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
   const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
+  const [bloquesHorario, setBloquesHorario] = useState([]);
   const consultaHorariosRef = useRef(0);
 
   const abrirModalSeccion = useCallback((registro) => {
@@ -218,9 +220,20 @@ export const Horarios = () => {
     await listarHorarios({ setHorarios, setIsLoading, Swal });
   }, []);
 
+  const cargarBloquesHorario = useCallback(async () => {
+    const resultado = await listarBloquesHorario({ Swal });
+    if (resultado?.bloques?.length) {
+      setBloquesHorario(resultado.bloques);
+    }
+  }, []);
+
   useEffect(() => {
     refrescar();
   }, [refrescar]);
+
+  useEffect(() => {
+    cargarBloquesHorario();
+  }, [cargarBloquesHorario]);
 
   const registrosFiltrados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
@@ -863,6 +876,7 @@ export const Horarios = () => {
     setFormulario((previo) => ({
       ...previo,
       estudiantes: valores,
+      grupo: valores.length > 0 ? "subgrupo" : previo.grupo,
     }));
   };
 
@@ -887,6 +901,7 @@ export const Horarios = () => {
 
     const erroresLocales = validarHorasFormulario(formulario, {
       esEspecialista: esComponenteEspecialista,
+      bloquesConfig: bloquesHorario,
     });
     if (Object.keys(erroresLocales).length > 0) {
       setErroresFormulario(erroresLocales);
@@ -908,6 +923,9 @@ export const Horarios = () => {
     const aulaActual = formulario.fk_aula;
     const momentoActual = formulario.fk_momento;
 
+    const grupoFinal =
+      formulario.estudiantes?.length > 0 ? "subgrupo" : formulario.grupo;
+
     const datos = {
       fk_aula: formulario.fk_aula ? Number(formulario.fk_aula) : null,
       fk_momento: formulario.fk_momento ? Number(formulario.fk_momento) : null,
@@ -917,12 +935,12 @@ export const Horarios = () => {
       fk_personal: formulario.fk_personal
         ? Number(formulario.fk_personal)
         : null,
-      grupo: formulario.grupo,
+      grupo: grupoFinal,
       dia_semana: formulario.dia_semana || null,
       hora_inicio: formulario.hora_inicio || null,
       hora_fin: formulario.hora_fin || null,
       estudiantes:
-        formulario.grupo === "subgrupo"
+        grupoFinal === "subgrupo"
           ? formulario.estudiantes.map((id) => Number(id))
           : [],
     };
@@ -1111,6 +1129,7 @@ export const Horarios = () => {
         abierto={modalSeccionAbierto}
         alCerrar={cerrarModalSeccion}
         seccion={seccionSeleccionada}
+        bloquesConfig={bloquesHorario}
       />
 
       <ModalAgendaDocente
@@ -1119,6 +1138,7 @@ export const Horarios = () => {
         docente={docenteSeleccionado}
         onVerDetalle={manejarVerDetalle}
         onEliminar={manejarEliminar}
+        bloquesConfig={bloquesHorario}
       />
 
       <ModalFormularioHorario
@@ -1134,6 +1154,7 @@ export const Horarios = () => {
         personalDisponible={personalDisponible}
         estudiantesDisponibles={estudiantesDisponibles}
         esEspecialistaSeleccionado={esComponenteEspecialista}
+        bloquesConfig={bloquesHorario}
         duracionesPermitidas={duracionesPermitidas}
         calendarioPorDia={calendarioPorDia}
         cargandoHorariosAula={cargandoHorariosAula}

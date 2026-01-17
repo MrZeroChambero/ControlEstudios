@@ -80,6 +80,10 @@ trait HorariosValidacionesTrait
       $errores['estudiantes'][] = 'Debe seleccionar al menos un estudiante para un subgrupo.';
     }
 
+    if ($datos['grupo'] !== 'subgrupo' && !empty($datos['estudiantes'])) {
+      $errores['grupo'][] = 'Para registrar subgrupos, el tipo de grupo debe ser "subgrupo".';
+    }
+
     return $errores;
   }
 

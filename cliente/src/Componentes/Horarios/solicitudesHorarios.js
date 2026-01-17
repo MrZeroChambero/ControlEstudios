@@ -199,6 +199,70 @@ export const listarHorarios = async ({
   }
 };
 
+export const listarBloquesHorario = async ({ Swal } = {}) => {
+  const mensajeFallo = "No fue posible cargar los bloques de horarios.";
+  try {
+    const { data } = await axios.get(`${HORARIOS_URL}/bloques`, {
+      withCredentials: true,
+    });
+
+    const compat = compatRespuesta(data, mensajeFallo);
+
+    if (compat.success) {
+      const payload = compat.data ?? compat.raw ?? {};
+      const bloques = extraerColeccion(payload?.bloques ?? payload);
+      const dependencias = payload?.dependencias ?? {};
+      return {
+        bloques,
+        dependencias,
+      };
+    }
+
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      data
+    );
+
+    if (!compat.raw?.blocked) {
+      registrarErrorServidor("bloquesHorarios", mensajeServidor);
+    }
+
+    if (compat.raw?.blocked) {
+      Swal?.fire(
+        "Sesión requerida",
+        compat.message || "Debes iniciar sesión para obtener los bloques.",
+        "warning"
+      );
+    } else {
+      Swal?.fire("Aviso", mensajeFallo, "warning");
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error al obtener bloques de horarios:", error);
+    const respuestaServidor = error.response?.data;
+    const compat = compatRespuesta(respuestaServidor, mensajeFallo);
+    const mensajeServidor = construirMensajeServidor(
+      compat,
+      mensajeFallo,
+      respuestaServidor
+    );
+    registrarErrorServidor("bloquesHorarios", mensajeServidor);
+
+    if (compat.raw?.blocked) {
+      Swal?.fire(
+        "Sesión requerida",
+        compat.message || "Debes iniciar sesión para obtener los bloques.",
+        "warning"
+      );
+    } else {
+      Swal?.fire("Aviso", mensajeFallo, "warning");
+    }
+    return null;
+  }
+};
+
 export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
   const mensajeFallo = "No fue posible cargar los catálogos.";
   try {
