@@ -16,6 +16,8 @@ trait ComponentesAprendizajeAtributosTrait
   protected ?string $especialista = null;
   protected string $evalua = 'no';
   protected string $estado_componente = 'activo';
+  protected ?string $grupo = null;
+
 
   protected function asignarDatos(array $datos): void
   {
@@ -37,6 +39,10 @@ trait ComponentesAprendizajeAtributosTrait
 
     if (isset($datos['evalua']) && in_array($datos['evalua'], ['si', 'no'], true)) {
       $this->evalua = $datos['evalua'];
+    }
+
+    if (isset($datos['grupo']) && in_array($datos['grupo'], ['Completo', 'Sub Grupo'], true)) {
+      $this->grupo = $datos['grupo'];
     }
 
     if (isset($datos['estado_componente']) && in_array($datos['estado_componente'], ['activo', 'inactivo'], true)) {
@@ -62,6 +68,7 @@ trait ComponentesAprendizajeAtributosTrait
       'nombre_componente' => $this->nombre_componente,
       'especialista' => $this->especialista,
       'evalua' => $this->evalua,
+      'grupo' => $this->grupo,
       'estado_componente' => $this->estado_componente,
     ];
   }

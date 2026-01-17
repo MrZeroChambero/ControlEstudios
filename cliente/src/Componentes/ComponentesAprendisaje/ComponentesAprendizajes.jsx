@@ -22,6 +22,7 @@ const defaultFormulario = {
   nombre_componente: "",
   especialista: "",
   evalua: "no",
+  grupo: "Sin asignar",
 };
 
 const formatearErrores = (errores) => {
@@ -120,6 +121,7 @@ export const ComponentesAprendizajes = () => {
             nombre_componente: componente.nombre_componente ?? "",
             especialista: componente.especialista ?? "",
             evalua: componente.evalua ?? "no",
+            grupo: componente.grupo ?? "Sin asignar",
           }
         : { ...defaultFormulario }
     );

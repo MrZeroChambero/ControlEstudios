@@ -43,7 +43,7 @@ export const enviarComponenteAprendizaje = async ({
         ? "No se pudo actualizar el componente."
         : "No se pudo crear el componente."
     );
-
+    console.log({ Accion: "Resgistrar Componente de aprendizaje", response });
     if (compat.success) {
       const mensaje =
         compat.message ||

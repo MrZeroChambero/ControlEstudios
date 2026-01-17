@@ -92,6 +92,7 @@ export const solicitudComponentesAprendizaje = async ({
   try {
     setIsLoading(true);
     const response = await axios.get(API_URL, { withCredentials: true });
+    console.log(response.data);
     const compat = normalizarRespuesta(
       asegurarCompatibilidad(response.data),
       "No se pudieron cargar los componentes de aprendizaje."

@@ -77,6 +77,23 @@ export const ComponentesAprendizajeTable = ({
       width: "150px",
     },
     {
+      name: "Grupo",
+      cell: (row) => (
+        <span
+          className={`${componentesStatusClasses.base} ${
+            row.grupo === "Completo"
+              ? componentesStatusClasses.evalYes
+              : componentesStatusClasses.evalNo
+          }`}
+        >
+          {row.grupo === "Completo" ? "Completo" : row.grupo}
+        </span>
+      ),
+      sortable: true,
+      selector: (row) => row.grupo,
+      width: "150px",
+    },
+    {
       name: "Estado",
       cell: (row) => (
         <span

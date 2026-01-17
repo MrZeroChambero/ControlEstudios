@@ -9,6 +9,7 @@ trait ComponentesAprendizajeConsultasTrait
   public function consultarComponentesCompletos(PDO $conexion): array
   {
     $sql = 'SELECT c.id_componente,
+                       c.grupo,
                        c.fk_area,
                        c.nombre_componente,
                        c.especialista,
@@ -27,6 +28,7 @@ trait ComponentesAprendizajeConsultasTrait
   public function consultarPorId(PDO $conexion, int $idComponente): ?array
   {
     $sql = 'SELECT c.id_componente,
+                        c.grupo,
                        c.fk_area,
                        c.nombre_componente,
                        c.especialista,
@@ -55,6 +57,7 @@ trait ComponentesAprendizajeConsultasTrait
                        fk_area,
                        nombre_componente,
                        especialista,
+                       grupo,
                        evalua,
                        estado_componente
                 FROM componentes_aprendizaje
@@ -69,7 +72,8 @@ trait ComponentesAprendizajeConsultasTrait
   {
     $sql = "SELECT id_componente AS id,
                        nombre_componente AS nombre,
-                       fk_area
+                       fk_area,
+                       grupo,
                 FROM componentes_aprendizaje
                 WHERE estado_componente = 'activo'
                 ORDER BY nombre_componente";
@@ -120,6 +124,7 @@ trait ComponentesAprendizajeConsultasTrait
     $registro['requiere_especialista'] = in_array($codigoTipo, ['especialista', 'cultura'], true);
     $registro['es_cultura'] = $codigoTipo === 'cultura';
     $registro['es_docente_aula'] = $codigoTipo === 'aula';
+    $registro['grupo'] = $registro['grupo'] ?? 'Completo';
 
     return $registro;
   }

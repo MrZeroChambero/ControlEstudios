@@ -6,7 +6,10 @@ const tipoDocenteOpciones = [
   { value: "Docente especialista", label: "Docente especialista" },
   { value: "Docente de cultura", label: "Docente de cultura" },
 ];
-
+const Grupo = [
+  { value: "Completo", label: "Completo" },
+  { value: "Sub Grupo", label: "Sub Grupo" },
+];
 const obtenerNombreArea = (areas, fkArea, nombreAreaFallback) => {
   if (!fkArea) {
     return nombreAreaFallback || "Sin área asignada";
@@ -22,13 +25,6 @@ const normalizarEspecialistaValor = (valor) => {
   }
 
   const base = String(valor).toLowerCase();
-  const coincidencia = tipoDocenteOpciones.find(
-    (opcion) => opcion.value.toLowerCase() === base
-  );
-
-  if (coincidencia) {
-    return coincidencia.value;
-  }
 
   if (base.includes("cultur")) {
     return "Docente de cultura";
@@ -134,7 +130,7 @@ export const ComponentesAprendizajeForm = ({
         )}
       </div>
 
-      <div className={componentesFormClasses.group}>
+      <div name="especialista" className={componentesFormClasses.group}>
         <label className={componentesFormClasses.label} htmlFor="especialista">
           Tipo de docente responsable
         </label>
@@ -161,7 +157,7 @@ export const ComponentesAprendizajeForm = ({
         )}
       </div>
 
-      <div className={componentesFormClasses.group}>
+      <div name="evalua" className={componentesFormClasses.group}>
         <label className={componentesFormClasses.label} htmlFor="evalua">
           ¿Evalúa?
         </label>
@@ -184,15 +180,31 @@ export const ComponentesAprendizajeForm = ({
         )}
       </div>
 
-      <div className={componentesFormClasses.group}>
-        <span className={componentesFormClasses.label}>
-          Estado del componente
-        </span>
-        <div className={componentesFormClasses.readOnly}>
-          {currentComponente?.estado_componente === "inactivo"
-            ? "Inactivo"
-            : "Activo"}
-        </div>
+      <div name="grupo" className={componentesFormClasses.group}>
+        <label className={componentesFormClasses.label} htmlFor="grupo">
+          ¿Cómo se trabajará el componente?
+        </label>
+        {isViewMode ? (
+          <div className={componentesFormClasses.readOnly}>
+            {formData.grupo || "Sin asignar"}
+          </div>
+        ) : (
+          <select
+            id="grupo"
+            name="grupo"
+            className={componentesFormClasses.select}
+            value={formData.grupo}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Selecciona como se trabajará el componente</option>
+            {Grupo.map((opcion) => (
+              <option key={opcion.value} value={opcion.value}>
+                {opcion.label}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       {!isViewMode && (
         <div className={componentesFormClasses.actions}>
