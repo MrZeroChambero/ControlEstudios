@@ -99,6 +99,10 @@ export const listarHorarios = async ({
     setIsLoading?.(true);
     const params = new URLSearchParams();
 
+    if (filtros.fk_anio_escolar) {
+      params.append("fk_anio_escolar", filtros.fk_anio_escolar);
+    }
+
     if (filtros.fk_aula) {
       params.append("fk_aula", filtros.fk_aula);
     }
@@ -115,23 +119,17 @@ export const listarHorarios = async ({
       params.append("fk_personal", filtros.fk_personal);
     }
 
-    if (filtros.fk_momento) {
-      params.append("fk_momento", filtros.fk_momento);
-    }
-
-    if (filtros.fk_componente) {
-      params.append("fk_componente", filtros.fk_componente);
-    }
     if (filtros.dia_semana) {
       params.append("dia_semana", filtros.dia_semana);
     }
 
-    const { data } = await axios.get(
-      `${HORARIOS_URL}${params.toString() ? `?${params.toString()}` : ""}`,
-      {
-        withCredentials: true,
-      }
-    );
+    const url = `${HORARIOS_URL}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+    console.debug("[Horarios] GET", url, filtros);
+    const { data } = await axios.get(url, {
+      withCredentials: true,
+    });
 
     const compat = compatRespuesta(data, mensajeFallo);
 
@@ -143,6 +141,7 @@ export const listarHorarios = async ({
       return registros;
     }
 
+    console.error("[Horarios] respuesta no satisfactoria", { compat, data });
     const mensajeServidor = construirMensajeServidor(
       compat,
       mensajeFallo,
@@ -276,14 +275,13 @@ export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
       params.append("fk_aula", filtros.fk_aula);
     }
 
-    const { data } = await axios.get(
-      `${HORARIOS_URL}/catalogos${
-        params.toString() ? `?${params.toString()}` : ""
-      }`,
-      {
-        withCredentials: true,
-      }
-    );
+    const url = `${HORARIOS_URL}/catalogos${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+    console.debug("[Horarios] GET", url, filtros);
+    const { data } = await axios.get(url, {
+      withCredentials: true,
+    });
 
     const compat = compatRespuesta(data, mensajeFallo);
 
@@ -292,6 +290,7 @@ export const obtenerCatalogosHorarios = async ({ filtros = {}, Swal }) => {
       return registros;
     }
 
+    console.error("[Horarios] catalogos no satisfactoria", { compat, data });
     const mensajeServidor = construirMensajeServidor(
       compat,
       mensajeFallo,

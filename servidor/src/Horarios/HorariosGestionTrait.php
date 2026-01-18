@@ -23,6 +23,7 @@ trait HorariosGestionTrait
     $catalogos = [
       'aulas' => $this->consultarCatalogoAulas($conexion, $anioId),
       'momentos' => $this->consultarCatalogoMomentos($conexion, $anioId),
+      'anios' => $this->consultarCatalogoAnios($conexion),
     ];
 
     if ($aulaId !== null && $aulaId > 0) {
@@ -298,10 +299,14 @@ trait HorariosGestionTrait
     $registros = $this->ejecutarConsulta($conexion, $sql, $parametros);
 
     return array_map(function (array $fila) {
+      // Mantener compatibilidad: devolver tanto 'codigo' como 'nombre_momento'
+      // y un alias 'nombre' para facilitar el consumo desde el frontend.
       return [
         'id' => (int) $fila['id_momento'],
         'anio_escolar' => (int) $fila['fk_anio_escolar'],
         'codigo' => $fila['nombre_momento'],
+        'nombre_momento' => $fila['nombre_momento'],
+        'nombre' => $fila['nombre_momento'],
         'estado' => $fila['estado_momento'],
         'fecha_inicio' => $fila['fecha_inicio'],
         'fecha_fin' => $fila['fecha_fin'],
@@ -360,6 +365,33 @@ trait HorariosGestionTrait
         'especialista' => $fila['especialista'],
         'personal_ids' => $normalizarLista($fila['personal_ids'] ?? null),
         'momento_ids' => $normalizarLista($fila['momento_ids'] ?? null),
+      ];
+    }, $registros);
+  }
+
+  protected function consultarCatalogoAnios(PDO $conexion): array
+  {
+    $sql = 'SELECT id_anio_escolar, fecha_inicio, fecha_fin, estado FROM anios_escolares ORDER BY fecha_inicio DESC';
+    $registros = $this->ejecutarConsulta($conexion, $sql);
+
+    return array_map(function (array $fila) {
+      $fechaInicio = $fila['fecha_inicio'] ?? null;
+      $fechaFin = $fila['fecha_fin'] ?? null;
+      $anioInicio = $fechaInicio ? (int) date('Y', strtotime($fechaInicio)) : null;
+      $anioFin = $fechaFin ? (int) date('Y', strtotime($fechaFin)) : null;
+      $etiqueta = null;
+      if ($anioInicio !== null && $anioFin !== null) {
+        $etiqueta = sprintf('%d - %d', $anioInicio, $anioFin);
+      }
+
+      return [
+        'id' => (int) $fila['id_anio_escolar'],
+        'fecha_inicio' => $fechaInicio,
+        'fecha_fin' => $fechaFin,
+        'anio_inicio' => $anioInicio,
+        'anio_fin' => $anioFin,
+        'etiqueta' => $etiqueta,
+        'estado' => $fila['estado'] ?? null,
       ];
     }, $registros);
   }

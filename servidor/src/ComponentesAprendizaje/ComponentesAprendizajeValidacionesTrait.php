@@ -17,6 +17,7 @@ trait ComponentesAprendizajeValidacionesTrait
       'especialista' => $this->normalizarTipoDocente($datos['especialista'] ?? null),
       'evalua' => $datos['evalua'] ?? 'no',
       'estado_componente' => $datos['estado_componente'] ?? 'activo',
+      'grupo' => $datos['grupo'] ?? 'Completo',
     ];
 
     $validador = new Validator($datosDepurados);
@@ -26,6 +27,7 @@ trait ComponentesAprendizajeValidacionesTrait
       'especialista' => 'tipo de docente responsable',
       'evalua' => 'indicador de evaluación',
       'estado_componente' => 'estado del componente',
+      'grupo' => 'tipo de grupo',
     ]);
 
     $validador->rule('required', ['fk_area', 'nombre_componente', 'especialista', 'evalua']);
@@ -34,6 +36,7 @@ trait ComponentesAprendizajeValidacionesTrait
     $validador->rule('lengthBetween', 'nombre_componente', 3, 100);
     $validador->rule('in', 'evalua', ['si', 'no']);
     $validador->rule('in', 'estado_componente', ['activo', 'inactivo']);
+    $validador->rule('in', 'grupo', ['Completo', 'Sub Grupo']);
     $validador->rule('in', 'especialista', self::TIPOS_DOCENTE_PERMITIDOS)
       ->message('debe ser Docente de aula, Docente especialista o Docente de cultura.');
 

@@ -14,6 +14,7 @@ trait ComponentesAprendizajeGestionTrait
       'especialista' => $this->normalizarTipoDocente($datos['especialista'] ?? null),
       'evalua' => $datos['evalua'] ?? 'no',
       'estado_componente' => 'activo',
+      'grupo' => $datos['grupo'] ?? 'Completo',
     ];
 
     $errores = $this->validarDatos($conexion, $datosDepurados);
@@ -21,8 +22,8 @@ trait ComponentesAprendizajeGestionTrait
       return ['errores' => $errores];
     }
 
-    $sql = 'INSERT INTO componentes_aprendizaje (fk_area, nombre_componente, especialista, evalua, estado_componente)
-                VALUES (?, ?, ?, ?, ?)';
+    $sql = 'INSERT INTO componentes_aprendizaje (fk_area, nombre_componente, especialista, evalua, estado_componente, grupo)
+                VALUES (?, ?, ?, ?, ?, ?)';
 
     $exito = $this->ejecutarAccion($conexion, $sql, [
       $datosDepurados['fk_area'],
@@ -30,6 +31,7 @@ trait ComponentesAprendizajeGestionTrait
       $datosDepurados['especialista'],
       $datosDepurados['evalua'],
       $datosDepurados['estado_componente'],
+      $datosDepurados['grupo'],
     ]);
 
     if (!$exito) {
@@ -62,6 +64,7 @@ trait ComponentesAprendizajeGestionTrait
         : $this->normalizarTipoDocente($actual['especialista']),
       'evalua' => array_key_exists('evalua', $datos) ? $datos['evalua'] : $actual['evalua'],
       'estado_componente' => $actual['estado_componente'],
+      'grupo' => array_key_exists('grupo', $datos) ? $datos['grupo'] : $actual['grupo'],
     ];
 
     $errores = $this->validarDatos($conexion, $datosFusionados, $idComponente);
@@ -70,7 +73,7 @@ trait ComponentesAprendizajeGestionTrait
     }
 
     $sql = 'UPDATE componentes_aprendizaje
-                SET fk_area = ?, nombre_componente = ?, especialista = ?, evalua = ?, estado_componente = ?
+                SET fk_area = ?, nombre_componente = ?, especialista = ?, evalua = ?, estado_componente = ?, grupo = ?
                 WHERE id_componente = ?';
 
     $exito = $this->ejecutarAccion($conexion, $sql, [
@@ -79,6 +82,7 @@ trait ComponentesAprendizajeGestionTrait
       $datosFusionados['especialista'],
       $datosFusionados['evalua'],
       $datosFusionados['estado_componente'],
+      $datosFusionados['grupo'],
       $idComponente,
     ]);
 

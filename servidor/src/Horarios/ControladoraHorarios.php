@@ -23,6 +23,7 @@ class ControladoraHorarios
       $modelo = new Horarios();
 
       $criterios = [
+        'fk_anio_escolar' => isset($_GET['fk_anio_escolar']) ? (int) $_GET['fk_anio_escolar'] : null,
         'fk_aula' => isset($_GET['fk_aula']) ? (int) $_GET['fk_aula'] : null,
         'fk_momento' => isset($_GET['fk_momento']) ? (int) $_GET['fk_momento'] : null,
         'dia_semana' => isset($_GET['dia_semana']) ? strtolower((string) $_GET['dia_semana']) : null,
@@ -33,6 +34,11 @@ class ControladoraHorarios
     } catch (Exception | PDOException $excepcion) {
       RespuestaJson::error('No fue posible listar los horarios.', 500, null, $excepcion);
     }
+  }
+
+  public function filtrarHorarios(): void
+  {
+    $this->listar();
   }
 
   public function catalogos(): void

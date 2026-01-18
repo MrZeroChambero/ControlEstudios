@@ -1,3 +1,22 @@
+// Formatea la etiqueta de año escolar usando fechas de inicio y fin
+export const formatearAnioEscolarEtiqueta = (inicio, fin) => {
+  const obtenerAnioDesdeFecha = (valor) => {
+    if (!valor) return null;
+    const fecha = new Date(valor);
+    if (Number.isNaN(fecha.getTime())) return null;
+    return fecha.getUTCFullYear();
+  };
+  const anioInicio = obtenerAnioDesdeFecha(inicio);
+  const anioFin = obtenerAnioDesdeFecha(fin);
+  if (anioInicio && anioFin) {
+    return anioInicio === anioFin
+      ? `${anioInicio}`
+      : `${anioInicio} - ${anioFin}`;
+  }
+  if (anioInicio) return `${anioInicio}`;
+  if (anioFin) return `${anioFin}`;
+  return "Sin definir";
+};
 import { diasSemanaOrdenados, diasSemanaEtiquetas } from "./constantesHorarios";
 import { diasSemanaOpciones } from "./constantesHorarios";
 import {
@@ -74,6 +93,7 @@ export const crearFormularioInicial = () => ({
 export const crearCatalogosIniciales = () => ({
   aulas: [],
   momentos: [],
+  anios: [],
   componentes: [],
   personal: [],
   estudiantes: [],

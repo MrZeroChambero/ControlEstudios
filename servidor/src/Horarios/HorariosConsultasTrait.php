@@ -69,6 +69,11 @@ trait HorariosConsultasTrait
     $parametros = [];
     $filtros = [];
 
+    if (!empty($criterios['fk_anio_escolar'])) {
+      $filtros[] = 'a.fk_anio_escolar = ?';
+      $parametros[] = (int) $criterios['fk_anio_escolar'];
+    }
+
     if (!empty($criterios['fk_aula'])) {
       $filtros[] = 'h.fk_aula = ?';
       $parametros[] = (int) $criterios['fk_aula'];

@@ -23,29 +23,34 @@ const TablaDocentesSeccion = ({ bloques = [], bloquesConfig }) => {
   }
 
   return (
-    <div className={tablaDocentesSeccionClases.wrapper}>
-      <table className={tablaDocentesSeccionClases.table}>
+    <div className={tablaDocentesSeccionClases.envoltorio}>
+      <table className={tablaDocentesSeccionClases.tabla}>
         <thead>
-          <tr className={tablaDocentesSeccionClases.headRow}>
-            <th className={tablaDocentesSeccionClases.headCell}>
+          <tr className={tablaDocentesSeccionClases.filaEncabezado}>
+            <th className={tablaDocentesSeccionClases.celdaEncabezado}>
               Docente / Especialista
             </th>
-            <th className={tablaDocentesSeccionClases.headCell}>Función</th>
-            <th className={tablaDocentesSeccionClases.headCell}>
+            <th className={tablaDocentesSeccionClases.celdaEncabezado}>
+              Función
+            </th>
+            <th className={tablaDocentesSeccionClases.celdaEncabezado}>
               Componentes asignados
             </th>
           </tr>
         </thead>
         <tbody>
           {docentes.map((docente) => (
-            <tr key={docente.id} className={tablaDocentesSeccionClases.bodyRow}>
-              <td className={tablaDocentesSeccionClases.cellStrong}>
+            <tr
+              key={docente.id}
+              className={tablaDocentesSeccionClases.filaCuerpo}
+            >
+              <td className={tablaDocentesSeccionClases.celdaFuerte}>
                 {docente.nombre}
               </td>
-              <td className={tablaDocentesSeccionClases.cell}>
+              <td className={tablaDocentesSeccionClases.celda}>
                 {docente.funcion}
               </td>
-              <td className={tablaDocentesSeccionClases.cell}>
+              <td className={tablaDocentesSeccionClases.celda}>
                 {docente.componentes.length > 0
                   ? docente.componentes.join(", ")
                   : "Sin componentes registrados"}

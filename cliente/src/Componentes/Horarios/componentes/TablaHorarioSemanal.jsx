@@ -10,7 +10,7 @@ import {
 } from "../config/bloquesHorario";
 import { tablaHorarioSemanalClases } from "./horariosEstilos";
 
-const BLOQUES_COLSPAN = new Set(["01", "02", "07", "11"]);
+const BLOQUES_COLSPAN = new Set(["01", "02", "06", "11"]);
 
 const obtenerCodigoDesdeRegistro = (registro, bloquesConfig) =>
   registro?.codigo_bloque ??
@@ -61,6 +61,7 @@ const renderBloqueAcademico = ({
   indice,
   renderContenidoBloque,
   renderAcciones,
+  esEspecialista,
 }) => {
   const contenidoPersonalizado =
     typeof renderContenidoBloque === "function"
@@ -71,14 +72,26 @@ const renderBloqueAcademico = ({
         })
       : null;
 
+  const esRecesoEspecialista = esEspecialista && codigo === "06";
+
   return (
     <div
       key={`${bloque?.id_horario ?? indice}-${codigo}-${dia}`}
-      className={tablaHorarioSemanalClases.bloqueCard}
+      className={tablaHorarioSemanalClases.tarjetaBloque}
     >
-      {contenidoPersonalizado ?? bloque?.nombre_componente ?? "Sin componente"}
+      {esRecesoEspecialista ? (
+        <>
+          <p className="text-sm font-semibold text-slate-800">
+            {bloque?.nombre_componente ?? "Sin componente"}
+          </p>
+          <hr className="my-1 border-slate-300" />
+          <p className="text-xs text-slate-500">Recreo</p>
+        </>
+      ) : (
+        contenidoPersonalizado ?? bloque?.nombre_componente ?? "Sin componente"
+      )}
       {typeof renderAcciones === "function" ? (
-        <div className={tablaHorarioSemanalClases.accionesWrapper}>
+        <div className={tablaHorarioSemanalClases.envoltorioAcciones}>
           {renderAcciones(bloque)}
         </div>
       ) : null}
@@ -92,6 +105,7 @@ const renderCeldaDia = ({
   clasesAgrupadas,
   renderContenidoBloque,
   renderAcciones,
+  esEspecialista,
 }) => {
   const codigo = bloqueConfig.codigo;
   const clases = clasesAgrupadas[dia]?.[codigo] ?? [];
@@ -100,9 +114,11 @@ const renderCeldaDia = ({
     return (
       <td
         key={`${dia}-${codigo}`}
-        className={tablaHorarioSemanalClases.bloqueCell}
+        className={tablaHorarioSemanalClases.celdaBloque}
       >
-        <div className={tablaHorarioSemanalClases.bloqueVacioCard}>Vacio</div>
+        <div className={tablaHorarioSemanalClases.tarjetaBloqueVacio}>
+          Vacio
+        </div>
       </td>
     );
   }
@@ -110,7 +126,7 @@ const renderCeldaDia = ({
   return (
     <td
       key={`${dia}-${codigo}`}
-      className={tablaHorarioSemanalClases.bloqueCell}
+      className={tablaHorarioSemanalClases.celdaBloque}
     >
       <div className="space-y-2">
         {clases.map((bloque, indice) =>
@@ -121,6 +137,7 @@ const renderCeldaDia = ({
             indice,
             renderContenidoBloque,
             renderAcciones,
+            esEspecialista,
           })
         )}
       </div>
@@ -158,6 +175,7 @@ const FilaBloqueHorario = ({
   rutinasAgrupadas,
   renderContenidoBloque,
   renderAcciones,
+  esEspecialista,
 }) => {
   const duracionTexto =
     bloque.duracion !== undefined ? `${bloque.duracion} min` : "-";
@@ -166,15 +184,19 @@ const FilaBloqueHorario = ({
 
   return (
     <tr className="text-sm text-slate-700">
-      <td className={tablaHorarioSemanalClases.horarioCell}>{bloque.inicio}</td>
-      <td className={tablaHorarioSemanalClases.horarioCell}>{bloque.fin}</td>
-      <td className={tablaHorarioSemanalClases.horarioCell}>{duracionTexto}</td>
+      <td className={tablaHorarioSemanalClases.celdaHorario}>
+        {bloque.inicio}
+      </td>
+      <td className={tablaHorarioSemanalClases.celdaHorario}>{bloque.fin}</td>
+      <td className={tablaHorarioSemanalClases.celdaHorario}>
+        {duracionTexto}
+      </td>
       {debeColspan ? (
         <td
           colSpan={diasSemanaOrdenados.length}
-          className={tablaHorarioSemanalClases.bloqueCell}
+          className={tablaHorarioSemanalClases.celdaBloque}
         >
-          <div className={tablaHorarioSemanalClases.rutinaCard}>
+          <div className={tablaHorarioSemanalClases.tarjetaRutina}>
             {obtenerContenidoRutina(bloque, rutinasAgrupadas)}
           </div>
         </td>
@@ -186,6 +208,7 @@ const FilaBloqueHorario = ({
             clasesAgrupadas,
             renderContenidoBloque,
             renderAcciones,
+            esEspecialista,
           })
         )
       )}
@@ -197,13 +220,17 @@ const TablaHorarioSemanal = ({
   bloques = [],
   bloquesFijos = [],
   bloquesConfig,
+  esEspecialista = false,
   emptyMessage = "Sin bloques registrados para esta seccion.",
   renderAcciones,
   renderContenidoBloque,
 }) => {
   const bloquesBase = useMemo(
-    () => bloquesConfig || BLOQUES_HORARIO_BASE,
-    [bloquesConfig]
+    () =>
+      (bloquesConfig || BLOQUES_HORARIO_BASE).filter(
+        (b) => !esEspecialista || b.codigo !== "06"
+      ),
+    [bloquesConfig, esEspecialista]
   );
 
   const clasesAgrupadas = useMemo(
@@ -235,15 +262,22 @@ const TablaHorarioSemanal = ({
   }
 
   return (
-    <div className={tablaHorarioSemanalClases.wrapper}>
-      <table className={tablaHorarioSemanalClases.table}>
+    <div className={tablaHorarioSemanalClases.envoltorio}>
+      <table className={tablaHorarioSemanalClases.tabla}>
         <thead>
-          <tr className={tablaHorarioSemanalClases.headRow}>
-            <th className={tablaHorarioSemanalClases.headCell}>Inicio</th>
-            <th className={tablaHorarioSemanalClases.headCell}>Fin</th>
-            <th className={tablaHorarioSemanalClases.headCell}>Duracion</th>
+          <tr className={tablaHorarioSemanalClases.filaEncabezado}>
+            <th className={tablaHorarioSemanalClases.celdaEncabezado}>
+              Inicio
+            </th>
+            <th className={tablaHorarioSemanalClases.celdaEncabezado}>Fin</th>
+            <th className={tablaHorarioSemanalClases.celdaEncabezado}>
+              Duracion
+            </th>
             {diasSemanaOrdenados.map((dia) => (
-              <th key={dia} className={tablaHorarioSemanalClases.headCell}>
+              <th
+                key={dia}
+                className={tablaHorarioSemanalClases.celdaEncabezado}
+              >
                 {diasSemanaEtiquetas[dia]}
               </th>
             ))}
@@ -258,6 +292,7 @@ const TablaHorarioSemanal = ({
               rutinasAgrupadas={rutinasAgrupadas}
               renderContenidoBloque={renderContenidoBloque}
               renderAcciones={renderAcciones}
+              esEspecialista={esEspecialista}
             />
           ))}
         </tbody>

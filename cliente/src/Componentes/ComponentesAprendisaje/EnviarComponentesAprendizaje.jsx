@@ -23,11 +23,12 @@ export const enviarComponenteAprendizaje = async ({
   closeModal,
   Swal,
 }) => {
-  const payload = {
+  const DatosFormulario = {
     fk_area: formData.fk_area ? Number(formData.fk_area) : null,
     nombre_componente: formData.nombre_componente.trim().replace(/\s+/g, " "),
     especialista: formData.especialista.trim().replace(/\s+/g, " "),
     evalua: formData.evalua,
+    grupo: formData.grupo,
   };
 
   try {
@@ -36,7 +37,7 @@ export const enviarComponenteAprendizaje = async ({
       : API_URL;
     const metodo = currentComponente ? axios.put : axios.post;
 
-    const response = await metodo(url, payload, { withCredentials: true });
+    const response = await metodo(url, DatosFormulario, { withCredentials: true });
     const compat = normalizarRespuesta(
       asegurarCompatibilidad(response.data),
       currentComponente
@@ -81,3 +82,5 @@ export const enviarComponenteAprendizaje = async ({
     Swal.fire("Error", compat.message, "error");
   }
 };
+
+

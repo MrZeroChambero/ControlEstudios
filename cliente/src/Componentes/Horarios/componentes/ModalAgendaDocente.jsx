@@ -1,13 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { FaEye, FaTrash } from "react-icons/fa";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
+import TablaDocentesSeccion from "./TablaDocentesSeccion";
 import { filtrarBloquesClase } from "../config/bloquesHorario";
-import {
-  horariosIconClasses,
-  horariosStatusClasses,
-  horariosTableClasses,
-} from "../../EstilosCliente/EstilosClientes";
 import { agendaDocenteClases } from "./horariosEstilos";
 
 /**
@@ -37,17 +33,13 @@ const formatearEtiquetaSeccion = (grado, seccion) => {
 
 /**
  * @param {Record<string, any>} bloque
- * @param {{ duracionMin: number | null, horaInicioTexto: string, horaFinTexto: string }} contexto
  * @returns {ReactNode}
  */
-const renderContenidoDocente = (bloque, contexto) => {
+const renderContenidoDocente = (bloque) => {
   const etiquetaSeccion = formatearEtiquetaSeccion(
     bloque?.grado,
     bloque?.seccion
   );
-  const momentoTexto = bloque?.nombre_momento || bloque?.momento || "-";
-  const aulaTexto =
-    bloque?.nombre_aula || bloque?.aula || bloque?.nombre_grado || null;
 
   return (
     <>
@@ -59,85 +51,112 @@ const renderContenidoDocente = (bloque, contexto) => {
           {`Sección: ${etiquetaSeccion}`}
         </p>
       ) : null}
-      <p className="mt-1 text-xs font-medium text-slate-500">
-        {`Inicio: ${contexto.horaInicioTexto} - Fin: ${contexto.horaFinTexto}`}
-      </p>
-      {contexto.duracionMin !== null ? (
-        <p className="text-xs font-semibold text-slate-500">
-          {`Duración: ${contexto.duracionMin} min`}
-        </p>
-      ) : null}
-      <p className="mt-1 text-xs text-slate-500">
-        {`Momento: ${momentoTexto}`}
-      </p>
-      {aulaTexto ? (
-        <p className="text-xs text-slate-500">{`Aula: ${aulaTexto}`}</p>
-      ) : null}
-      <div className="mt-2 flex justify-center">
-        <span
-          className={`${horariosStatusClasses.base} ${
-            bloque?.grupo === "completo"
-              ? horariosStatusClasses.completo
-              : horariosStatusClasses.subgrupo
-          }`}
-        >
-          {bloque?.grupo ?? "N/D"}
-        </span>
-      </div>
     </>
   );
 };
 
-const crearRenderAcciones = (onVerDetalle, onEliminar) => {
-  if (!onVerDetalle && !onEliminar) {
-    return null;
-  }
+const ModalAgendaDocente = ({ abierto, alCerrar, docente, bloquesConfig }) => {
+  const [usarDatosEjemplo, setUsarDatosEjemplo] = useState(false);
+  const [tipoDocente, setTipoDocente] = useState("aula"); // 'aula' o 'especialista'
 
-  return (bloque) => (
-    <div className="flex gap-2">
-      {onVerDetalle ? (
-        <button
-          type="button"
-          className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
-          onClick={() => onVerDetalle(bloque)}
-          title="Ver detalle del horario"
-        >
-          <FaEye className={horariosIconClasses.base} />
-        </button>
-      ) : null}
-      {onEliminar ? (
-        <button
-          type="button"
-          className={`${horariosTableClasses.actionButton} ${horariosTableClasses.deleteButton}`}
-          onClick={() => onEliminar(bloque)}
-          title="Eliminar horario"
-        >
-          <FaTrash className={horariosIconClasses.base} />
-        </button>
-      ) : null}
-    </div>
-  );
-};
+  // const renderAcciones = useMemo(
+  //   () => crearRenderAcciones(onVerDetalle, onEliminar),
+  //   [onVerDetalle, onEliminar]
+  // );
+  const renderAcciones = null;
 
-const ModalAgendaDocente = ({
-  abierto,
-  alCerrar,
-  docente,
-  onVerDetalle,
-  onEliminar,
-  bloquesConfig,
-}) => {
-  const renderAcciones = useMemo(
-    () => crearRenderAcciones(onVerDetalle, onEliminar),
-    [onVerDetalle, onEliminar]
+  const docenteConEjemplo = useMemo(
+    () =>
+      usarDatosEjemplo && docente
+        ? {
+            ...docente,
+            funcion:
+              tipoDocente === "especialista" ? "Especialista" : "Docente",
+            horarios: (() => {
+              const dias = [
+                "lunes",
+                "martes",
+                "miercoles",
+                "jueves",
+                "viernes",
+              ];
+              const bloquesClase = ["03", "04", "05", "07", "08", "09"];
+              const componentes =
+                tipoDocente === "especialista"
+                  ? [
+                      "Educación Física",
+                      "Arte",
+                      "Música",
+                      "Deportes",
+                      "Expresión Corporal",
+                      "Natación",
+                      "Danza",
+                    ]
+                  : [
+                      "Matemáticas",
+                      "Lenguaje",
+                      "Ciencias",
+                      "Historia",
+                      "Geografía",
+                      "Inglés",
+                      "Computación",
+                    ];
+              let idCounter = 1;
+              const horarios = [];
+              dias.forEach((dia, diaIndex) => {
+                bloquesClase.forEach((bloque, bloqueIndex) => {
+                  const bloqueInfo = {
+                    "03": { inicio: 7.67, fin: 8.33 },
+                    "04": { inicio: 8.33, fin: 9.0 },
+                    "05": { inicio: 9.0, fin: 9.67 },
+                    "07": { inicio: 10.0, fin: 10.67 },
+                    "08": { inicio: 10.67, fin: 11.33 },
+                    "09": { inicio: 11.33, fin: 12.0 },
+                  }[bloque];
+                  horarios.push({
+                    id_horario: idCounter++,
+                    fk_aula: diaIndex + 1,
+                    fk_momento: 1,
+                    fk_componente:
+                      ((bloqueIndex + diaIndex * bloquesClase.length) %
+                        componentes.length) +
+                      1,
+                    fk_personal: docente.id_personal,
+                    grupo: "completo",
+                    dia_semana: dia,
+                    hora_inicio: bloqueInfo.inicio,
+                    hora_fin: bloqueInfo.fin,
+                    nombre_componente:
+                      componentes[
+                        (bloqueIndex + diaIndex * bloquesClase.length) %
+                          componentes.length
+                      ],
+                    grado: Math.floor(diaIndex / 2) + 1,
+                    seccion: String.fromCharCode(65 + (diaIndex % 2)), // A o B
+                    nombre_momento: "Primer Trimestre",
+                    estudiantes: [],
+                  });
+                });
+              });
+              return horarios;
+            })(),
+          }
+        : docente,
+    [usarDatosEjemplo, docente, tipoDocente]
   );
+
+  const esEspecialista = docenteConEjemplo?.funcion
+    ?.toLowerCase()
+    .includes("especialista");
+
+  const bloquesConfigFiltrados = useMemo(() => bloquesConfig, [bloquesConfig]);
 
   const horariosFiltrados = useMemo(
     () =>
-      docente?.horarios
-        ? filtrarBloquesClase(docente.horarios, bloquesConfig)
+      docenteConEjemplo?.horarios
+        ? filtrarBloquesClase(docenteConEjemplo.horarios, bloquesConfig)
         : [],
-    [docente, bloquesConfig]
+    [docenteConEjemplo, bloquesConfig]
   );
 
   return (
@@ -148,37 +167,76 @@ const ModalAgendaDocente = ({
       size="xl"
       bodyClassName="space-y-5"
     >
-      {docente ? (
+      <div className="flex justify-end gap-2 mb-4">
+        <select
+          value={tipoDocente}
+          onChange={(e) => setTipoDocente(e.target.value)}
+          className="rounded-2xl border border-slate-200 px-3 py-2 text-sm"
+        >
+          <option value="aula">Docente de Aula</option>
+          <option value="especialista">Especialista</option>
+        </select>
+        <button
+          type="button"
+          className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition focus:outline-none focus:ring-4 ${
+            usarDatosEjemplo
+              ? "bg-red-600 hover:bg-red-700 focus:ring-red-300/60"
+              : "bg-green-600 hover:bg-green-700 focus:ring-green-300/60"
+          }`}
+          onClick={() => setUsarDatosEjemplo(!usarDatosEjemplo)}
+        >
+          {usarDatosEjemplo
+            ? "Desactivar datos de ejemplo"
+            : "Activar datos de ejemplo"}
+        </button>
+      </div>
+      {docenteConEjemplo ? (
         <>
-          <div className={agendaDocenteClases.infoCard}>
+          <div className={agendaDocenteClases.tarjetaInformacion}>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <div className={agendaDocenteClases.infoItem}>
-                <span className={agendaDocenteClases.infoLabel}>Docente:</span>
-                <span>{docente.nombre}</span>
+              <div className={agendaDocenteClases.elementoInformacion}>
+                <span className={agendaDocenteClases.etiquetaInformacion}>
+                  Docente:
+                </span>
+                <span>{docenteConEjemplo.nombre}</span>
               </div>
-              <div className={agendaDocenteClases.infoItem}>
-                <span className={agendaDocenteClases.infoLabel}>Función:</span>
-                <span>{docente.funcion}</span>
+              <div className={agendaDocenteClases.elementoInformacion}>
+                <span className={agendaDocenteClases.etiquetaInformacion}>
+                  Función:
+                </span>
+                <span>{docenteConEjemplo.funcion}</span>
               </div>
-              <div className={agendaDocenteClases.infoItem}>
-                <span className={agendaDocenteClases.infoLabel}>
+              <div className={agendaDocenteClases.elementoInformacion}>
+                <span className={agendaDocenteClases.etiquetaInformacion}>
                   Componentes:
                 </span>
-                <span>{docente.componentesTexto}</span>
+                <span>{docenteConEjemplo.componentesTexto}</span>
               </div>
-              <div className={agendaDocenteClases.infoItem}>
-                <span className={agendaDocenteClases.infoLabel}>Momentos:</span>
-                <span>{docente.momentosTexto}</span>
+              <div className={agendaDocenteClases.elementoInformacion}>
+                <span className={agendaDocenteClases.etiquetaInformacion}>
+                  Momentos:
+                </span>
+                <span>{docenteConEjemplo.momentosTexto}</span>
               </div>
             </div>
           </div>
           <TablaHorarioSemanal
             bloques={horariosFiltrados}
-            bloquesConfig={bloquesConfig}
+            bloquesConfig={bloquesConfigFiltrados}
+            esEspecialista={esEspecialista}
             emptyMessage="Sin clases registradas para este docente."
             renderAcciones={renderAcciones || undefined}
             renderContenidoBloque={renderContenidoDocente}
           />
+          <section className="space-y-3">
+            <h4 className="text-sm font-semibold text-slate-700">
+              Componentes impartidos
+            </h4>
+            <TablaDocentesSeccion
+              bloques={horariosFiltrados}
+              bloquesConfig={bloquesConfig}
+            />
+          </section>
         </>
       ) : null}
     </VentanaModal>

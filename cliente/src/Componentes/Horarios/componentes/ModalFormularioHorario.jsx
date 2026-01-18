@@ -120,7 +120,8 @@ const construirDescripcionMomento = (momento) => {
   }
 
   const codigo = obtenerNombreMomento(momento);
-  return `Momento escolar activo: ${codigo} (${rango})`;
+  const anio = momento.anio_escolar || "Sin año";
+  return `Año escolar ${anio} - Momento: ${codigo} (${rango})`;
 };
 
 const ModalFormularioHorario = ({

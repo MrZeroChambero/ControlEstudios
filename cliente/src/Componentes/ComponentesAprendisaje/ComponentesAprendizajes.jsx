@@ -22,7 +22,7 @@ const defaultFormulario = {
   nombre_componente: "",
   especialista: "",
   evalua: "no",
-  grupo: "Sin asignar",
+  grupo: "Completo",
 };
 
 const formatearErrores = (errores) => {

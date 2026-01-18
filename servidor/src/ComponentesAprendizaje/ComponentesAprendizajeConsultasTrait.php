@@ -73,7 +73,7 @@ trait ComponentesAprendizajeConsultasTrait
     $sql = "SELECT id_componente AS id,
                        nombre_componente AS nombre,
                        fk_area,
-                       grupo,
+                       grupo
                 FROM componentes_aprendizaje
                 WHERE estado_componente = 'activo'
                 ORDER BY nombre_componente";

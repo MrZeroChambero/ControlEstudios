@@ -6,11 +6,14 @@ import React, {
   useState,
 } from "react";
 import Swal from "sweetalert2";
-import { FaPlus } from "react-icons/fa";
-import { horariosLayout } from "../EstilosCliente/EstilosClientes";
+import { FaPlus, FaEye } from "react-icons/fa";
+import {
+  horariosLayout,
+  horariosIconClasses,
+  horariosTableClasses,
+} from "../EstilosCliente/EstilosClientes";
+import { TablaEntradas } from "../Tablas/Tablas";
 import BarraBusquedaHorarios from "./componentes/BarraBusquedaHorarios";
-import TablaHorariosAulas from "./componentes/TablaHorariosAulas";
-import TablaHorariosDocentes from "./componentes/TablaHorariosDocentes";
 import ModalCalendarioAula from "./componentes/ModalCalendarioAula";
 import ModalAgendaDocente from "./componentes/ModalAgendaDocente";
 import ModalFormularioHorario from "./componentes/ModalFormularioHorario";
@@ -159,7 +162,59 @@ export const Horarios = () => {
   const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
   const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
   const [bloquesHorario, setBloquesHorario] = useState([]);
+  const [MostrarGeneral, setMostrarGeneral] = useState(true);
   const consultaHorariosRef = useRef(0);
+
+  const [anioFiltro, setAnioFiltro] = useState(null);
+  const [momentoFiltro, setMomentoFiltro] = useState(null);
+
+  const ResumenAula = ({ registro }) => (
+    <div className="flex flex-col text-left text-sm text-slate-700">
+      <p className="font-semibold text-slate-900">
+        {`Grado ${registro.grado ?? "?"} - Sección ${registro.seccion ?? "?"}`}
+      </p>
+      <p className="text-xs text-slate-500">
+        {registro.momento || "Momento sin definir"}
+      </p>
+    </div>
+  );
+
+  const DocenteResumen = ({ docente }) => (
+    <div className="flex flex-col gap-2 text-left">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-800">{docente.nombre}</p>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          {docente.funcion}
+        </span>
+      </div>
+      <div className="space-y-1 text-xs text-slate-500">
+        <p>
+          <span className="font-semibold text-slate-600">Componentes:</span>{" "}
+          {docente.componentesTexto}
+        </p>
+        <p>
+          <span className="font-semibold text-slate-600">Momentos:</span>{" "}
+          {docente.momentosTexto}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {Array.isArray(docente.secciones) && docente.secciones.length > 0 ? (
+          docente.secciones.map((seccion) => (
+            <span
+              key={seccion}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+            >
+              {seccion}
+            </span>
+          ))
+        ) : (
+          <span className="text-xs text-slate-400">
+            Sin secciones registradas
+          </span>
+        )}
+      </div>
+    </div>
+  );
 
   const abrirModalSeccion = useCallback((registro) => {
     setSeccionSeleccionada(registro);
@@ -216,8 +271,8 @@ export const Horarios = () => {
     [catalogos.aulas]
   );
 
-  const refrescar = useCallback(async () => {
-    await listarHorarios({ setHorarios, setIsLoading, Swal });
+  const refrescar = useCallback(async (filtros = {}) => {
+    await listarHorarios({ filtros, setHorarios, setIsLoading, Swal });
   }, []);
 
   const cargarBloquesHorario = useCallback(async () => {
@@ -228,32 +283,113 @@ export const Horarios = () => {
   }, []);
 
   useEffect(() => {
+    // carga inicial sin filtros (refrescar() maneja filtros opcionales)
     refrescar();
   }, [refrescar]);
+
+  // Reconsultar horarios en el servidor cuando el usuario cambie año o momento
+  useEffect(() => {
+    const filtros = {};
+    if (anioFiltro) {
+      filtros.fk_anio_escolar = anioFiltro;
+    }
+    if (momentoFiltro) {
+      filtros.fk_momento = momentoFiltro;
+    }
+
+    // Si no hay filtros, dejamos la consulta inicial (sin filtros)
+    refrescar(Object.keys(filtros).length ? filtros : {});
+  }, [anioFiltro, momentoFiltro, refrescar]);
 
   useEffect(() => {
     cargarBloquesHorario();
   }, [cargarBloquesHorario]);
 
+  // momentoActivoGlobal no se usa actualmente
+
+  const aniosEscolares = useMemo(() => {
+    const anios = Array.isArray(catalogos.anios) ? catalogos.anios : [];
+    return anios.map((a) => {
+      const id = a.id ?? a.id_anio_escolar ?? null;
+      const inicio = a.fecha_inicio ?? a.fechaInicio ?? a.inicio ?? null;
+      const fin = a.fecha_fin ?? a.fechaFin ?? a.fin ?? null;
+      return {
+        id,
+        etiqueta: formatearAnioEscolarEtiqueta(inicio, fin),
+        inicio,
+        fin,
+      };
+    });
+  }, [catalogos.anios]);
+
+  useEffect(() => {
+    if (aniosEscolares.length > 0 && anioFiltro === null) {
+      // seleccionar por defecto el año escolar activo (por id) si existe,
+      // sino el primer año disponible
+      const activo = aniosEscolares.find(
+        (a) =>
+          a.id &&
+          catalogos.anios.find(
+            (c) => (c.id ?? c.id_anio_escolar) === a.id && c.estado === "activo"
+          )
+      );
+      const seleccionado = activo ? activo.id : aniosEscolares[0].id;
+      setAnioFiltro(seleccionado ?? null);
+    }
+  }, [aniosEscolares, anioFiltro, catalogos.anios]);
+
+  const momentosFiltrados = useMemo(() => {
+    if (!anioFiltro) return catalogos.momentos;
+    return catalogos.momentos.filter((m) => {
+      const fkAnio = m.fk_anio_escolar ?? m.id_anio_escolar ?? null;
+      if (fkAnio !== null && String(fkAnio) === String(anioFiltro)) return true;
+      if (m.anio_escolar && String(m.anio_escolar) === String(anioFiltro))
+        return true;
+      return false;
+    });
+  }, [catalogos.momentos, anioFiltro]);
+
+  const momentoActivo = useMemo(() => {
+    return (
+      momentosFiltrados.find((m) => m.estado === "activo") ||
+      momentosFiltrados[0]
+    );
+  }, [momentosFiltrados]);
+
+  // useEffect(() => {
+  //   if (momentoActivo?.id && !momentoFiltro) {
+  //     setMomentoFiltro(momentoActivo.id);
+  //   }
+  // }, [momentoActivo, momentoFiltro]);
+
+  useEffect(() => {
+    setMomentoFiltro(null);
+  }, [anioFiltro]);
+
   const registrosFiltrados = useMemo(() => {
+    let filtrados = horarios;
+
+    // Filtro por búsqueda
     const termino = busqueda.trim().toLowerCase();
-    if (termino === "") {
-      return horarios;
+    if (termino !== "") {
+      filtrados = filtrados.filter((horario) => {
+        const docente = formatearDocente(horario).toLowerCase();
+        const componente = (horario.nombre_componente || "").toLowerCase();
+        const dia = (horario.dia_semana || "").toLowerCase();
+        const momento = (horario.nombre_momento || "").toLowerCase();
+        return (
+          docente.includes(termino) ||
+          componente.includes(termino) ||
+          dia.includes(termino) ||
+          momento.includes(termino)
+        );
+      });
     }
 
-    return horarios.filter((horario) => {
-      const docente = formatearDocente(horario).toLowerCase();
-      const componente = (horario.nombre_componente || "").toLowerCase();
-      const dia = (horario.dia_semana || "").toLowerCase();
-      const momento = (horario.nombre_momento || "").toLowerCase();
-      return (
-        docente.includes(termino) ||
-        componente.includes(termino) ||
-        dia.includes(termino) ||
-        momento.includes(termino)
-      );
-    });
-  }, [busqueda, horarios]);
+    // Eliminar filtros de año y momento (ya se aplican desde el backend)
+
+    return filtrados;
+  }, [horarios, busqueda]);
 
   const seccionesAgrupadas = useMemo(() => {
     const mapa = new Map();
@@ -555,13 +691,14 @@ export const Horarios = () => {
     [erroresFormulario]
   );
 
-  const cargarCatalogos = async (filtros = {}) => {
+  const cargarCatalogos = useCallback(async (filtros = {}) => {
     setCatalogosCargando(true);
     try {
       const datos = await obtenerCatalogosHorarios({ filtros, Swal });
       const normalizados = {
         aulas: Array.isArray(datos?.aulas) ? datos.aulas : [],
         momentos: Array.isArray(datos?.momentos) ? datos.momentos : [],
+        anios: Array.isArray(datos?.anios) ? datos.anios : [],
         componentes: Array.isArray(datos?.componentes) ? datos.componentes : [],
         personal: Array.isArray(datos?.personal) ? datos.personal : [],
         estudiantes: Array.isArray(datos?.estudiantes) ? datos.estudiantes : [],
@@ -569,14 +706,41 @@ export const Horarios = () => {
 
       setCatalogos(normalizados);
 
-      setFormulario((previo) => {
-        let modificado = false;
-        const actualizado = { ...previo };
+      // Preseleccionar momento activo si no hay uno seleccionado
+      const momentoActivo =
+        normalizados.momentos.find((m) => m.estado === "activo") ||
+        normalizados.momentos[0];
+      if (momentoActivo) {
+        // Preselección en formulario (si aplica)
+        setFormulario((prev) => {
+          if (prev && prev.fk_momento) {
+            return prev;
+          }
+          return {
+            ...prev,
+            fk_momento: momentoActivo.id ? String(momentoActivo.id) : "",
+          };
+        });
 
-        if (previo.fk_personal) {
+        // Establecer filtros por defecto para las tablas: año y momento activo,
+        // pero sin sobreescribir selecciones previas del usuario.
+        // const anioDesdeMomento = obtenerAnioDesdeMomento(momentoActivo);
+        // const idMomento = obtenerIdMomento(momentoActivo);
+        // if (anioDesdeMomento !== null) {
+        //   setAnioFiltro((prev) => (prev == null ? anioDesdeMomento : prev));
+        // }
+        // if (idMomento !== null) {
+        //   setMomentoFiltro((prev) => (prev == null ? idMomento : prev));
+        // }
+      }
+
+      setFormulario((prev) => {
+        let modificado = false;
+        const actualizado = { ...prev };
+
+        if (prev.fk_personal) {
           const docenteDisponible = normalizados.personal.some(
-            (docente) =>
-              docente.id?.toString() === previo.fk_personal.toString()
+            (docente) => docente.id?.toString() === prev.fk_personal.toString()
           );
 
           if (!docenteDisponible) {
@@ -586,9 +750,9 @@ export const Horarios = () => {
           }
         }
 
-        if (previo.fk_componente) {
+        if (prev.fk_componente) {
           const componenteDisponible = normalizados.componentes.some(
-            (comp) => comp.id?.toString() === previo.fk_componente.toString()
+            (comp) => comp.id?.toString() === prev.fk_componente.toString()
           );
 
           if (!componenteDisponible) {
@@ -597,7 +761,7 @@ export const Horarios = () => {
           }
         }
 
-        return modificado ? actualizado : previo;
+        return modificado ? actualizado : prev;
       });
 
       return normalizados;
@@ -607,7 +771,11 @@ export const Horarios = () => {
     } finally {
       setCatalogosCargando(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    cargarCatalogos();
+  }, [cargarCatalogos]);
 
   const actualizarHorariosAula = useCallback(
     async (idAula, idMomento = null) => {
@@ -652,7 +820,7 @@ export const Horarios = () => {
         }
       }
     },
-    [listarHorarios, Swal]
+    []
   );
 
   useEffect(() => {
@@ -1023,6 +1191,12 @@ export const Horarios = () => {
 
       if (exito) {
         refrescar();
+        if (horario.fk_aula) {
+          await actualizarHorariosAula(
+            horario.fk_aula,
+            horario.fk_momento || null
+          );
+        }
       }
     });
   };
@@ -1047,6 +1221,88 @@ export const Horarios = () => {
 
     return base;
   }, [horariosAula]);
+
+  const columnasAulas = useMemo(
+    () => [
+      {
+        name: "Grado/Sección",
+        selector: (row) =>
+          `Grado ${row.grado ?? "?"} - Sección ${row.seccion ?? "?"}`,
+        sortable: true,
+        grow: 1.4,
+        wrap: true,
+        cell: (row) => <ResumenAula registro={row} />,
+      },
+      {
+        name: "Momento",
+        selector: (row) => row.momento,
+        sortable: true,
+        width: "180px",
+        wrap: true,
+      },
+      {
+        name: "Año escolar",
+        selector: (row) => row.anioEscolar ?? "N/D",
+        sortable: true,
+        width: "140px",
+      },
+      {
+        name: "Bloques",
+        selector: (row) => row.horarios.length,
+        sortable: true,
+        width: "120px",
+        center: true,
+      },
+      {
+        name: "Acciones",
+        width: "100px",
+        cell: (row) => (
+          <button
+            type="button"
+            className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
+            onClick={() => abrirModalSeccion(row)}
+            title="Ver horario del aula"
+            aria-label="Ver horario del aula"
+          >
+            <FaEye className={horariosIconClasses.base} />
+          </button>
+        ),
+      },
+    ],
+    [abrirModalSeccion]
+  );
+  const MostrarTabla = () => {
+    setMostrarGeneral((prev) => !prev);
+  };
+  const columnasDocentes = useMemo(
+    () => [
+      {
+        name: "Docente",
+        selector: (row) => row.nombre,
+        sortable: true,
+        grow: 2,
+        wrap: true,
+        cell: (row) => <DocenteResumen docente={row} />,
+      },
+      {
+        name: "Acciones",
+        width: "100px",
+        center: true,
+        cell: (row) => (
+          <button
+            type="button"
+            className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
+            onClick={() => abrirModalDocente(row)}
+            title="Ver agenda docente"
+            aria-label="Ver agenda docente"
+          >
+            <FaEye className={horariosIconClasses.base} />
+          </button>
+        ),
+      },
+    ],
+    [abrirModalDocente]
+  );
 
   return (
     <div className={horariosLayout.container}>
@@ -1074,55 +1330,68 @@ export const Horarios = () => {
           valor={busqueda}
           onCambio={setBusqueda}
           onActualizar={refrescar}
+          MostrarTabla={MostrarTabla}
+          MostrarGeneral={MostrarGeneral}
+          aniosEscolares={aniosEscolares}
+          momentos={momentosFiltrados}
+          anioSeleccionado={anioFiltro}
+          momentoSeleccionado={momentoFiltro}
+          onCambioAnio={setAnioFiltro}
+          onCambioMomento={setMomentoFiltro}
         />
       </div>
-
       <div className="mt-6 space-y-12">
-        <section className="space-y-4">
-          <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">
-                Horarios por aula
-              </h3>
-              <p className="text-sm text-slate-500">
-                Visualiza cada grado y sección por momento académico y consulta
-                su agenda semanal en un calendario.
-              </p>
+        {MostrarGeneral === true ? (
+          <>
+            <section className="space-y-4">
+              <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    Horarios por aula
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Visualiza cada grado y sección por momento académico y
+                    consulta su agenda semanal en un calendario.
+                  </p>
+                </div>
+                <span className="text-xs font-medium text-slate-500">
+                  {seccionesAgrupadas.length} combinaciones encontradas
+                </span>
+              </div>
+
+              <TablaEntradas
+                columns={columnasAulas}
+                data={seccionesAgrupadas}
+                isLoading={isLoading}
+                filterConfig={null}
+              />
+            </section>
+          </>
+        ) : (
+          <section className="space-y-4">
+            <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">
+                  Horarios por docente y especialista
+                </h3>
+                <p className="text-sm text-slate-500">
+                  Consulta la asignación semanal de cada docente según los
+                  momentos y componentes que atiende.
+                </p>
+              </div>
+              <span className="text-xs font-medium text-slate-500">
+                {docentesAgrupados.length} docentes con agenda
+              </span>
             </div>
-            <span className="text-xs font-medium text-slate-500">
-              {seccionesAgrupadas.length} combinaciones encontradas
-            </span>
-          </div>
 
-          <TablaHorariosAulas
-            datos={seccionesAgrupadas}
-            cargando={isLoading}
-            onVerCalendario={abrirModalSeccion}
-          />
-        </section>
-
-        <section className="space-y-4">
-          <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">
-                Horarios por docente y especialista
-              </h3>
-              <p className="text-sm text-slate-500">
-                Consulta la asignación semanal de cada docente según los
-                momentos y componentes que atiende.
-              </p>
-            </div>
-            <span className="text-xs font-medium text-slate-500">
-              {docentesAgrupados.length} docentes con agenda
-            </span>
-          </div>
-
-          <TablaHorariosDocentes
-            datos={docentesAgrupados}
-            cargando={isLoading}
-            onVerCalendario={abrirModalDocente}
-          />
-        </section>
+            <TablaEntradas
+              columns={columnasDocentes}
+              data={docentesAgrupados}
+              isLoading={isLoading}
+              filterConfig={null}
+            />
+          </section>
+        )}
       </div>
 
       <ModalCalendarioAula

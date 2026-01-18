@@ -49,43 +49,34 @@ const BLOQUES_HORARIO = [
     'codigo' => '06',
     'inicio' => '09:40',
     'fin' => '10:00',
-    'tipo' => 'clase',
-    'etiqueta' => 'Extensión bloque 05',
+    'tipo' => 'repetitivo',
+    'etiqueta' => 'Recreo',
     'duracion' => 20,
-    'extensionDe' => '05',
+    'actividad' => 'Recreo',
   ],
   [
     'codigo' => '07',
     'inicio' => '10:00',
-    'fin' => '10:20',
-    'tipo' => 'repetitivo',
-    'etiqueta' => 'RECESO',
-    'duracion' => 20,
-    'actividad' => 'RECESO',
+    'fin' => '10:40',
+    'tipo' => 'clase',
+    'etiqueta' => 'Bloque académico 07',
+    'duracion' => 40,
   ],
   [
     'codigo' => '08',
-    'inicio' => '10:20',
-    'fin' => '11:00',
+    'inicio' => '10:40',
+    'fin' => '11:20',
     'tipo' => 'clase',
     'etiqueta' => 'Bloque académico 08',
     'duracion' => 40,
   ],
   [
     'codigo' => '09',
-    'inicio' => '11:00',
-    'fin' => '11:40',
+    'inicio' => '11:20',
+    'fin' => '12:00',
     'tipo' => 'clase',
     'etiqueta' => 'Bloque académico 09',
     'duracion' => 40,
-  ],
-  [
-    'codigo' => '10',
-    'inicio' => '11:40',
-    'fin' => '12:00',
-    'tipo' => 'clase',
-    'etiqueta' => 'Extensión bloque 10',
-    'duracion' => 20,
   ],
   [
     'codigo' => '11',
@@ -98,11 +89,9 @@ const BLOQUES_HORARIO = [
   ],
 ];
 
-const BLOQUES_CLASE = ['03', '04', '05', '06', '08', '09', '10'];
+const BLOQUES_CLASE = ['03', '04', '05', '07', '08', '09'];
 
-const BLOQUES_DEPENDENCIAS = [
-  '05' => ['06'],
-];
+const BLOQUES_DEPENDENCIAS = [];
 
 function obtenerBloquePorCodigo(string $codigo): ?array
 {

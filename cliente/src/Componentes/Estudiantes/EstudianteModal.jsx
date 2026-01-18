@@ -305,12 +305,12 @@ export const EstudianteModal = ({
     setErrorsPersona(errs);
     if (Object.keys(errs).length > 0) return;
 
-    const payload = {
+    const DatosFormulario = {
       ...formPersonaData,
       tipo: "estudiante",
       estado: "incompleto",
     };
-    const nueva = await crearPersonaEstudiante(payload, Swal);
+    const nueva = await crearPersonaEstudiante(DatosFormulario, Swal);
     if (nueva?.id_persona) {
       setPersonaSeleccionada(nueva);
       Swal.fire(
@@ -382,9 +382,9 @@ export const EstudianteModal = ({
     await eliminarAlergiaEstudiante(idLista, cargarColeccionesEdicion, Swal);
   };
 
-  const agregarCondicion = async (payload) => {
+  const agregarCondicion = async (DatosFormulario) => {
     const created = await agregarCondicionSalud(
-      { fk_estudiante: idEstudiante, ...payload },
+      { fk_estudiante: idEstudiante, ...DatosFormulario },
       Swal
     );
     if (created) cargarColeccionesEdicion();
@@ -394,26 +394,26 @@ export const EstudianteModal = ({
     await eliminarCondicionSalud(idCond, cargarColeccionesEdicion, Swal);
   };
 
-  const agregarVacuna = async (payload) => {
+  const agregarVacuna = async (DatosFormulario) => {
     const created = await agregarVacunaEstudiante(
-      { fk_estudiante: idEstudiante, ...payload },
+      { fk_estudiante: idEstudiante, ...DatosFormulario },
       Swal
     );
     if (created) cargarColeccionesEdicion();
   };
-  // const actualizarVacuna = async (idVac, payload) => { /* ... */ };
+  // const actualizarVacuna = async (idVac, DatosFormulario) => { /* ... */ };
   const eliminarVacuna = async (idVac) => {
     await eliminarVacunaEstudiante(idVac, cargarColeccionesEdicion, Swal);
   };
 
-  const agregarConsulta = async (payload) => {
+  const agregarConsulta = async (DatosFormulario) => {
     const created = await agregarConsultaMedica(
-      { fk_estudiante: idEstudiante, ...payload },
+      { fk_estudiante: idEstudiante, ...DatosFormulario },
       Swal
     );
     if (created) cargarColeccionesEdicion();
   };
-  // const actualizarConsulta = async (id, payload) => { /* ... */ };
+  // const actualizarConsulta = async (id, DatosFormulario) => { /* ... */ };
   const eliminarConsulta = async (id) => {
     await eliminarConsultaMedica(id, cargarColeccionesEdicion, Swal);
   };
@@ -652,7 +652,7 @@ export const EstudianteModal = ({
 
     const observaciones = normalizarTexto(nuevoDocumento.observaciones);
 
-    const payload = {
+    const DatosFormulario = {
       fk_estudiante: idEstudiante,
       tipo_documento: nuevoDocumento.tipo_documento,
       grado: gradoSeleccionado || null,
@@ -660,7 +660,7 @@ export const EstudianteModal = ({
       observaciones: observaciones || null,
     };
 
-    const created = await crearDocumento(payload, Swal);
+    const created = await crearDocumento(DatosFormulario, Swal);
     if (created) {
       setNuevoDocumento({
         tipo_documento: "",
@@ -1102,12 +1102,12 @@ export const EstudianteModal = ({
                 observaciones: "",
               });
             } else if (isVacunas) {
-              const payload = {
+              const DatosFormulario = {
                 fk_vacuna: newItem.fk_vacuna,
                 fecha_aplicacion: newItem.fecha_aplicacion,
                 refuerzos: newItem.refuerzos ? Number(newItem.refuerzos) : 0,
               };
-              agregarVacuna(payload);
+              agregarVacuna(DatosFormulario);
               setNuevaVacuna({
                 fk_vacuna: "",
                 fecha_aplicacion: "",

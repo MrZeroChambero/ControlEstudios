@@ -24,15 +24,15 @@ const CalendarioResponsive = ({
   );
 
   return (
-    <div className={calendarioResponsiveClases.grid}>
+    <div className={calendarioResponsiveClases.cuadricula}>
       {diasSemanaOrdenados.map((dia) => {
         const bloquesDia = calendario[dia] ?? [];
         return (
-          <div key={dia} className={calendarioResponsiveClases.card}>
-            <p className={calendarioResponsiveClases.diaTitulo}>
+          <div key={dia} className={calendarioResponsiveClases.tarjeta}>
+            <p className={calendarioResponsiveClases.tituloDia}>
               {diasSemanaEtiquetas[dia]}
             </p>
-            <div className={calendarioResponsiveClases.bloquesWrapper}>
+            <div className={calendarioResponsiveClases.envoltorioBloques}>
               {bloquesDia.length === 0 ? (
                 <p className={calendarioResponsiveClases.mensajeVacio}>
                   {emptyMessage || "Sin bloques programados."}
@@ -41,7 +41,7 @@ const CalendarioResponsive = ({
                 bloquesDia.map((bloque, indice) => (
                   <div
                     key={`${bloque?.id_horario ?? indice}-${indice}`}
-                    className={calendarioResponsiveClases.bloqueCard}
+                    className={calendarioResponsiveClases.tarjetaBloque}
                   >
                     {renderBloque ? renderBloque(bloque) : null}
                   </div>
