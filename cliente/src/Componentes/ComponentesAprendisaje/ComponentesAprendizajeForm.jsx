@@ -24,16 +24,19 @@ const normalizarEspecialistaValor = (valor) => {
     return "";
   }
 
-  const base = String(valor).toLowerCase();
+  const valorString = String(valor).trim();
+  const base = valorString.toLowerCase();
 
+  // Mapeo exacto según enum del backend
   if (base.includes("cultur")) {
     return "Docente de cultura";
   }
 
-  if (base === "si" || base.includes("especial")) {
+  if (base === "si" || base === "sí" || base.includes("especial")) {
     return "Docente especialista";
   }
 
+  // Valor por defecto según backend
   return "Docente de aula";
 };
 

@@ -112,6 +112,15 @@ export const ComponentesAprendizajes = () => {
   };
 
   const openModal = (componente = null, viewMode = false) => {
+    // Verificar si es edición y el componente existe
+    if (componente && !componente.id_componente) {
+      Swal.fire(
+        "Error",
+        "El componente seleccionado no tiene un ID válido",
+        "error"
+      );
+      return;
+    }
     setCurrentComponente(componente);
     setIsViewMode(viewMode);
     setFormData(
@@ -121,7 +130,7 @@ export const ComponentesAprendizajes = () => {
             nombre_componente: componente.nombre_componente ?? "",
             especialista: componente.especialista ?? "",
             evalua: componente.evalua ?? "no",
-            grupo: componente.grupo ?? "Sin asignar",
+            grupo: componente.grupo ?? "Completo",
           }
         : { ...defaultFormulario }
     );
@@ -139,7 +148,6 @@ export const ComponentesAprendizajes = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isViewMode) return;

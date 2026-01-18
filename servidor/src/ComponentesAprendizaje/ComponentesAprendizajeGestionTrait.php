@@ -72,6 +72,19 @@ trait ComponentesAprendizajeGestionTrait
       return ['errores' => $errores];
     }
 
+    $camposActualizables = ['fk_area', 'nombre_componente', 'especialista', 'evalua', 'grupo'];
+    $cambios = false;
+    foreach ($camposActualizables as $campo) {
+      if (($actual[$campo] ?? null) !== ($datosFusionados[$campo] ?? null)) {
+        $cambios = true;
+        break;
+      }
+    }
+
+    if (!$cambios) {
+      return ['datos' => $actual];
+    }
+
     $sql = 'UPDATE componentes_aprendizaje
                 SET fk_area = ?, nombre_componente = ?, especialista = ?, evalua = ?, estado_componente = ?, grupo = ?
                 WHERE id_componente = ?';
