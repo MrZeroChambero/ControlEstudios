@@ -220,20 +220,31 @@ export const solicitarCargos = async (setCargos, Swal) => {
 
 export const solicitarFunciones = async (setFunciones, Swal) => {
   try {
-    const response = await axios.get(`${API_URL}/funciones`, {
+    // El backend migró funciones a cargos; solicitamos cargos y los mapeamos
+    const response = await axios.get(`${API_URL}/cargos`, {
       withCredentials: true,
     });
     if (response.data && response.data.back === true) {
-      setFunciones(response.data.data);
+      // Mapear cargos a la forma legacy que espera el modal de Personal
+      const mapped = (response.data.data || []).map((c) => ({
+        id_funcion_personal: c.id_cargo,
+        nombre: c.nombre_cargo,
+        tipo: c.tipo,
+      }));
+      setFunciones(mapped);
     } else {
-      Swal.fire("Error", "No se pudieron cargar las funciones.", "error");
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar las funciones (cargos).",
+        "error"
+      );
     }
   } catch (error) {
     console.error("Error al obtener funciones:", error);
     const errorData = error.response?.data;
     Swal.fire(
       "Error",
-      errorData?.message || "No se pudieron cargar las funciones.",
+      errorData?.message || "No se pudieron cargar las funciones (cargos).",
       "error"
     );
   }

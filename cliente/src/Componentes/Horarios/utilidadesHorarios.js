@@ -471,6 +471,7 @@ export const construirDocentesSeccion = (bloques = []) => {
     const nombre = formatearDocente(bloque) || "Docente sin asignar";
     const funcion =
       bloque?.nombre_funcion ||
+      bloque?.nombre_cargo ||
       bloque?.funcion ||
       bloque?.tipo_funcion ||
       "Sin función";

@@ -5,6 +5,10 @@ import TablaHorarioSemanal from "./TablaHorarioSemanal";
 import TablaDocentesSeccion from "./TablaDocentesSeccion";
 import { filtrarBloquesClase } from "../config/bloquesHorario";
 import { agendaDocenteClases } from "./horariosEstilos";
+import {
+  horariosTableClasses,
+  horariosIconClasses,
+} from "../../EstilosCliente/EstilosClientes";
 
 /**
  * @typedef {import("react").ReactNode} ReactNode
@@ -55,15 +59,39 @@ const renderContenidoDocente = (bloque) => {
   );
 };
 
-const ModalAgendaDocente = ({ abierto, alCerrar, docente, bloquesConfig }) => {
+const ModalAgendaDocente = ({
+  abierto,
+  alCerrar,
+  docente,
+  bloquesConfig,
+  onVerDetalle,
+  onEliminar,
+}) => {
   const [usarDatosEjemplo, setUsarDatosEjemplo] = useState(false);
   const [tipoDocente, setTipoDocente] = useState("aula"); // 'aula' o 'especialista'
 
-  // const renderAcciones = useMemo(
-  //   () => crearRenderAcciones(onVerDetalle, onEliminar),
-  //   [onVerDetalle, onEliminar]
-  // );
-  const renderAcciones = null;
+  const renderAcciones = useMemo(() => {
+    return (bloque) => (
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
+          onClick={() => onVerDetalle && onVerDetalle(bloque)}
+          title="Ver detalle"
+        >
+          <FaEye className={horariosIconClasses.base} />
+        </button>
+        <button
+          type="button"
+          className={`${horariosTableClasses.actionButton} ${horariosTableClasses.deleteButton}`}
+          onClick={() => onEliminar && onEliminar(bloque)}
+          title="Eliminar"
+        >
+          <FaTrash className={horariosIconClasses.base} />
+        </button>
+      </div>
+    );
+  }, [onVerDetalle, onEliminar]);
 
   const docenteConEjemplo = useMemo(
     () =>

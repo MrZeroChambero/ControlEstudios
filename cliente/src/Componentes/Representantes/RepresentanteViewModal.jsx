@@ -182,10 +182,23 @@ export const RepresentanteViewModal = ({ isOpen, onClose, representante }) => {
 
         {representante.personal && (
           <Section title="Personal asociado">
-            <Field label="Cargo" value={representante.personal.nombre_cargo} />
+            <Field
+              label="Cargo"
+              value={
+                representante.personal.nombre_cargo ||
+                representante.personal.nombre_funcion ||
+                representante.personal.funcion ||
+                "-"
+              }
+            />
             <Field
               label="Función"
-              value={representante.personal.nombre_funcion}
+              value={
+                representante.personal.nombre_funcion ||
+                representante.personal.nombre_cargo ||
+                representante.personal.funcion ||
+                "-"
+              }
             />
             <Field
               label="Nivel académico"

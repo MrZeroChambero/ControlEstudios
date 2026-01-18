@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { FaUsers } from "react-icons/fa";
 import {
   diasSemanaOrdenados,
   diasSemanaEtiquetas,
@@ -73,11 +74,19 @@ const renderBloqueAcademico = ({
       : null;
 
   const esRecesoEspecialista = esEspecialista && codigo === "06";
+  const esSubgrupo = bloque?.grupo === "subgrupo";
+
+  const clasesTarjeta = [
+    tablaHorarioSemanalClases.tarjetaBloque,
+    esSubgrupo ? tablaHorarioSemanalClases.tarjetaSubgrupo : "",
+  ]
+    .join(" ")
+    .trim();
 
   return (
     <div
       key={`${bloque?.id_horario ?? indice}-${codigo}-${dia}`}
-      className={tablaHorarioSemanalClases.tarjetaBloque}
+      className={clasesTarjeta}
     >
       {esRecesoEspecialista ? (
         <>
@@ -88,7 +97,14 @@ const renderBloqueAcademico = ({
           <p className="text-xs text-slate-500">Recreo</p>
         </>
       ) : (
-        contenidoPersonalizado ?? bloque?.nombre_componente ?? "Sin componente"
+        <div className="flex items-center gap-2">
+          {esSubgrupo && <FaUsers className="text-slate-500" />}
+          <span className="flex-grow">
+            {contenidoPersonalizado ??
+              bloque?.nombre_componente ??
+              "Sin componente"}
+          </span>
+        </div>
       )}
       {typeof renderAcciones === "function" ? (
         <div className={tablaHorarioSemanalClases.envoltorioAcciones}>

@@ -29,6 +29,8 @@ export const tablaHorarioSemanalClases = {
   sinAsignacion: "text-xs text-slate-400",
   tarjetaBloque:
     "rounded-2xl border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-800 shadow-sm transition hover:shadow-md",
+  tarjetaSubgrupo:
+    "border-blue-300 bg-blue-50",
   tarjetaRutina:
     "rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center shadow-sm",
   envoltorioAcciones: "mt-3 flex justify-center",

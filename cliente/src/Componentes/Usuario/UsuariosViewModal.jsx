@@ -66,7 +66,7 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
   const tipoFuncionClass = buildVariantClass(
     usuariosViewModalClasses.chipBase,
     usuariosViewModalClasses.tipoFuncionVariants,
-    usuario.tipo_funcion
+    usuario.tipo_cargo || usuario.tipo_funcion
   );
 
   const estudiantesRepresentados = Array.isArray(
@@ -144,11 +144,27 @@ export const UsuariosViewModal = ({ isOpen, onClose, usuario }) => {
         </Section>
 
         <Section title="Información laboral">
-          <Field label="Cargo" value={usuario.nombre_cargo} />
-          <Field label="Función" value={usuario.funcion_personal} />
+          <Field
+            label="Cargo"
+            value={
+              usuario.nombre_cargo ||
+              usuario.nombre_funcion ||
+              usuario.funcion ||
+              "-"
+            }
+          />
+          <Field
+            label="Función"
+            value={
+              usuario.nombre_funcion ||
+              usuario.nombre_cargo ||
+              usuario.funcion ||
+              "-"
+            }
+          />
           <Field label="Tipo de función">
             <span className={tipoFuncionClass}>
-              {getDisplayValue(usuario.tipo_funcion)}
+              {getDisplayValue(usuario.tipo_cargo || usuario.tipo_funcion)}
             </span>
           </Field>
           <Field label="Fecha de contratación" value={fechaContratacion} />

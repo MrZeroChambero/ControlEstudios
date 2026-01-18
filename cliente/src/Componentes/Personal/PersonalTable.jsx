@@ -40,10 +40,11 @@ export const PersonalTable = ({
   const resolveTipoPill = (tipo) => {
     const normalized = (tipo || "").toString().toLowerCase();
     const { typePill } = personalTableClasses;
-    if (normalized === "administrativo") return typePill.administrativo;
-    if (normalized === "docente") return typePill.docente;
-    if (normalized === "obrero") return typePill.obrero;
-    if (normalized === "especialista") return typePill.especialista;
+    if (normalized.includes("administrativ")) return typePill.administrativo;
+    if (normalized.includes("obrero")) return typePill.obrero;
+    if (normalized.includes("especialist") || normalized.includes("de cultura"))
+      return typePill.especialista;
+    if (normalized.includes("docente")) return typePill.docente;
     return typePill.default;
   };
 
@@ -65,28 +66,13 @@ export const PersonalTable = ({
     },
     {
       name: "Cargo",
-      selector: (row) => row.nombre_cargo,
+      selector: (row) =>
+        row.nombre_cargo || row.nombre_funcion || row.funcion || "",
       sortable: true,
       wrap: true,
     },
     {
-      name: "Función",
-      selector: (row) => row.nombre_funcion,
-      sortable: true,
-      wrap: true,
-    },
-    {
-      name: "Tipo",
-      cell: (row) => (
-        <span className={resolveTipoPill(row.tipo_cargo)}>
-          {row.tipo_cargo || "—"}
-        </span>
-      ),
-      sortable: true,
-      width: "120px",
-    },
-    {
-      name: "Estado Persona",
+      name: "Estado",
       cell: (row) => (
         <span
           className={resolveEstadoBadge(row.estado, row.estado_persona_nombre)}
@@ -98,7 +84,7 @@ export const PersonalTable = ({
       width: "140px",
     },
     {
-      name: "Estado Personal",
+      name: "Condición",
       cell: (row) => (
         <span
           className={resolveEstadoBadge(
@@ -171,8 +157,8 @@ export const PersonalTable = ({
         item.primer_nombre,
         item.primer_apellido,
         item.cedula,
-        item.nombre_cargo,
-        item.nombre_funcion,
+        item.nombre_cargo || item.nombre_funcion || item.funcion,
+        item.nombre_funcion || item.nombre_cargo || item.funcion,
       ];
       return campos.some(
         (campo) => campo && campo.toLowerCase().includes(term)

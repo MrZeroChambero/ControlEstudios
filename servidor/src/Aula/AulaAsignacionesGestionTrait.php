@@ -32,7 +32,7 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('El docente seleccionado no existe.');
     }
 
-    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_funcion'] ?? null);
+    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_cargo'] ?? null);
     if ($tipoDocente !== 'aula') {
       throw new RuntimeException('El personal seleccionado no tiene un cargo de docente de aula.');
     }
@@ -127,7 +127,7 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('El especialista seleccionado no existe.');
     }
 
-    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_funcion'] ?? null);
+    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_cargo'] ?? null);
     if (!in_array($tipoDocente, ['especialista', 'cultura'], true)) {
       throw new RuntimeException('El personal seleccionado no corresponde a un docente especialista o de cultura.');
     }

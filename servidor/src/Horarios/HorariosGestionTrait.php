@@ -228,6 +228,27 @@ trait HorariosGestionTrait
     return ['datos' => $modelo->consultarHorarioPorId($conexion, $idHorario)];
   }
 
+  public function removerEstudianteDeSubgrupo(PDO $conexion, int $idHorario, int $idEstudiante): array
+  {
+    $horario = $this->consultarHorarioPorId($conexion, $idHorario);
+    if ($horario === null) {
+      return ['errores' => ['id_horario' => ['El horario solicitado no existe.']]];
+    }
+
+    if ($horario['grupo'] !== 'subgrupo') {
+      return ['errores' => ['grupo' => ['El horario no es un subgrupo.']]];
+    }
+
+    try {
+      $sql = 'DELETE FROM grupos_estudiantiles WHERE fk_horario = ? AND fk_estudiante = ?';
+      $this->ejecutarAccion($conexion, $sql, [$idHorario, $idEstudiante]);
+    } catch (Exception $excepcion) {
+      return ['errores' => ['general' => [$excepcion->getMessage()]]];
+    }
+
+    return ['datos' => ['id_horario' => $idHorario, 'id_estudiante' => $idEstudiante]];
+  }
+
   protected function sincronizarSubgrupoInterno(PDO $conexion, int $idHorario, array $estudiantes): void
   {
     $sentenciaEliminar = $conexion->prepare('DELETE FROM grupos_estudiantiles WHERE fk_horario = ?');
@@ -407,7 +428,8 @@ trait HorariosGestionTrait
     $sql = 'SELECT DISTINCT i.fk_personal,
                 per.estado,
                 c.tipo,
-                c.nombre_cargo AS funcion,
+                c.nombre_cargo AS nombre_cargo,
+                c.tipo AS tipo_cargo,
                             personas.primer_nombre,
                             personas.segundo_nombre,
                             personas.primer_apellido,
@@ -437,7 +459,9 @@ trait HorariosGestionTrait
         'id' => (int) $fila['fk_personal'],
         'nombre' => trim($fila['primer_nombre'] . ' ' . ($fila['segundo_nombre'] ?? '') . ' ' . $fila['primer_apellido'] . ' ' . ($fila['segundo_apellido'] ?? '')),
         'tipo' => $fila['tipo'],
-        'funcion' => $fila['funcion'],
+        'funcion' => $fila['nombre_cargo'],
+        'nombre_cargo' => $fila['nombre_cargo'],
+        'tipo_cargo' => $fila['tipo_cargo'],
       ];
     }, $registros);
   }

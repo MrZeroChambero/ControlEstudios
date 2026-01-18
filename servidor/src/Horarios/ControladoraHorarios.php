@@ -21,6 +21,7 @@ class ControladoraHorarios
     try {
       $conexion = Conexion::obtener();
       $modelo = new Horarios();
+      $usuario = $this->obtenerUsuarioSesion($conexion);
 
       $criterios = [
         'fk_anio_escolar' => isset($_GET['fk_anio_escolar']) ? (int) $_GET['fk_anio_escolar'] : null,
@@ -28,6 +29,10 @@ class ControladoraHorarios
         'fk_momento' => isset($_GET['fk_momento']) ? (int) $_GET['fk_momento'] : null,
         'dia_semana' => isset($_GET['dia_semana']) ? strtolower((string) $_GET['dia_semana']) : null,
       ];
+
+      if (isset($usuario['rol']) && $usuario['rol'] === 'Docente') {
+        $criterios['fk_personal'] = $usuario['fk_personal'];
+      }
 
       $resultado = $modelo->listar($conexion, $criterios);
       RespuestaJson::exito($resultado['datos'], 'Horarios consultados correctamente.');
@@ -191,5 +196,29 @@ class ControladoraHorarios
     }
 
     return is_array($datos) ? $datos : [];
+  }
+
+  public function agregarEstudiantesASubgrupo(int $idHorario): void
+  {
+    $this->sincronizarSubgrupo($idHorario);
+  }
+
+  public function removerEstudiante(int $idHorario, int $idEstudiante): void
+  {
+    try {
+      $conexion = Conexion::obtener();
+      $modelo = new Horarios();
+      $resultado = $modelo->removerEstudianteDeSubgrupo($conexion, $idHorario, $idEstudiante);
+
+      if (isset($resultado['errores'])) {
+        $codigo = isset($resultado['errores']['id_horario']) ? 404 : 422;
+        RespuestaJson::error('No fue posible remover el estudiante del subgrupo.', $codigo, $resultado['errores']);
+        return;
+      }
+
+      RespuestaJson::exito($resultado['datos'], 'Estudiante removido del subgrupo correctamente.');
+    } catch (Exception | PDOException $excepcion) {
+      RespuestaJson::error('No fue posible remover el estudiante del subgrupo.', 500, null, $excepcion);
+    }
   }
 }

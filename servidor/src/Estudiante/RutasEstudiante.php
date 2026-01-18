@@ -20,6 +20,7 @@ function registrarRutasEstudiante(
   $mapAuthenticatedRole('GET', '/estudiantes/[i:id]', [$controlador, 'obtenerEstudiante'], $rolesPermitidos);
   $mapAuthenticatedRole('PUT', '/estudiantes/[i:id]', [$controlador, 'actualizarEstudianteEndpoint'], $rolesPermitidos);
   $mapAuthenticatedRole('PATCH', '/estudiantes/[i:id]/estado', [$controlador, 'cambiarEstadoEstudianteEndpoint'], $rolesPermitidos);
+  $mapAuthenticatedRole('GET', '/estudiantes/aula/[i:id_aula]', [$controlador, 'listarEstudiantesPorAula'], $rolesPermitidos);
 
   // Rutas antiguas (compatibilidad)
   $mapAuthenticatedRole('GET', '/estudiantes/candidatos', [$controlador, 'listarCandidatos'], $rolesPermitidos);

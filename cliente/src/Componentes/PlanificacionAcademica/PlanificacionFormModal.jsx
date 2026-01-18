@@ -434,14 +434,24 @@ export const PlanificacionFormModal = ({
 
         let rolesTexto = rolesSet.size ? Array.from(rolesSet).join(" y ") : "";
 
-        if (!rolesTexto && persona.raw?.tipo_funcion) {
-          const tipoFuncion = persona.raw.tipo_funcion.toLowerCase();
-          if (tipoFuncion === "docente") {
+        if (
+          !rolesTexto &&
+          (persona.raw?.tipo_cargo || persona.raw?.tipo_funcion)
+        ) {
+          const tipoFuncion = (
+            persona.raw.tipo_cargo ||
+            persona.raw.tipo_funcion ||
+            ""
+          ).toLowerCase();
+          if (tipoFuncion.includes("docente")) {
             rolesTexto = "Docente de aula";
-          } else if (tipoFuncion === "especialista") {
+          } else if (
+            tipoFuncion.includes("especialist") ||
+            tipoFuncion.includes("especialista")
+          ) {
             rolesTexto = "Especialista";
           } else {
-            rolesTexto = persona.raw.tipo_funcion;
+            rolesTexto = persona.raw.tipo_cargo || persona.raw.tipo_funcion;
           }
         }
 

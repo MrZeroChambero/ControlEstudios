@@ -246,8 +246,7 @@ class Usuarios
               per.segundo_apellido,
               per.cedula,
               car.nombre_cargo,
-              car.nombre_cargo AS funcion,
-              car.tipo as tipo_funcion
+              car.tipo as tipo_cargo
             FROM personal p
             INNER JOIN personas per ON p.fk_persona = per.id_persona
             LEFT JOIN cargos car ON p.fk_cargo = car.id_cargo
@@ -309,9 +308,8 @@ class Usuarios
                     per.telefono_secundario,
                     per.email,
                     per.tipo_sangre,
-                    car.nombre_cargo,
-                    car.nombre_cargo as funcion_personal,
-                    car.tipo as tipo_funcion,
+                    car.nombre_cargo as nombre_cargo,
+                    car.tipo as tipo_cargo,
                     p.fecha_contratacion,
                     p.nivel_academico,
                     p.horas_trabajo,

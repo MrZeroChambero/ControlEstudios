@@ -28,8 +28,8 @@ trait HorariosConsultasTrait
                    comp.nombre_componente,
                    comp.especialista,
                    per.estado AS estado_personal,
-                   c.tipo AS tipo_funcion,
-                   c.nombre_cargo AS nombre_funcion,
+                   c.tipo AS tipo_cargo,
+                   c.nombre_cargo AS nombre_cargo,
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
@@ -54,6 +54,11 @@ trait HorariosConsultasTrait
     }
 
     $registro['estudiantes'] = $this->consultarEstudiantesPorHorario($conexion, $idHorario);
+    // Compatibilidad: campo legacy 'funcion' -> nombre_cargo
+    if (isset($registro['nombre_cargo'])) {
+      $registro['funcion'] = $registro['nombre_cargo'];
+      $registro['tipo_cargo'] = $registro['tipo_cargo'] ?? null;
+    }
     $registro['hora_inicio_texto'] = $this->formatearHora((float) $registro['hora_inicio']);
     $registro['hora_fin_texto'] = $this->formatearHora((float) $registro['hora_fin']);
     $registro['codigo_bloque'] = $this->obtenerCodigoBloqueDesdeHoras(
@@ -107,8 +112,8 @@ trait HorariosConsultasTrait
                    comp.nombre_componente,
                    comp.especialista,
                    per.estado AS estado_personal,
-                   c.tipo AS tipo_funcion,
-                   c.nombre_cargo AS nombre_funcion,
+                   c.tipo AS tipo_cargo,
+                   c.nombre_cargo AS nombre_cargo,
                    personas.primer_nombre,
                    personas.segundo_nombre,
                    personas.primer_apellido,
@@ -143,6 +148,10 @@ trait HorariosConsultasTrait
     return array_map(function (array $fila) use ($estudiantesPorHorario) {
       $id = (int) $fila['id_horario'];
       $fila['estudiantes'] = $estudiantesPorHorario[$id] ?? [];
+      if (isset($fila['nombre_cargo'])) {
+        $fila['funcion'] = $fila['nombre_cargo'];
+        $fila['tipo_cargo'] = $fila['tipo_cargo'] ?? null;
+      }
       $fila['hora_inicio_texto'] = $this->formatearHora((float) $fila['hora_inicio']);
       $fila['hora_fin_texto'] = $this->formatearHora((float) $fila['hora_fin']);
       $fila['codigo_bloque'] = $this->obtenerCodigoBloqueDesdeHoras(
@@ -269,11 +278,11 @@ trait HorariosConsultasTrait
   protected function consultarAsignacionDocente(PDO $conexion, int $aulaId, int $momentoId, int $componenteId, int $personalId): ?array
   {
     $sql = 'SELECT i.id_imparte,
-                   i.tipo_docente,
-                   i.clases_totales,
-                   per.estado AS estado_personal,
-                   c.tipo AS tipo_funcion,
-                   c.nombre_cargo
+             i.tipo_docente,
+             i.clases_totales,
+             per.estado AS estado_personal,
+             c.tipo AS tipo_cargo,
+             c.nombre_cargo
             FROM imparte i
             INNER JOIN personal per ON per.id_personal = i.fk_personal
             LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
@@ -456,5 +465,41 @@ trait HorariosConsultasTrait
     $sql .= ' LIMIT 1';
 
     return $this->ejecutarConsultaUnica($conexion, $sql, $parametros);
+  }
+
+  protected function buscarConflictoEstudianteComponenteDia(PDO $conexion, array $estudiantes, int $componenteId, string $dia, ?int $ignorarId): array
+  {
+    if (empty($estudiantes)) {
+      return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($estudiantes), '?'));
+    $parametros = array_merge($estudiantes, [$dia, $componenteId]);
+
+    $sql = 'SELECT DISTINCT ge.fk_estudiante,
+                            p.primer_nombre,
+                            p.primer_apellido
+            FROM grupos_estudiantiles ge
+            INNER JOIN horarios h ON h.id_horario = ge.fk_horario
+            INNER JOIN estudiantes e ON e.id_estudiante = ge.fk_estudiante
+            INNER JOIN personas p ON p.id_persona = e.id_persona
+            WHERE ge.fk_estudiante IN (' . $placeholders . ')
+              AND h.dia_semana = ?
+              AND h.fk_componente = ?';
+
+    if ($ignorarId !== null) {
+      $sql .= ' AND h.id_horario <> ?';
+      $parametros[] = $ignorarId;
+    }
+
+    $conflictos = $this->ejecutarConsulta($conexion, $sql, $parametros);
+
+    if (empty($conflictos)) {
+      return [];
+    }
+
+    return array_map(function (array $fila) {
+      return trim($fila['primer_nombre'] . ' ' . $fila['primer_apellido']);
+    }, $conflictos);
   }
 }

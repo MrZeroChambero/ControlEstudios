@@ -134,14 +134,14 @@ export const Solicitud = async (
 
 export const RespuestaPositiva = (data, navigate) => {
   // Desestructuración de la respuesta del servidor
-  const { msg, nombre_usuario, rol, back } = data;
+  const { msg, data: userData } = data;
 
   // Validar que los datos esenciales están presentes
-  if (nombre_usuario && rol && msg && back) {
+  if (userData && userData.nombre_usuario && userData.rol) {
     // El token ya no se guarda en localStorage, se maneja como una cookie HttpOnly.
-    // Mantenemos los otros datos para la UI si es necesario.
-    localStorage.setItem("usuario", nombre_usuario);
-    localStorage.setItem("nivel", rol);
+    // Guardamos el objeto de usuario completo y el nivel por separado para compatibilidad.
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("nivel", userData.rol);
     Swal.fire({
       icon: "success",
       title: "¡Éxito!",

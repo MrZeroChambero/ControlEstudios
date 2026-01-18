@@ -30,6 +30,7 @@ import { Horarios } from "./Componentes/Horarios/Horarios.jsx";
 import { PlanificacionAcademica } from "./Componentes/PlanificacionAcademica/PlanificacionAcademica.jsx";
 import { RendimientoAcademico } from "./Componentes/RendimientoAcademico/RendimientoAcademico.jsx";
 import { nivelesRendimientoPermitidos } from "./Componentes/RendimientoAcademico/permisosRendimiento";
+import VistaHorarioDocente from "./Componentes/Horarios/VistaHorarioDocente.jsx";
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
       <Route path="Inscripcion" element={<Inscripcion />} />
       <Route path="respaldos" element={<Respaldo />} />
       <Route path="Horarios" element={<Horarios />} />
+      <Route path="/horario-docente" element={<ProtectorNivel nivelesPermitidos={['Director', 'Docente']}><VistaHorarioDocente /></ProtectorNivel>} />
       <Route
         path="planificacion-academica"
         element={<PlanificacionAcademica />}

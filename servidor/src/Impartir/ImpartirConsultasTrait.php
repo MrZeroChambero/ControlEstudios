@@ -142,10 +142,10 @@ trait ImpartirConsultasTrait
   public function obtenerPersonalPorId(PDO $conexion, int $idPersonal): ?array
   {
     $sql = 'SELECT per.id_personal,
-                   per.estado AS estado_personal,
-                   per.fk_cargo,
-                   c.tipo AS tipo_funcion,
-                   c.nombre_cargo AS nombre_funcion,
+             per.estado AS estado_personal,
+             per.fk_cargo,
+             c.tipo AS tipo_cargo,
+             c.nombre_cargo AS nombre_cargo,
                    p.primer_nombre,
                    p.segundo_nombre,
                    p.primer_apellido,
@@ -170,8 +170,8 @@ trait ImpartirConsultasTrait
       'id_personal' => (int) $registro['id_personal'],
       'estado_personal' => $registro['estado_personal'],
       'estado_persona' => $registro['estado_persona'],
-      'tipo_funcion' => $registro['tipo_funcion'],
-      'nombre_funcion' => $registro['nombre_funcion'],
+      'tipo_cargo' => $registro['tipo_cargo'],
+      'nombre_cargo' => $registro['nombre_cargo'],
       'fk_cargo' => isset($registro['fk_cargo']) ? (int) $registro['fk_cargo'] : null,
       'primer_nombre' => $registro['primer_nombre'],
       'segundo_nombre' => $registro['segundo_nombre'],
@@ -339,7 +339,7 @@ trait ImpartirConsultasTrait
 
     $sql = 'SELECT per.id_personal,
                    per.estado AS estado_personal,
-                   c.nombre_cargo AS funcion,
+                   c.nombre_cargo AS nombre_cargo,
                    c.tipo AS tipo_cargo,
                    p.primer_nombre,
                    p.segundo_nombre,
@@ -368,7 +368,9 @@ trait ImpartirConsultasTrait
         'id_personal' => $idPersonal,
         'nombre_completo' => $this->construirNombreCompleto($fila),
         'cedula' => $fila['cedula'],
-        'funcion' => $fila['funcion'],
+        'funcion' => $fila['nombre_cargo'],
+        'nombre_cargo' => $fila['nombre_cargo'],
+        'tipo_cargo' => $fila['tipo_cargo'],
         'ocupado' => $asignacion !== null,
         'aula' => $asignacion,
       ];
@@ -378,14 +380,14 @@ trait ImpartirConsultasTrait
   public function obtenerEspecialistasDisponibles(PDO $conexion): array
   {
     $sql = 'SELECT per.id_personal,
-                   per.estado AS estado_personal,
-                   c.nombre_cargo AS funcion,
-                   c.tipo AS tipo_cargo,
-                   p.primer_nombre,
-                   p.segundo_nombre,
-                   p.primer_apellido,
-                   p.segundo_apellido,
-                   p.cedula
+             per.estado AS estado_personal,
+             c.nombre_cargo AS nombre_cargo,
+             c.tipo AS tipo_cargo,
+             p.primer_nombre,
+             p.segundo_nombre,
+             p.primer_apellido,
+             p.segundo_apellido,
+             p.cedula
             FROM personal per
             LEFT JOIN cargos c ON c.id_cargo = per.fk_cargo
             INNER JOIN personas p ON p.id_persona = per.fk_persona
@@ -406,7 +408,9 @@ trait ImpartirConsultasTrait
         'id_personal' => (int) $fila['id_personal'],
         'nombre_completo' => $this->construirNombreCompleto($fila),
         'cedula' => $fila['cedula'],
-        'funcion' => $fila['funcion'],
+        'funcion' => $fila['nombre_cargo'],
+        'nombre_cargo' => $fila['nombre_cargo'],
+        'tipo_cargo' => $fila['tipo_cargo'],
       ];
     }, array_values($filtrados));
   }

@@ -39,8 +39,6 @@ trait ConsultasPersonal
         p.estado AS estado_persona,
         c.nombre_cargo,
         c.tipo AS tipo_cargo,
-        c.nombre_cargo AS nombre_funcion,
-        c.tipo AS tipo_funcion,
         TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad
       FROM personal per
       INNER JOIN personas p ON per.fk_persona = p.id_persona
@@ -140,8 +138,6 @@ trait ConsultasPersonal
         p.estado AS estado_persona,
         c.nombre_cargo,
         c.tipo AS tipo_cargo,
-        c.nombre_cargo AS nombre_funcion,
-        c.tipo AS tipo_funcion,
         TIMESTAMPDIFF(YEAR, p.fecha_nacimiento, CURDATE()) AS edad
       FROM personal per
       INNER JOIN personas p ON per.fk_persona = p.id_persona

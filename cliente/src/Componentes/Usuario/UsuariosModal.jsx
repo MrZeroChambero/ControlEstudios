@@ -53,8 +53,13 @@ export const UsuariosModal = ({
             {personal.map((persona) => (
               <option key={persona.id_personal} value={persona.id_personal}>
                 {persona.primer_nombre} {persona.primer_apellido} -
-                {persona.cedula} -{persona.nombre_cargo || "Sin cargo"} - (
-                {persona.tipo_funcion || "Sin funcion"})
+                {persona.cedula} -
+                {persona.nombre_cargo ||
+                  persona.nombre_funcion ||
+                  persona.funcion ||
+                  "Sin cargo"}{" "}
+                - ({persona.tipo_cargo || persona.tipo_funcion || "Sin funcion"}
+                )
               </option>
             ))}
           </select>

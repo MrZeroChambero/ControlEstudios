@@ -13,7 +13,7 @@ export const personalWizardClasses = {
   actionRight: "flex flex-wrap justify-end gap-2",
   listDivider: "divide-y divide-slate-100",
   summaryLabel: "text-sm font-semibold uppercase tracking-wide",
-  summaryText: "text-sm",
+  summaryText: "text-sm ml-2",
   iconSmall: "h-4 w-4",
   buttonBlock: "w-full sm:w-auto",
   buttonDisabled: "disabled:cursor-not-allowed disabled:opacity-60",

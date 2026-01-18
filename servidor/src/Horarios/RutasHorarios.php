@@ -55,4 +55,12 @@ function registrarRutasHorarios(
   $map('PATCH', '/horarios/[i:id_horario]/subgrupo', function (int $id_horario) use ($controlador) {
     $controlador->sincronizarSubgrupo($id_horario);
   });
+
+  $map('POST', '/horarios/[i:id_horario]/estudiantes', function (int $id_horario) use ($controlador) {
+    $controlador->agregarEstudiantesASubgrupo($id_horario);
+  });
+
+  $map('DELETE', '/horarios/[i:id_horario]/estudiantes/[i:id_estudiante]', function (int $id_horario, int $id_estudiante) use ($controlador) {
+    $controlador->removerEstudiante($id_horario, $id_estudiante);
+  });
 }

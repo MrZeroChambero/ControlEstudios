@@ -379,8 +379,8 @@ export const personalModalClasses = {
     "flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-600",
   listEmpty: helperMessageBase,
   listItem:
-    "flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50 cursor-pointer",
-  listPerson: "flex flex-col gap-0.5",
+    "w-full flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-blue-50 cursor-pointer",
+  listPerson: "flex-1 flex flex-col gap-0.5",
   listName: "text-sm font-semibold text-slate-900",
   listMeta: typography.helper,
   listTag: `${typePillBase} bg-blue-100 text-blue-700`,

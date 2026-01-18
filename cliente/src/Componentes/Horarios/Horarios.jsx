@@ -17,6 +17,8 @@ import BarraBusquedaHorarios from "./componentes/BarraBusquedaHorarios";
 import ModalCalendarioAula from "./componentes/ModalCalendarioAula";
 import ModalAgendaDocente from "./componentes/ModalAgendaDocente";
 import ModalFormularioHorario from "./componentes/ModalFormularioHorario";
+import ModalDetalleSubgrupo from "./componentes/ModalDetalleSubgrupo";
+import { useAuth } from "../../hooks/useAuth";
 import {
   crearFormularioInicial,
   crearCatalogosIniciales,
@@ -35,7 +37,9 @@ import {
   obtenerCatalogosHorarios,
   crearHorario,
   listarBloquesHorario,
+  sincronizarSubgrupo,
 } from "./solicitudesHorarios";
+import { removerEstudianteDeSubgrupo } from "../../api/horariosService";
 
 const obtenerAnioDesdeFecha = (valor) => {
   if (!valor) {
@@ -161,6 +165,9 @@ export const Horarios = () => {
   const [seccionSeleccionada, setSeccionSeleccionada] = useState(null);
   const [modalDocenteAbierto, setModalDocenteAbierto] = useState(false);
   const [docenteSeleccionado, setDocenteSeleccionado] = useState(null);
+  const [modalDetalleSubgrupoAbierto, setModalDetalleSubgrupoAbierto] =
+    useState(false);
+  const [bloqueSeleccionado, setBloqueSeleccionado] = useState(null);
   const [bloquesHorario, setBloquesHorario] = useState([]);
   const [MostrarGeneral, setMostrarGeneral] = useState(true);
   const consultaHorariosRef = useRef(0);
@@ -480,8 +487,14 @@ export const Horarios = () => {
           id: clave,
           fkPersonal: item.fk_personal,
           nombre: formatearDocente(item) || "Docente sin nombre",
-          funcion: item.nombre_funcion ?? item.tipo_funcion ?? "Sin función",
-          tipo: item.tipo_funcion ?? "",
+          funcion:
+            item.nombre_funcion ??
+            item.nombre_cargo ??
+            item.funcion ??
+            item.tipo_cargo ??
+            item.tipo_funcion ??
+            "Sin función",
+          tipo: item.tipo_cargo ?? item.tipo_funcion ?? "",
           componentes: new Set(),
           momentos: new Set(),
           secciones: new Set(),
@@ -1138,37 +1151,109 @@ export const Horarios = () => {
   };
 
   const manejarVerDetalle = (horario) => {
-    const estudiantes = Array.isArray(horario.estudiantes)
-      ? horario.estudiantes
-      : [];
+    if (horario.grupo === "subgrupo") {
+      setBloqueSeleccionado(horario);
+      setModalDetalleSubgrupoAbierto(true);
+    } else {
+      const estudiantes = Array.isArray(horario.estudiantes)
+        ? horario.estudiantes
+        : [];
 
-    const listaEstudiantes = estudiantes
-      .map((est) => `<li>${est.nombre} (${est.cedula_escolar})</li>`)
-      .join("");
+      const listaEstudiantes = estudiantes
+        .map((est) => `<li>${est.nombre} (${est.cedula_escolar})</li>`)
+        .join("");
 
+      Swal.fire({
+        title: "Detalle del horario",
+        html: `
+          <div class="text-left">
+            <p><strong>Componente:</strong> ${
+              horario.nombre_componente ?? "N/D"
+            }</p>
+            <p><strong>Docente:</strong> ${
+              formatearDocente(horario) || "N/D"
+            }</p>
+            <p><strong>Momento:</strong> ${horario.nombre_momento ?? "N/D"}</p>
+            <p><strong>Día:</strong> ${horario.dia_semana}</p>
+            <p><strong>Hora:</strong> ${horario.hora_inicio_texto} - ${
+          horario.hora_fin_texto
+        }</p>
+            <p><strong>Modalidad:</strong> ${horario.grupo}</p>
+            ${
+              estudiantes.length > 0
+                ? `<p class="mt-3"><strong>Estudiantes asignados:</strong></p><ul class="list-disc pl-4">${listaEstudiantes}</ul>`
+                : ""
+            }
+          </div>
+        `,
+        confirmButtonText: "Cerrar",
+      });
+    }
+  };
+
+  const { user } = useAuth();
+
+  const manejarRemoverEstudiante = async (idHorario, idEstudiante) => {
     Swal.fire({
-      title: "Detalle del horario",
-      html: `
-        <div class="text-left">
-          <p><strong>Componente:</strong> ${
-            horario.nombre_componente ?? "N/D"
-          }</p>
-          <p><strong>Docente:</strong> ${formatearDocente(horario) || "N/D"}</p>
-          <p><strong>Momento:</strong> ${horario.nombre_momento ?? "N/D"}</p>
-          <p><strong>Día:</strong> ${horario.dia_semana}</p>
-          <p><strong>Hora:</strong> ${horario.hora_inicio_texto} - ${
-        horario.hora_fin_texto
-      }</p>
-          <p><strong>Modalidad:</strong> ${horario.grupo}</p>
-          ${
-            estudiantes.length > 0
-              ? `<p class="mt-3"><strong>Estudiantes asignados:</strong></p><ul class="list-disc pl-4">${listaEstudiantes}</ul>`
-              : ""
-          }
-        </div>
-      `,
-      confirmButtonText: "Cerrar",
+      title: "¿Remover estudiante?",
+      text: "¿Estás seguro de que quieres remover a este estudiante del subgrupo?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, remover",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      try {
+        await removerEstudianteDeSubgrupo(idHorario, idEstudiante);
+        Swal.fire(
+          "¡Removido!",
+          "El estudiante ha sido removido del subgrupo.",
+          "success"
+        );
+        // Actualizar la data
+        await refrescar();
+        // Si el modal de detalle está abierto, actualizamos su data también
+        if (bloqueSeleccionado && bloqueSeleccionado.id_horario === idHorario) {
+          const nuevosEstudiantes = bloqueSeleccionado.estudiantes.filter(
+            (e) => e.id_estudiante !== idEstudiante
+          );
+          setBloqueSeleccionado({
+            ...bloqueSeleccionado,
+            estudiantes: nuevosEstudiantes,
+          });
+        }
+      } catch (error) {
+        console.error("Error al remover estudiante:", error);
+        Swal.fire("Error", "No se pudo remover al estudiante.", "error");
+      }
     });
+  };
+
+  const manejarActualizarSubgrupo = async (idHorario, estudiantes) => {
+    try {
+      await sincronizarSubgrupo({ idHorario, estudiantes, Swal });
+      // Actualizar vista
+      await refrescar();
+      if (bloqueSeleccionado && bloqueSeleccionado.id_horario === idHorario) {
+        // reconsultar detalle más reciente
+        const actualizado = (
+          await listarHorarios({
+            filtros: {},
+            setHorarios: null,
+            setIsLoading: null,
+            Swal,
+          })
+        )?.find((h) => h.id_horario === idHorario);
+        if (actualizado) {
+          setBloqueSeleccionado(actualizado);
+        }
+      }
+    } catch (errores) {
+      console.error("Error al actualizar subgrupo:", errores);
+    }
   };
 
   const manejarEliminar = (horario) => {
@@ -1399,6 +1484,7 @@ export const Horarios = () => {
         alCerrar={cerrarModalSeccion}
         seccion={seccionSeleccionada}
         bloquesConfig={bloquesHorario}
+        onVerDetalle={manejarVerDetalle}
       />
 
       <ModalAgendaDocente
@@ -1433,6 +1519,23 @@ export const Horarios = () => {
         onSubmit={manejarSubmit}
         onVerDetalle={manejarVerDetalle}
         onEliminar={manejarEliminar}
+      />
+
+      <ModalDetalleSubgrupo
+        abierto={modalDetalleSubgrupoAbierto}
+        alCerrar={() => {
+          setModalDetalleSubgrupoAbierto(false);
+          setBloqueSeleccionado(null);
+        }}
+        bloque={bloqueSeleccionado}
+        onRemoverEstudiante={manejarRemoverEstudiante}
+        onActualizarSubgrupo={manejarActualizarSubgrupo}
+        puedeGestionar={Boolean(
+          user &&
+            (String(user.rol).toLowerCase() === "director" ||
+              (bloqueSeleccionado &&
+                user.fk_personal === bloqueSeleccionado.fk_personal))
+        )}
       />
     </div>
   );

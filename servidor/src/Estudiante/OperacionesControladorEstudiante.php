@@ -150,4 +150,15 @@ trait OperacionesControladorEstudiante
       RespuestaJson::error('Error al cambiar estado.', 500, null, $e);
     }
   }
+
+  public function listarEstudiantesPorAula(int $id_aula): void
+  {
+    try {
+      $pdo = Conexion::obtener();
+      $rows = self::consultarEstudiantesPorAula($pdo, $id_aula);
+      RespuestaJson::exito($rows, 'Estudiantes por aula obtenidos.');
+    } catch (Exception $e) {
+      RespuestaJson::error('Error al listar estudiantes por aula.', 500, null, $e);
+    }
+  }
 }

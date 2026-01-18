@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import TablaHorarioSemanal from "./TablaHorarioSemanal";
 import TablaDocentesSeccion from "./TablaDocentesSeccion";
 import { filtrarBloquesClase } from "../config/bloquesHorario";
+import { FaEye } from "react-icons/fa";
+import {
+  horariosTableClasses,
+  horariosIconClasses,
+} from "../../EstilosCliente/EstilosClientes";
 
 const buildMetaItems = (seccion) => [
   {
@@ -27,7 +32,22 @@ const CalendarioSeccionDetallado = ({
   mostrarDocentes = true,
   bloquesConfig,
   emptyMessage = "Sin bloques programados para esta sección.",
+  onVerDetalle,
 }) => {
+  const renderAcciones = useMemo(() => {
+    return (bloque) => (
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={`${horariosTableClasses.actionButton} ${horariosTableClasses.viewButton}`}
+          onClick={() => onVerDetalle && onVerDetalle(bloque)}
+          title="Ver detalle"
+        >
+          <FaEye className={horariosIconClasses.base} />
+        </button>
+      </div>
+    );
+  }, [onVerDetalle]);
   if (!seccion) {
     return (
       <p className="text-sm text-slate-500">
@@ -61,6 +81,7 @@ const CalendarioSeccionDetallado = ({
         bloquesFijos={bloquesFijos}
         bloquesConfig={bloquesConfig}
         emptyMessage={emptyMessage}
+        renderAcciones={renderAcciones}
       />
 
       {mostrarDocentes ? (

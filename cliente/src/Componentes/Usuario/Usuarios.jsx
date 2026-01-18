@@ -106,8 +106,12 @@ export const Usuarios = () => {
           primer_apellido: usuario.primer_apellido ?? "",
           segundo_apellido: usuario.segundo_apellido ?? "",
           cedula: usuario.cedula ?? "",
-          nombre_cargo: usuario.nombre_cargo ?? "",
-          tipo_funcion: usuario.tipo_funcion ?? "",
+          nombre_cargo:
+            usuario.nombre_cargo ??
+            usuario.nombre_funcion ??
+            usuario.funcion ??
+            "",
+          tipo_funcion: usuario.tipo_cargo ?? usuario.tipo_funcion ?? "",
         };
 
         return [...prev, nuevoRegistro];

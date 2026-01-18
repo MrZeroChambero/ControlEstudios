@@ -1,0 +1,28 @@
+Lista de tareas (12) - Migración función_personal → cargo.tipo
+
+Fase 1: Análisis y Preparación
+1. Eliminar todas las referencias a 'funcion_personal' en archivos PHP (buscar/reemplazar). - pendiente
+2. Actualizar modelos que usaban función personal (PersonalModel, CargoModel, UsuarioModel). - pendiente
+
+Fase 2: Controladores y Vistas
+3. Actualizar controladores que filtran por tipo de personal (PersonalController, UsuarioController, ReportesController). - pendiente
+4. Actualizar vistas que muestran información de función personal (views/personal/*, views/usuarios/*). - pendiente
+
+Fase 3: SQL y Validaciones
+5. Actualizar consultas SQL en procedimientos almacenados y archivos SQL. - pendiente
+6. Corregir validaciones de tipo de personal en inscripciones. - pendiente
+
+Fase 4: Endpoints y Permisos
+7. Actualizar endpoints de API que usaban función personal. - pendiente
+8. Revisar y actualizar permisos basados en cargo.tipo. - pendiente
+
+Fase 5: Reportes y Documentación
+9. Actualizar reportes que filtran por tipo de personal. - pendiente
+10. Corregir typo en componentes_aprendizaje.especialista. - pendiente
+
+Fase 6: Validación Final
+11. Validar consistencia entre cargo.tipo y componentes_aprendizaje.especialista. - pendiente
+12. Actualizar documentación y comentarios del código. - pendiente
+
+Notas:
+- Marcar cada línea como COMPLETADO cuando se aplique el cambio y registrar el archivo modificado.

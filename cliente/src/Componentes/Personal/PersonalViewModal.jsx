@@ -59,7 +59,7 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
   const tipoFuncionClass = buildVariantClass(
     personalViewModalClasses.typeChipBase,
     personalViewModalClasses.typeChipVariants,
-    personal.tipo_funcion
+    personal.tipo_cargo || personal.tipo_funcion
   );
 
   return (
@@ -121,16 +121,26 @@ export const PersonalViewModal = ({ isOpen, onClose, personal }) => {
       </Section>
 
       <Section title="Información laboral">
-        <Field label="Cargo" value={personal.nombre_cargo} />
-        <Field label="Función" value={personal.nombre_funcion} />
+        <Field
+          label="Cargo"
+          value={
+            personal.nombre_cargo || personal.nombre_funcion || personal.funcion
+          }
+        />
+        <Field
+          label="Función"
+          value={
+            personal.nombre_funcion || personal.nombre_cargo || personal.funcion
+          }
+        />
         <Field label="Tipo de cargo">
           <span className={tipoCargoClass}>
-            {getDisplayValue(personal.tipo_cargo)}
+            {getDisplayValue(personal.tipo_cargo || personal.tipo_funcion)}
           </span>
         </Field>
         <Field label="Tipo de función">
           <span className={tipoFuncionClass}>
-            {getDisplayValue(personal.tipo_funcion)}
+            {getDisplayValue(personal.tipo_cargo || personal.tipo_funcion)}
           </span>
         </Field>
         <Field

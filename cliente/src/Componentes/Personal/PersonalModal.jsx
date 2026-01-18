@@ -12,7 +12,6 @@ import {
   completarPersonal,
   actualizarPersonal,
   solicitarCargos,
-  solicitarFunciones,
 } from "./personalService";
 import {
   personalModalClasses,
@@ -40,7 +39,6 @@ const initialPersonaState = {
 
 const initialPersonalState = {
   fk_cargo: "",
-  fk_funcion: "",
   fecha_contratacion: "",
   nivel_academico: "",
   horas_trabajo: "",
@@ -63,10 +61,19 @@ export const PersonalModal = ({
   onSuccess,
   currentPersonal,
 }) => {
+  const formatNombre = (p) =>
+    [
+      p?.primer_nombre,
+      p?.segundo_nombre,
+      p?.primer_apellido,
+      p?.segundo_apellido,
+    ]
+      .filter(Boolean)
+      .join(" ");
   const [paso, setPaso] = useState(1);
   const [personas, setPersonas] = useState([]);
   const [cargos, setCargos] = useState([]);
-  const [funciones, setFunciones] = useState([]);
+
   const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [personaCreada, setPersonaCreada] = useState(null);
   const [busqueda, setBusqueda] = useState("");
@@ -189,11 +196,7 @@ export const PersonalModal = ({
           error = "El cargo es requerido";
         }
         break;
-      case "fk_funcion":
-        if (!currentValue) {
-          error = "La función es requerida";
-        }
-        break;
+
       case "fecha_contratacion":
         if (!currentValue) {
           error = "La fecha de contratación es requerida";
@@ -315,7 +318,6 @@ export const PersonalModal = ({
     const bootstrap = async () => {
       await solicitarPersonasParaPersonal(setPersonas, Swal);
       await solicitarCargos(setCargos, Swal);
-      await solicitarFunciones(setFunciones, Swal);
     };
 
     bootstrap();
@@ -348,7 +350,6 @@ export const PersonalModal = ({
       setFormDataPersonal({
         ...initialPersonalState,
         fk_cargo: currentPersonal.fk_cargo || "",
-        fk_funcion: currentPersonal.fk_funcion || "",
         fecha_contratacion: currentPersonal.fecha_contratacion || "",
         nivel_academico: currentPersonal.nivel_academico || "",
         horas_trabajo: currentPersonal.horas_trabajo || "",
@@ -379,33 +380,7 @@ export const PersonalModal = ({
     });
   }, [busqueda, personas]);
 
-  const funcionesFiltradas = useMemo(() => {
-    if (!formDataPersonal.fk_cargo) {
-      return funciones;
-    }
-
-    const cargoSeleccionado = cargos.find(
-      (cargo) => String(cargo.id_cargo) === String(formDataPersonal.fk_cargo)
-    );
-
-    if (!cargoSeleccionado) {
-      return funciones;
-    }
-
-    switch (cargoSeleccionado.tipo) {
-      case "Administrativo":
-        return funciones.filter((funcion) => funcion.tipo === "Administrativo");
-      case "Docente":
-        return funciones.filter(
-          (funcion) =>
-            funcion.tipo === "Docente" || funcion.tipo === "Especialista"
-        );
-      case "Obrero":
-        return funciones.filter((funcion) => funcion.tipo === "Obrero");
-      default:
-        return funciones;
-    }
-  }, [cargos, formDataPersonal.fk_cargo, funciones]);
+  // Las funciones ya no existen por separado; la selección se hace solo por `cargo`.
 
   const handleSeleccionarPersona = (persona) => {
     setPersonaSeleccionada(persona);
@@ -461,7 +436,7 @@ export const PersonalModal = ({
   };
 
   const validarFormularioPersonal = () => {
-    const camposRequeridos = ["fk_cargo", "fk_funcion", "fecha_contratacion"];
+    const camposRequeridos = ["fk_cargo", "fecha_contratacion"];
     const nuevosErrores = {};
 
     camposRequeridos.forEach((campo) => {
@@ -626,7 +601,7 @@ export const PersonalModal = ({
     ? "Seleccionar o Crear Persona"
     : paso === 2
     ? "Datos de la Persona"
-    : "Datos de Personal";
+    : "Datos laborales";
 
   const renderStepIndicator = () => {
     if (modoEdicion) {
@@ -911,36 +886,7 @@ export const PersonalModal = ({
         </select>
         {renderError("fk_cargo")}
       </div>
-      <div className={fieldGroupClass}>
-        <label className={personalFormClasses.label} htmlFor="fk_funcion">
-          Función *
-        </label>
-        <select
-          id="fk_funcion"
-          name="fk_funcion"
-          value={formDataPersonal.fk_funcion}
-          onChange={handleChangePersonal}
-          onBlur={(event) => handleBlur(event, "personal")}
-          className={getFieldClass("fk_funcion", "select")}
-          required
-        >
-          <option value="">Seleccione una función</option>
-          {funcionesFiltradas.map((funcion) => (
-            <option
-              key={funcion.id_funcion_personal}
-              value={funcion.id_funcion_personal}
-            >
-              {funcion.nombre} ({funcion.tipo})
-            </option>
-          ))}
-        </select>
-        {renderError("fk_funcion")}
-        {funcionesFiltradas.length === 0 && formDataPersonal.fk_cargo && (
-          <p className={personalFormClasses.helper}>
-            No hay funciones disponibles para el cargo seleccionado.
-          </p>
-        )}
-      </div>
+      {/* Campo `Función` eliminado: ahora la función se deriva del `cargo`. */}
       <div className={fieldGroupClass}>
         <label
           className={personalFormClasses.label}
@@ -1082,14 +1028,14 @@ export const PersonalModal = ({
 
   const renderPersonaSelectionStep = () => (
     <div className={personalWizardClasses.selectionLayout}>
-      <button
+      {/* <button
         type="button"
         onClick={handleCrearNuevaPersona}
         className={`${personalFormClasses.primaryButton} ${personalWizardClasses.buttonBlock}`}
       >
         <FaUserPlus className={personalWizardClasses.iconSmall} />
         <span>Crear nueva persona</span>
-      </button>
+      </button> */}
 
       <div className={personalWizardClasses.stackSm}>
         <div className={personalModalClasses.searchWrapper}>
@@ -1243,8 +1189,7 @@ export const PersonalModal = ({
               Persona seleccionada
             </span>
             <span className={personalWizardClasses.summaryText}>
-              {personaResumen.primer_nombre} {personaResumen.primer_apellido} -{" "}
-              {personaResumen.cedula}
+              {formatNombre(personaResumen)} - {personaResumen.cedula}
             </span>
           </div>
         )}
@@ -1255,8 +1200,7 @@ export const PersonalModal = ({
               Editando personal
             </span>
             <span className={personalWizardClasses.summaryText}>
-              {currentPersonal.primer_nombre} {currentPersonal.primer_apellido}{" "}
-              - {currentPersonal.cedula}
+              {formatNombre(currentPersonal)} - {currentPersonal.cedula}
             </span>
           </div>
         )}

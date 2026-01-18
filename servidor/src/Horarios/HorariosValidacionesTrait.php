@@ -133,6 +133,10 @@ trait HorariosValidacionesTrait
       $errores['grupo'][] = 'Solo un usuario director puede crear o modificar horarios grupales.';
     }
 
+    if ($datos['grupo'] === 'subgrupo' && !in_array($rol, ['director', 'docente'])) {
+        $errores['grupo'][] = 'Solo un director o docente puede gestionar subgrupos.';
+    }
+
     if ($datos['grupo'] === 'subgrupo' && $aula !== null) {
       $faltantes = $this->validarEstudiantesEnAula($conexion, (int) $datos['fk_aula'], $datos['estudiantes']);
       if (!empty($faltantes)) {
@@ -229,6 +233,18 @@ trait HorariosValidacionesTrait
 
       if (!empty($conflictos)) {
         $errores['estudiantes'][] = 'Los estudiantes ya tienen actividades en el mismo rango horario: ' . implode(', ', $conflictos) . '.';
+      }
+
+      $conflictosComponente = $this->buscarConflictoEstudianteComponenteDia(
+        $conexion,
+        $datos['estudiantes'],
+        (int) $datos['fk_componente'],
+        $datos['dia_semana'],
+        $ignorarId
+      );
+
+      if (!empty($conflictosComponente)) {
+        $errores['estudiantes'][] = 'Los siguientes estudiantes ya ven este componente el mismo día: ' . implode(', ', $conflictosComponente) . '.';
       }
     }
 

@@ -197,4 +197,26 @@ trait ConsultasEstudiante
 
     return $permitidos;
   }
+
+  public static function consultarEstudiantesPorAula($pdo, $id_aula)
+  {
+    $sql = "SELECT
+        e.id_estudiante,
+        p.primer_nombre,
+        p.segundo_nombre,
+        p.primer_apellido,
+        p.segundo_apellido,
+        p.cedula
+    FROM inscripciones AS i
+    JOIN estudiantes AS e ON i.fk_estudiante = e.id_estudiante
+    JOIN personas AS p ON e.id_persona = p.id_persona
+    WHERE i.fk_aula = :id_aula
+      AND i.estado_inscripcion = 'activo'
+      AND e.estado = 'activo'
+    ORDER BY p.primer_apellido, p.primer_nombre";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id_aula' => $id_aula]);
+    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+  }
 }

@@ -47,11 +47,12 @@ function registrarRutasLogin(AltoRouter $router)
       }
 
       http_response_code(200);
-      $response = array_merge($resultado['data'] ?? [], [
+      $response = [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
+        'data' => $resultado['data'] ?? [],
         'token' => $_COOKIE['session_token'] ?? null
-      ]);
+      ];
       echo json_encode($response, JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
       error_log('ERROR iniciar-sesion POST: ' . $e->getMessage());
@@ -94,11 +95,12 @@ function registrarRutasLogin(AltoRouter $router)
       }
 
       http_response_code(200);
-      $response = array_merge($resultado['data'] ?? [], [
+      $response = [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
+        'data' => $resultado['data'] ?? [],
         'token' => $_COOKIE['session_token'] ?? null
-      ]);
+      ];
       echo json_encode($response, JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
       error_log('ERROR iniciar-sesion GET: ' . $e->getMessage());
@@ -141,11 +143,12 @@ function registrarRutasLogin(AltoRouter $router)
       }
 
       http_response_code(200);
-      $response = array_merge($resultado['data'] ?? [], [
+      $response = [
         'back' => true,
         'msg' => 'Inicio de sesión exitoso.',
+        'data' => $resultado['data'] ?? [],
         'token' => $_COOKIE['session_token'] ?? null
-      ]);
+      ];
       echo json_encode($response, JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
       error_log('ERROR iniciar-sesion GET qs: ' . $e->getMessage());
@@ -192,7 +195,12 @@ function registrarRutasLogin(AltoRouter $router)
 
       if ($user) {
         http_response_code(200);
-        $response = array_merge($user, ['back' => true, 'msg' => 'Sesión válida.', 'token' => $hash]);
+        $response = [
+          'back' => true,
+          'msg' => 'Sesión válida.',
+          'data' => $user,
+          'token' => $hash
+        ];
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
       } else {
         setcookie('session_token', '', time() - 3600, '/');

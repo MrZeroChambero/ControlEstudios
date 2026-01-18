@@ -1,9 +1,28 @@
 import React, { useState } from "react";
+import { FaFilePdf } from "react-icons/fa";
 import VentanaModal from "../../EstilosCliente/VentanaModal";
 import CalendarioSeccionDetallado from "./CalendarioSeccionDetallado";
+import {
+  horariosTableClasses,
+  horariosIconClasses,
+} from "../../EstilosCliente/EstilosClientes";
+import { exportarHorarioSemanal } from "../../../utilidades/exportadorPDF";
 
-const ModalCalendarioAula = ({ abierto, alCerrar, seccion, bloquesConfig }) => {
+const ModalCalendarioAula = ({
+  abierto,
+  alCerrar,
+  seccion,
+  bloquesConfig,
+  onVerDetalle,
+}) => {
   const [usarDatosEjemplo, setUsarDatosEjemplo] = useState(false);
+
+  const handleExportar = () => {
+    if (!seccion) return;
+    const titulo = "Horario de Clases";
+    const subtitulo = `Grado ${seccion.grado} - Sección ${seccion.seccion} (${seccion.anioEscolar})`;
+    exportarHorarioSemanal(titulo, subtitulo, seccion.horarios);
+  };
 
   const seccionConEjemplo =
     usarDatosEjemplo && seccion
@@ -76,7 +95,15 @@ const ModalCalendarioAula = ({ abierto, alCerrar, seccion, bloquesConfig }) => {
       maxWidthClass="max-w-[95vw]"
       bodyClassName="space-y-5"
     >
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end items-center gap-4 mb-4">
+        <button
+          type="button"
+          onClick={handleExportar}
+          className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300/60"
+        >
+          <FaFilePdf />
+          <span>Exportar a PDF</span>
+        </button>
         <button
           type="button"
           className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white transition focus:outline-none focus:ring-4 ${
@@ -96,6 +123,7 @@ const ModalCalendarioAula = ({ abierto, alCerrar, seccion, bloquesConfig }) => {
           seccion={seccionConEjemplo}
           bloquesConfig={bloquesConfig}
           emptyMessage="Sin bloques programados para esta sección."
+          onVerDetalle={onVerDetalle}
         />
       ) : null}
     </VentanaModal>
