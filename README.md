@@ -2,130 +2,90 @@
 
 Este es un sistema de gestión académica diseñado para administrar la información de estudiantes, inscripciones, evaluaciones y personal de una institución educativa. La aplicación está construida con un backend en PHP que sirve una API REST y un frontend en React.
 
-## Características Principales
-
-- **Gestión de Usuarios:** Creación, lectura, actualización y eliminación (CRUD) de cuentas de usuario con diferentes roles.
-- **Autenticación Segura:** Inicio de sesión basado en tokens con contraseñas hasheadas y manejo de sesiones a través de cookies HttpOnly.
-- **Módulo de Estudiantes:** Administración completa de la información personal y académica de los estudiantes.
-- **Módulo de Inscripciones:** Manejo del proceso de inscripción de estudiantes en años escolares y secciones específicas.
-- **Módulo de Evaluaciones:** Registro de calificaciones y observaciones de los estudiantes por asignatura.
-- **API RESTful:** Arquitectura de backend desacoplada que permite consumir los servicios desde cualquier cliente.
-- **Validación de Datos:** Validación robusta tanto en el backend (con Valitron) como en el frontend.
-
 ## Pila Tecnológica (Tech Stack)
 
-### Backend (servidor)
+### Backend (`servidor/`)
 
 - **Lenguaje:** PHP 8+
-- **Servidor:** Apache (a través de XAMPP)
 - **Base de Datos:** MySQL/MariaDB
+- **Servidor Web:** Apache (o similar)
 - **Manejo de Dependencias:** Composer
-- **Enrutamiento:** `altorouter/altorouter`
-- **Validación:** `vlucas/valitron`
-- **Interacción con BD:** PDO (PHP Data Objects)
+- **Librerías Clave:**
+  - `altorouter/altorouter` para enrutamiento.
+  - `vlucas/valitron` para validación de datos.
+  - PDO (PHP Data Objects) para la interacción con la base de datos.
 
-### Frontend (cliente)
+### Frontend (`cliente/`)
 
-- **Librería:** React 18+
-- **Enrutamiento:** `react-router-dom`
-- **Peticiones HTTP:** `axios`
-- **Alertas y Notificaciones:** `sweetalert2`
-- **Estilos:** TailwindCSS (inferido por las clases `className`)
-- **Manejo de Dependencias:** npm o yarn
+- **Librería:** React 18+ (con Vite)
+- **Manejo de Dependencias:** npm
+- **Librerías Clave:**
+  - `react-router-dom` para enrutamiento en el cliente.
+  - `axios` para realizar peticiones HTTP a la API.
+  - `sweetalert2` para alertas y notificaciones.
+  - `react-data-table-component` para la visualización de tablas.
+  - `tailwindcss` y `styled-components` para los estilos.
 
 ## Prerrequisitos
 
-- XAMPP (o una pila equivalente con Apache, MySQL y PHP 8+).
-- Composer para las dependencias de PHP.
-- Node.js y npm para el entorno de frontend.
+- **XAMPP:** O una pila de servidor equivalente con Apache, MySQL y PHP 8+.
+- **Composer:** Para instalar las dependencias del backend de PHP.
+- **Node.js:** (Versión 18 o superior) y npm para el entorno de frontend.
+- **Git:** Para clonar el repositorio.
 
 ## Instalación y Puesta en Marcha
 
 Sigue estos pasos para configurar el entorno de desarrollo local.
 
-### 1. Configuración del Backend (`servidor`)
+### 1. Clonar y Preparar el Proyecto
 
-1.  **Clonar el repositorio** (o asegurarse de que los archivos estén en su lugar).
-2.  Coloca la carpeta del proyecto (`controlestudios`) dentro del directorio `htdocs` de tu instalación de XAMPP. La ruta final debería ser `C:/xampp/htdocs/controlestudios`.
-3.  **Instalar dependencias de PHP:**
+1.  Abre tu terminal y navega hasta el directorio `htdocs` de tu instalación de XAMPP.
     ```bash
-    cd c:\xampp\htdocs\controlestudios\servidor
+    cd C:\xampp\htdocs
+    ```
+2.  Clona el repositorio del proyecto.
+    ```bash
+    git clone <URL_DEL_REPOSITORIO> controlestudios
+    ```
+    (Reemplaza `<URL_DEL_REPOSITORIO>` con la URL real del repositorio git). Si ya tienes los archivos, simplemente asegúrate de que la carpeta del proyecto se llame `controlestudios` y esté en `htdocs`.
+
+### 2. Configuración del Backend (`servidor/`)
+
+1.  **Iniciar Servicios:** Inicia los módulos de **Apache** y **MySQL** desde el panel de control de XAMPP.
+2.  **Crear la Base de Datos:**
+    -   Abre phpMyAdmin (generalmente en `http://localhost/phpmyadmin`).
+    -   Crea una nueva base de datos llamada `escuela`.
+    -   Selecciona la base de datos `escuela` y ve a la pestaña **Importar**.
+    -   Importa el archivo `escuela16-1-12.sql` que se encuentra en la raíz del proyecto.
+3.  **Verificar Conexión (Opcional):**
+    -   El archivo `servidor/src/Config/Conexion.php` está preconfigurado para conectarse a la base de datos `escuela` en `localhost` con el usuario `root` y sin contraseña. Si tu configuración de MySQL es diferente, ajusta los valores en este archivo.
+4.  **Instalar dependencias de PHP:**
+    -   Navega al directorio del servidor en tu terminal y ejecuta Composer.
+    ```bash
+    cd C:\xampp\htdocs\controlestudios\servidor
     composer install
     ```
-4.  **Crear la Base de Datos:**
-    - Abre phpMyAdmin (o tu cliente de MySQL preferido).
-    - Crea una nueva base de datos (ej. `control_estudios`).
-    - Importa el archivo `.sql` con la estructura de las tablas. (Nota: Este archivo debe ser creado a partir de los modelos existentes).
-5.  **Configurar la Conexión:**
-    - Abre el archivo `servidor/src/Config/Conexion.php`.
-    - Asegúrate de que los datos de conexión (host, nombre de la base de datos, usuario y contraseña) coincidan con tu configuración local.
-6.  **Iniciar Apache y MySQL** desde el panel de control de XAMPP.
 
-### 2. Configuración del Frontend (`cliente`)
+### 3. Configuración del Frontend (`cliente/`)
 
 1.  **Instalar dependencias de Node.js:**
+    -   En una nueva terminal, navega al directorio del cliente.
     ```bash
-    cd c:\xampp\htdocs\controlestudios\cliente
+    cd C:\xampp\htdocs\controlestudios\cliente
     npm install
     ```
 2.  **Iniciar el servidor de desarrollo de React:**
-    Para iniciar el servidor y abrir automáticamente la aplicación en tu navegador, ejecuta:
+    -   Para iniciar el servidor y abrir la aplicación en tu navegador, ejecuta:
     ```bash
     npm run init
     ```
-    Si prefieres iniciar solo el servidor sin abrir el navegador, puedes usar `npm run dev`.
-3.  El servidor de desarrollo se iniciará y abrirá una nueva pestaña en tu navegador en `http://localhost:5173`.
+    -   Si prefieres solo iniciar el servidor, usa `npm run dev`.
+3.  El servidor de desarrollo se iniciará y la aplicación estará disponible en `http://localhost:5173`.
 
-## Estructura de la API
+## Acceso a la Aplicación
 
-El backend expone varios endpoints para gestionar los recursos de la aplicación. El punto de entrada base es `http://localhost:8080/controlestudios/servidor`.
-
-### Autenticación
-
-- `POST /iniciar-sesion`: Autentica a un usuario y crea una sesión.
-- `GET /verificar-sesion`: Comprueba si existe una sesión activa.
-
-### Usuarios (`/usuarios`)
-
-- `GET /`: Obtiene una lista de todos los usuarios.
-- `GET /[i:id]`: Obtiene un usuario específico por su ID.
-- `POST /`: Crea un nuevo usuario.
-- `PUT /[i:id]`: Actualiza un usuario existente.
-- `DELETE /[i:id]`: Elimina un usuario.
-
-_(Se pueden documentar aquí otros endpoints para Estudiantes, Inscripciones, etc., siguiendo el mismo formato)._
-
-### Estudiantes (`/estudiantes`)
-
-Tabla sugerida `estudiantes` (si no existe):
-
-```sql
-CREATE TABLE estudiantes (
-    id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
-    fk_persona INT NOT NULL,
-    grado TINYINT NOT NULL, -- 1 a 6
-    seccion VARCHAR(10) NULL,
-    fecha_registro DATE NOT NULL,
-    estado ENUM('activo','inactivo') NOT NULL DEFAULT 'activo',
-    CONSTRAINT fk_estudiante_persona FOREIGN KEY (fk_persona) REFERENCES personas(id_persona) ON DELETE CASCADE
-);
-```
-
-Reglas de negocio de edad por grado:
-
-- 1er grado: 5–6 años (excepción: se permite 5).
-- Cada grado siguiente: edad mínima = anterior +1, edad máxima = anterior +2 (hasta 6to).
-- Edad mínima general: 6 años (salvo la excepción anterior).
-
-Endpoints:
-
-- `GET /estudiantes` Lista estudiantes.
-- `GET /estudiantes/candidatos` Lista personas candidatas (tipo_persona = estudiante, estado = incompleto, sin registro en estudiantes).
-- `POST /estudiantes/candidatos` Crea persona candidata (persona.estado = incompleto, tipo_persona = estudiante).
-- `POST /estudiantes/registrar/{id_persona}` Registra estudiante (crea fila en estudiantes y activa persona: persona.estado = activo).
-- `GET /estudiantes/{id}` Obtiene estudiante por ID.
-- `PUT /estudiantes/{id}` Actualiza grado/sección/estado (validación edad-grado).
-- `PATCH /estudiantes/{id}/estado` Cambia estado del estudiante.
+-   **Frontend (Cliente):** [http://localhost:5173](http://localhost:5173)
+-   **Backend (API):** El punto de entrada de la API es `http://localhost/controlestudios/`. Las rutas específicas (ej. `/servidor/login`, `/servidor/estudiantes`) son manejadas por el enrutador.
 
 ## Licencia
 
