@@ -14,8 +14,10 @@ require_once __DIR__ . '/AulaAperturaHelpersTrait.php';
 require_once __DIR__ . '/AulaAperturaValidacionesTrait.php';
 require_once __DIR__ . '/AulaAperturaConsultasTrait.php';
 require_once __DIR__ . '/AulaAperturaGestionTrait.php';
+require_once __DIR__ . '/AulaAsignacionesConsultasTrait.php';
+require_once __DIR__ . '/AulaAsignacionesValidacionesTrait.php';
+require_once __DIR__ . '/AulaAsignacionesGestionTrait.php';
 require_once __DIR__ . '/../Impartir/Impartir.php';
-require_once __DIR__ . '/AulaAsignacionesTrait.php';
 
 class Aula
 {
@@ -24,7 +26,9 @@ class Aula
     AulaAperturaValidacionesTrait,
     AulaAperturaConsultasTrait,
     AulaAperturaGestionTrait,
-    AulaAsignacionesTrait,
+    AulaAsignacionesConsultasTrait,
+    AulaAsignacionesValidacionesTrait,
+    AulaAsignacionesGestionTrait,
     ConsultasAula,
     GestionAula,
     ValidacionesAula,

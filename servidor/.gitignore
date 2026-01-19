@@ -4,6 +4,8 @@
 # Configuración sensible
 .env
 .env.*
+.txt.*
+.txt
 # Archivos temporales
 /storage/
 /cache/

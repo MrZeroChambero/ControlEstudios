@@ -121,4 +121,79 @@ trait AulaAsignacionesValidacionesTrait
       throw new RuntimeException('Debe seleccionar al menos un componente valido.');
     }
   }
+
+  protected function determinarTipoDocenteDesdeCargo(?string $valor): ?string
+  {
+    if ($valor === null) {
+      return null;
+    }
+
+    $clave = strtolower(trim($valor));
+    if ($clave === '') {
+      return null;
+    }
+
+    if (str_contains($clave, 'administr')) {
+      return 'administrativo';
+    }
+
+    if (str_contains($clave, 'obrer')) {
+      return 'obrero';
+    }
+
+    if (str_contains($clave, 'cultur')) {
+      return 'cultura';
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    if (str_contains($clave, 'aula')) {
+      return 'aula';
+    }
+
+    if ($clave === 'docente') {
+      return 'aula';
+    }
+
+    return null;
+  }
+
+  protected function determinarTipoComponenteDesdeEspecialista(?string $valor): ?string
+  {
+    if ($valor === null) {
+      return null;
+    }
+
+    $clave = strtolower(trim($valor));
+    if ($clave === '') {
+      return null;
+    }
+
+    if (str_contains($clave, 'cultur')) {
+      return 'cultura';
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    return 'aula';
+  }
+
+  protected function validarCompatibilidadDocenteComponente(string $tipoDocente, string $tipoComponente): bool
+  {
+    $matriz = [
+      'aula' => ['aula', 'especialista', 'cultura'],
+      'especialista' => ['especialista'],
+      'cultura' => ['cultura'],
+    ];
+
+    if (!isset($matriz[$tipoDocente])) {
+      return false;
+    }
+
+    return in_array($tipoComponente, $matriz[$tipoDocente], true);
+  }
 }

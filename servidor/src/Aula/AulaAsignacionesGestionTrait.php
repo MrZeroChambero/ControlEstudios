@@ -32,7 +32,7 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('El docente seleccionado no existe.');
     }
 
-    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_cargo'] ?? null);
+    $tipoDocente = $this->determinarTipoDocenteDesdeCargo($personal['tipo_cargo'] ?? null);
     if ($tipoDocente !== 'aula') {
       throw new RuntimeException('El personal seleccionado no tiene un cargo de docente de aula.');
     }
@@ -127,7 +127,7 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('El especialista seleccionado no existe.');
     }
 
-    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_cargo'] ?? null);
+    $tipoDocente = $this->determinarTipoDocenteDesdeCargo($personal['tipo_cargo'] ?? null);
     if (!in_array($tipoDocente, ['especialista', 'cultura'], true)) {
       throw new RuntimeException('El personal seleccionado no corresponde a un docente especialista o de cultura.');
     }
@@ -146,13 +146,9 @@ trait AulaAsignacionesGestionTrait
         throw new RuntimeException('Los componentes seleccionados deben estar activos.');
       }
 
-      $tipoComponente = $this->normalizarTipoComponente($componente['especialista'] ?? null);
-      if ($tipoDocente === 'cultura' && $tipoComponente !== 'cultura') {
-        throw new RuntimeException('Un docente de cultura solo puede impartir componentes asignados a cultura.');
-      }
-
-      if ($tipoDocente === 'especialista' && $tipoComponente !== 'especialista') {
-        throw new RuntimeException('El docente especialista solo puede impartir componentes para especialistas.');
+      $tipoComponente = $this->determinarTipoComponenteDesdeEspecialista($componente['especialista'] ?? null);
+      if (!$this->validarCompatibilidadDocenteComponente($tipoDocente ?? '', $tipoComponente ?? '')) {
+        throw new RuntimeException(sprintf('Docente tipo "%s" no puede impartir componente "%s" (requiere "%s")', $tipoDocente ?? 'desconocido', $componente['nombre_componente'] ?? $componente['id_componente'], $tipoComponente ?? 'desconocido'));
       }
     }
 
@@ -206,66 +202,5 @@ trait AulaAsignacionesGestionTrait
 
     $sentencia = $conexion->prepare('DELETE FROM imparte WHERE fk_aula = ? AND fk_componente = ? AND tipo_docente = "Especialista"');
     $sentencia->execute([$aulaId, $componenteId]);
-  }
-
-  protected function normalizarTipoDocente(?string $valor): ?string
-  {
-    if ($valor === null) {
-      return null;
-    }
-
-    $clave = strtolower(trim($valor));
-
-    if ($clave === '') {
-      return null;
-    }
-
-    if (str_contains($clave, 'administr')) {
-      return 'administrativo';
-    }
-
-    if (str_contains($clave, 'obrer')) {
-      return 'obrero';
-    }
-
-    if (str_contains($clave, 'cultur')) {
-      return 'cultura';
-    }
-
-    if (str_contains($clave, 'especial')) {
-      return 'especialista';
-    }
-
-    if (str_contains($clave, 'aula')) {
-      return 'aula';
-    }
-
-    if ($clave === 'docente') {
-      return 'aula';
-    }
-
-    return null;
-  }
-
-  protected function normalizarTipoComponente(?string $valor): ?string
-  {
-    if ($valor === null) {
-      return null;
-    }
-
-    $clave = strtolower(trim($valor));
-    if ($clave === '') {
-      return null;
-    }
-
-    if (str_contains($clave, 'cultur')) {
-      return 'cultura';
-    }
-
-    if (str_contains($clave, 'especial')) {
-      return 'especialista';
-    }
-
-    return 'aula';
   }
 }
