@@ -28,7 +28,6 @@ export const ComponentesAprendizajeModal = ({
   const tipoDocentePills = {
     aula: "bg-blue-100 text-blue-700",
     especialista: "bg-purple-100 text-purple-700",
-    cultura: "bg-amber-100 text-amber-700",
   };
 
   const renderMetadatos = () => {
@@ -39,11 +38,10 @@ export const ComponentesAprendizajeModal = ({
     const codigo = currentComponente.tipo_docente || "aula";
     const tipoLabel = currentComponente.especialista || "Docente de aula";
     const requiere = currentComponente.requiere_especialista === true;
-    const cultura = currentComponente.es_cultura === true;
 
     return (
       <div className="rounded-3xl border border-slate-100 bg-slate-50/60 p-5 shadow-inner">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Tipo de docente
@@ -70,20 +68,6 @@ export const ComponentesAprendizajeModal = ({
               {requiere
                 ? "Sí, asignar especialista"
                 : "No, lo imparte el titular"}
-            </span>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Modalidad especial
-            </p>
-            <span
-              className={`${componentesStatusClasses.base} ${
-                cultura
-                  ? componentesStatusClasses.evalYes
-                  : componentesStatusClasses.warning
-              }`}
-            >
-              {cultura ? "Docente de cultura" : "General"}
             </span>
           </div>
         </div>

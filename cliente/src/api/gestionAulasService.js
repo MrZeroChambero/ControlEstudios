@@ -8,6 +8,7 @@ const BASE_URL = "http://localhost:8080/controlestudios/servidor";
 
 const buildError = (error) => {
   const response = asegurarCompatibilidad(error?.response?.data);
+  console.error("API Error:", error, response);
   const compat = normalizarRespuesta(response, "Error inesperado.");
   const validation = compat.errors;
   const message = compat.message ?? error?.message ?? "Error inesperado.";

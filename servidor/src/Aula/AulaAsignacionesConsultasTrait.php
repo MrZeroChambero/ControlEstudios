@@ -14,11 +14,7 @@ trait AulaAsignacionesConsultasTrait
     'especialista' => [
       'codigo' => 'especialista',
       'nombre' => 'Docente especialista',
-    ],
-    'cultura' => [
-      'codigo' => 'cultura',
-      'nombre' => 'Docente de cultura',
-    ],
+    ]
   ];
 
   protected function obtenerMomentosPorAnio(PDO $conexion, int $anioId): array
@@ -187,7 +183,7 @@ trait AulaAsignacionesConsultasTrait
   protected function determinarSiRequiereEspecialista(?string $valor): bool
   {
     $meta = $this->obtenerMetaTipoDocenteComponente($valor);
-    return in_array($meta['codigo'], ['especialista', 'cultura'], true);
+    return in_array($meta['codigo'], ['especialista'], true);
   }
 
   protected function obtenerDocentesDisponibles(PDO $conexion, int $anioId): array
@@ -269,7 +265,7 @@ trait AulaAsignacionesConsultasTrait
             WHERE per.estado = "activo"
               AND p.estado = "activo"
               AND c.tipo IS NOT NULL
-              AND LOWER(c.tipo) IN ("docente especialista", "docente de cultura")
+              AND LOWER(c.tipo) = "docente especialista"
             ORDER BY p.primer_nombre, p.primer_apellido';
 
     $sentencia = $conexion->query($sql);
@@ -495,21 +491,11 @@ trait AulaAsignacionesConsultasTrait
       return self::TIPOS_DOCENTE_COMPONENTE['aula'];
     }
 
-    if (str_contains($normalizado, 'cultur')) {
-      return self::TIPOS_DOCENTE_COMPONENTE['cultura'];
-    }
-
-    if (
-      str_contains($normalizado, 'especial') ||
-      in_array($normalizado, ['si', 'sí', 'docente especialista'], true)
-    ) {
+    if (str_contains($normalizado, 'especial')) {
       return self::TIPOS_DOCENTE_COMPONENTE['especialista'];
     }
 
-    if (str_contains($normalizado, 'aula')) {
-      return self::TIPOS_DOCENTE_COMPONENTE['aula'];
-    }
-
+    // Por defecto o si contiene 'aula'
     return self::TIPOS_DOCENTE_COMPONENTE['aula'];
   }
 

@@ -32,9 +32,12 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('El docente seleccionado no existe.');
     }
 
-    $tipoDocente = $this->determinarTipoDocenteDesdeCargo($personal['tipo_cargo'] ?? null);
-    if ($tipoDocente !== 'aula') {
-      throw new RuntimeException('El personal seleccionado no tiene un cargo de docente de aula.');
+    // Determinar tipo de docente
+    $tipoDocente = $this->normalizarTipoDocente($personal['tipo_cargo'] ?? null);
+
+    // Solo permitir docentes (aula o especialista)
+    if (!in_array($tipoDocente, ['aula', 'especialista'], true)) {
+      throw new RuntimeException('El personal seleccionado no es un docente válido (debe ser docente de aula o especialista).');
     }
 
     if ($personal['estado_personal'] !== 'activo' || $personal['estado_persona'] !== 'activo') {
@@ -50,9 +53,23 @@ trait AulaAsignacionesGestionTrait
       throw new RuntimeException('Uno o mas componentes seleccionados no existen.');
     }
 
+    // VALIDACIÓN CRÍTICA: Compatibilidad docente-componente
     foreach ($componentes as $componente) {
       if ($componente['estado'] !== 'activo') {
         throw new RuntimeException('Los componentes seleccionados deben estar activos.');
+      }
+
+      // Determinar tipo de componente
+      $tipoComponente = $this->normalizarTipoComponente($componente['especialista'] ?? null);
+
+      // Validar compatibilidad usando el nuevo método
+      if (!$this->validarCompatibilidadDocenteComponente($tipoDocente, $tipoComponente)) {
+        throw new RuntimeException(sprintf(
+          'Docente tipo "%s" no puede impartir el componente "%s" (requiere %s)',
+          $tipoDocente,
+          $componente['nombre_componente'],
+          $componente['especialista']
+        ));
       }
     }
 
@@ -202,5 +219,58 @@ trait AulaAsignacionesGestionTrait
 
     $sentencia = $conexion->prepare('DELETE FROM imparte WHERE fk_aula = ? AND fk_componente = ? AND tipo_docente = "Especialista"');
     $sentencia->execute([$aulaId, $componenteId]);
+  }
+
+  protected function normalizarTipoDocente(?string $valor): ?string
+  {
+    if ($valor === null) {
+      return null;
+    }
+
+    $clave = strtolower(trim($valor));
+
+    if ($clave === '') {
+      return null;
+    }
+
+    if (str_contains($clave, 'administr')) {
+      return 'administrativo';
+    }
+
+    if (str_contains($clave, 'obrer')) {
+      return 'obrero';
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    if (str_contains($clave, 'aula')) {
+      return 'aula';
+    }
+
+    if ($clave === 'docente') {
+      return 'aula';
+    }
+
+    return null;
+  }
+
+  protected function normalizarTipoComponente(?string $valor): ?string
+  {
+    if ($valor === null) {
+      return null;
+    }
+
+    $clave = strtolower(trim($valor));
+    if ($clave === '') {
+      return null;
+    }
+
+    if (str_contains($clave, 'especial')) {
+      return 'especialista';
+    }
+
+    return 'aula'; // Default para Docente de Aula
   }
 }

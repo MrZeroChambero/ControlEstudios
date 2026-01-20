@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-01-2026 a las 00:57:28
+-- Tiempo de generación: 20-01-2026 a las 01:47:27
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -309,21 +309,20 @@ CREATE TABLE `cargos` (
 --
 
 INSERT INTO `cargos` (`id_cargo`, `nombre_cargo`, `tipo`, `codigo`) VALUES
-(1, 'Docente Guía', '', ''),
-(2, 'Subdirector', '', ''),
-(3, 'Coordinador', '', ''),
-(4, 'Secretario', '', ''),
-(5, 'Obrero', 'Obrero', ''),
-(6, 'Administrativo', 'Administrativo', ''),
-(7, 'CBIT', '', ''),
-(8, 'CNAE', '', ''),
-(9, 'UPE', '', ''),
-(10, 'Director', '', 'DIR-001'),
-(11, 'Psicólogo', '', 'PSI-001'),
-(12, 'Enfermero', '', 'ENF-001'),
-(13, 'Bibliotecario', '', 'BIB-001'),
-(14, 'Coordinador Pedagógico', '', 'CP-001'),
-(15, 'Docente Especial', '', 'DE-001');
+(1, 'Docente de Aula', 'Docente de aula', 'DOC-AULA-001'),
+(2, 'Subdirector', 'Administrativo', 'SUB-001'),
+(3, 'Coordinador', 'Administrativo', 'COORD-001'),
+(4, 'Secretario', 'Administrativo', 'SEC-001'),
+(5, 'Obrero', 'Obrero', 'OBR-001'),
+(6, 'Administrativo', 'Administrativo', 'ADM-001'),
+(7, 'CBIT', 'Docente especialista', 'CBIT-001'),
+(8, 'CNAE', 'Docente especialista', 'CNAE-001'),
+(9, 'UPE', 'Administrativo', 'UPE-001'),
+(10, 'Director', 'Docente de aula', 'DIR-001'),
+(11, 'Psicólogo', 'Administrativo', 'PSI-001'),
+(12, 'Enfermero', 'Administrativo', 'ENF-001'),
+(13, 'Bibliotecario', 'Administrativo', 'BIB-001'),
+(14, 'Coordinador Pedagógico', 'Administrativo', 'CP-001');
 
 -- --------------------------------------------------------
 
@@ -368,7 +367,7 @@ CREATE TABLE `componentes_aprendizaje` (
   `id_componente` int(11) NOT NULL,
   `fk_area` int(11) NOT NULL,
   `nombre_componente` varchar(100) NOT NULL,
-  `especialista` enum('Docente de Aula','Docente Especilista','Docente de Cultura') NOT NULL DEFAULT 'Docente de Aula',
+  `especialista` enum('Docente de Aula','Docente especialista') NOT NULL DEFAULT 'Docente de Aula',
   `evalua` enum('si','no') NOT NULL,
   `grupo` enum('Completo','Sub Grupo') NOT NULL DEFAULT 'Completo',
   `estado_componente` enum('activo','inactivo') NOT NULL DEFAULT 'activo'
@@ -380,18 +379,19 @@ CREATE TABLE `componentes_aprendizaje` (
 
 INSERT INTO `componentes_aprendizaje` (`id_componente`, `fk_area`, `nombre_componente`, `especialista`, `evalua`, `grupo`, `estado_componente`) VALUES
 (1, 1, 'Lengua y Literatura', 'Docente de Aula', 'si', 'Completo', 'activo'),
-(2, 1, 'Inglés y otros Idiomas', '', 'si', 'Completo', 'activo'),
+(2, 1, 'Inglés y otros Idiomas', 'Docente de Aula', 'si', 'Completo', 'activo'),
 (3, 2, 'Matemática', 'Docente de Aula', 'si', 'Completo', 'activo'),
 (4, 3, 'Ciencias Naturales', 'Docente de Aula', 'si', 'Completo', 'activo'),
 (5, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'Completo', 'activo'),
 (6, 4, 'Formación Ciudadana', 'Docente de Aula', 'si', 'Completo', 'activo'),
-(7, 5, 'Educación Física', '', 'si', 'Completo', 'activo'),
-(8, 6, 'Artes Plásticas', '', 'si', 'Completo', 'activo'),
-(9, 6, 'Música', '', 'si', 'Completo', 'activo'),
-(10, 6, 'Danza y Expresión Corporal', '', 'si', 'Completo', 'activo'),
-(11, 6, 'Teatro y Dramatización', '', 'si', 'Completo', 'activo'),
-(12, 3, 'Tecnología y Computación', '', 'si', 'Completo', 'activo'),
-(106, 4, 'Ciencias Sociales', 'Docente de Aula', 'si', 'Completo', 'activo');
+(7, 5, 'Educación Física', 'Docente especialista', 'si', 'Completo', 'activo'),
+(8, 6, 'Artes Plásticas', 'Docente especialista', 'si', 'Completo', 'activo'),
+(9, 6, 'Música', 'Docente especialista', 'si', 'Completo', 'activo'),
+(10, 6, 'Danza y Expresión Corporal', 'Docente especialista', 'si', 'Completo', 'activo'),
+(11, 6, 'Teatro y Dramatización', 'Docente especialista', 'si', 'Completo', 'activo'),
+(12, 3, 'Tecnología y Computación', 'Docente especialista', 'si', 'Completo', 'activo'),
+(106, 4, 'Ciencias Sociales', 'Docente especialista', 'si', 'Completo', 'activo'),
+(109, 1, 'Cbit', 'Docente especialista', 'no', 'Sub Grupo', 'activo');
 
 -- --------------------------------------------------------
 
@@ -920,12 +920,11 @@ INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk
 (212, 1, 18, 11, 9, 'Especialista', NULL),
 (213, 1, 18, 12, 9, 'Especialista', NULL),
 (214, 1, 18, 13, 9, 'Especialista', NULL),
-(215, 1, 16, 11, 11, 'Especialista', NULL),
-(216, 1, 16, 12, 11, 'Especialista', NULL),
-(217, 1, 16, 13, 11, 'Especialista', NULL),
 (218, 1, 18, 11, 12, 'Especialista', NULL),
 (219, 1, 18, 12, 12, 'Especialista', NULL),
-(220, 1, 18, 13, 12, 'Especialista', NULL);
+(220, 1, 18, 13, 12, 'Especialista', NULL),
+(221, 1, 40, 11, 109, 'Especialista', NULL),
+(223, 2, 40, 11, 7, 'Especialista', NULL);
 
 -- --------------------------------------------------------
 
@@ -1326,14 +1325,12 @@ INSERT INTO `personal` (`id_personal`, `fk_persona`, `fecha_contratacion`, `nive
 (1, 35, '2025-11-11', 'dsadsadas', NULL, NULL, 'sdsadsa', 4, 2, 'activo', 2, ''),
 (14, 89, '2020-09-01', 'Licenciatura en Educación', 44, NULL, 'Católica', 2, 0, 'activo', 1, 'DOC-001'),
 (15, 90, '2015-09-01', 'Maestría en Matemáticas', 40, NULL, 'Sin preferencia', 1, 1, 'activo', 2, 'DOC-002'),
-(16, 91, '2018-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Cristiana', 0, 0, 'activo', 15, 'ESP-001'),
 (17, 101, '2018-09-01', 'Licenciatura en Educación Integral', 44, NULL, 'Católica', 1, 1, 'activo', 1, 'DOC-003'),
 (18, 102, '2020-09-01', 'Licenciatura en Idiomas Modernos', 36, NULL, 'Cristiana', 0, 0, 'activo', 7, 'ESP-002'),
-(19, 103, '2019-09-01', 'Licenciatura en Educación Física', 36, NULL, 'Sin preferencia', 0, 2, 'activo', 15, 'ESP-003'),
 (20, 203, '2015-09-01', 'Licenciatura en Educación Integral', 44, 'J-12345678-9', 'Católica', 2, 0, 'activo', 1, 'DOC-101'),
 (21, 204, '2010-09-01', 'Maestría en Educación', 44, 'J-23456789-0', 'Católico', 1, 2, 'activo', 1, 'DOC-102'),
 (22, 206, '2015-09-01', 'Licenciatura en Educación Integral', 44, 'J-28000001-9', 'Católica', 2, 0, 'activo', 1, 'DOC-101'),
-(30, 213, '2010-09-01', 'Licenciatura en Educación Integral', 44, 'J-32098765-1', 'Católica', 1, 1, 'activo', 1, 'DOC-008'),
+(30, 213, '2010-09-01', 'Licenciatura en Educación Integral', 44, 'J-32098765-1', 'Católica', 1, 1, 'activo', 13, 'DOC-008'),
 (31, 214, '2008-09-01', 'Licenciatura en Educación Mención Primaria', 44, 'J-32109876-2', 'Cristiana Evangélica', 0, 2, 'activo', 1, 'DOC-009'),
 (32, 215, '2012-09-01', 'Licenciatura en Educación Integral', 44, 'J-32210987-3', 'Católica', 2, 0, 'activo', 1, 'DOC-010'),
 (33, 216, '2009-09-01', 'Licenciatura en Educación Mención Matemática', 44, 'J-32321098-4', 'Ateo', 1, 1, 'activo', 1, 'DOC-011'),
@@ -1342,7 +1339,8 @@ INSERT INTO `personal` (`id_personal`, `fk_persona`, `fecha_contratacion`, `nive
 (36, 219, '2016-09-01', 'Licenciatura en Educación Preescolar', 44, 'J-32654321-7', 'Católica', 1, 0, 'activo', 1, 'DOC-014'),
 (37, 220, '2013-09-01', 'Licenciatura en Educación Integral', 44, 'J-32765432-8', 'Sin preferencia', 2, 2, 'activo', 1, 'DOC-015'),
 (38, 221, '2007-09-01', 'Licenciatura en Educación Mención Lengua', 44, 'J-32876543-9', 'Católica', 0, 3, 'activo', 1, 'DOC-016'),
-(39, 222, '2014-09-01', 'Licenciatura en Educación Integral', 44, 'J-32987654-0', 'Cristiana Evangélica', 1, 1, 'activo', 1, 'DOC-017');
+(39, 222, '2014-09-01', 'Licenciatura en Educación Integral', 44, 'J-32987654-0', 'Cristiana Evangélica', 1, 1, 'activo', 1, 'DOC-017'),
+(40, 105, '2026-01-07', '', 40, '', 'no tengo', 0, 1, 'activo', 7, '2522555');
 
 -- --------------------------------------------------------
 
@@ -1611,7 +1609,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(72, 43, '97a339292d8c75f0b6f3101006448cfad49cc58f9eb9c021e9c4240417632c0c', '2026-01-16', '2026-01-17');
+(82, 43, '3f59f03233b1134558d9a524cd3550ecc2fbc50234d100a951371611b2409fd1', '2026-01-19', '2026-01-20');
 
 -- --------------------------------------------------------
 
@@ -2222,7 +2220,7 @@ ALTER TABLE `competencias`
 -- AUTO_INCREMENT de la tabla `componentes_aprendizaje`
 --
 ALTER TABLE `componentes_aprendizaje`
-  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
 -- AUTO_INCREMENT de la tabla `condiciones_salud`
@@ -2288,13 +2286,13 @@ ALTER TABLE `habilidades`
 -- AUTO_INCREMENT de la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `imparte`
 --
 ALTER TABLE `imparte`
-  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=221;
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=224;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
@@ -2336,7 +2334,7 @@ ALTER TABLE `parentesco`
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id_personal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT de la tabla `personas`
@@ -2384,7 +2382,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`

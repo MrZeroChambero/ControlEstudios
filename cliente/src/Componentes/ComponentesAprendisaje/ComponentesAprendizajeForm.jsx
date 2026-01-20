@@ -4,7 +4,6 @@ import { componentesFormClasses } from "./componentesAprendizajeEstilos";
 const tipoDocenteOpciones = [
   { value: "Docente de aula", label: "Docente de aula" },
   { value: "Docente especialista", label: "Docente especialista" },
-  { value: "Docente de cultura", label: "Docente de cultura" },
 ];
 const Grupo = [
   { value: "Completo", label: "Completo" },
@@ -28,9 +27,6 @@ const normalizarEspecialistaValor = (valor) => {
   const base = valorString.toLowerCase();
 
   // Mapeo exacto según enum del backend
-  if (base.includes("cultur")) {
-    return "Docente de cultura";
-  }
 
   if (base === "si" || base === "sí" || base.includes("especial")) {
     return "Docente especialista";

@@ -184,16 +184,12 @@ trait AulaAsignacionesValidacionesTrait
 
   protected function validarCompatibilidadDocenteComponente(string $tipoDocente, string $tipoComponente): bool
   {
-    $matriz = [
-      'aula' => ['aula', 'especialista', 'cultura'],
-      'especialista' => ['especialista'],
-      'cultura' => ['cultura'],
+    // Matriz de compatibilidad simplificada
+    $matrizCompatibilidad = [
+      'aula' => ['aula', 'especialista'], // Docente de aula puede todo
+      'especialista' => ['especialista', 'aula'], // Especialista puede especialista y aula
     ];
 
-    if (!isset($matriz[$tipoDocente])) {
-      return false;
-    }
-
-    return in_array($tipoComponente, $matriz[$tipoDocente], true);
+    return in_array($tipoComponente, $matrizCompatibilidad[$tipoDocente] ?? [], true);
   }
 }
