@@ -346,6 +346,7 @@ trait HorariosGestionTrait
     $sql = 'SELECT i.fk_componente,
              comp.nombre_componente,
              comp.especialista,
+             comp.grupo,
              GROUP_CONCAT(DISTINCT i.fk_personal) AS personal_ids,
              GROUP_CONCAT(DISTINCT i.fk_momento) AS momento_ids
         FROM imparte i
@@ -362,7 +363,7 @@ trait HorariosGestionTrait
       $parametros[] = $personalId;
     }
 
-    $sql .= ' GROUP BY i.fk_componente, comp.nombre_componente, comp.especialista
+    $sql .= ' GROUP BY i.fk_componente, comp.nombre_componente, comp.especialista, comp.grupo
               ORDER BY comp.nombre_componente';
 
     $registros = $this->ejecutarConsulta($conexion, $sql, $parametros);
@@ -384,6 +385,7 @@ trait HorariosGestionTrait
         'id' => (int) $fila['fk_componente'],
         'nombre' => $fila['nombre_componente'],
         'especialista' => $fila['especialista'],
+        'grupo' => $fila['grupo'],
         'personal_ids' => $normalizarLista($fila['personal_ids'] ?? null),
         'momento_ids' => $normalizarLista($fila['momento_ids'] ?? null),
       ];

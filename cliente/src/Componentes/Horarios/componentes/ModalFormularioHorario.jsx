@@ -149,6 +149,25 @@ const ModalFormularioHorario = ({
   const [seleccionEstudiantesVisible, setSeleccionEstudiantesVisible] =
     useState(false);
 
+  // Actualizar el grupo cuando se selecciona un componente
+  React.useEffect(() => {
+    if (formulario.fk_componente && componentesDisponibles.length > 0) {
+      const componenteSeleccionado = componentesDisponibles.find(
+        (componente) =>
+          String(componente.id) === String(formulario.fk_componente)
+      );
+      if (
+        componenteSeleccionado &&
+        componenteSeleccionado.grupo &&
+        formulario.grupo !== componenteSeleccionado.grupo
+      ) {
+        onCambio({
+          target: { name: "grupo", value: componenteSeleccionado.grupo },
+        });
+      }
+    }
+  }, [formulario.fk_componente, componentesDisponibles]);
+
   const momentoSeleccionado = momentosDisponibles.find(
     (momento) =>
       String(obtenerIdMomento(momento)) === String(formulario.fk_momento)
@@ -223,25 +242,6 @@ const ModalFormularioHorario = ({
       ),
     [formulario.hora_inicio, formulario.hora_fin, bloquesConfig]
   );
-
-  // Sincronizar la modalidad del bloque con el atributo `grupo` del componente seleccionado
-  React.useEffect(() => {
-    if (!formulario.fk_componente) return;
-    const seleccionado = componentesDisponibles.find(
-      (c) =>
-        String(c.id) === String(formulario.fk_componente) ||
-        String(c.id_componente) === String(formulario.fk_componente)
-    );
-    const grupoDerivado = seleccionado?.grupo ?? formulario.grupo ?? "completo";
-    if (grupoDerivado !== formulario.grupo) {
-      onCambio({ target: { name: "grupo", value: grupoDerivado } });
-    }
-  }, [
-    formulario.fk_componente,
-    componentesDisponibles,
-    formulario.grupo,
-    onCambio,
-  ]);
 
   const manejarCambioBloque = useCallback(
     (evento) => {
@@ -529,8 +529,8 @@ const ModalFormularioHorario = ({
                 id="grupo"
                 name="grupo"
                 value={
-                  formulario.grupo === "subgrupo"
-                    ? "Subgrupo"
+                  formulario.grupo === "Sub Grupo"
+                    ? "Sub Grupo"
                     : "Grupo completo"
                 }
                 readOnly
@@ -621,7 +621,7 @@ const ModalFormularioHorario = ({
             </div>
           </div>
 
-          {formulario.grupo === "subgrupo" ? (
+          {formulario.grupo === "Sub Grupo" ? (
             <div className={horariosFormClasses.group}>
               <label className={horariosFormClasses.label}>
                 Estudiantes Asignados

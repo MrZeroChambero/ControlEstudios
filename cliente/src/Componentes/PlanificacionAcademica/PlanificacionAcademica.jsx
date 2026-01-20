@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaExchangeAlt, FaEye, FaClone } from "react-icons/fa";
+import { FaToggleOn, FaToggleOff, FaEye, FaClone } from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
   listarPlanificaciones,
@@ -13,6 +13,11 @@ import { PlanificacionDetallePanel } from "./PlanificacionDetallePanel";
 import { PlanificacionFormModal } from "./PlanificacionFormModal";
 import { EncabezadoPlanificacion } from "./componentes/EncabezadoPlanificacion";
 import { FiltrosPlanificacion } from "./componentes/FiltrosPlanificacion";
+import { TablaEntradas } from "../Tablas/Tablas";
+import {
+  contenidosTableClasses,
+  contenidosIconClasses,
+} from "../Contenidos/contenidosEstilos";
 import { planificacionTablaClasses } from "./planificacionEstilos";
 
 const filtrosIniciales = {
@@ -56,7 +61,7 @@ const estadoLabel = (estado) => {
 };
 
 const tipoLabel = (tipo) => {
-  if (tipo === "individual") return "Individual";
+  if (tipo === "individual") return "individual";
   if (tipo === "aula") return "Aula";
   return "Sin tipo";
 };
@@ -166,7 +171,7 @@ export const PlanificacionAcademica = () => {
     return () => {
       activo = false;
     };
-  }, [filtros.fk_personal, filtros.fk_momento]);
+  }, [filtros.fk_personal, filtros.fk_]);
 
   useEffect(() => {
     let activo = true;
@@ -268,7 +273,7 @@ export const PlanificacionAcademica = () => {
       partes.push(`Año #${contexto.anio.id_anio_escolar}`);
     }
     if (contextoMomentoNombre) {
-      partes.push(`Momento ${contextoMomentoNombre}`);
+      partes.push(`${contextoMomentoNombre}`);
     }
     const descripcion = partes.length ? partes.join(" · ") : "Sin contexto";
     return {
@@ -343,13 +348,7 @@ export const PlanificacionAcademica = () => {
       const clave = normalizarClave(id);
       const registro = clave !== null ? aulasMap.get(clave) : null;
       if (registro) {
-        const detalle =
-          registro.grado || registro.seccion
-            ? ` (Grado ${registro.grado ?? "?"} - Seccion ${
-                registro.seccion ?? "?"
-              })`
-            : "";
-        return `${registro.label}${detalle}`;
+        return `${registro.grado ?? "?"} "${registro.seccion ?? "?"}"`;
       }
       return `Aula #${id}`;
     },
@@ -375,16 +374,110 @@ export const PlanificacionAcademica = () => {
       const clave = normalizarClave(id);
       const registro = clave !== null ? momentosMap.get(clave) : null;
       if (registro) {
-        const rango = registro.rango ? ` (${registro.rango})` : "";
-        const estado = registro.estado
-          ? ` - ${estadoLabel(registro.estado)}`
-          : "";
-        return `${registro.label}${rango}${estado}`;
+        const nombre = registro.nombre_momento ?? registro.label ?? "?";
+        return nombre;
       }
       return `Momento #${id}`;
     },
     [momentosMap]
   );
+
+  const columns = [
+    {
+      name: "Docente",
+      selector: (row) => resolverDocente(row.fk_personal),
+      sortable: true,
+    },
+    {
+      name: "Grado y Seccion",
+      selector: (row) => resolverAula(row.fk_aula),
+      sortable: true,
+    },
+    {
+      name: "Componente",
+      selector: (row) => resolverComponente(row.fk_componente),
+      sortable: true,
+    },
+    {
+      name: "Momento",
+      selector: (row) => resolverMomento(row.fk_momento),
+      sortable: true,
+    },
+    {
+      name: "Tipo",
+      selector: (row) => tipoLabel(row.tipo),
+      sortable: true,
+    },
+    {
+      name: "Estado",
+      selector: (row) => estadoLabel(row.estado),
+      sortable: true,
+      cell: (row) => (
+        <span
+          className={
+            row.estado === "activo"
+              ? planificacionTablaClasses.estadoActivoPill
+              : planificacionTablaClasses.estadoInactivoPill
+          }
+        >
+          {estadoLabel(row.estado)}
+        </span>
+      ),
+    },
+    {
+      name: "Resumen",
+      cell: (row) => (
+        <div className={contenidosTableClasses.actionGroup}>
+          <button
+            type="button"
+            onClick={() => alVerDetalle(row)}
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.viewButton}`}
+            title="Ver detalle"
+          >
+            <FaEye className={contenidosIconClasses.base} />
+          </button>
+          <button
+            type="button"
+            onClick={() => alAlternarEstadoPlanificacion(row)}
+            className={`${contenidosTableClasses.actionButton} ${
+              row.estado === "activo"
+                ? contenidosTableClasses.toggleOn
+                : contenidosTableClasses.toggleOff
+            }`}
+            disabled={!puedeGestionarPlanificaciones || !contextoEditable}
+            title={
+              !puedeGestionarPlanificaciones
+                ? "Tu rol no tiene permisos para cambiar el estado."
+                : !contextoEditable
+                ? contextoMotivo ||
+                  "El contexto actual es de solo lectura; no se puede cambiar el estado."
+                : row.estado === "activo"
+                ? "Desactivar"
+                : "Activar"
+            }
+          >
+            {row.estado === "activo" ? (
+              <FaToggleOn className={contenidosIconClasses.base} />
+            ) : (
+              <FaToggleOff className={contenidosIconClasses.base} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => alClonarPlanificacion(row)}
+            className={`${contenidosTableClasses.actionButton} ${contenidosTableClasses.editButton}`}
+            disabled={!puedeGestionarPlanificaciones || !contextoEditable}
+            title={botonClonarTitulo}
+          >
+            <FaClone className={contenidosIconClasses.base} />
+          </button>
+        </div>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+    },
+  ];
 
   const alCambiarFiltro = (event) => {
     const { name, value } = event.target;
@@ -598,112 +691,6 @@ export const PlanificacionAcademica = () => {
     setDetalleCargando(false);
   };
 
-  const generarFilasTabla = () => {
-    if (isLoading) {
-      return (
-        <tr>
-          <td colSpan="8" className={planificacionTablaClasses.tableEmptyText}>
-            Cargando planificaciones...
-          </td>
-        </tr>
-      );
-    }
-
-    if (!planificaciones.length) {
-      return (
-        <tr>
-          <td colSpan="8" className={planificacionTablaClasses.tableEmptyText}>
-            {errorMensaje || "No hay planificaciones registradas."}
-          </td>
-        </tr>
-      );
-    }
-
-    return planificaciones.map((plan) => (
-      <tr
-        key={plan.id_planificacion}
-        className={`border-b border-slate-100 ${planificacionTablaClasses.tableRowText}`}
-      >
-        <td className={planificacionTablaClasses.cellId}>
-          #{plan.id_planificacion}
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          {resolverDocente(plan.fk_personal)}
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          {resolverAula(plan.fk_aula)}
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          {resolverComponente(plan.fk_componente)}
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          {resolverMomento(plan.fk_momento)}
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          <span className={planificacionTablaClasses.tipoPill}>
-            {tipoLabel(plan.tipo)}
-          </span>
-        </td>
-        <td className={planificacionTablaClasses.cellBase}>
-          <span
-            className={
-              plan.estado === "activo"
-                ? planificacionTablaClasses.estadoActivoPill
-                : planificacionTablaClasses.estadoInactivoPill
-            }
-          >
-            {estadoLabel(plan.estado)}
-          </span>
-        </td>
-        <td className={planificacionTablaClasses.summaryCell}>
-          <div className={planificacionTablaClasses.summaryActions}>
-            <span className={planificacionTablaClasses.resumenChip}>
-              {plan.competencias?.length ?? 0} competencias
-            </span>
-            <span className={planificacionTablaClasses.resumenChip}>
-              {plan.estudiantes?.length ?? 0} estudiantes
-            </span>
-            <button
-              type="button"
-              onClick={() => alVerDetalle(plan)}
-              className={planificacionTablaClasses.inlineActionButton}
-            >
-              <FaEye />
-              Ver detalle
-            </button>
-            <button
-              type="button"
-              onClick={() => alAlternarEstadoPlanificacion(plan)}
-              className={`${planificacionTablaClasses.inlineActionButton} ${planificacionTablaClasses.inlineActionButtonDisabled}`}
-              disabled={!puedeGestionarPlanificaciones || !contextoEditable}
-              title={
-                !puedeGestionarPlanificaciones
-                  ? "Tu rol no tiene permisos para cambiar el estado."
-                  : !contextoEditable
-                  ? contextoMotivo ||
-                    "El contexto actual es de solo lectura; no se puede cambiar el estado."
-                  : "Cambiar estado"
-              }
-            >
-              <FaExchangeAlt />
-              Cambiar estado
-            </button>
-            <button
-              type="button"
-              onClick={() => alClonarPlanificacion(plan)}
-              className={`${planificacionTablaClasses.inlineActionButton} ${planificacionTablaClasses.inlineActionButtonDisabled}`}
-              disabled={!puedeGestionarPlanificaciones || !contextoEditable}
-              title={botonClonarTitulo}
-            >
-              <FaClone />
-              Clonar
-            </button>
-          </div>
-        </td>
-      </tr>
-    ));
-  };
-
   return (
     <section className="space-y-6">
       <EncabezadoPlanificacion
@@ -731,29 +718,12 @@ export const PlanificacionAcademica = () => {
         alReiniciarFiltros={alReiniciarFiltros}
       />
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left">
-            <thead
-              className={`bg-slate-50 ${planificacionTablaClasses.tableHeaderText}`}
-            >
-              <tr>
-                <th className="px-4 py-3">ID</th>
-                <th className="px-4 py-3">Docente</th>
-                <th className="px-4 py-3">Aula</th>
-                <th className="px-4 py-3">Componente</th>
-                <th className="px-4 py-3">Momento</th>
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Resumen</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {generarFilasTabla()}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <TablaEntradas
+        columns={columns}
+        data={planificaciones}
+        isLoading={isLoading}
+        Cargar={errorMensaje || "No hay planificaciones registradas."}
+      />
 
       <PlanificacionDetallePanel
         isOpen={detalleAbierto}

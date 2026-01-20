@@ -179,7 +179,7 @@ export const planificacionTablaClasses = {
   estadoActivoPill: `${typePillBase} bg-emerald-100 text-emerald-700`,
   estadoInactivoPill: `${typePillBase} bg-amber-100 text-amber-700`,
   resumenChip: `rounded bg-slate-100 px-2 py-1 ${typographyScale.xs} ${textColors.tertiary}`,
-  inlineActionButton: `flex items-center gap-1 rounded border border-slate-200 px-3 py-1 ${typography.button} ${textColors.tertiary} transition hover:border-slate-400 hover:text-slate-800`,
+  inlineActionButton: `flex items-center justify-center rounded border border-slate-200 p-2 ${typography.button} ${textColors.tertiary} transition hover:border-slate-400 hover:text-slate-800`,
   inlineActionButtonDisabled: "disabled:cursor-not-allowed disabled:opacity-50",
   tableEmptyText: `py-6 text-center ${typography.bodyMutedSm}`,
   tableRowText: `${typographyScale.sm}`,
