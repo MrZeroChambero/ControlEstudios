@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useReducer,
 } from "react";
 import Swal from "sweetalert2";
 import VentanaModal from "../EstilosCliente/VentanaModal";
@@ -27,8 +28,7 @@ import {
 import { PanelContextoActual } from "./componentes/PanelContextoActual";
 import { SelectorDocenteInteractivo } from "./componentes/SelectorDocenteInteractivo";
 import { SeccionCompetencias } from "./componentes/SeccionCompetencias";
-import { ModalPlanificacionesDocente } from "./componentes/ModalPlanificacionesDocente";
-import { ClonacionPlanificacionModal } from "./componentes/ClonacionPlanificacionModal";
+import PlanningClonerModal from "./componentes/PlanningClonerModal";
 
 const {
   rolePillBase: rolePillBaseClass,
@@ -188,9 +188,11 @@ const mapCatalogToOptions = (items, config = {}) => {
     }
 
     const etiquetaCruda = labelExtractor ? labelExtractor(item) : undefined;
-    const label =
-      obtenerTextoPlano(etiquetaCruda ?? item.label ?? item.nombre, "") ||
-      `Opción #${clave}`;
+    const labelCandidate = obtenerTextoPlano(
+      etiquetaCruda ?? item.label ?? item.nombre,
+      ""
+    );
+    const label = labelCandidate || `Opción #${clave}`;
 
     if (!label) {
       return;
@@ -258,7 +260,29 @@ export const PlanificacionFormModal = ({
   cargarAsignacionDocente,
   bloqueado,
 }) => {
-  const [form, setForm] = useState(defaultForm);
+  const formReducer = (state, action) => {
+    switch (action.type) {
+      case "SET_FORM":
+        return { ...state, ...action.payload };
+      case "SET_FORM_FUNCTION":
+        return { ...state, ...action.updater(state) };
+      case "RESET_FORM":
+        return { ...action.payload };
+      default:
+        return state;
+    }
+  };
+
+  const [form, dispatchForm] = useReducer(formReducer, defaultForm);
+
+  const setForm = (updater) => {
+    if (typeof updater === "function") {
+      dispatchForm({ type: "SET_FORM_FUNCTION", updater });
+    } else {
+      dispatchForm({ type: "SET_FORM", payload: updater });
+    }
+  };
+
   const [errores, setErrores] = useState({});
   const [competenciasDisponibles, setCompetenciasDisponibles] = useState([]);
   const [cargandoCompetencias, setCargandoCompetencias] = useState(false);
@@ -278,14 +302,10 @@ export const PlanificacionFormModal = ({
   const [docenteFiltro, setDocenteFiltro] = useState("");
   const [gestionCompetenciasCargando, setGestionCompetenciasCargando] =
     useState(false);
-  const [
-    seleccionCompetenciasPorComponente,
-    setSeleccionCompetenciasPorComponente,
-  ] = useState({});
-  const [
-    catalogoCompetenciasPorComponente,
-    setCatalogoCompetenciasPorComponente,
-  ] = useState({});
+  const [selectedCompetenciesByComponent, setSelectedCompetenciesByComponent] =
+    useState({});
+  const [componentCompetenciesCatalog, setComponentCompetenciesCatalog] =
+    useState({});
   const [planificacionesModalAbierta, setPlanificacionesModalAbierta] =
     useState(false);
   const [planificacionesModalEstado, setPlanificacionesModalEstado] = useState({
@@ -293,9 +313,10 @@ export const PlanificacionFormModal = ({
     registros: [],
     error: "",
   });
-  const seleccionCompetenciasRef = useRef(seleccionCompetenciasPorComponente);
+  const selectedCompetenciesRef = useRef(selectedCompetenciesByComponent);
 
   const [modoVista, setModoVista] = useState("seleccion"); // "seleccion" o "clonacion"
+  const [showClonerModal, setShowClonerModal] = useState(false);
 
   const onClonarCompetencias = useCallback((planificacion) => {
     const competenciasClonadas =
@@ -764,8 +785,8 @@ export const PlanificacionFormModal = ({
   }, []);
 
   useEffect(() => {
-    seleccionCompetenciasRef.current = seleccionCompetenciasPorComponente;
-  }, [seleccionCompetenciasPorComponente]);
+    selectedCompetenciesRef.current = selectedCompetenciesByComponent;
+  }, [selectedCompetenciesByComponent]);
 
   const recargarCompetencias = useCallback(
     async ({ mostrarAlertas = true } = {}) => {
@@ -795,19 +816,19 @@ export const PlanificacionFormModal = ({
 
         const opciones = mapearCompetencias(registros);
         setCompetenciasDisponibles(opciones);
-        setCatalogoCompetenciasPorComponente((prev) => ({
+        setComponentCompetenciesCatalog((prev) => ({
           ...prev,
           [claveComponente]: opciones,
         }));
 
         const validos = new Set(opciones.map((opcion) => opcion.id));
         const seleccionAnterior =
-          seleccionCompetenciasRef.current?.[claveComponente] ?? [];
+          selectedCompetenciesRef.current?.[claveComponente] ?? [];
         const seleccionDepurada = seleccionAnterior.filter((valor) =>
           validos.has(valor)
         );
 
-        setSeleccionCompetenciasPorComponente((prev) => ({
+        setSelectedCompetenciesByComponent((prev) => ({
           ...prev,
           [claveComponente]: seleccionDepurada,
         }));
@@ -859,9 +880,9 @@ export const PlanificacionFormModal = ({
       mapCatalogToOptions(catalogos?.componentes, {
         idExtractor: (item) => item.id_componente ?? item.id,
         labelExtractor: (item) =>
+          item.label ??
           item.nombre_componente ??
           item.nombre ??
-          item.descripcion ??
           `Componente #${item.id_componente ?? item.id}`,
       }),
     [catalogos?.componentes]
@@ -887,64 +908,61 @@ export const PlanificacionFormModal = ({
     );
   }, [catalogoPersonal, form.fk_personal]);
 
-  const competenciasSeleccionadasPorComponente = useMemo(() => {
-    const grupos = [];
+  const selectedCompetencyGroups = useMemo(() => {
+    const groups = [];
 
-    Object.entries(seleccionCompetenciasPorComponente).forEach(
-      ([clave, ids]) => {
-        if (!Array.isArray(ids) || ids.length === 0) {
-          return;
-        }
-
-        const listado = catalogoCompetenciasPorComponente[clave] || [];
-        const seleccion = new Set(ids);
-        const coincidencias = listado.filter((competencia) =>
-          seleccion.has(competencia.id)
-        );
-
-        const componenteId = normalizarEntero(clave);
-        const componenteLabel =
-          coincidencias[0]?.componente ||
-          catalogoComponentesMap.get(clave) ||
-          (componenteId
-            ? `Componente #${componenteId}`
-            : "Componente sin nombre");
-
-        const competenciasRender = coincidencias.length
-          ? coincidencias
-          : ids.map((id) => ({
-              id,
-              nombre: `Competencia #${id}`,
-              descripcion: "",
-              indicadores: [],
-              componente: componenteLabel,
-              componenteId,
-            }));
-
-        grupos.push({
-          clave,
-          componenteId,
-          componenteLabel,
-          competencias: competenciasRender,
-        });
+    Object.entries(selectedCompetenciesByComponent).forEach(([key, ids]) => {
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return;
       }
-    );
 
-    return grupos;
+      const listado = componentCompetenciesCatalog[key] || [];
+      const seleccion = new Set(ids);
+      const coincidencias = listado.filter((competencia) =>
+        seleccion.has(competencia.id)
+      );
+
+      const componenteId = normalizarEntero(key);
+      const componenteLabel =
+        coincidencias[0]?.componente ||
+        catalogoComponentesMap.get(key) ||
+        (componenteId
+          ? `Componente #${componenteId}`
+          : "Componente sin nombre");
+
+      const competenciasRender = coincidencias.length
+        ? coincidencias
+        : ids.map((id) => ({
+            id,
+            nombre: `Competencia #${id}`,
+            descripcion: "",
+            indicadores: [],
+            componente: componenteLabel,
+            componenteId,
+          }));
+
+      groups.push({
+        clave: key,
+        componenteId,
+        componenteLabel,
+        competencias: competenciasRender,
+      });
+    });
+
+    return groups;
   }, [
-    seleccionCompetenciasPorComponente,
-    catalogoCompetenciasPorComponente,
+    selectedCompetenciesByComponent,
+    componentCompetenciesCatalog,
     catalogoComponentesMap,
   ]);
 
-  const totalCompetenciasSeleccionadas = useMemo(
+  const totalSelectedCompetencies = useMemo(
     () =>
-      Object.values(seleccionCompetenciasPorComponente).reduce(
-        (acumulado, lista) =>
-          acumulado + (Array.isArray(lista) ? lista.length : 0),
+      Object.values(selectedCompetenciesByComponent).reduce(
+        (acc, list) => acc + (Array.isArray(list) ? list.length : 0),
         0
       ),
-    [seleccionCompetenciasPorComponente]
+    [selectedCompetenciesByComponent]
   );
 
   const limpiarErrores = () => setErrores({});
@@ -1014,12 +1032,12 @@ export const PlanificacionFormModal = ({
 
     const componenteInicial = normalizarEntero(merged.fk_componente);
     const claveSeleccion = obtenerClaveComponente(componenteInicial);
-    setSeleccionCompetenciasPorComponente(
+    setSelectedCompetenciesByComponent(
       competenciasNormalizadas.length
         ? { [claveSeleccion]: competenciasNormalizadas }
         : {}
     );
-    setCatalogoCompetenciasPorComponente({});
+    setComponentCompetenciesCatalog({});
   };
 
   useEffect(() => {
@@ -1259,13 +1277,7 @@ export const PlanificacionFormModal = ({
     return () => {
       cancelado = true;
     };
-  }, [
-    isOpen,
-    form.fk_personal,
-    cargarAsignacionDocente,
-    docentesAsignacion,
-    momentoDestino,
-  ]);
+  }, [isOpen, form.fk_personal, momentoDestino]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -1309,7 +1321,7 @@ export const PlanificacionFormModal = ({
       );
       return;
     }
-    setPlanificacionesModalAbierta(true);
+    setShowClonerModal(true);
   };
 
   const handleCerrarModalPlanificaciones = () => {
@@ -1343,8 +1355,9 @@ export const PlanificacionFormModal = ({
           clave,
           componenteId: normalizarEntero(componente.id),
           componenteLabel:
-            componente.nombre ||
-            catalogoComponentesMap.get(clave) ||
+            componente.label ??
+            componente.nombre ??
+            catalogoComponentesMap.get(clave) ??
             "Componente sin nombre",
           planificaciones: [],
         });
@@ -1536,7 +1549,7 @@ export const PlanificacionFormModal = ({
       estado: "activo",
       reutilizable: "no",
       competencias:
-        seleccionCompetenciasPorComponente[
+        selectedCompetenciesByComponent[
           obtenerClaveComponente(componenteDestino)
         ] ?? [],
       estudiantes: obtenerEstudiantesSeleccionados(),
@@ -1671,13 +1684,13 @@ export const PlanificacionFormModal = ({
         const id =
           normalizarEntero(componente?.id ?? componente?.fk_componente) ??
           indice;
-        const nombre =
-          componente?.nombre ??
+        const label =
           componente?.label ??
+          componente?.nombre ??
           componente?.nombre_componente ??
           componente?.descripcion ??
           null;
-        return nombre ? { id: `${id}-${indice}`, nombre } : null;
+        return label ? { id: `${id}-${indice}`, label } : null;
       })
       .filter(Boolean);
   }, [componentesAsignados]);
@@ -1767,24 +1780,45 @@ export const PlanificacionFormModal = ({
   }, [asignacionAula, catalogoAulas]);
 
   const opcionesComponentes = useMemo(() => {
-    if (componentesAsignados.length) {
+    const componentesSeleccionadosIds = new Set(
+      Object.keys(selectedCompetenciesByComponent)
+        .filter((clave) => selectedCompetenciesByComponent[clave].length > 0)
+        .map((clave) => normalizarEntero(clave))
+    );
+
+    let base = componentesAsignados.length
+      ? componentesAsignados
+      : catalogoComponentes;
+
+    if (componentesSeleccionadosIds.size > 0) {
+      base = base.filter((componente) =>
+        componentesSeleccionadosIds.has(normalizarEntero(componente.id))
+      );
+    }
+
+    if (componentesAsignados.length && componentesSeleccionadosIds.size === 0) {
       return componentesAsignados.map((componente) => ({
         id: normalizarEntero(componente.id),
         label:
-          componente.nombre ??
           componente.label ??
+          componente.nombre ??
           `Componente #${componente.id}`,
       }));
     }
-    return catalogoComponentes;
-  }, [componentesAsignados, catalogoComponentes]);
+
+    return base;
+  }, [
+    componentesAsignados,
+    catalogoComponentes,
+    selectedCompetenciesByComponent,
+  ]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     limpiarErrores();
     if (name === "fk_componente") {
       const clave = obtenerClaveComponente(value);
-      const seleccion = seleccionCompetenciasPorComponente[clave] ?? [];
+      const seleccion = selectedCompetenciesByComponent[clave] ?? [];
       setForm((prev) => ({ ...prev, [name]: value, competencias: seleccion }));
       return;
     }
@@ -1820,7 +1854,7 @@ export const PlanificacionFormModal = ({
     }
 
     const clave = obtenerClaveComponente(componenteId);
-    setSeleccionCompetenciasPorComponente((prev) => {
+    setSelectedCompetenciesByComponent((prev) => {
       const actual = new Set(prev[clave] ?? []);
       if (actual.has(id)) {
         actual.delete(id);
@@ -1848,7 +1882,7 @@ export const PlanificacionFormModal = ({
   const handleQuitarCompetenciaPlan = (id, componenteId) => {
     limpiarErrores();
     const clave = obtenerClaveComponente(componenteId);
-    setSeleccionCompetenciasPorComponente((prev) => {
+    setSelectedCompetenciesByComponent((prev) => {
       const lista = prev[clave] ?? [];
       const filtrada = lista.filter((valor) => valor !== id);
       if (filtrada.length === lista.length) {
@@ -2076,6 +2110,25 @@ export const PlanificacionFormModal = ({
     );
   }, [form.tipo, estudiantesTexto]);
 
+  const validateCompetences = (
+    competences,
+    maxPerPlan = MAX_COMPETENCIAS_POR_PLAN
+  ) => {
+    if (!Array.isArray(competences) || competences.length === 0) {
+      return {
+        isValid: false,
+        error: "Debe seleccionar al menos una competencia",
+      };
+    }
+    if (competences.length > maxPerPlan) {
+      return {
+        isValid: false,
+        error: `Máximo ${maxPerPlan} competencias por planificación`,
+      };
+    }
+    return { isValid: true, error: null };
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (bloqueado) {
@@ -2166,7 +2219,7 @@ export const PlanificacionFormModal = ({
     }
 
     const componentesSeleccionados = Object.entries(
-      seleccionCompetenciasPorComponente
+      selectedCompetenciesByComponent
     )
       .map(([clave, lista]) => ({
         componenteId: normalizarEntero(clave),
@@ -2188,8 +2241,7 @@ export const PlanificacionFormModal = ({
 
     const componenteActualId = normalizarEntero(form.fk_componente);
     const claveActual = obtenerClaveComponente(componenteActualId);
-    const seleccionActual =
-      seleccionCompetenciasPorComponente[claveActual] ?? [];
+    const seleccionActual = selectedCompetenciesByComponent[claveActual] ?? [];
 
     const listaValidaciones =
       modo === "crear"
@@ -2201,22 +2253,26 @@ export const PlanificacionFormModal = ({
             },
           ];
 
-    const exceso = listaValidaciones.find(
-      (item) => item.competencias.length > MAX_COMPETENCIAS_POR_PLAN
-    );
-    if (exceso) {
+    let invalid = null;
+    for (const item of listaValidaciones) {
+      const result = validateCompetences(
+        item.competencias,
+        MAX_COMPETENCIAS_POR_PLAN
+      );
+      if (!result.isValid) {
+        invalid = { item, message: result.error };
+        break;
+      }
+    }
+    if (invalid) {
       const etiqueta =
         catalogoComponentesMap.get(
-          obtenerClaveComponente(exceso.componenteId)
+          obtenerClaveComponente(invalid.item.componenteId)
         ) ||
-        (exceso.componenteId
-          ? `Componente #${exceso.componenteId}`
+        (invalid.item.componenteId
+          ? `Componente #${invalid.item.componenteId}`
           : "Componente");
-      setErrores({
-        competencias: [
-          `El ${etiqueta} excede el máximo de ${MAX_COMPETENCIAS_POR_PLAN} competencias por planificación.`,
-        ],
-      });
+      setErrores({ competencias: [`El ${etiqueta} ${invalid.message}.`] });
       return;
     }
 
@@ -2247,8 +2303,8 @@ export const PlanificacionFormModal = ({
       limpiarErrores();
       if (modo === "crear") {
         prepararEstadoInicial();
-        setSeleccionCompetenciasPorComponente({});
-        setCatalogoCompetenciasPorComponente({});
+        setSelectedCompetenciesByComponent({});
+        setComponentCompetenciesCatalog({});
       }
     } catch (error) {
       const validation = error?.validation ?? error?.errors;
@@ -2440,58 +2496,76 @@ export const PlanificacionFormModal = ({
             </select>
           </div>
 
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center gap-3 mb-4">
             <button
               type="button"
-              onClick={() =>
-                setModoVista(
-                  modoVista === "seleccion" ? "clonacion" : "seleccion"
-                )
-              }
-              className={contenidosFormClasses.primaryButton}
+              onClick={() => setShowClonerModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
             >
-              {modoVista === "seleccion"
-                ? "Clonar de planificación existente"
-                : "Seleccionar competencias"}
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              Ver y clonar planificaciones
             </button>
           </div>
 
-          {modoVista === "seleccion" ? (
-            <SeccionCompetencias
-              competenciasDisponibles={competenciasDisponibles}
-              cargandoCompetencias={cargandoCompetencias}
-              competenciasSeleccionadas={form.competencias}
-              competenciasSeleccionadasPorComponente={
-                competenciasSeleccionadasPorComponente
-              }
-              totalCompetenciasSeleccionadas={totalCompetenciasSeleccionadas}
-              gestionCompetenciasCargando={gestionCompetenciasCargando}
-              competenciaItemBase={competenciaItemBase}
-              competenciaItemActivo={competenciaItemActivo}
-              competenciaCardClase={competenciaCardClase}
-              indicadorRowClase={indicadorRowClase}
-              puedeConsultarPlanificaciones={puedeConsultarPlanificaciones}
-              alAbrirModalPlanificaciones={handleAbrirModalPlanificaciones}
-              alAlternarCompetencia={handleToggleCompetencia}
-              alEditarCompetencia={handleEditarCompetencia}
-              alEliminarCompetencia={handleEliminarCompetenciaCatalogo}
-              alRetirarCompetencia={handleQuitarCompetenciaPlan}
-              alEditarIndicador={handleEditarIndicador}
-              alEliminarIndicador={handleEliminarIndicadorCatalogo}
-              accionesCompetenciaDeshabilitadas={
-                accionesCompetenciaDeshabilitadas
-              }
-              competenciaMetaPillClass={competenciaMetaPillClass}
-            />
-          ) : (
-            <ClonacionPlanificacionModal
-              isOpen={true}
-              onClose={() => setModoVista("seleccion")}
-              componenteSeleccionado={form.fk_componente}
-              aulaSeleccionada={form.fk_aula}
-              onClonarCompetencias={onClonarCompetencias}
-            />
-          )}
+          <SeccionCompetencias
+            competenciasDisponibles={competenciasDisponibles}
+            cargandoCompetencias={cargandoCompetencias}
+            selectedCompetencies={form.competencias}
+            selectedCompetencyGroups={selectedCompetencyGroups}
+            totalSelectedCompetencies={totalSelectedCompetencies}
+            gestionCompetenciasCargando={gestionCompetenciasCargando}
+            competenciaItemBase={competenciaItemBase}
+            competenciaItemActivo={competenciaItemActivo}
+            competenciaCardClase={competenciaCardClase}
+            indicadorRowClase={indicadorRowClase}
+            puedeConsultarPlanificaciones={puedeConsultarPlanificaciones}
+            alAbrirModalPlanificaciones={handleAbrirModalPlanificaciones}
+            alAlternarCompetencia={handleToggleCompetencia}
+            alEditarCompetencia={handleEditarCompetencia}
+            alEliminarCompetencia={handleEliminarCompetenciaCatalogo}
+            alRetirarCompetencia={handleQuitarCompetenciaPlan}
+            alEditarIndicador={handleEditarIndicador}
+            alEliminarIndicador={handleEliminarIndicadorCatalogo}
+            accionesCompetenciaDeshabilitadas={
+              accionesCompetenciaDeshabilitadas
+            }
+            competenciaMetaPillClass={competenciaMetaPillClass}
+          />
+
+          <PlanningClonerModal
+            isOpen={showClonerModal}
+            onClose={() => setShowClonerModal(false)}
+            currentTeacherId={form.fk_personal}
+            selectedComponent={form.fk_componente}
+            selectedClassroom={form.fk_aula}
+            selectedMoment={form.fk_momento}
+            onClonePlanification={(competenciasClonadas) => {
+              // actualizar form y selección por componente
+              const ids = Array.isArray(competenciasClonadas)
+                ? competenciasClonadas.map((c) => c.id)
+                : [];
+              setForm((prev) => ({ ...prev, competencias: ids }));
+              const componenteId = normalizarEntero(form.fk_componente);
+              const clave = obtenerClaveComponente(componenteId);
+              setSelectedCompetenciesByComponent((prev) => ({
+                ...prev,
+                [clave]: ids,
+              }));
+              setShowClonerModal(false);
+            }}
+          />
 
           {form.tipo === "individual" && (
             <section className="space-y-2">
@@ -2551,19 +2625,7 @@ export const PlanificacionFormModal = ({
         </form>
       </VentanaModal>
 
-      <ModalPlanificacionesDocente
-        abierta={planificacionesModalAbierta}
-        alCerrar={handleCerrarModalPlanificaciones}
-        docenteSeleccionado={docenteSeleccionado}
-        momentoSeleccionadoLabel={momentoSeleccionadoLabel}
-        estadoModal={planificacionesModalEstado}
-        puedeConsultarPlanificaciones={puedeConsultarPlanificaciones}
-        alRefrescar={cargarPlanificacionesDocente}
-        planificacionesAgrupadas={planificacionesAgrupadas}
-        alAgregarPlanificacion={handleAgregarPlanificacionModal}
-        alModificarPlanificacion={handleModificarPlanificacionModal}
-        alEliminarPlanificacion={handleEliminarPlanificacionModal}
-      />
+      {/* Modal de planificaciones docente eliminado (reemplazado por PlanningClonerModal) */}
     </React.Fragment>
   );
 };

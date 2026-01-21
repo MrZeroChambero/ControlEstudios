@@ -121,6 +121,17 @@ export const PlanificacionAcademica = () => {
         : [];
       setPlanificaciones(coleccion);
       setContexto(payload?.contexto ?? null);
+      // DEBUG: inspeccionar contexto y payload para diagnosticar botones deshabilitados
+      // Elimina estos logs una vez resuelto.
+      // eslint-disable-next-line no-console
+      console.log("[debug] listarPlanificaciones payload:", payload);
+      // eslint-disable-next-line no-console
+      console.log("[debug] contexto recibido:", payload?.contexto ?? null);
+      // eslint-disable-next-line no-console
+      console.log(
+        "[debug] nivelUsuario localStorage:",
+        localStorage.getItem("nivel")
+      );
     }
     setIsLoading(false);
   }, [filtrosAplicados]);
@@ -324,7 +335,21 @@ export const PlanificacionAcademica = () => {
   const hayMomentoActivoContexto = momentosActivosContexto.length > 0;
 
   const asignacionAula = docenteAsignacion.data?.aula ?? null;
-  const componentesAsignados = docenteAsignacion.data?.componentes ?? [];
+  const componentesAsignados = useMemo(() => {
+    const raw = docenteAsignacion.data?.componentes ?? [];
+    return raw.map((comp) => {
+      const clave = normalizarClave(comp.id);
+      const catalogoItem = clave !== null ? componentesMap.get(clave) : null;
+      return {
+        ...comp,
+        label:
+          comp.nombre ??
+          comp.label ??
+          catalogoItem?.label ??
+          `Componente #${comp.id}`,
+      };
+    });
+  }, [docenteAsignacion.data?.componentes, componentesMap]);
 
   const resolverDocente = useCallback(
     (id) => {

@@ -94,7 +94,7 @@ export const FiltrosPlanificacion = ({
           </select>
         </label>
         <label className={filtrosPlanificacionClasses.fieldLabel}>
-          Componente de aprendizaje
+          Componente de aprendizaje sadsad
           <select
             name="fk_componente"
             value={filtros.fk_componente}
@@ -146,7 +146,7 @@ export const FiltrosPlanificacion = ({
                           key={componente.id}
                           className={filtrosPlanificacionClasses.docenteChip}
                         >
-                          {componente.nombre}
+                          {componente.label}
                         </span>
                       ))}
                     </div>

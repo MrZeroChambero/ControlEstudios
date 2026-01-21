@@ -4,9 +4,9 @@ import { PlanificacionCompleta } from "./PlanificacionCompleta";
 export const SeccionCompetencias = ({
   competenciasDisponibles,
   cargandoCompetencias,
-  competenciasSeleccionadas,
-  competenciasSeleccionadasPorComponente,
-  totalCompetenciasSeleccionadas,
+  selectedCompetencies,
+  selectedCompetencyGroups,
+  totalSelectedCompetencies,
   gestionCompetenciasCargando,
   competenciaItemBase,
   competenciaItemActivo,
@@ -45,8 +45,8 @@ export const SeccionCompetencias = ({
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
             {competenciasDisponibles.map((competencia) => {
-              const seleccionado = Array.isArray(competenciasSeleccionadas)
-                ? competenciasSeleccionadas.some(
+              const seleccionado = Array.isArray(selectedCompetencies)
+                ? selectedCompetencies.some(
                     (id) => String(id) === String(competencia.id)
                   )
                 : Boolean(competencia.seleccionado);
@@ -123,9 +123,9 @@ export const SeccionCompetencias = ({
             <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Competencias seleccionadas
             </h4>
-            {totalCompetenciasSeleccionadas > 0 && (
+            {totalSelectedCompetencies > 0 && (
               <span className="text-xs text-slate-500">
-                {totalCompetenciasSeleccionadas} seleccionada(s)
+                {totalSelectedCompetencies} seleccionada(s)
               </span>
             )}
           </div>
@@ -140,15 +140,13 @@ export const SeccionCompetencias = ({
             </button>
           </div>
         </div>
-        {totalCompetenciasSeleccionadas === 0 ? (
+        {totalSelectedCompetencies === 0 ? (
           <p className="text-sm text-slate-500">
             Seleccione al menos una competencia para comenzar a planificar.
           </p>
         ) : (
           <PlanificacionCompleta
-            competenciasSeleccionadasPorComponente={
-              competenciasSeleccionadasPorComponente
-            }
+            selectedCompetencyGroups={selectedCompetencyGroups}
             competenciaCardClase={competenciaCardClase}
             indicadorRowClase={indicadorRowClase}
             alEditarCompetencia={alEditarCompetencia}

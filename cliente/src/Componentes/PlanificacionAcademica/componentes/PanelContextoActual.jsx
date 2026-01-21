@@ -13,7 +13,7 @@ export const PanelContextoActual = ({
   return (
     <div className={panelContextoActualClasses.container}>
       <p className={panelContextoActualClasses.eyebrow}>Contexto actual</p>
-      
+
       <p
         className={`${panelContextoActualClasses.spacingMd} ${panelContextoActualClasses.helperText}`}
       >
@@ -57,7 +57,7 @@ export const PanelContextoActual = ({
                         key={item.id}
                         className={panelContextoActualClasses.chipListItem}
                       >
-                        {item.nombre}
+                        {item.label}
                       </p>
                     ))}
                   </div>

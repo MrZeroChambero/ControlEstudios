@@ -59,12 +59,53 @@ const limpiarParametros = (params = {}) => {
 
 export const listarPlanificaciones = async (params = {}) => {
   const filtrados = limpiarParametros(params);
+  // establecer expandir por defecto
+  if (!filtrados.expandir) {
+    filtrados.expandir = "competencias";
+  }
   try {
     const { data } = await axios.get(ENDPOINTS.list, {
       ...withCredentials,
       params: filtrados,
     });
-    return adaptResponse(data, "No se pudieron obtener las planificaciones.");
+    const respuesta = adaptResponse(
+      data,
+      "No se pudieron obtener las planificaciones."
+    );
+    if (!respuesta.success) return respuesta;
+
+    const payload = respuesta.data;
+    const coleccion = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.planificaciones)
+      ? payload.planificaciones
+      : [];
+
+    const normalizadas = coleccion.map((plan) => ({
+      id: plan.id_planificacion ?? plan.id ?? plan.id_plan,
+      fk_personal: plan.fk_personal ?? plan.fk_docente ?? null,
+      docenteNombre:
+        plan.docente_nombre ||
+        plan.docente?.nombre_completo ||
+        plan.docente?.label ||
+        null,
+      fk_componente: plan.fk_componente ?? plan.componente_id ?? null,
+      fk_aula: plan.fk_aula ?? plan.aula_id ?? null,
+      fk_momento: plan.fk_momento ?? plan.momento_id ?? null,
+      tipo: plan.tipo ?? null,
+      estado: plan.estado ?? null,
+      competencias: plan.competencias || [],
+      raw: plan,
+    }));
+
+    return {
+      success: true,
+      message: respuesta.message,
+      data: {
+        planificaciones: normalizadas,
+        contexto: payload?.contexto ?? payload?.context ?? null,
+      },
+    };
   } catch (error) {
     return extractError(error, "No se pudieron obtener las planificaciones.");
   }
