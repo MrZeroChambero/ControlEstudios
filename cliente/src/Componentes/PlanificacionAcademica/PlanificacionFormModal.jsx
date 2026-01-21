@@ -28,6 +28,7 @@ import { PanelContextoActual } from "./componentes/PanelContextoActual";
 import { SelectorDocenteInteractivo } from "./componentes/SelectorDocenteInteractivo";
 import { SeccionCompetencias } from "./componentes/SeccionCompetencias";
 import { ModalPlanificacionesDocente } from "./componentes/ModalPlanificacionesDocente";
+import { ClonacionPlanificacionModal } from "./componentes/ClonacionPlanificacionModal";
 
 const {
   rolePillBase: rolePillBaseClass,
@@ -293,6 +294,18 @@ export const PlanificacionFormModal = ({
     error: "",
   });
   const seleccionCompetenciasRef = useRef(seleccionCompetenciasPorComponente);
+
+  const [modoVista, setModoVista] = useState("seleccion"); // "seleccion" o "clonacion"
+
+  const onClonarCompetencias = useCallback((planificacion) => {
+    const competenciasClonadas =
+      planificacion.competencias?.map((comp) => ({
+        ...comp,
+        indicadores: comp.indicadores?.map((ind) => ({ ...ind })),
+      })) || [];
+    setForm((prev) => ({ ...prev, competencias: competenciasClonadas }));
+    setModoVista("seleccion");
+  }, []);
 
   const momentosCatalogoRaw = Array.isArray(catalogos?.momentos)
     ? catalogos.momentos
@@ -2285,7 +2298,7 @@ export const PlanificacionFormModal = ({
         bodyClassName="space-y-6"
       >
         <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
-          <PanelContextoActual
+          {/* <PanelContextoActual
             contexto={contexto}
             modo={modo}
             bloqueado={bloqueado}
@@ -2293,7 +2306,7 @@ export const PlanificacionFormModal = ({
             asignacion={asignacion}
             descripcionAulaAsignada={descripcionAulaAsignada}
             resumenComponentesAsignados={resumenComponentesAsignados}
-          />
+          /> */}
 
           <div className={contenidosFormClasses.group}>
             <label className={contenidosFormClasses.label} htmlFor="fk_momento">
@@ -2427,32 +2440,58 @@ export const PlanificacionFormModal = ({
             </select>
           </div>
 
-          <SeccionCompetencias
-            competenciasDisponibles={competenciasDisponibles}
-            cargandoCompetencias={cargandoCompetencias}
-            competenciasSeleccionadas={form.competencias}
-            competenciasSeleccionadasPorComponente={
-              competenciasSeleccionadasPorComponente
-            }
-            totalCompetenciasSeleccionadas={totalCompetenciasSeleccionadas}
-            gestionCompetenciasCargando={gestionCompetenciasCargando}
-            competenciaItemBase={competenciaItemBase}
-            competenciaItemActivo={competenciaItemActivo}
-            competenciaCardClase={competenciaCardClase}
-            indicadorRowClase={indicadorRowClase}
-            puedeConsultarPlanificaciones={puedeConsultarPlanificaciones}
-            alAbrirModalPlanificaciones={handleAbrirModalPlanificaciones}
-            alAlternarCompetencia={handleToggleCompetencia}
-            alEditarCompetencia={handleEditarCompetencia}
-            alEliminarCompetencia={handleEliminarCompetenciaCatalogo}
-            alRetirarCompetencia={handleQuitarCompetenciaPlan}
-            alEditarIndicador={handleEditarIndicador}
-            alEliminarIndicador={handleEliminarIndicadorCatalogo}
-            accionesCompetenciaDeshabilitadas={
-              accionesCompetenciaDeshabilitadas
-            }
-            competenciaMetaPillClass={competenciaMetaPillClass}
-          />
+          <div className="flex justify-center mb-4">
+            <button
+              type="button"
+              onClick={() =>
+                setModoVista(
+                  modoVista === "seleccion" ? "clonacion" : "seleccion"
+                )
+              }
+              className={contenidosFormClasses.primaryButton}
+            >
+              {modoVista === "seleccion"
+                ? "Clonar de planificación existente"
+                : "Seleccionar competencias"}
+            </button>
+          </div>
+
+          {modoVista === "seleccion" ? (
+            <SeccionCompetencias
+              competenciasDisponibles={competenciasDisponibles}
+              cargandoCompetencias={cargandoCompetencias}
+              competenciasSeleccionadas={form.competencias}
+              competenciasSeleccionadasPorComponente={
+                competenciasSeleccionadasPorComponente
+              }
+              totalCompetenciasSeleccionadas={totalCompetenciasSeleccionadas}
+              gestionCompetenciasCargando={gestionCompetenciasCargando}
+              competenciaItemBase={competenciaItemBase}
+              competenciaItemActivo={competenciaItemActivo}
+              competenciaCardClase={competenciaCardClase}
+              indicadorRowClase={indicadorRowClase}
+              puedeConsultarPlanificaciones={puedeConsultarPlanificaciones}
+              alAbrirModalPlanificaciones={handleAbrirModalPlanificaciones}
+              alAlternarCompetencia={handleToggleCompetencia}
+              alEditarCompetencia={handleEditarCompetencia}
+              alEliminarCompetencia={handleEliminarCompetenciaCatalogo}
+              alRetirarCompetencia={handleQuitarCompetenciaPlan}
+              alEditarIndicador={handleEditarIndicador}
+              alEliminarIndicador={handleEliminarIndicadorCatalogo}
+              accionesCompetenciaDeshabilitadas={
+                accionesCompetenciaDeshabilitadas
+              }
+              competenciaMetaPillClass={competenciaMetaPillClass}
+            />
+          ) : (
+            <ClonacionPlanificacionModal
+              isOpen={true}
+              onClose={() => setModoVista("seleccion")}
+              componenteSeleccionado={form.fk_componente}
+              aulaSeleccionada={form.fk_aula}
+              onClonarCompetencias={onClonarCompetencias}
+            />
+          )}
 
           {form.tipo === "individual" && (
             <section className="space-y-2">

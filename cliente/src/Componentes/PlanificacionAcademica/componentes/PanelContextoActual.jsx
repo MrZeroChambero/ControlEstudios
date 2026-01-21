@@ -13,14 +13,7 @@ export const PanelContextoActual = ({
   return (
     <div className={panelContextoActualClasses.container}>
       <p className={panelContextoActualClasses.eyebrow}>Contexto actual</p>
-      <p
-        className={`${panelContextoActualClasses.spacingSm} ${panelContextoActualClasses.titleHighlight}`}
-      >
-        {contexto?.momento?.nombre ??
-          contexto?.momento?.momento_nombre ??
-          contexto?.momento?.nombre_momento ??
-          "Sin momento asignado"}
-      </p>
+      
       <p
         className={`${panelContextoActualClasses.spacingMd} ${panelContextoActualClasses.helperText}`}
       >
