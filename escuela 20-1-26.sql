@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 20-01-2026 a las 01:47:27
+-- Tiempo de generación: 21-01-2026 a las 04:12:49
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -355,7 +355,37 @@ INSERT INTO `competencias` (`id_competencia`, `fk_componente`, `nombre_competenc
 (10, 10, 1, 'Expresa sentimientos e ideas a través del movimiento corporal y la danza.', 'si'),
 (11, 11, 1, 'Desarrolla la creatividad y la expresión a través de la dramatización y el teatro.', 'si'),
 (12, 12, 1, 'Utiliza herramientas tecnológicas de manera responsable para el aprendizaje y la comunicación.', 'si'),
-(13, 106, 1, 'Analiza procesos históricos y geográficos para comprender la realidad social actual.', 'si');
+(13, 106, 1, 'Analiza procesos históricos y geográficos para comprender la realidad social actual.', 'si'),
+(14, 1, 1, 'Comprende y produce textos orales y escritos en diversos contextos comunicativos.', 'si'),
+(15, 2, 1, 'Se comunica en inglés en situaciones cotidianas y escolares.', 'si'),
+(16, 3, 1, 'Resuelve problemas matemáticos aplicando operaciones básicas y razonamiento lógico.', 'si'),
+(17, 4, 1, 'Investiga y comprende fenómenos naturales y su relación con el entorno.', 'si'),
+(18, 5, 1, 'Analiza la realidad social y geográfica de su localidad y país.', 'si'),
+(19, 6, 1, 'Practica valores y actitudes para la convivencia democrática y la ciudadanía.', 'si'),
+(20, 7, 1, 'Desarrolla habilidades motrices y hábitos de vida saludable a través de la actividad física.', 'si'),
+(21, 8, 1, 'Crea y aprecia manifestaciones artísticas mediante el uso de diversas técnicas y materiales.', 'si'),
+(22, 9, 1, 'Expresa y crea a través del lenguaje musical, reconociendo diferentes ritmos y melodías.', 'si'),
+(23, 10, 1, 'Utiliza el cuerpo y el movimiento para expresar ideas y emociones en danzas y coreografías.', 'si'),
+(24, 11, 1, 'Representa y crea historias a través del teatro y la dramatización.', 'si'),
+(25, 12, 1, 'Usa herramientas tecnológicas de manera responsable para el aprendizaje y la comunicación.', 'si'),
+(26, 106, 1, 'Analiza procesos históricos y geográficos para comprender la realidad social actual.', 'si'),
+(27, 109, 1, 'Aplica conocimientos tecnológicos en la resolución de problemas cotidianos.', 'si'),
+(28, 1, 1, 'Desarrolla la capacidad de argumentación y crítica en la producción de textos.', 'si'),
+(29, 2, 1, 'Amplía el vocabulario en inglés y lo utiliza en contextos reales.', 'si'),
+(30, 3, 1, 'Aplica conceptos matemáticos en la resolución de problemas de la vida diaria.', 'si'),
+(31, 4, 1, 'Promueve el cuidado del medio ambiente a través de acciones concretas.', 'si'),
+(32, 5, 1, 'Valora el patrimonio cultural e histórico de su comunidad.', 'si'),
+(33, 6, 1, 'Participa activamente en la vida democrática de su entorno escolar.', 'si'),
+(34, 7, 1, 'Adopta hábitos de higiene y alimentación para una vida saludable.', 'si'),
+(35, 8, 1, 'Experimenta con diferentes materiales y técnicas para crear obras artísticas.', 'si'),
+(36, 9, 1, 'Disfruta y valora la música de diferentes géneros y culturas.', 'si'),
+(37, 10, 1, 'Coordina movimientos corporales para expresar emociones e ideas.', 'si'),
+(38, 11, 1, 'Trabaja en equipo para la creación y representación de obras teatrales.', 'si'),
+(39, 12, 1, 'Utiliza software educativo para fortalecer sus aprendizajes.', 'si'),
+(40, 106, 1, 'Identifica causas y consecuencias de hechos históricos relevantes.', 'si'),
+(41, 109, 1, 'Diseña proyectos tecnológicos simples para mejorar su entorno.', 'si'),
+(42, 1, 1, 'Reflexiona sobre el uso del lenguaje y su impacto en la comunicación.', 'si'),
+(43, 2, 1, 'Intercambia información en inglés sobre temas de interés personal.', 'si');
 
 -- --------------------------------------------------------
 
@@ -744,7 +774,8 @@ CREATE TABLE `horarios` (
 --
 
 INSERT INTO `horarios` (`id_horario`, `fk_aula`, `fk_momento`, `fk_componente`, `fk_personal`, `grupo`, `dia_semana`, `hora_inicio`, `hora_fin`) VALUES
-(4, 1, 11, 12, 18, 'completo', 'lunes', 7.66667, 8.33333);
+(4, 1, 11, 12, 18, 'completo', 'lunes', 7.66667, 8.33333),
+(6, 1, 11, 109, 18, 'completo', 'lunes', 8.33333, 9);
 
 -- --------------------------------------------------------
 
@@ -923,8 +954,9 @@ INSERT INTO `imparte` (`id_imparte`, `fk_aula`, `fk_personal`, `fk_momento`, `fk
 (218, 1, 18, 11, 12, 'Especialista', NULL),
 (219, 1, 18, 12, 12, 'Especialista', NULL),
 (220, 1, 18, 13, 12, 'Especialista', NULL),
-(221, 1, 40, 11, 109, 'Especialista', NULL),
-(223, 2, 40, 11, 7, 'Especialista', NULL);
+(223, 2, 40, 11, 7, 'Especialista', NULL),
+(224, 7, 40, 11, 8, 'Especialista', NULL),
+(225, 1, 18, 11, 109, 'Especialista', NULL);
 
 -- --------------------------------------------------------
 
@@ -997,7 +1029,127 @@ INSERT INTO `indicadores` (`id_indicador`, `fk_competencia`, `nombre_indicador`,
 (49, 13, 'Valora la diversidad cultural de su país.', 'ser', 1, 'no'),
 (50, 13, 'Elabora líneas de tiempo sencillas con hechos históricos.', 'hacer', 2, 'no'),
 (51, 13, 'Describe características geográficas de su región.', 'conocer', 3, 'no'),
-(52, 13, 'Participa en actividades que promueven la identidad nacional.', 'convivir', 4, 'no');
+(52, 13, 'Participa en actividades que promueven la identidad nacional.', 'convivir', 4, 'no'),
+(53, 14, 'Muestra interés por la lectura y la escritura como herramientas de comunicación.', 'ser', 1, 'no'),
+(54, 14, 'Produce textos orales y escritos coherentes según diferentes propósitos comunicativos.', 'hacer', 2, 'no'),
+(55, 14, 'Identifica elementos gramaticales y estructurales de diferentes tipos de textos.', 'conocer', 3, 'no'),
+(56, 14, 'Participa en discusiones grupales respetando turnos y opiniones diversas.', 'convivir', 4, 'no'),
+(57, 15, 'Muestra apertura hacia el aprendizaje de una lengua extranjera.', 'ser', 1, 'no'),
+(58, 15, 'Utiliza expresiones básicas en inglés para comunicarse en situaciones cotidianas.', 'hacer', 2, 'no'),
+(59, 15, 'Reconoce vocabulario y estructuras gramaticales básicas del inglés.', 'conocer', 3, 'no'),
+(60, 15, 'Colabora en actividades de intercambio lingüístico con compañeros.', 'convivir', 4, 'no'),
+(61, 16, 'Manifiesta perseverancia al enfrentar desafíos matemáticos.', 'ser', 1, 'no'),
+(62, 16, 'Aplica operaciones matemáticas en la resolución de problemas contextualizados.', 'hacer', 2, 'no'),
+(63, 16, 'Comprende conceptos matemáticos fundamentales y sus relaciones.', 'conocer', 3, 'no'),
+(64, 16, 'Trabaja colaborativamente en la solución de problemas matemáticos.', 'convivir', 4, 'no'),
+(65, 17, 'Demuestra curiosidad científica ante fenómenos naturales.', 'ser', 1, 'no'),
+(66, 17, 'Realiza observaciones y experimentos sencillos sobre fenómenos naturales.', 'hacer', 2, 'no'),
+(67, 17, 'Describe características y comportamientos de seres vivos y elementos naturales.', 'conocer', 3, 'no'),
+(68, 17, 'Participa en proyectos grupales de investigación y conservación ambiental.', 'convivir', 4, 'no'),
+(69, 18, 'Valora la diversidad cultural y social de su entorno.', 'ser', 1, 'no'),
+(70, 18, 'Elabora representaciones gráficas de espacios geográficos y sociales.', 'hacer', 2, 'no'),
+(71, 18, 'Identifica elementos constitutivos de la organización social y territorial.', 'conocer', 3, 'no'),
+(72, 18, 'Respeta normas de convivencia en diferentes contextos sociales.', 'convivir', 4, 'no'),
+(73, 19, 'Actúa con honestidad y responsabilidad en situaciones cotidianas.', 'ser', 1, 'no'),
+(74, 19, 'Cumple con sus deberes y ejerce sus derechos de manera responsable.', 'hacer', 2, 'no'),
+(75, 19, 'Reconoce principios y valores fundamentales de la ciudadanía.', 'conocer', 3, 'no'),
+(76, 19, 'Participa en actividades democráticas dentro del aula y la escuela.', 'convivir', 4, 'no'),
+(77, 20, 'Muestra disposición positiva hacia la actividad física y el deporte.', 'ser', 1, 'no'),
+(78, 20, 'Ejecuta movimientos y ejercicios físicos con coordinación y equilibrio.', 'hacer', 2, 'no'),
+(79, 20, 'Conoce los beneficios de la actividad física para la salud integral.', 'conocer', 3, 'no'),
+(80, 20, 'Colabora en juegos y actividades deportivas respetando las reglas.', 'convivir', 4, 'no'),
+(81, 21, 'Expresa emociones e ideas a través de creaciones artísticas.', 'ser', 1, 'no'),
+(82, 21, 'Utiliza diversas técnicas y materiales para realizar producciones plásticas.', 'hacer', 2, 'no'),
+(83, 21, 'Reconoce elementos del lenguaje visual y principios de composición.', 'conocer', 3, 'no'),
+(84, 21, 'Comparte y valora las producciones artísticas propias y ajenas.', 'convivir', 4, 'no'),
+(85, 22, 'Manifiesta sensibilidad y aprecio por expresiones musicales diversas.', 'ser', 1, 'no'),
+(86, 22, 'Interpreta ritmos y melodías utilizando instrumentos o la voz.', 'hacer', 2, 'no'),
+(87, 22, 'Identifica elementos constitutivos de la música (ritmo, melodía, armonía).', 'conocer', 3, 'no'),
+(88, 22, 'Participa en actividades musicales grupales con coordinación.', 'convivir', 4, 'no'),
+(89, 23, 'Se expresa con libertad y creatividad a través del movimiento corporal.', 'ser', 1, 'no'),
+(90, 23, 'Realiza secuencias de movimiento y coreografías sencillas.', 'hacer', 2, 'no'),
+(91, 23, 'Comprende las posibilidades expresivas del cuerpo en el espacio.', 'conocer', 3, 'no'),
+(92, 23, 'Trabaja en equipo para crear composiciones dancísticas colectivas.', 'convivir', 4, 'no'),
+(93, 24, 'Desarrolla confianza al representar personajes y situaciones.', 'ser', 1, 'no'),
+(94, 24, 'Improvisa escenas teatrales a partir de consignas específicas.', 'hacer', 2, 'no'),
+(95, 24, 'Identifica elementos fundamentales de la estructura dramática.', 'conocer', 3, 'no'),
+(96, 24, 'Colabora en montajes teatrales respetando roles y contribuciones.', 'convivir', 4, 'no'),
+(97, 25, 'Demuestra responsabilidad en el manejo de herramientas tecnológicas.', 'ser', 1, 'no'),
+(98, 25, 'Utiliza programas informáticos para crear documentos y presentaciones.', 'hacer', 2, 'no'),
+(99, 25, 'Reconoce componentes básicos de hardware y software.', 'conocer', 3, 'no'),
+(100, 25, 'Comparte información digital de manera ética y respetuosa.', 'convivir', 4, 'no'),
+(101, 26, 'Valora el patrimonio histórico y cultural de su nación.', 'ser', 1, 'no'),
+(102, 26, 'Elabora líneas de tiempo y análisis de procesos históricos.', 'hacer', 2, 'no'),
+(103, 26, 'Comprende interrelaciones entre fenómenos históricos y geográficos.', 'conocer', 3, 'no'),
+(104, 26, 'Participa en actividades que fomentan la identidad nacional.', 'convivir', 4, 'no'),
+(105, 27, 'Muestra interés por la aplicación práctica de la tecnología.', 'ser', 1, 'no'),
+(106, 27, 'Aplica herramientas tecnológicas en la solución de problemas cotidianos.', 'hacer', 2, 'no'),
+(107, 27, 'Comprende conceptos básicos de funcionamiento tecnológico.', 'conocer', 3, 'no'),
+(108, 27, 'Trabaja colaborativamente en proyectos tecnológicos.', 'convivir', 4, 'no'),
+(109, 28, 'Desarrolla pensamiento crítico a través del análisis textual.', 'ser', 1, 'no'),
+(110, 28, 'Construye textos argumentativos con fundamentos sólidos.', 'hacer', 2, 'no'),
+(111, 28, 'Analiza estructuras y recursos retóricos en diferentes textos.', 'conocer', 3, 'no'),
+(112, 28, 'Debate temas de interés general respetando la diversidad de opiniones.', 'convivir', 4, 'no'),
+(113, 29, 'Muestra confianza al comunicarse en inglés en diferentes contextos.', 'ser', 1, 'no'),
+(114, 29, 'Amplía su vocabulario mediante la práctica constante del idioma.', 'hacer', 2, 'no'),
+(115, 29, 'Domina estructuras gramaticales complejas del inglés.', 'conocer', 3, 'no'),
+(116, 29, 'Participa en intercambios comunicativos fluidos en inglés.', 'convivir', 4, 'no'),
+(117, 30, 'Desarrolla interés por la aplicación práctica de las matemáticas.', 'ser', 1, 'no'),
+(118, 30, 'Resuelve problemas matemáticos relacionados con situaciones reales.', 'hacer', 2, 'no'),
+(119, 30, 'Comprende conceptos matemáticos aplicables al contexto cotidiano.', 'conocer', 3, 'no'),
+(120, 30, 'Colabora en la resolución de problemas matemáticos grupales.', 'convivir', 4, 'no'),
+(121, 31, 'Manifiesta compromiso con la protección del medio ambiente.', 'ser', 1, 'no'),
+(122, 31, 'Implementa acciones concretas de conservación ambiental.', 'hacer', 2, 'no'),
+(123, 31, 'Comprende problemáticas ambientales y sus posibles soluciones.', 'conocer', 3, 'no'),
+(124, 31, 'Participa en iniciativas colectivas de cuidado ambiental.', 'convivir', 4, 'no'),
+(125, 32, 'Valora y respeta las manifestaciones culturales de su comunidad.', 'ser', 1, 'no'),
+(126, 32, 'Investiga y documenta elementos del patrimonio cultural local.', 'hacer', 2, 'no'),
+(127, 32, 'Conoce aspectos históricos y culturales de su localidad.', 'conocer', 3, 'no'),
+(128, 32, 'Comparte y difunde el patrimonio cultural con otros.', 'convivir', 4, 'no'),
+(129, 33, 'Muestra interés activo por la participación democrática.', 'ser', 1, 'no'),
+(130, 33, 'Ejerce liderazgo y representación en instancias escolares.', 'hacer', 2, 'no'),
+(131, 33, 'Comprende los mecanismos de participación democrática.', 'conocer', 3, 'no'),
+(132, 33, 'Promueve la organización democrática en su entorno escolar.', 'convivir', 4, 'no'),
+(133, 34, 'Adopta una actitud proactiva hacia el cuidado de su salud.', 'ser', 1, 'no'),
+(134, 34, 'Practica hábitos de higiene y alimentación balanceada.', 'hacer', 2, 'no'),
+(135, 34, 'Conoce principios básicos de nutrición y salud preventiva.', 'conocer', 3, 'no'),
+(136, 34, 'Promueve estilos de vida saludable entre sus compañeros.', 'convivir', 4, 'no'),
+(137, 35, 'Muestra apertura a la experimentación con diferentes medios artísticos.', 'ser', 1, 'no'),
+(138, 35, 'Explora técnicas y materiales diversos en sus creaciones artísticas.', 'hacer', 2, 'no'),
+(139, 35, 'Identifica características de diferentes corrientes y estilos artísticos.', 'conocer', 3, 'no'),
+(140, 35, 'Comparte experiencias y descubrimientos artísticos con otros.', 'convivir', 4, 'no'),
+(141, 36, 'Aprecia la diversidad musical de diferentes culturas y épocas.', 'ser', 1, 'no'),
+(142, 36, 'Interpreta piezas musicales de diversos géneros y estilos.', 'hacer', 2, 'no'),
+(143, 36, 'Reconoce características distintivas de géneros musicales diversos.', 'conocer', 3, 'no'),
+(144, 36, 'Participa en actividades musicales que integran diversidad cultural.', 'convivir', 4, 'no'),
+(145, 37, 'Desarrolla autoconfianza en la expresión a través del movimiento.', 'ser', 1, 'no'),
+(146, 37, 'Crea secuencias coreográficas con mayor complejidad y creatividad.', 'hacer', 2, 'no'),
+(147, 37, 'Comprende principios de composición y espacio en la danza.', 'conocer', 3, 'no'),
+(148, 37, 'Colabora en la creación de producciones dancísticas colectivas.', 'convivir', 4, 'no'),
+(149, 38, 'Muestra disposición para el trabajo colectivo en teatro.', 'ser', 1, 'no'),
+(150, 38, 'Participa activamente en todas las fases de producción teatral.', 'hacer', 2, 'no'),
+(151, 38, 'Comprende roles y responsabilidades en una producción teatral.', 'conocer', 3, 'no'),
+(152, 38, 'Trabaja coordinadamente con el equipo en montajes teatrales.', 'convivir', 4, 'no'),
+(153, 39, 'Muestra interés por el uso educativo de la tecnología.', 'ser', 1, 'no'),
+(154, 39, 'Utiliza programas educativos para reforzar sus aprendizajes.', 'hacer', 2, 'no'),
+(155, 39, 'Conoce diferentes recursos y software educativo disponible.', 'conocer', 3, 'no'),
+(156, 39, 'Comparte conocimientos y recursos tecnológicos con compañeros.', 'convivir', 4, 'no'),
+(157, 40, 'Desarrolla pensamiento crítico sobre procesos históricos.', 'ser', 1, 'no'),
+(158, 40, 'Investiga y analiza causas y consecuencias de hechos históricos.', 'hacer', 2, 'no'),
+(159, 40, 'Comprende relaciones de causalidad en fenómenos históricos.', 'conocer', 3, 'no'),
+(160, 40, 'Participa en debates históricos con argumentación fundamentada.', 'convivir', 4, 'no'),
+(161, 41, 'Manifiesta creatividad en el diseño de soluciones tecnológicas.', 'ser', 1, 'no'),
+(162, 41, 'Diseña y desarrolla proyectos tecnológicos aplicables a su entorno.', 'hacer', 2, 'no'),
+(163, 41, 'Comprende fases del diseño y desarrollo de proyectos tecnológicos.', 'conocer', 3, 'no'),
+(164, 41, 'Trabaja en equipo para implementar proyectos tecnológicos.', 'convivir', 4, 'no'),
+(165, 42, 'Reflexiona sobre el poder del lenguaje en la construcción de realidades.', 'ser', 1, 'no'),
+(166, 42, 'Adapta su comunicación a diferentes contextos y audiencias.', 'hacer', 2, 'no'),
+(167, 42, 'Analiza funciones y usos del lenguaje en diversos contextos.', 'conocer', 3, 'no'),
+(168, 42, 'Respeta y valora diferentes formas de expresión lingüística.', 'convivir', 4, 'no'),
+(169, 43, 'Muestra iniciativa para usar el inglés en situaciones reales.', 'ser', 1, 'no'),
+(170, 43, 'Intercambia información en inglés sobre temas de interés personal.', 'hacer', 2, 'no'),
+(171, 43, 'Amplía vocabulario especializado en áreas de interés.', 'conocer', 3, 'no'),
+(172, 43, 'Participa activamente en conversaciones y debates en inglés.', 'convivir', 4, 'no');
 
 -- --------------------------------------------------------
 
@@ -1471,8 +1623,7 @@ CREATE TABLE `planificaciones` (
 --
 
 INSERT INTO `planificaciones` (`id_planificacion`, `fk_personal`, `fk_aula`, `fk_componente`, `fk_momento`, `tipo`, `estado`, `reutilizable`) VALUES
-(1, 35, 5, 4, 11, 'aula', 'activo', 'no'),
-(2, 1, 1, 8, 11, 'aula', 'activo', 'no');
+(3, 1, 1, 8, 11, 'aula', 'activo', 'no');
 
 -- --------------------------------------------------------
 
@@ -1503,8 +1654,7 @@ CREATE TABLE `plan_competencias` (
 --
 
 INSERT INTO `plan_competencias` (`id_plan_com`, `fk_competencias`, `fk_planificacion`) VALUES
-(1, 4, 1),
-(2, 8, 2);
+(3, 8, 3);
 
 -- --------------------------------------------------------
 
@@ -1609,7 +1759,7 @@ CREATE TABLE `sesiones_usuario` (
 --
 
 INSERT INTO `sesiones_usuario` (`id`, `fk_usuario`, `hash_sesion`, `fecha_inicio`, `fecha_vencimiento`) VALUES
-(82, 43, '3f59f03233b1134558d9a524cd3550ecc2fbc50234d100a951371611b2409fd1', '2026-01-19', '2026-01-20');
+(83, 43, '5dc23f8f301a59ca20fc1993244ca80aa20ef003a7d95f71b888ab0c46489225', '2026-01-20', '2026-01-21');
 
 -- --------------------------------------------------------
 
@@ -2214,13 +2364,13 @@ ALTER TABLE `cargos`
 -- AUTO_INCREMENT de la tabla `competencias`
 --
 ALTER TABLE `competencias`
-  MODIFY `id_competencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_competencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT de la tabla `componentes_aprendizaje`
 --
 ALTER TABLE `componentes_aprendizaje`
-  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
+  MODIFY `id_componente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 
 --
 -- AUTO_INCREMENT de la tabla `condiciones_salud`
@@ -2286,19 +2436,19 @@ ALTER TABLE `habilidades`
 -- AUTO_INCREMENT de la tabla `horarios`
 --
 ALTER TABLE `horarios`
-  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `imparte`
 --
 ALTER TABLE `imparte`
-  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=224;
+  MODIFY `id_imparte` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
 
 --
 -- AUTO_INCREMENT de la tabla `indicadores`
 --
 ALTER TABLE `indicadores`
-  MODIFY `id_indicador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id_indicador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=173;
 
 --
 -- AUTO_INCREMENT de la tabla `inscripciones`
@@ -2346,7 +2496,7 @@ ALTER TABLE `personas`
 -- AUTO_INCREMENT de la tabla `planificaciones`
 --
 ALTER TABLE `planificaciones`
-  MODIFY `id_planificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_planificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `planificaciones_individuales`
@@ -2358,7 +2508,7 @@ ALTER TABLE `planificaciones_individuales`
 -- AUTO_INCREMENT de la tabla `plan_competencias`
 --
 ALTER TABLE `plan_competencias`
-  MODIFY `id_plan_com` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_plan_com` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `preguntas`
@@ -2382,7 +2532,7 @@ ALTER TABLE `respaldos`
 -- AUTO_INCREMENT de la tabla `sesiones_usuario`
 --
 ALTER TABLE `sesiones_usuario`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `temas`
